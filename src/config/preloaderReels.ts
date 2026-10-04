@@ -1,15 +1,10 @@
 import { PreloaderReel } from '../types';
 
-/**
- * BrandShoots Temporary Sample Reel Moments
- * Configured for easy replacement with client raw footage without touching animation logic.
- */
 export const PRELOADER_REELS: PreloaderReel[] = [
   {
     id: 'reel-01',
     title: 'Automotive Motion Cut',
     category: 'Commercial Film',
-    // Highly optimized preview video (editorial motion / commercial)
     source: 'https://assets.mixkit.co/videos/preview/mixkit-car-driving-through-the-night-in-a-city-43841-small.mp4',
     poster: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80',
     duration: 0.42,
@@ -97,7 +92,7 @@ export const PRELOADER_REELS: PreloaderReel[] = [
     category: 'Creative Production Master',
     source: 'https://assets.mixkit.co/videos/preview/mixkit-filmmaker-looking-through-a-camera-42894-small.mp4',
     poster: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=1200&q=80',
-    duration: 0.95, // Holds longer during the focus & shutter sequence
+    duration: 0.95,
     priority: 6,
     cropPosition: '50% 40%',
     metadata: {
@@ -106,6 +101,108 @@ export const PRELOADER_REELS: PreloaderReel[] = [
       iso: '800',
       shutter: '180° SHUTTER',
       timecode: '00:10:00:00'
+    }
+  },
+  {
+    id: 'reel-07',
+    title: 'Cinematic Portrait Silhouette',
+    category: 'Studio Lighting',
+    source: 'https://assets.mixkit.co/videos/preview/mixkit-woman-posing-with-dramatic-lighting-42870-small.mp4',
+    poster: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1200&q=80',
+    duration: 0.45,
+    priority: 7,
+    cropPosition: 'center',
+    metadata: {
+      lens: '85MM T1.4',
+      fps: '24 FPS',
+      iso: '500',
+      shutter: '1/48',
+      timecode: '00:12:04:18'
+    }
+  },
+  {
+    id: 'reel-08',
+    title: 'Urban Night Glow & Light Trails',
+    category: 'City Campaign',
+    source: 'https://assets.mixkit.co/videos/preview/mixkit-traffic-at-night-in-a-big-city-43843-small.mp4',
+    poster: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80',
+    duration: 0.40,
+    priority: 8,
+    cropPosition: 'center',
+    metadata: {
+      lens: '50MM ANAMORPHIC',
+      fps: '24 FPS',
+      iso: '1600',
+      shutter: '1/48',
+      timecode: '00:14:22:09'
+    }
+  },
+  {
+    id: 'reel-09',
+    title: 'Product Macro Reflections',
+    category: 'Commercial Production',
+    source: 'https://assets.mixkit.co/videos/preview/mixkit-perfume-bottle-in-a-water-splash-42890-small.mp4',
+    poster: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80',
+    duration: 0.38,
+    priority: 9,
+    cropPosition: 'center',
+    metadata: {
+      lens: '90MM MACRO',
+      fps: '120 FPS',
+      iso: '400',
+      shutter: '1/240',
+      timecode: '00:16:30:14'
+    }
+  },
+  {
+    id: 'reel-10',
+    title: 'High-Energy Social Reel Edit',
+    category: 'Short Form Growth',
+    source: 'https://assets.mixkit.co/videos/preview/mixkit-young-woman-dancing-in-a-studio-42868-small.mp4',
+    poster: 'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=1200&q=80',
+    duration: 0.35,
+    priority: 10,
+    cropPosition: 'center',
+    metadata: {
+      lens: '28MM PRIME',
+      fps: '60 FPS',
+      iso: '640',
+      shutter: '1/120',
+      timecode: '00:18:02:00'
+    }
+  },
+  {
+    id: 'reel-11',
+    title: 'Documentary Master Shot',
+    category: 'Brand Story',
+    source: 'https://assets.mixkit.co/videos/preview/mixkit-hands-crafting-a-leather-item-42892-small.mp4',
+    poster: 'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?auto=format&fit=crop&w=1200&q=80',
+    duration: 0.42,
+    priority: 11,
+    cropPosition: 'center',
+    metadata: {
+      lens: '40MM COOKE',
+      fps: '24 FPS',
+      iso: '400',
+      shutter: '1/48',
+      timecode: '00:20:11:05'
+    }
+  },
+  {
+    id: 'reel-12',
+    title: 'Master Showreel Finale',
+    category: 'Brand Shoots 2026',
+    source: 'https://assets.mixkit.co/videos/preview/mixkit-filmmaker-looking-through-a-camera-42894-small.mp4',
+    poster: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=1200&q=80',
+    duration: 0.85,
+    priority: 12,
+    cropPosition: '50% 40%',
+    metadata: {
+      lens: 'MASTER PRIME 35MM',
+      fps: '24 FPS RAW',
+      iso: '800',
+      shutter: '180°',
+      timecode: '00:22:00:00'
     }
   }
 ];

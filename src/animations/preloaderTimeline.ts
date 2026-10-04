@@ -3,15 +3,14 @@ import { playShutterClick } from '../utils/audioFX';
 
 export interface PreloaderTimelineRefs {
   containerRef: React.RefObject<HTMLDivElement>;
-  deviceContainerRef: React.RefObject<HTMLDivElement>;
-  deviceOuterRef: React.RefObject<HTMLDivElement>;
-  screenInnerRef: React.RefObject<HTMLDivElement>;
+  tilesContainerRef: React.RefObject<HTMLDivElement>;
+  logoOverlayRef: React.RefObject<HTMLDivElement>;
   flashRef: React.RefObject<HTMLDivElement>;
   backdropHazeRef: React.RefObject<HTMLDivElement>;
 }
 
 export interface PreloaderTimelineCallbacks {
-  onReelChange: (index: number) => void;
+  onCollectStateChange: (collecting: boolean) => void;
   onLogoStageChange: (stage: 'hidden' | 'focus' | 'shutter' | 'snap' | 'locked' | 'expand') => void;
   onColorReveal: (revealed: boolean) => void;
   onFocusStateChange: (focusing: boolean, locked: boolean) => void;
@@ -20,8 +19,8 @@ export interface PreloaderTimelineCallbacks {
 
 /**
  * Creates and runs the master GSAP cinematic preloader timeline.
- * Synchronizes video memory cuts, white flashes, autofocus lock, shutter snap,
- * brand color bloom, and seamless screen expansion handoff.
+ * Orchestrates 3D multigrade scrolling tiles, convergence ("collecting"),
+ * shutter snap, white flash, and seamless expansion into the hero.
  */
 export function createPreloaderTimeline(
   refs: PreloaderTimelineRefs,
@@ -29,9 +28,8 @@ export function createPreloaderTimeline(
 ): gsap.core.Timeline {
   const {
     containerRef,
-    deviceContainerRef,
-    deviceOuterRef,
-    screenInnerRef,
+    tilesContainerRef,
+    logoOverlayRef,
     flashRef,
     backdropHazeRef
   } = refs;
@@ -45,145 +43,85 @@ export function createPreloaderTimeline(
 
   // Initial State Setup
   tl.set(containerRef.current, { opacity: 1, visibility: 'visible' });
-  tl.set(deviceContainerRef.current, {
-    opacity: 0,
-    scale: 0.88,
-    y: 25,
-    rotateX: 4,
-    rotateY: -3
-  });
+  tl.set(tilesContainerRef.current, { opacity: 0, scale: 0.95 });
   tl.set(backdropHazeRef.current, { opacity: 0 });
   tl.set(flashRef.current, { opacity: 0 });
 
   // ----------------------------------------------------
   // LABEL: intro (0.00s)
-  // Deep silence, black environment with gradual ambient rise
+  // 3D Multigrade Tiles emerge into spatial perspective
   // ----------------------------------------------------
   tl.addLabel('intro', 0.0);
   tl.to(backdropHazeRef.current, {
-    opacity: 0.45,
+    opacity: 0.5,
     duration: 0.8,
     ease: 'power2.inOut'
   }, 'intro+=0.1');
 
-  // ----------------------------------------------------
-  // LABEL: deviceReveal (~0.30s)
-  // Physical cinema monitor emerges with weight and stabilized float
-  // ----------------------------------------------------
-  tl.addLabel('deviceReveal', 0.35);
-  tl.to(deviceContainerRef.current, {
+  tl.to(tilesContainerRef.current, {
     opacity: 1,
     scale: 1,
-    y: 0,
-    rotateX: 1,
-    rotateY: -1,
-    duration: 0.85,
+    duration: 1.0,
     ease: 'power3.out'
-  }, 'deviceReveal');
-
-  // Continuous micro handheld float on the device
-  tl.to(deviceContainerRef.current, {
-    rotateX: -1.2,
-    rotateY: 1.5,
-    y: -4,
-    duration: 2.2,
-    ease: 'sine.inOut',
-    yoyo: true,
-    repeat: 1
-  }, 'deviceReveal+=0.4');
+  }, 'intro+=0.2');
 
   // ----------------------------------------------------
-  // LABEL: memory01 (~0.50s)
-  // First memory fragment cuts into existence
+  // LABEL: streaming (0.80s - 2.20s)
+  // Rapid 3D multigrade tiles stream across the viewport
   // ----------------------------------------------------
-  tl.addLabel('memory01', 0.52);
-  tl.call(() => callbacks.onReelChange(0), undefined, 'memory01');
+  tl.addLabel('streaming', 0.8);
 
-  // ----------------------------------------------------
-  // Micro exposure pop & flash cut to memory02 (~0.88s)
-  // ----------------------------------------------------
-  tl.addLabel('flash01', 0.88);
+  // Mid-stream camera exposure flash
   tl.to(flashRef.current, {
-    opacity: 0.75,
-    duration: 0.07,
-    ease: 'power4.in',
-    onComplete: () => callbacks.onReelChange(1)
-  }, 'flash01');
-  tl.to(flashRef.current, {
-    opacity: 0,
-    duration: 0.09,
-    ease: 'power3.out'
-  }, 'flash01+=0.07');
-
-  // ----------------------------------------------------
-  // LABEL: memory02 (~0.98s) -> Hard cut to memory03 (~1.32s)
-  // ----------------------------------------------------
-  tl.addLabel('memory03', 1.32);
-  tl.call(() => callbacks.onReelChange(2), undefined, 'memory03');
-
-  // ----------------------------------------------------
-  // Camera exposure flash cut to memory04 (~1.65s)
-  // ----------------------------------------------------
-  tl.addLabel('flash02', 1.65);
-  tl.to(flashRef.current, {
-    opacity: 0.85,
+    opacity: 0.65,
     duration: 0.08,
-    ease: 'power4.in',
-    onComplete: () => callbacks.onReelChange(3)
-  }, 'flash02');
+    ease: 'power4.in'
+  }, 'streaming+=0.6');
   tl.to(flashRef.current, {
     opacity: 0,
     duration: 0.1,
     ease: 'power3.out'
-  }, 'flash02+=0.08');
+  }, 'streaming+=0.68');
 
   // ----------------------------------------------------
-  // Cut to memory05 (~1.98s)
+  // LABEL: collect (~2.20s)
+  // THE TILES COLLECT! (Camille Mormal inspired convergence)
+  // Scrolling slows down, perspective straightens, tiles pull together
   // ----------------------------------------------------
-  tl.addLabel('memory05', 1.98);
-  tl.call(() => callbacks.onReelChange(4), undefined, 'memory05');
+  tl.addLabel('collect', 2.2);
+  tl.call(() => callbacks.onCollectStateChange(true), undefined, 'collect');
+
+  tl.to(tilesContainerRef.current, {
+    scale: 0.96,
+    duration: 1.1,
+    ease: 'power3.inOut'
+  }, 'collect');
 
   // ----------------------------------------------------
-  // LABEL: memoryHold (~2.40s)
-  // Final memory clip (Director master frame) enters and slows down
+  // LABEL: focus (~2.80s)
+  // Center autofocus target initiates
   // ----------------------------------------------------
-  tl.addLabel('memoryHold', 2.38);
-  tl.call(() => callbacks.onReelChange(5), undefined, 'memoryHold');
-
-  // Deceleration: Motion settles, still breath (Section 18)
-  tl.to(deviceContainerRef.current, {
-    rotateX: 0,
-    rotateY: 0,
-    y: 0,
-    scale: 1.02,
-    duration: 0.7,
-    ease: 'power2.out'
-  }, 'memoryHold+=0.2');
-
-  // ----------------------------------------------------
-  // LABEL: focus (~2.95s)
-  // Autofocus lock sequence initiates
-  // ----------------------------------------------------
-  tl.addLabel('focus', 2.95);
+  tl.addLabel('focus', 2.8);
   tl.call(() => callbacks.onFocusStateChange(true, false), undefined, 'focus');
+  tl.call(() => callbacks.onLogoStageChange('focus'), undefined, 'focus+=0.1');
 
-  // Autofocus locks sharp (~3.25s)
-  tl.call(() => callbacks.onFocusStateChange(true, true), undefined, 'focus+=0.3');
+  // Autofocus locks sharp (~3.15s)
+  tl.call(() => callbacks.onFocusStateChange(true, true), undefined, 'focus+=0.35');
 
   // ----------------------------------------------------
   // LABEL: shutter & snap (~3.45s)
-  // Shutter iris tightens -> CLICK -> WHITE FLASH
+  // Shutter iris tightens -> CLICK -> WHITE CAMERA FLASH
   // ----------------------------------------------------
-  tl.addLabel('shutter', 3.42);
+  tl.addLabel('shutter', 3.45);
   tl.call(() => callbacks.onLogoStageChange('shutter'), undefined, 'shutter');
 
-  tl.addLabel('snap', 3.58);
+  tl.addLabel('snap', 3.6);
   tl.call(() => {
     callbacks.onLogoStageChange('snap');
     playShutterClick();
   }, undefined, 'snap');
 
-  // Emotional Peak: White Camera Flash (Section 21)
+  // Emotional Peak: White Camera Flash
   tl.addLabel('flash', 3.65);
   tl.to(flashRef.current, {
     opacity: 1,
@@ -200,59 +138,47 @@ export function createPreloaderTimeline(
   // Flash decays into crisp locked identity
   tl.to(flashRef.current, {
     opacity: 0,
-    duration: 0.22,
+    duration: 0.28,
     ease: 'power2.out'
   }, 'flash+=0.09');
 
   // ----------------------------------------------------
-  // LABEL: logoLock (~3.90s)
+  // LABEL: logoLock (~4.00s)
   // Hold the official identity with "Create. Shoot. Grow."
   // ----------------------------------------------------
-  tl.addLabel('logoLock', 3.90);
-  tl.to(deviceContainerRef.current, {
-    scale: 1.04,
-    duration: 0.5,
-    ease: 'power1.out'
-  }, 'logoLock');
+  tl.addLabel('logoLock', 4.0);
 
   // ----------------------------------------------------
-  // LABEL: expand & exit (~4.40s)
-  // THE BIG TRANSITION: Screen expands toward viewer,
-  // device hardware flies past viewport borders,
-  // revealing the Phase 2 Hero stage seamlessly (Section 25, 26, 27)
+  // LABEL: expand & exit (~4.60s)
+  // THE BIG TRANSITION: 3D tiles scale up and disperse outward,
+  // revealing the underlying Phase 2 Hero seamlessly!
   // ----------------------------------------------------
-  tl.addLabel('expand', 4.40);
+  tl.addLabel('expand', 4.6);
   tl.call(() => callbacks.onLogoStageChange('expand'), undefined, 'expand');
 
-  // Outer gimbal hardware fades & flies outward beyond the frame
-  tl.to(deviceOuterRef.current, {
+  // Tiles zoom forward & disperse
+  tl.to(tilesContainerRef.current, {
+    scale: 1.8,
     opacity: 0,
-    scale: 1.4,
-    duration: 0.5,
-    ease: 'power2.in'
-  }, 'expand');
-
-  // Device screen scales dramatically forward into full viewport
-  tl.to(deviceContainerRef.current, {
-    scale: 3.6,
-    y: 0,
-    duration: 1.1,
+    duration: 0.95,
     ease: 'power4.inOut'
   }, 'expand');
 
-  // Optic internal barrel zoom
-  tl.to(screenInnerRef.current, {
-    scale: 1.15,
-    duration: 1.1,
-    ease: 'power3.inOut'
-  }, 'expand');
+  if (logoOverlayRef.current) {
+    tl.to(logoOverlayRef.current, {
+      scale: 1.25,
+      opacity: 0,
+      duration: 0.75,
+      ease: 'power3.in'
+    }, 'expand');
+  }
 
-  // Background overlay fades smoothly to handoff
+  // Preloader container background dissolves into hero
   tl.to(containerRef.current, {
     opacity: 0,
     duration: 0.55,
     ease: 'power2.out'
-  }, 'expand+=0.65');
+  }, 'expand+=0.45');
 
   return tl;
 }

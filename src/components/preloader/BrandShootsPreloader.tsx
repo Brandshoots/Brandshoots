@@ -1,6 +1,9 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import gsap from 'gsap';
-import { DeviceFrame } from './DeviceFrame';
+import { Multigrade3DTiles } from './Multigrade3DTiles';
+import { BrandLogoOverlay } from './BrandLogoOverlay';
+import { FocusReveal } from './FocusReveal';
+import { CameraFlash } from './CameraFlash';
 import { PRELOADER_CONFIG } from '../../config/preloaderConfig';
 import { createPreloaderTimeline } from '../../animations/preloaderTimeline';
 
@@ -11,31 +14,28 @@ interface BrandShootsPreloaderProps {
 
 /**
  * BRANDSHOOTS CINEMATIC PRELOADER (PHASE 1)
- * The Opening Film of the Brand Shoots digital flagship experience.
- * Sequence: MEMORIES -> FRAMES -> CAMERA -> FOCUS -> SNAP -> BRAND -> ENTER WEBSITE
+ * Multi-Column 3D Multigrade Scrolling Tiles (Camille Mormal Reference).
+ * Flow: 3D STREAMING TILES -> TILES COLLECT -> FOCUS -> SHUTTER SNAP -> WHITE FLASH -> BRAND REVEAL -> EXPAND HERO
  */
 export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
   onComplete,
   forceReducedMotion = false
 }) => {
-  // Master DOM References for GSAP timeline
   const containerRef = useRef<HTMLDivElement>(null);
-  const deviceContainerRef = useRef<HTMLDivElement>(null);
-  const deviceOuterRef = useRef<HTMLDivElement>(null);
-  const screenInnerRef = useRef<HTMLDivElement>(null);
+  const tilesContainerRef = useRef<HTMLDivElement>(null);
+  const logoOverlayRef = useRef<HTMLDivElement>(null);
   const flashRef = useRef<HTMLDivElement>(null);
   const backdropHazeRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
 
-  // Reactive state controlled via GSAP callbacks
-  const [activeReelIndex, setActiveReelIndex] = useState(0);
+  const [isCollecting, setIsCollecting] = useState(false);
   const [logoStage, setLogoStage] = useState<'hidden' | 'focus' | 'shutter' | 'snap' | 'locked' | 'expand'>('hidden');
   const [isColorRevealed, setIsColorRevealed] = useState(false);
   const [isFocusing, setIsFocusing] = useState(false);
   const [isFocusLocked, setIsFocusLocked] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
 
-  // Custom Subtle Cursor coordinates
+  // Mouse coordinate tracker for desktop cursor
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
@@ -46,7 +46,6 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
     }
   }, [onComplete]);
 
-  // Subtle Mouse Parallax & Custom Cursor Handling
   useEffect(() => {
     const checkTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     setIsTouchDevice(checkTouch);
@@ -55,33 +54,17 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
 
     const handleMouseMove = (e: MouseEvent) => {
       setMousePos({ x: e.clientX, y: e.clientY });
-
-      // Subtle real-world tilt based on mouse position
-      if (deviceContainerRef.current && logoStage !== 'expand') {
-        const normX = (e.clientX / window.innerWidth - 0.5) * 2;
-        const normY = (e.clientY / window.innerHeight - 0.5) * 2;
-
-        gsap.to(deviceContainerRef.current, {
-          rotateY: normX * PRELOADER_CONFIG.deviceRotation.maxTiltY,
-          rotateX: -normY * PRELOADER_CONFIG.deviceRotation.maxTiltX,
-          duration: 0.8,
-          ease: 'power2.out'
-        });
-      }
     };
 
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [logoStage]);
+  }, []);
 
-  // Master GSAP Timeline Execution & Failsafe Guard
   useEffect(() => {
-    // Check Reduced Motion Preference
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     const prefersReduced = mediaQuery.matches || forceReducedMotion;
 
     if (prefersReduced) {
-      // Rapid accessible transition: 500ms logo reveal then exit
       const quickTl = gsap.timeline({ onComplete: handleSequenceComplete });
       quickTl.to(containerRef.current, { opacity: 1, duration: 0.1 });
       quickTl.call(() => {
@@ -92,19 +75,17 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
       return;
     }
 
-    // Initialize GSAP Timeline Context
     const ctx = gsap.context(() => {
       timelineRef.current = createPreloaderTimeline(
         {
           containerRef,
-          deviceContainerRef,
-          deviceOuterRef,
-          screenInnerRef,
+          tilesContainerRef,
+          logoOverlayRef,
           flashRef,
           backdropHazeRef
         },
         {
-          onReelChange: (index) => setActiveReelIndex(index),
+          onCollectStateChange: (collecting) => setIsCollecting(collecting),
           onLogoStageChange: (stage) => setLogoStage(stage),
           onColorReveal: (revealed) => setIsColorRevealed(revealed),
           onFocusStateChange: (focusing, locked) => {
@@ -115,11 +96,10 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
         }
       );
 
-      // Trigger playback
       timelineRef.current.play();
     });
 
-    // Hard Safety Timeout Failsafe (Section 31: NEVER trap visitor)
+    // Hard Safety Timeout Failsafe
     const safetyTimer = setTimeout(() => {
       if (!isCompleted) {
         console.warn('Preloader safety failsafe triggered.');
@@ -140,64 +120,68 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#08090C] overflow-hidden select-none cursor-default"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#07080B] overflow-hidden select-none cursor-default"
       style={{
-        perspective: '1200px',
-        WebkitPerspective: '1200px'
+        perspective: '1400px',
+        WebkitPerspective: '1400px'
       }}
     >
       {/* Deep Void Ambient Haze */}
       <div
         ref={backdropHazeRef}
-        className="pointer-events-none absolute inset-0 opacity-0"
+        className="pointer-events-none absolute inset-0 opacity-0 z-10"
       >
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] bg-brand-navy/60 rounded-full blur-[160px]" />
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[350px] bg-brand-blue/10 rounded-full blur-[120px]" />
-        <div className="absolute inset-0 cinema-grain opacity-35" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[700px] bg-brand-navy/60 rounded-full blur-[180px]" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-brand-blue/15 rounded-full blur-[140px]" />
+        <div className="absolute inset-0 cinema-grain opacity-25" />
       </div>
 
-      {/* Cinematic Studio Letterbox Mask */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-10 md:h-14 bg-gradient-to-b from-black to-transparent z-40 opacity-80" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 md:h-14 bg-gradient-to-t from-black to-transparent z-40 opacity-80" />
-
-      {/* Center Device Stage (Slightly above midpoint per Section 04) */}
-      <div
-        ref={deviceContainerRef}
-        className="relative z-30 transform -translate-y-3 md:-translate-y-5"
-      >
-        <DeviceFrame
-          activeReelIndex={activeReelIndex}
-          logoStage={logoStage}
+      {/* 3D Multigrade Scrolling Tiles Field */}
+      <div ref={tilesContainerRef} className="absolute inset-0 w-full h-full z-20">
+        <Multigrade3DTiles
+          isCollecting={isCollecting}
           isColorRevealed={isColorRevealed}
-          isFocusing={isFocusing}
-          isFocusLocked={isFocusLocked}
-          flashRef={flashRef}
-          screenInnerRef={screenInnerRef}
-          deviceOuterRef={deviceOuterRef}
         />
       </div>
 
-      {/* Minimal Desktop Precision Cursor (Section 34) */}
+      {/* Center Autofocus Reticle Guide */}
+      <FocusReveal isFocusing={isFocusing} isLocked={isFocusLocked} />
+
+      {/* Editorial Official BrandShoots Logo Overlay */}
+      <BrandLogoOverlay
+        ref={logoOverlayRef}
+        stage={logoStage}
+        isColorRevealed={isColorRevealed}
+      />
+
+      {/* High-Intensity Camera Exposure Flash */}
+      <CameraFlash ref={flashRef} />
+
+      {/* Letterbox Mask */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-12 md:h-16 bg-gradient-to-b from-black to-transparent z-40 opacity-80" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 md:h-16 bg-gradient-to-t from-black to-transparent z-40 opacity-80" />
+
+      {/* Subtle Desktop Crosshair Cursor */}
       {!isTouchDevice && (
         <div
           aria-hidden="true"
-          className="pointer-events-none fixed z-50 w-6 h-6 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/30 mix-blend-difference flex items-center justify-center transition-transform duration-75"
+          className="pointer-events-none fixed z-50 w-7 h-7 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/40 mix-blend-difference flex items-center justify-center transition-transform duration-75"
           style={{
             left: `${mousePos.x}px`,
             top: `${mousePos.y}px`
           }}
         >
-          <div className="w-1 h-1 rounded-full bg-white/80" />
+          <div className="w-1.5 h-1.5 rounded-full bg-white/90" />
         </div>
       )}
 
-      {/* Bottom Subtle Status Indicator (Discreet Production Footnote) */}
-      <div className="pointer-events-none absolute bottom-4 left-6 right-6 flex items-center justify-between text-[10px] font-mono tracking-widest text-white/40 uppercase">
+      {/* Discreet Bottom Status Readout */}
+      <div className="pointer-events-none absolute bottom-4 left-6 right-6 z-40 flex items-center justify-between text-[10px] font-mono tracking-widest text-white/40 uppercase">
         <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-brand-blue/80 animate-ping" />
-          <span>BRANDSHOOTS FILM LAB</span>
+          <span className="w-2 h-2 rounded-full bg-brand-blue animate-pulse" />
+          <span>BRANDSHOOTS MULTIGRADE 3D LAB</span>
         </div>
-        <span>ACT I — REEL MONTAGES</span>
+        <span>ACT I — CONTACT SHEET CONVERGENCE</span>
       </div>
     </div>
   );
