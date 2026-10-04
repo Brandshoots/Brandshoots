@@ -14,8 +14,9 @@ interface BrandShootsPreloaderProps {
 
 /**
  * BRANDSHOOTS CINEMATIC PRELOADER (PHASE 1)
- * Multi-Column 3D Multigrade Scrolling Tiles (Camille Mormal Reference).
+ * Multidimensional 3D Scrolling Tiles (Camille Mormal Spatial Reference).
  * Flow: 3D STREAMING TILES -> TILES COLLECT -> FOCUS -> SHUTTER SNAP -> WHITE FLASH -> BRAND REVEAL -> EXPAND HERO
+ * Pure visual art direction — zero badges, zero eyebrows, zero AI text labels.
  */
 export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
   onComplete,
@@ -102,7 +103,6 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
     // Hard Safety Timeout Failsafe
     const safetyTimer = setTimeout(() => {
       if (!isCompleted) {
-        console.warn('Preloader safety failsafe triggered.');
         handleSequenceComplete();
       }
     }, PRELOADER_CONFIG.safetyTimeoutMs);
@@ -120,23 +120,23 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#07080B] overflow-hidden select-none cursor-default"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#050608] overflow-hidden select-none cursor-default"
       style={{
-        perspective: '1400px',
-        WebkitPerspective: '1400px'
+        perspective: '1200px',
+        WebkitPerspective: '1200px'
       }}
     >
-      {/* Deep Void Ambient Haze */}
+      {/* Deep Space Studio Haze */}
       <div
         ref={backdropHazeRef}
         className="pointer-events-none absolute inset-0 opacity-0 z-10"
       >
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[700px] bg-brand-navy/60 rounded-full blur-[180px]" />
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-brand-blue/15 rounded-full blur-[140px]" />
-        <div className="absolute inset-0 cinema-grain opacity-25" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[800px] bg-brand-navy/70 rounded-full blur-[200px]" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-brand-blue/20 rounded-full blur-[150px]" />
+        <div className="absolute inset-0 cinema-grain opacity-20" />
       </div>
 
-      {/* 3D Multigrade Scrolling Tiles Field */}
+      {/* Multidimensional 3D Scrolling Tiles */}
       <div ref={tilesContainerRef} className="absolute inset-0 w-full h-full z-20">
         <Multigrade3DTiles
           isCollecting={isCollecting}
@@ -144,45 +144,36 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
         />
       </div>
 
-      {/* Center Autofocus Reticle Guide */}
+      {/* Optical Viewfinder Target Brackets */}
       <FocusReveal isFocusing={isFocusing} isLocked={isFocusLocked} />
 
-      {/* Editorial Official BrandShoots Logo Overlay */}
+      {/* Pure Editorial BrandShoots Identity */}
       <BrandLogoOverlay
         ref={logoOverlayRef}
         stage={logoStage}
         isColorRevealed={isColorRevealed}
       />
 
-      {/* High-Intensity Camera Exposure Flash */}
+      {/* High-Intensity White Camera Flash */}
       <CameraFlash ref={flashRef} />
 
-      {/* Letterbox Mask */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-12 md:h-16 bg-gradient-to-b from-black to-transparent z-40 opacity-80" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 md:h-16 bg-gradient-to-t from-black to-transparent z-40 opacity-80" />
+      {/* Cinema Letterbox Mask */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-10 md:h-14 bg-gradient-to-b from-black to-transparent z-40 opacity-80" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 md:h-14 bg-gradient-to-t from-black to-transparent z-40 opacity-80" />
 
-      {/* Subtle Desktop Crosshair Cursor */}
+      {/* Minimal Desktop Precision Cursor */}
       {!isTouchDevice && (
         <div
           aria-hidden="true"
-          className="pointer-events-none fixed z-50 w-7 h-7 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/40 mix-blend-difference flex items-center justify-center transition-transform duration-75"
+          className="pointer-events-none fixed z-50 w-6 h-6 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/50 mix-blend-difference flex items-center justify-center transition-transform duration-75"
           style={{
             left: `${mousePos.x}px`,
             top: `${mousePos.y}px`
           }}
         >
-          <div className="w-1.5 h-1.5 rounded-full bg-white/90" />
+          <div className="w-1.5 h-1.5 rounded-full bg-white" />
         </div>
       )}
-
-      {/* Discreet Bottom Status Readout */}
-      <div className="pointer-events-none absolute bottom-4 left-6 right-6 z-40 flex items-center justify-between text-[10px] font-mono tracking-widest text-white/40 uppercase">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-brand-blue animate-pulse" />
-          <span>BRANDSHOOTS MULTIGRADE 3D LAB</span>
-        </div>
-        <span>ACT I — CONTACT SHEET CONVERGENCE</span>
-      </div>
     </div>
   );
 };

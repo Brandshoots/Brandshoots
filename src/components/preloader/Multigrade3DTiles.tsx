@@ -2,17 +2,17 @@ import { useRef, useEffect } from 'react';
 import { PRELOADER_REELS } from '../../config/preloaderReels';
 
 interface Multigrade3DTilesProps {
-  isCollecting: boolean; // True when tiles converge together
-  isColorRevealed: boolean; // True after white flash
+  isCollecting: boolean;
+  isColorRevealed: boolean;
   speedMultiplier?: number;
   className?: string;
 }
 
 /**
- * Multigrade 3D Scrolling Tiles:
- * Inspired directly by Camille Mormal's iconic 3D multi-column spatial grid.
- * 4 columns streaming at staggered multigrade speeds, responding to mouse tilt,
- * and converging ("collecting") tightly into the center for the brand reveal.
+ * Multidimensional 3D Scrolling Tiles:
+ * Camille Mormal Inspired Spatial Architecture.
+ * 5 distinct columns staggered deeply in Z-space (-220px to +160px).
+ * Pure cinematic imagery — ZERO badges, ZERO text overlays, ZERO clutter.
  */
 export const Multigrade3DTiles = ({
   isCollecting,
@@ -21,39 +21,56 @@ export const Multigrade3DTiles = ({
   className = ''
 }: Multigrade3DTilesProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const grid3DRef = useRef<HTMLDivElement>(null);
+  const world3DRef = useRef<HTMLDivElement>(null);
   const colRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Distribute reels across 4 columns
+  // 5 Columns distributed across the 12 cinematic reels for true wide multi-dimensional coverage
   const columns = [
-    [PRELOADER_REELS[0], PRELOADER_REELS[4], PRELOADER_REELS[8], PRELOADER_REELS[0], PRELOADER_REELS[4], PRELOADER_REELS[8]],
-    [PRELOADER_REELS[1], PRELOADER_REELS[5], PRELOADER_REELS[9], PRELOADER_REELS[1], PRELOADER_REELS[5], PRELOADER_REELS[9]],
-    [PRELOADER_REELS[2], PRELOADER_REELS[6], PRELOADER_REELS[10], PRELOADER_REELS[2], PRELOADER_REELS[6], PRELOADER_REELS[10]],
-    [PRELOADER_REELS[3], PRELOADER_REELS[7], PRELOADER_REELS[11], PRELOADER_REELS[3], PRELOADER_REELS[7], PRELOADER_REELS[11]]
+    // Column 0 (Deep Background Left)
+    [PRELOADER_REELS[0], PRELOADER_REELS[5], PRELOADER_REELS[10], PRELOADER_REELS[0], PRELOADER_REELS[5], PRELOADER_REELS[10]],
+    // Column 1 (Midground Mid-Left)
+    [PRELOADER_REELS[1], PRELOADER_REELS[6], PRELOADER_REELS[11], PRELOADER_REELS[1], PRELOADER_REELS[6], PRELOADER_REELS[11]],
+    // Column 2 (Center Hero Stage)
+    [PRELOADER_REELS[2], PRELOADER_REELS[7], PRELOADER_REELS[0], PRELOADER_REELS[2], PRELOADER_REELS[7], PRELOADER_REELS[0]],
+    // Column 3 (Foreground Mid-Right)
+    [PRELOADER_REELS[3], PRELOADER_REELS[8], PRELOADER_REELS[1], PRELOADER_REELS[3], PRELOADER_REELS[8], PRELOADER_REELS[1]],
+    // Column 4 (Deep Background Right)
+    [PRELOADER_REELS[4], PRELOADER_REELS[9], PRELOADER_REELS[2], PRELOADER_REELS[4], PRELOADER_REELS[9], PRELOADER_REELS[2]]
   ];
 
-  // Column speed configurations (multigrade: different speeds and directions)
-  const colSpeeds = [0.85, -1.25, 1.45, -0.95];
+  // Multigrade velocities (alternating vertical speeds and directions)
+  const colVelocities = [0.95, -1.35, 1.85, -1.15, 1.25];
+
+  // Multidimensional Z-Depth distribution per column for dramatic spatial depth
+  const colZDepths = [-180, 80, -40, 160, -140];
+  const colRotationsY = [8, -4, 0, 4, -8]; // subtle cylindrical curving
 
   useEffect(() => {
     let animId: number;
-    let positions = [0, 0, 0, 0];
+    let positions = [0, 0, 0, 0, 0];
 
     const animate = () => {
-      // Reduce speed when collecting
-      const currentSpeed = isCollecting ? 0.08 : 0.65 * speedMultiplier;
+      // Smooth deceleration when collecting
+      const currentSpeed = isCollecting ? 0.05 : 0.75 * speedMultiplier;
 
       colRefs.current.forEach((col, idx) => {
         if (!col) return;
-        const dirSpeed = colSpeeds[idx] * currentSpeed;
+        const dirSpeed = colVelocities[idx] * currentSpeed;
         positions[idx] += dirSpeed;
 
-        // Reset for infinite seamless looping
+        // Infinite seamless loop wrap
         const maxScroll = col.scrollHeight / 2;
         if (positions[idx] > maxScroll) positions[idx] -= maxScroll;
         if (positions[idx] < -maxScroll) positions[idx] += maxScroll;
 
-        col.style.transform = `translate3d(0, ${positions[idx]}px, 0)`;
+        // Dynamic 3D transform combining vertical scroll with Z-depth
+        const targetZ = isCollecting ? 0 : colZDepths[idx];
+        const targetRotY = isCollecting ? 0 : colRotationsY[idx];
+
+        col.style.transform = `
+          translate3d(0, ${positions[idx]}px, ${targetZ}px)
+          rotateY(${targetRotY}deg)
+        `;
       });
 
       animId = requestAnimationFrame(animate);
@@ -63,29 +80,35 @@ export const Multigrade3DTiles = ({
     return () => cancelAnimationFrame(animId);
   }, [isCollecting, speedMultiplier]);
 
-  // Mouse Parallax 3D Tilt
+  // High-Fidelity 3D Mouse Parallax & Dynamic Perspective Shift
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (!grid3DRef.current) return;
+      if (!world3DRef.current) return;
+
       if (isCollecting) {
-        // Straighten out cleanly when collected
-        grid3DRef.current.style.transform = `
+        // Flat, perfectly aligned cinema grid during collect
+        world3DRef.current.style.transform = `
           rotateX(0deg)
           rotateY(0deg)
           rotateZ(0deg)
-          scale(${isCollecting ? 0.98 : 1.15})
+          scale(0.96)
         `;
         return;
       }
 
-      const x = (e.clientX / window.innerWidth - 0.5) * 2;
-      const y = (e.clientY / window.innerHeight - 0.5) * 2;
+      const normX = (e.clientX / window.innerWidth - 0.5) * 2;
+      const normY = (e.clientY / window.innerHeight - 0.5) * 2;
 
-      grid3DRef.current.style.transform = `
-        rotateX(${10 - y * 6}deg)
-        rotateY(${-8 + x * 8}deg)
-        rotateZ(-2deg)
-        scale(1.18)
+      // Deep dimensional tilts
+      const rotX = 14 - normY * 10;
+      const rotY = -10 + normX * 14;
+      const rotZ = -3 + normX * 2;
+
+      world3DRef.current.style.transform = `
+        rotateX(${rotX}deg)
+        rotateY(${rotY}deg)
+        rotateZ(${rotZ}deg)
+        scale(1.22)
       `;
     };
 
@@ -96,86 +119,87 @@ export const Multigrade3DTiles = ({
   return (
     <div
       ref={containerRef}
-      className={`absolute inset-0 w-full h-full overflow-hidden select-none bg-[#07080B] flex items-center justify-center ${className}`}
+      className={`absolute inset-0 w-full h-full overflow-hidden select-none bg-[#050608] flex items-center justify-center ${className}`}
       style={{
-        perspective: '1400px',
-        WebkitPerspective: '1400px'
+        perspective: '1200px',
+        WebkitPerspective: '1200px'
       }}
     >
-      {/* 3D Tilted Multigrade Grid Layer */}
+      {/* 3D Multidimensional World Stage */}
       <div
-        ref={grid3DRef}
-        className="relative grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-7 w-[140vw] sm:w-[125vw] md:w-[115vw] max-w-none h-[180vh] transition-all duration-1000 ease-out will-change-transform"
+        ref={world3DRef}
+        className="relative grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 sm:gap-5 md:gap-7 w-[160vw] sm:w-[140vw] md:w-[130vw] max-w-none h-[200vh] transition-all duration-1000 ease-out preserve-3d will-change-transform"
         style={{
+          transformStyle: 'preserve-3d',
           transform: isCollecting
-            ? 'rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(0.98)'
-            : 'rotateX(12deg) rotateY(-8deg) rotateZ(-3deg) scale(1.18)',
-          gap: isCollecting ? '1rem' : '1.75rem'
+            ? 'rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(0.96)'
+            : 'rotateX(14deg) rotateY(-10deg) rotateZ(-3deg) scale(1.22)',
+          gap: isCollecting ? '0.85rem' : '1.75rem'
         }}
       >
         {columns.map((colReels, colIdx) => (
           <div
             key={colIdx}
             ref={(el) => (colRefs.current[colIdx] = el)}
-            className="flex flex-col gap-4 md:gap-7 will-change-transform"
+            className="flex flex-col gap-4 sm:gap-6 md:gap-7 will-change-transform preserve-3d transition-all duration-1000 ease-out"
+            style={{
+              transformStyle: 'preserve-3d'
+            }}
           >
-            {colReels.map((reel, rIdx) => (
-              <div
-                key={`${reel.id}-${rIdx}`}
-                className={`relative group rounded-xl md:rounded-2xl overflow-hidden border border-white/10 bg-black/80 shadow-2xl transition-all duration-700 ${
-                  isCollecting ? 'scale-95 border-brand-blue/30' : 'scale-100'
-                }`}
-                style={{
-                  aspectRatio: '16/10',
-                  boxShadow: '0 20px 40px -15px rgba(0,0,0,0.9), inset 0 1px 1px rgba(255,255,255,0.1)'
-                }}
-              >
-                {/* Media Image Poster */}
-                <img
-                  src={reel.poster}
-                  alt={reel.title}
-                  loading="eager"
-                  className={`w-full h-full object-cover transition-all duration-700 ${
-                    isColorRevealed
-                      ? 'filter contrast-110 brightness-95'
-                      : 'filter grayscale(100%) contrast(145%) brightness(88%)'
+            {colReels.map((reel, rIdx) => {
+              // Distant columns get subtle depth blur when not collected
+              const isDistant = !isCollecting && (colIdx === 0 || colIdx === 4);
+
+              return (
+                <div
+                  key={`${reel.id}-${rIdx}`}
+                  className={`relative rounded-xl md:rounded-2xl overflow-hidden bg-black/90 shadow-2xl transition-all duration-700 ${
+                    isCollecting
+                      ? 'border border-white/20 scale-95 shadow-[0_20px_50px_rgba(0,0,0,0.95)]'
+                      : 'border border-white/10 scale-100 shadow-[0_30px_70px_rgba(0,0,0,0.85)]'
                   }`}
                   style={{
-                    objectPosition: reel.cropPosition
+                    aspectRatio: '16/10',
+                    filter: isDistant ? 'blur(0.8px)' : 'none'
                   }}
-                />
+                >
+                  {/* Clean Edge-to-Edge Pure Cinema Footage / Poster */}
+                  <img
+                    src={reel.poster}
+                    alt={reel.title}
+                    loading="eager"
+                    className={`w-full h-full object-cover transition-all duration-700 ${
+                      isColorRevealed
+                        ? 'filter contrast-115 brightness-95'
+                        : 'filter grayscale(100%) contrast(145%) brightness(88%)'
+                    }`}
+                    style={{
+                      objectPosition: reel.cropPosition
+                    }}
+                  />
 
-                {/* Subtle vignette inside each tile */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none" />
+                  {/* Cinema Vignette within tile */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
 
-                {/* Film metadata readout on tile corner */}
-                <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between text-[9px] font-mono tracking-wider text-white/60 pointer-events-none">
-                  <span className="uppercase truncate max-w-[120px]">{reel.category}</span>
-                  <span className={isColorRevealed ? 'text-brand-blue' : 'text-white/40'}>
-                    {reel.metadata.lens}
-                  </span>
+                  {/* Subtle Glass Chamfer Highlight */}
+                  <div className="absolute inset-0 ring-1 ring-inset ring-white/15 pointer-events-none" />
                 </div>
-
-                {/* Top left mini index badge */}
-                <div className="absolute top-2 left-2.5 px-1.5 py-0.5 rounded bg-black/60 border border-white/10 text-[8px] font-mono text-white/50">
-                  {colIdx + 1}.{rIdx + 1}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ))}
       </div>
 
-      {/* Dynamic Darkening Vignette around the viewport edges */}
+      {/* Atmospheric Radial Cinema Vignette */}
       <div
         className="pointer-events-none absolute inset-0 transition-opacity duration-700"
         style={{
-          background: 'radial-gradient(circle at center, transparent 35%, rgba(7, 8, 11, 0.7) 70%, #07080B 100%)'
+          background: 'radial-gradient(circle at center, transparent 30%, rgba(5, 6, 8, 0.75) 65%, #050608 100%)'
         }}
       />
 
-      {/* Film Grain Shader */}
-      <div className="pointer-events-none absolute inset-0 cinema-grain opacity-25 mix-blend-overlay" />
+      {/* Runtime Cinematic 35mm Film Grain */}
+      <div className="pointer-events-none absolute inset-0 cinema-grain opacity-20 mix-blend-overlay" />
     </div>
   );
 };

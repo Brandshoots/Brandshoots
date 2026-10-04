@@ -5,15 +5,15 @@ interface FocusRevealProps {
 }
 
 /**
- * FocusReveal:
- * Cinema viewfinder autofocus reticles and micro-focus bracket indicator.
- * Visualizes the autofocus lock sequence.
+ * Optical Viewfinder Reticle:
+ * Fine crosshair corner brackets that lock onto center.
+ * ZERO text labels.
  */
-export const FocusReveal: React.FC<FocusRevealProps> = ({
+export const FocusReveal = ({
   isFocusing,
   isLocked,
   className = ''
-}) => {
+}: FocusRevealProps) => {
   if (!isFocusing && !isLocked) return null;
 
   return (
@@ -23,50 +23,43 @@ export const FocusReveal: React.FC<FocusRevealProps> = ({
         isFocusing || isLocked ? 'opacity-100' : 'opacity-0'
       } ${className}`}
     >
-      {/* Central Autofocus Target Box */}
+      {/* Central Autofocus Brackets */}
       <div
         className={`relative transition-all duration-300 ease-out ${
           isLocked
-            ? 'w-24 h-24 scale-95 border-brand-blue/80'
-            : 'w-36 h-36 scale-110 border-white/40 animate-pulse'
+            ? 'w-32 h-20 sm:w-44 sm:h-28 scale-95 border-brand-blue/60'
+            : 'w-48 h-32 sm:w-60 sm:h-40 scale-110 border-white/30 animate-pulse'
         }`}
       >
         {/* Corner Brackets */}
         <span
-          className={`absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 transition-colors duration-200 ${
-            isLocked ? 'border-brand-blue' : 'border-white/80'
+          className={`absolute top-0 left-0 w-3.5 h-3.5 border-t-2 border-l-2 transition-colors duration-200 ${
+            isLocked ? 'border-brand-blue' : 'border-white/70'
           }`}
         />
         <span
-          className={`absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 transition-colors duration-200 ${
-            isLocked ? 'border-brand-blue' : 'border-white/80'
+          className={`absolute top-0 right-0 w-3.5 h-3.5 border-t-2 border-r-2 transition-colors duration-200 ${
+            isLocked ? 'border-brand-blue' : 'border-white/70'
           }`}
         />
         <span
-          className={`absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 transition-colors duration-200 ${
-            isLocked ? 'border-brand-blue' : 'border-white/80'
+          className={`absolute bottom-0 left-0 w-3.5 h-3.5 border-b-2 border-l-2 transition-colors duration-200 ${
+            isLocked ? 'border-brand-blue' : 'border-white/70'
           }`}
         />
         <span
-          className={`absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 transition-colors duration-200 ${
-            isLocked ? 'border-brand-blue' : 'border-white/80'
+          className={`absolute bottom-0 right-0 w-3.5 h-3.5 border-b-2 border-r-2 transition-colors duration-200 ${
+            isLocked ? 'border-brand-blue' : 'border-white/70'
           }`}
         />
 
-        {/* Center Crosshair Micro-pip */}
+        {/* Center Optical Dot */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div
-            className={`w-1 h-1 rounded-full transition-all duration-200 ${
+            className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
               isLocked ? 'bg-brand-blue scale-125 shadow-glow-blue' : 'bg-white/60'
             }`}
           />
-        </div>
-
-        {/* Technical Focal Distance readout */}
-        <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] font-mono tracking-widest uppercase transition-colors duration-200">
-          <span className={isLocked ? 'text-brand-blue font-semibold' : 'text-white/60'}>
-            {isLocked ? 'AF-LOCK 35.0MM' : 'AF-SEARCHING...'}
-          </span>
         </div>
       </div>
     </div>
