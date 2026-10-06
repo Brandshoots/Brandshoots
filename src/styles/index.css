@@ -12,7 +12,7 @@
   body {
     background-color: #08090C;
     color: #FFFFFF;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Figtree', sans-serif;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -59,3 +59,24 @@
 .backface-hidden {
   backface-visibility: hidden;
 }
+
+/* Infinite Smooth Logo Marquee */
+@keyframes clientMarquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-client-marquee {
+  display: flex;
+  width: max-content;
+  animation: clientMarquee 32s linear infinite;
+}
+
+.animate-client-marquee:hover {
+  animation-play-state: paused;
+}
+

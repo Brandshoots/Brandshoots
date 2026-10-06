@@ -53,7 +53,7 @@ export const LogoSnap = forwardRef<HTMLDivElement, LogoSnapProps>(({
 
         {/* The Exact Official Logo Asset */}
         <img
-          src="/Logo.png"
+          src="/Logo Official.svg"
           alt="Brand Shoots"
           className={`relative w-full h-auto max-h-24 md:max-h-28 object-contain transition-all duration-500 will-change-transform ${
             isColorRevealed

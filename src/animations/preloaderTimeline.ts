@@ -1,5 +1,4 @@
 import gsap from 'gsap';
-import { playShutterClick } from '../utils/audioFX';
 
 export interface PreloaderTimelineRefs {
   containerRef: React.RefObject<HTMLDivElement>;
@@ -91,12 +90,6 @@ export function createPreloaderTimeline(
   tl.addLabel('collect', 2.2);
   tl.call(() => callbacks.onCollectStateChange(true), undefined, 'collect');
 
-  tl.to(tilesContainerRef.current, {
-    scale: 0.96,
-    duration: 1.1,
-    ease: 'power3.inOut'
-  }, 'collect');
-
   // ----------------------------------------------------
   // LABEL: focus (~2.80s)
   // Center autofocus target initiates
@@ -118,7 +111,6 @@ export function createPreloaderTimeline(
   tl.addLabel('snap', 3.6);
   tl.call(() => {
     callbacks.onLogoStageChange('snap');
-    playShutterClick();
   }, undefined, 'snap');
 
   // Emotional Peak: White Camera Flash
@@ -149,36 +141,34 @@ export function createPreloaderTimeline(
   tl.addLabel('logoLock', 4.0);
 
   // ----------------------------------------------------
-  // LABEL: expand & exit (~4.60s)
-  // THE BIG TRANSITION: 3D tiles scale up and disperse outward,
-  // revealing the underlying Phase 2 Hero seamlessly!
+  // LABEL: expand & exit (~5.50s)
+  // Clean, lightweight dissolve handoff into the Hero
   // ----------------------------------------------------
-  tl.addLabel('expand', 4.6);
+  tl.addLabel('expand', 5.5);
   tl.call(() => callbacks.onLogoStageChange('expand'), undefined, 'expand');
 
-  // Tiles zoom forward & disperse
+  // Clean, instantaneous opacity dissolve into the Hero
   tl.to(tilesContainerRef.current, {
-    scale: 1.8,
     opacity: 0,
-    duration: 0.95,
-    ease: 'power4.inOut'
+    duration: 0.5,
+    ease: 'power2.out'
   }, 'expand');
 
   if (logoOverlayRef.current) {
     tl.to(logoOverlayRef.current, {
-      scale: 1.25,
+      scale: 1.06,
       opacity: 0,
-      duration: 0.75,
-      ease: 'power3.in'
+      duration: 0.5,
+      ease: 'power2.inOut'
     }, 'expand');
   }
 
-  // Preloader container background dissolves into hero
+  // Preloader container background dissolves cleanly into hero
   tl.to(containerRef.current, {
     opacity: 0,
-    duration: 0.55,
+    duration: 0.45,
     ease: 'power2.out'
-  }, 'expand+=0.45');
+  }, 'expand+=0.2');
 
   return tl;
 }

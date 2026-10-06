@@ -1,0 +1,302 @@
+[
+  {
+    "id": "reel-01",
+    "title": "Industrial Precision",
+    "client": "Santhi Pipes",
+    "category": "Commercial Production",
+    "filename": "santhi.pipes_rjy_1783494112_3936556116926232206_48644092133.mp4",
+    "featured": true,
+    "story": "High-velocity industrial cinematography capturing engineering excellence and precision manufacturing.",
+    "index": 0,
+    "videoUrl": "/reels/santhi.pipes_rjy_1783494112_3936556116926232206_48644092133.mp4",
+    "posterUrl": "/reels/posters/santhi.pipes_rjy_1783494112_3936556116926232206_48644092133.jpg",
+    "aspectRatio": 0.5625,
+    "planeWidth": 2.2,
+    "planeHeight": 3.9111111111111114,
+    "transform": {
+      "position": [
+        -2.8,
+        0.4,
+        -2.5
+      ],
+      "rotation": [
+        0.03,
+        0.18,
+        -0.04
+      ],
+      "scale": 1.15
+    },
+    "depthZone": "hero-primary",
+    "parallaxWeight": 0.4
+  },
+  {
+    "id": "reel-02",
+    "title": "Structural Elegance",
+    "client": "Viswatuff Glass",
+    "category": "Architectural Film",
+    "filename": "viswatuff.glass_rjy_1791174653_4000984496274606409_78432309239.mp4",
+    "featured": true,
+    "story": "Monolithic architectural scale, light refraction, and structural transparency captured on anamorphic glass.",
+    "index": 1,
+    "videoUrl": "/reels/viswatuff.glass_rjy_1791174653_4000984496274606409_78432309239.mp4",
+    "posterUrl": "/reels/posters/viswatuff.glass_rjy_1791174653_4000984496274606409_78432309239.jpg",
+    "aspectRatio": 0.5625,
+    "planeWidth": 2.2,
+    "planeHeight": 3.9111111111111114,
+    "transform": {
+      "position": [
+        3.2,
+        0.8,
+        -7.0
+      ],
+      "rotation": [
+        -0.04,
+        -0.22,
+        0.05
+      ],
+      "scale": 1.25
+    },
+    "depthZone": "hero-mid-right",
+    "parallaxWeight": 0.48
+  },
+  {
+    "id": "reel-03",
+    "title": "High Impact Retail",
+    "client": "Bags World",
+    "category": "Brand Campaign",
+    "filename": "wearebrandshoots_1777444216_3885805244420742638_77785749886.mp4",
+    "featured": true,
+    "story": "Fast-cut luxury retail visual rhythm with razor-sharp lighting and dynamic camera dolly movements.",
+    "index": 2,
+    "videoUrl": "/reels/wearebrandshoots_1777444216_3885805244420742638_77785749886.mp4",
+    "posterUrl": "/reels/posters/wearebrandshoots_1777444216_3885805244420742638_77785749886.jpg",
+    "aspectRatio": 0.5625,
+    "planeWidth": 2.2,
+    "planeHeight": 3.9111111111111114,
+    "transform": {
+      "position": [
+        -3.6,
+        -0.6,
+        -12.5
+      ],
+      "rotation": [
+        0.05,
+        0.25,
+        -0.03
+      ],
+      "scale": 1.35
+    },
+    "depthZone": "hero-mid-left",
+    "parallaxWeight": 0.56
+  },
+  {
+    "id": "reel-04",
+    "title": "Heritage Gold & Craft",
+    "client": "Aabharan Jewellers",
+    "category": "Luxury Commercial",
+    "filename": "wearebrandshoots_1786454245_3961387117295433628_77785749886.mp4",
+    "featured": true,
+    "story": "Intimate macro jewelry cinematography illuminating bespoke traditional goldsmithing and royal heritage.",
+    "index": 3,
+    "videoUrl": "/reels/wearebrandshoots_1786454245_3961387117295433628_77785749886.mp4",
+    "posterUrl": "/reels/posters/wearebrandshoots_1786454245_3961387117295433628_77785749886.jpg",
+    "aspectRatio": 0.5625,
+    "planeWidth": 2.2,
+    "planeHeight": 3.9111111111111114,
+    "transform": {
+      "position": [
+        2.6,
+        -0.4,
+        -18.0
+      ],
+      "rotation": [
+        -0.02,
+        -0.15,
+        0.02
+      ],
+      "scale": 1.4
+    },
+    "depthZone": "hero-deep-right",
+    "parallaxWeight": 0.64
+  },
+  {
+    "id": "reel-05",
+    "title": "Culinary Kinetic Motion",
+    "client": "Fresh & Fresh",
+    "category": "Food & Beverage",
+    "filename": "wearebrandshoots_1786854627_3964745654666992928_77785749886.mp4",
+    "featured": false,
+    "story": "High-speed macro food choreography capturing culinary explosion, freshness, and vibrant appetite appeal.",
+    "index": 4,
+    "videoUrl": "/reels/wearebrandshoots_1786854627_3964745654666992928_77785749886.mp4",
+    "posterUrl": "/reels/posters/wearebrandshoots_1786854627_3964745654666992928_77785749886.jpg",
+    "aspectRatio": 0.5625,
+    "planeWidth": 2.2,
+    "planeHeight": 3.9111111111111114,
+    "transform": {
+      "position": [
+        -1.8,
+        1.2,
+        -23.5
+      ],
+      "rotation": [
+        0.04,
+        0.12,
+        -0.05
+      ],
+      "scale": 1.45
+    },
+    "depthZone": "transition-left",
+    "parallaxWeight": 0.72
+  },
+  {
+    "id": "reel-06",
+    "title": "Cinematic Storytelling",
+    "client": "Dayanidhi Creations",
+    "category": "Narrative Campaign",
+    "filename": "wearebrandshoots_1787252706_3968084628303865353_77785749886.mp4",
+    "featured": false,
+    "story": "Deep emotional resonance paired with directional key light and cinematic slow motion.",
+    "index": 5,
+    "videoUrl": "/reels/wearebrandshoots_1787252706_3968084628303865353_77785749886.mp4",
+    "posterUrl": "/reels/posters/wearebrandshoots_1787252706_3968084628303865353_77785749886.jpg",
+    "aspectRatio": 0.5625,
+    "planeWidth": 2.2,
+    "planeHeight": 3.9111111111111114,
+    "transform": {
+      "position": [
+        3.4,
+        0.2,
+        -29.0
+      ],
+      "rotation": [
+        -0.05,
+        -0.18,
+        0.04
+      ],
+      "scale": 1.5
+    },
+    "depthZone": "transition-right",
+    "parallaxWeight": 0.8
+  },
+  {
+    "id": "reel-07",
+    "title": "Contemporary Fashion",
+    "client": "Jain Beauty Studio",
+    "category": "Fashion & Beauty",
+    "filename": "wearebrandshoots_1788094941_3975150238988110104_77785749886.mp4",
+    "featured": false,
+    "story": "Studio high-fashion portraiture with neon rim lights and fluid fabric physics.",
+    "index": 6,
+    "videoUrl": "/reels/wearebrandshoots_1788094941_3975150238988110104_77785749886.mp4",
+    "posterUrl": "/reels/posters/wearebrandshoots_1788094941_3975150238988110104_77785749886.jpg",
+    "aspectRatio": 0.5625,
+    "planeWidth": 2.2,
+    "planeHeight": 3.9111111111111114,
+    "transform": {
+      "position": [
+        -3.2,
+        -0.8,
+        -34.5
+      ],
+      "rotation": [
+        0.02,
+        0.2,
+        -0.02
+      ],
+      "scale": 1.55
+    },
+    "depthZone": "gallery-left",
+    "parallaxWeight": 0.88
+  },
+  {
+    "id": "reel-08",
+    "title": "Urban Living Spaces",
+    "client": "RK Home Living",
+    "category": "Interior Architecture",
+    "filename": "wearebrandshoots_1789108387_3983651808436403394_77785749886.mp4",
+    "featured": false,
+    "story": "Spatial interior cinematography exploring spatial depth, textures, and bespoke modern furnishings.",
+    "index": 7,
+    "videoUrl": "/reels/wearebrandshoots_1789108387_3983651808436403394_77785749886.mp4",
+    "posterUrl": "/reels/posters/wearebrandshoots_1789108387_3983651808436403394_77785749886.jpg",
+    "aspectRatio": 0.5625,
+    "planeWidth": 2.2,
+    "planeHeight": 3.9111111111111114,
+    "transform": {
+      "position": [
+        2.2,
+        0.9,
+        -40.0
+      ],
+      "rotation": [
+        -0.03,
+        -0.14,
+        0.03
+      ],
+      "scale": 1.6
+    },
+    "depthZone": "gallery-right",
+    "parallaxWeight": 0.96
+  },
+  {
+    "id": "reel-09",
+    "title": "Modern Enterprise",
+    "client": "SB Ventures",
+    "category": "Corporate Film",
+    "filename": "wearebrandshoots_1789541302_3987282906831722378_77785749886.mp4",
+    "featured": false,
+    "story": "Dynamic corporate vision with fast-paced gimbal tracks and clean architectural staging.",
+    "index": 8,
+    "videoUrl": "/reels/wearebrandshoots_1789541302_3987282906831722378_77785749886.mp4",
+    "posterUrl": "/reels/posters/wearebrandshoots_1789541302_3987282906831722378_77785749886.jpg",
+    "aspectRatio": 0.5625,
+    "planeWidth": 2.2,
+    "planeHeight": 3.9111111111111114,
+    "transform": {
+      "position": [
+        -2.4,
+        0.3,
+        -45.5
+      ],
+      "rotation": [
+        0.04,
+        0.16,
+        -0.04
+      ],
+      "scale": 1.65
+    },
+    "depthZone": "gallery-deep",
+    "parallaxWeight": 1.04
+  },
+  {
+    "id": "reel-10",
+    "title": "Global Horizons",
+    "client": "KC Overseas",
+    "category": "Education & Global",
+    "filename": "wearebrandshoots_1790170837_3992564060770112832_77785749886.mp4",
+    "featured": false,
+    "story": "Inspiring documentary-style storytelling tracking aspirational student journeys across borders.",
+    "index": 9,
+    "videoUrl": "/reels/wearebrandshoots_1790170837_3992564060770112832_77785749886.mp4",
+    "posterUrl": "/reels/posters/wearebrandshoots_1790170837_3992564060770112832_77785749886.jpg",
+    "aspectRatio": 0.5625,
+    "planeWidth": 2.2,
+    "planeHeight": 3.9111111111111114,
+    "transform": {
+      "position": [
+        1.5,
+        -0.5,
+        -51.0
+      ],
+      "rotation": [
+        -0.02,
+        -0.1,
+        0.02
+      ],
+      "scale": 1.7
+    },
+    "depthZone": "portal-climax",
+    "parallaxWeight": 1.12
+  }
+]

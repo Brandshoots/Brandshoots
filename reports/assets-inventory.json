@@ -1,0 +1,213 @@
+{
+  "reels_count": 10,
+  "reels": [
+    {
+      "filename": "santhi.pipes_rjy_1783494112_3936556116926232206_48644092133.mp4",
+      "path": "/reels/santhi.pipes_rjy_1783494112_3936556116926232206_48644092133.mp4",
+      "width": 540,
+      "height": 960,
+      "aspect_ratio": 0.562,
+      "fps": 24.0,
+      "duration_sec": 71.33,
+      "size_mb": 4.3
+    },
+    {
+      "filename": "viswatuff.glass_rjy_1791174653_4000984496274606409_78432309239.mp4",
+      "path": "/reels/viswatuff.glass_rjy_1791174653_4000984496274606409_78432309239.mp4",
+      "width": 540,
+      "height": 960,
+      "aspect_ratio": 0.562,
+      "fps": 24.0,
+      "duration_sec": 52.83,
+      "size_mb": 6.43
+    },
+    {
+      "filename": "wearebrandshoots_1777444216_3885805244420742638_77785749886.mp4",
+      "path": "/reels/wearebrandshoots_1777444216_3885805244420742638_77785749886.mp4",
+      "width": 540,
+      "height": 960,
+      "aspect_ratio": 0.562,
+      "fps": 24.0,
+      "duration_sec": 22.38,
+      "size_mb": 2.25
+    },
+    {
+      "filename": "wearebrandshoots_1786454245_3961387117295433628_77785749886.mp4",
+      "path": "/reels/wearebrandshoots_1786454245_3961387117295433628_77785749886.mp4",
+      "width": 540,
+      "height": 960,
+      "aspect_ratio": 0.562,
+      "fps": 24.0,
+      "duration_sec": 50.83,
+      "size_mb": 8.57
+    },
+    {
+      "filename": "wearebrandshoots_1786854627_3964745654666992928_77785749886.mp4",
+      "path": "/reels/wearebrandshoots_1786854627_3964745654666992928_77785749886.mp4",
+      "width": 540,
+      "height": 960,
+      "aspect_ratio": 0.562,
+      "fps": 24.0,
+      "duration_sec": 73.0,
+      "size_mb": 4.99
+    },
+    {
+      "filename": "wearebrandshoots_1787252706_3968084628303865353_77785749886.mp4",
+      "path": "/reels/wearebrandshoots_1787252706_3968084628303865353_77785749886.mp4",
+      "width": 540,
+      "height": 960,
+      "aspect_ratio": 0.562,
+      "fps": 24.0,
+      "duration_sec": 22.92,
+      "size_mb": 1.14
+    },
+    {
+      "filename": "wearebrandshoots_1788094941_3975150238988110104_77785749886.mp4",
+      "path": "/reels/wearebrandshoots_1788094941_3975150238988110104_77785749886.mp4",
+      "width": 540,
+      "height": 960,
+      "aspect_ratio": 0.562,
+      "fps": 24.0,
+      "duration_sec": 55.58,
+      "size_mb": 10.86
+    },
+    {
+      "filename": "wearebrandshoots_1789108387_3983651808436403394_77785749886.mp4",
+      "path": "/reels/wearebrandshoots_1789108387_3983651808436403394_77785749886.mp4",
+      "width": 540,
+      "height": 960,
+      "aspect_ratio": 0.562,
+      "fps": 24.0,
+      "duration_sec": 67.33,
+      "size_mb": 8.97
+    },
+    {
+      "filename": "wearebrandshoots_1789541302_3987282906831722378_77785749886.mp4",
+      "path": "/reels/wearebrandshoots_1789541302_3987282906831722378_77785749886.mp4",
+      "width": 540,
+      "height": 960,
+      "aspect_ratio": 0.562,
+      "fps": 24.0,
+      "duration_sec": 48.42,
+      "size_mb": 6.63
+    },
+    {
+      "filename": "wearebrandshoots_1790170837_3992564060770112832_77785749886.mp4",
+      "path": "/reels/wearebrandshoots_1790170837_3992564060770112832_77785749886.mp4",
+      "width": 540,
+      "height": 960,
+      "aspect_ratio": 0.562,
+      "fps": 24.0,
+      "duration_sec": 93.88,
+      "size_mb": 8.61
+    }
+  ],
+  "clients_count": 15,
+  "clients": [
+    {
+      "filename": "Aabharan Logo.png",
+      "name": "Aabharan",
+      "width": 3375,
+      "height": 4219,
+      "mode": "RGBA"
+    },
+    {
+      "filename": "Bags World Logo.PNG",
+      "name": "Bags World",
+      "width": 7200,
+      "height": 5400,
+      "mode": "RGBA"
+    },
+    {
+      "filename": "Dayanidhi Logo.png",
+      "name": "Dayanidhi",
+      "width": 3375,
+      "height": 4219,
+      "mode": "RGBA"
+    },
+    {
+      "filename": "Fresh and Fresh Logo.png",
+      "name": "Fresh and Fresh",
+      "width": 1024,
+      "height": 1024,
+      "mode": "RGBA"
+    },
+    {
+      "filename": "IMG_4537.PNG",
+      "name": "IMG_4537",
+      "width": 1024,
+      "height": 1024,
+      "mode": "RGB"
+    },
+    {
+      "filename": "Jain Beauty Logo.png",
+      "name": "Jain Beauty",
+      "width": 3375,
+      "height": 4219,
+      "mode": "RGBA"
+    },
+    {
+      "filename": "KC Overseas Logo.PNG",
+      "name": "KC Overseas",
+      "width": 3375,
+      "height": 4219,
+      "mode": "RGBA"
+    },
+    {
+      "filename": "Nirmala logo.png",
+      "name": "Nirmala",
+      "width": 440,
+      "height": 567,
+      "mode": "RGBA"
+    },
+    {
+      "filename": "Rk home.png",
+      "name": "Rk home",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA"
+    },
+    {
+      "filename": "Rudra logo.png",
+      "name": "Rudra",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA"
+    },
+    {
+      "filename": "Sahana Logo.PNG",
+      "name": "Sahana",
+      "width": 3375,
+      "height": 4219,
+      "mode": "RGBA"
+    },
+    {
+      "filename": "SB Ventures Logo.png",
+      "name": "SB Ventures",
+      "width": 981,
+      "height": 254,
+      "mode": "RGBA"
+    },
+    {
+      "filename": "Shanti Pipes.png",
+      "name": "Shanti Pipes",
+      "width": 3524,
+      "height": 2264,
+      "mode": "RGBA"
+    },
+    {
+      "filename": "SRK Doors World Logo.png",
+      "name": "SRK Doors World",
+      "width": 1080,
+      "height": 1080,
+      "mode": "RGB"
+    },
+    {
+      "filename": "T3 Logo.png",
+      "name": "T3",
+      "width": 3375,
+      "height": 4219,
+      "mode": "RGBA"
+    }
+  ]
+}

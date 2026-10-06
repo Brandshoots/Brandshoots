@@ -1,67 +1,76 @@
+import React from 'react';
+
 interface FocusRevealProps {
-  isFocusing: boolean;
-  isLocked: boolean;
+  isFocusing?: boolean;
+  isLocked?: boolean;
+  stage?: 'hidden' | 'focus' | 'shutter' | 'snap' | 'locked' | 'expand';
   className?: string;
 }
 
 /**
- * Optical Viewfinder Reticle:
- * Fine crosshair corner brackets that lock onto center.
- * ZERO text labels.
+ * CINEMA VIEWFINDER CAMERA FRAME:
+ * - Pure, minimal corner L-brackets precisely framing outside the BRANDSHOOTS logo letters
+ * - Zero artificial text or clutter
+ * - Dynamic autofocus pulse into crisp electric brand-blue lock
  */
-export const FocusReveal = ({
-  isFocusing,
-  isLocked,
+export const FocusReveal: React.FC<FocusRevealProps> = ({
+  isFocusing = false,
+  isLocked = false,
+  stage = 'focus',
   className = ''
-}: FocusRevealProps) => {
-  if (!isFocusing && !isLocked) return null;
+}) => {
+  const activeLocked = isLocked || stage === 'locked' || stage === 'snap' || stage === 'shutter';
+  const isVisible = isFocusing || isLocked || (stage && stage !== 'hidden' && stage !== 'expand');
+
+  if (!isVisible) return null;
 
   return (
     <div
       aria-hidden="true"
-      className={`pointer-events-none absolute inset-0 z-30 flex items-center justify-center transition-opacity duration-300 ${
-        isFocusing || isLocked ? 'opacity-100' : 'opacity-0'
-      } ${className}`}
+      className={`pointer-events-none absolute inset-0 z-30 transition-all duration-300 ${className}`}
     >
-      {/* Central Autofocus Brackets */}
-      <div
-        className={`relative transition-all duration-300 ease-out ${
-          isLocked
-            ? 'w-32 h-20 sm:w-44 sm:h-28 scale-95 border-brand-blue/60'
-            : 'w-48 h-32 sm:w-60 sm:h-40 scale-110 border-white/30 animate-pulse'
+      {/* ================= CORNER BRACKETS ================= */}
+      {/* Top-Left Bracket (Frames outside 'B') */}
+      <span
+        className={`absolute -top-2 -left-2 w-7 sm:w-10 md:w-12 h-7 sm:h-10 md:h-12 border-t-[2.5px] border-l-[2.5px] transition-all duration-300 ${
+          activeLocked
+            ? 'border-[#1497F5] drop-shadow-[0_0_14px_rgba(20,151,245,0.95)] scale-100'
+            : 'border-white/80 animate-pulse scale-105'
         }`}
-      >
-        {/* Corner Brackets */}
-        <span
-          className={`absolute top-0 left-0 w-3.5 h-3.5 border-t-2 border-l-2 transition-colors duration-200 ${
-            isLocked ? 'border-brand-blue' : 'border-white/70'
-          }`}
-        />
-        <span
-          className={`absolute top-0 right-0 w-3.5 h-3.5 border-t-2 border-r-2 transition-colors duration-200 ${
-            isLocked ? 'border-brand-blue' : 'border-white/70'
-          }`}
-        />
-        <span
-          className={`absolute bottom-0 left-0 w-3.5 h-3.5 border-b-2 border-l-2 transition-colors duration-200 ${
-            isLocked ? 'border-brand-blue' : 'border-white/70'
-          }`}
-        />
-        <span
-          className={`absolute bottom-0 right-0 w-3.5 h-3.5 border-b-2 border-r-2 transition-colors duration-200 ${
-            isLocked ? 'border-brand-blue' : 'border-white/70'
-          }`}
-        />
+      />
 
-        {/* Center Optical Dot */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div
-            className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
-              isLocked ? 'bg-brand-blue scale-125 shadow-glow-blue' : 'bg-white/60'
-            }`}
-          />
-        </div>
-      </div>
+      {/* Top-Right Bracket (Frames outside 'S') */}
+      <span
+        className={`absolute -top-2 -right-2 w-7 sm:w-10 md:w-12 h-7 sm:h-10 md:h-12 border-t-[2.5px] border-r-[2.5px] transition-all duration-300 ${
+          activeLocked
+            ? 'border-[#1497F5] drop-shadow-[0_0_14px_rgba(20,151,245,0.95)] scale-100'
+            : 'border-white/80 animate-pulse scale-105'
+        }`}
+      />
+
+      {/* Bottom-Left Bracket (Frames outside 'B') */}
+      <span
+        className={`absolute -bottom-2 -left-2 w-7 sm:w-10 md:w-12 h-7 sm:h-10 md:h-12 border-b-[2.5px] border-l-[2.5px] transition-all duration-300 ${
+          activeLocked
+            ? 'border-[#1497F5] drop-shadow-[0_0_14px_rgba(20,151,245,0.95)] scale-100'
+            : 'border-white/80 animate-pulse scale-105'
+        }`}
+      />
+
+      {/* Bottom-Right Bracket (Frames outside 'S') */}
+      <span
+        className={`absolute -bottom-2 -right-2 w-7 sm:w-10 md:w-12 h-7 sm:h-10 md:h-12 border-b-[2.5px] border-r-[2.5px] transition-all duration-300 ${
+          activeLocked
+            ? 'border-[#1497F5] drop-shadow-[0_0_14px_rgba(20,151,245,0.95)] scale-100'
+            : 'border-white/80 animate-pulse scale-105'
+        }`}
+      />
+
+      {/* ================= CARDINAL CROSSHAIRS ================= */}
+      <span className="absolute top-0 left-1/2 -translate-x-1/2 w-5 h-[2px] bg-white/40" />
+      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-[2px] bg-white/40" />
+      <span className="absolute top-1/2 left-0 -translate-y-1/2 h-5 w-[2px] bg-white/40" />
+      <span className="absolute top-1/2 right-0 -translate-y-1/2 h-5 w-[2px] bg-white/40" />
     </div>
   );
 };

@@ -1,0 +1,94 @@
+[
+  {
+    "viewport": "desktop_1440x900",
+    "width": 1440,
+    "height": 900,
+    "load_time_sec": 3.972,
+    "canvas": {
+      "hasCanvas": true,
+      "canvasWidth": 2160,
+      "canvasHeight": 1350,
+      "clientWidth": 1440,
+      "clientHeight": 900,
+      "hasRenderedPixels": true
+    },
+    "errors": [],
+    "warnings": [
+      {
+        "type": "warning",
+        "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+      }
+    ],
+    "error_console": [],
+    "status": "PASS"
+  },
+  {
+    "viewport": "desktop_1920x1080",
+    "width": 1920,
+    "height": 1080,
+    "load_time_sec": 3.85,
+    "canvas": {
+      "hasCanvas": true,
+      "canvasWidth": 2880,
+      "canvasHeight": 1620,
+      "clientWidth": 1920,
+      "clientHeight": 1080,
+      "hasRenderedPixels": true
+    },
+    "errors": [],
+    "warnings": [
+      {
+        "type": "warning",
+        "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+      }
+    ],
+    "error_console": [],
+    "status": "PASS"
+  },
+  {
+    "viewport": "tablet_768x1024",
+    "width": 768,
+    "height": 1024,
+    "load_time_sec": 3.873,
+    "canvas": {
+      "hasCanvas": true,
+      "canvasWidth": 1536,
+      "canvasHeight": 2048,
+      "clientWidth": 768,
+      "clientHeight": 1024,
+      "hasRenderedPixels": true
+    },
+    "errors": [],
+    "warnings": [
+      {
+        "type": "warning",
+        "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+      }
+    ],
+    "error_console": [],
+    "status": "PASS"
+  },
+  {
+    "viewport": "mobile_390x844",
+    "width": 390,
+    "height": 844,
+    "load_time_sec": 3.841,
+    "canvas": {
+      "hasCanvas": true,
+      "canvasWidth": 780,
+      "canvasHeight": 1688,
+      "clientWidth": 390,
+      "clientHeight": 844,
+      "hasRenderedPixels": true
+    },
+    "errors": [],
+    "warnings": [
+      {
+        "type": "warning",
+        "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+      }
+    ],
+    "error_console": [],
+    "status": "PASS"
+  }
+]

@@ -2,7 +2,7 @@ import { PreloaderConfig } from '../types';
 
 export const PRELOADER_CONFIG: PreloaderConfig = {
   reelSequence: ['reel-01', 'reel-02', 'reel-03', 'reel-04', 'reel-05', 'reel-06'],
-  totalSequenceDuration: 5.2, // seconds
+  totalSequenceDuration: 6.3, // seconds
   flashDuration: 0.12, // 120ms camera flash
   deviceScale: {
     desktop: 1.0,
@@ -17,7 +17,7 @@ export const PRELOADER_CONFIG: PreloaderConfig = {
   logoSnapTiming: 3.55,
   focusTiming: 2.85,
   exitDuration: 1.25,
-  safetyTimeoutMs: 7500, // Never trap visitor: hard failsafe
+  safetyTimeoutMs: 8500, // Never trap visitor: hard failsafe
   brandColors: {
     blue: '#1497F5',
     electric: '#139EF2',
