@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Check, MapPin, Calendar, Building, MessageSquare } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -20,22 +20,22 @@ const STUDIO_EMAIL = 'contact@brandshoots.com';
 const STUDIO_LOCATION = 'Rajahmundry & Hyderabad, India';
 
 export const ContactFormSection: React.FC = () => {
-  // Inquiry form state
+  // Main inquiry form state
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
     phone: '',
+    email: '',
     company: '',
     projectType: 'Commercial Production',
     message: ''
   });
 
-  // Site visit state
+  // Dedicated Site Visit Plan card state
   const [siteVisitData, setSiteVisitData] = useState({
     location: '',
     date: '',
-    company: '',
-    message: ''
+    clientName: '',
+    notes: ''
   });
 
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -120,23 +120,33 @@ export const ContactFormSection: React.FC = () => {
     setFormSubmitted(true);
   };
 
-  // Site visit submission: generates WhatsApp message and redirects
-  const handleSiteVisitSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  // Direct WhatsApp inquiry for general project
+  const handleGeneralWhatsAppInquiry = () => {
+    const defaultText = formData.name
+      ? `Hi BRANDSHOOTS, I would like to discuss a project.\n\nName: ${formData.name}\nPhone: ${formData.phone || 'Provided'}\nCompany: ${formData.company || 'N/A'}\nProject: ${formData.projectType}\nDetails: ${formData.message || 'Discussion'}`
+      : 'Hi BRANDSHOOTS, I would like to discuss a project.';
+
+    const waUrl = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(defaultText)}`;
+    window.open(waUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  // Site Visit submission: Pre-fills customer site visit inquiry message and redirects to WhatsApp 7075960672
+  const handleSiteVisitWhatsApp = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setSiteVisitSubmitted(true);
 
     const messageLines = [
       'Hi BRANDSHOOTS,',
       '',
-      "I'd like to request a site visit.",
+      "I'd like to request an on-location site visit for our shoot.",
       '',
-      `Location: ${siteVisitData.location || 'Not provided'}`,
+      `Location / City: ${siteVisitData.location || 'To be specified'}`,
       `Preferred Date: ${siteVisitData.date || 'Flexible'}`,
-      `Project / Company: ${siteVisitData.company || 'Not provided'}`,
-      `Details: ${siteVisitData.message || 'Discussion on location.'}`,
+      `Client / Company: ${siteVisitData.clientName || 'Client'}`,
+      siteVisitData.notes ? `Requirement Details: ${siteVisitData.notes}` : '',
       '',
-      'Thank you.'
-    ];
+      'Please let me know your availability. Thank you!'
+    ].filter(Boolean);
 
     const waUrl = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(messageLines.join('\n'))}`;
     window.open(waUrl, '_blank', 'noopener,noreferrer');
@@ -239,7 +249,7 @@ export const ContactFormSection: React.FC = () => {
           </div>
 
           {/* ============================================================ */}
-          {/* RIGHT: PROJECT INQUIRY FORM (COMPACT & PURPOSEFUL)           */}
+          {/* RIGHT: PROJECT INQUIRY FORM (COMPACT & SIMPLE TO FILL)       */}
           {/* ============================================================ */}
           <div className="lg:col-span-7">
             <h2 className="font-mono text-xs sm:text-[13px] tracking-[0.24em] uppercase text-white/50 mb-8 font-semibold">
@@ -260,8 +270,8 @@ export const ContactFormSection: React.FC = () => {
                     setFormSubmitted(false);
                     setFormData({
                       name: '',
-                      email: '',
                       phone: '',
+                      email: '',
                       company: '',
                       projectType: 'Commercial Production',
                       message: ''
@@ -274,7 +284,7 @@ export const ContactFormSection: React.FC = () => {
               </div>
             ) : (
               <form onSubmit={handlePrimarySubmit} className="space-y-6">
-                {/* 1. Name & Email */}
+                {/* 1. Name & Phone */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
                     <label className="block text-xs font-mono tracking-wider uppercase text-white/60 mb-2">
@@ -292,23 +302,6 @@ export const ContactFormSection: React.FC = () => {
 
                   <div>
                     <label className="block text-xs font-mono tracking-wider uppercase text-white/60 mb-2">
-                      EMAIL <span className="text-[#008CFF]">*</span>
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      placeholder="your@email.com"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-4 py-3.5 rounded-lg bg-white/[0.03] border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
-                    />
-                  </div>
-                </div>
-
-                {/* 2. Phone / WhatsApp & Company */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-xs font-mono tracking-wider uppercase text-white/60 mb-2">
                       PHONE / WHATSAPP <span className="text-[#008CFF]">*</span>
                     </label>
                     <input
@@ -317,6 +310,23 @@ export const ContactFormSection: React.FC = () => {
                       placeholder="+91 00000 00000"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className="w-full px-4 py-3.5 rounded-lg bg-white/[0.03] border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
+                    />
+                  </div>
+                </div>
+
+                {/* 2. Email & Company */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-xs font-mono tracking-wider uppercase text-white/60 mb-2">
+                      EMAIL <span className="text-[#008CFF]">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="your@email.com"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="w-full px-4 py-3.5 rounded-lg bg-white/[0.03] border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
                     />
                   </div>
@@ -386,15 +396,14 @@ export const ContactFormSection: React.FC = () => {
                   </button>
 
                   {/* Secondary Understated WhatsApp Action */}
-                  <a
-                    href="https://wa.me/917075960672?text=Hi%20BRANDSHOOTS,%20I%20would%20like%20to%20discuss%20a%20project."
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-mono text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors flex items-center gap-1.5 py-2"
+                  <button
+                    type="button"
+                    onClick={handleGeneralWhatsAppInquiry}
+                    className="font-mono text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors flex items-center gap-1.5 py-2 cursor-pointer"
                   >
                     <span>INQUIRE ON WHATSAPP</span>
                     <span>→</span>
-                  </a>
+                  </button>
                 </div>
               </form>
             )}
@@ -402,101 +411,185 @@ export const ContactFormSection: React.FC = () => {
         </div>
 
         {/* ============================================================== */}
-        {/* 3. SITE VISIT (SEPARATE BUT SIMPLE)                            */}
+        {/* 3. SITE VISIT SECTION — RECTANGLE VERTICAL PRICE-TAG CARD      */}
         {/* ============================================================== */}
-        <div ref={siteVisitSectionRef} className="pt-16 sm:pt-20">
-          <div className="max-w-2xl">
-            <span className="block font-mono text-xs tracking-[0.24em] uppercase text-white/50 mb-2 font-semibold">
-              SITE VISIT
-            </span>
-            <h2 className="font-editorial font-bold uppercase text-2xl sm:text-3xl md:text-4xl tracking-tight text-white mb-3">
-              LET'S MEET WHERE THE WORK HAPPENS.
-            </h2>
-            <p className="text-white/70 text-sm sm:text-base font-light leading-relaxed mb-8">
-              Want to discuss the project in person? Tell us where you're located and when you'd like us to visit.
-            </p>
+        <div ref={siteVisitSectionRef} className="pt-16 sm:pt-24">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+            
+            {/* Left Column: Context & Editorial Statement */}
+            <div className="lg:col-span-6 flex flex-col justify-center">
+              <span className="block font-mono text-xs tracking-[0.26em] uppercase text-white/50 mb-2 font-semibold">
+                SITE VISIT
+              </span>
+              <h2 className="font-editorial font-bold uppercase text-2xl sm:text-3xl md:text-5xl tracking-tight text-white mb-4 leading-tight">
+                LET'S MEET WHERE THE WORK HAPPENS.
+              </h2>
+              <p className="text-white/70 text-sm sm:text-base font-light leading-relaxed mb-8 max-w-xl">
+                Want to discuss the project in person? Request a site visit and have our director and cinematography team walk through your space, factory, studio, or campus before cameras roll.
+              </p>
 
-            {siteVisitSubmitted ? (
-              <div className="py-8 px-6 border border-white/[0.08] rounded-xl bg-white/[0.02]">
-                <p className="font-mono text-xs sm:text-sm tracking-wider uppercase text-white/80">
-                  SITE VISIT REQUEST OPENED IN WHATSAPP.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setSiteVisitSubmitted(false)}
-                  className="mt-4 font-mono text-xs uppercase tracking-widest text-white/50 hover:text-white transition-colors underline underline-offset-4 cursor-pointer"
-                >
-                  Edit details
-                </button>
+              {/* Scope highlights */}
+              <div className="space-y-3.5 border-t border-white/[0.08] pt-6 max-w-md">
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/30 flex items-center justify-center shrink-0 mt-0.5">
+                    <Check className="w-3 h-3 text-[#008CFF]" />
+                  </div>
+                  <span className="text-sm text-white/80 font-light">
+                    On-location lighting, acoustic & spatial walkthrough
+                  </span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/30 flex items-center justify-center shrink-0 mt-0.5">
+                    <Check className="w-3 h-3 text-[#008CFF]" />
+                  </div>
+                  <span className="text-sm text-white/80 font-light">
+                    Creative shot framing & camera setup feasibility
+                  </span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/30 flex items-center justify-center shrink-0 mt-0.5">
+                    <Check className="w-3 h-3 text-[#008CFF]" />
+                  </div>
+                  <span className="text-sm text-white/80 font-light">
+                    Direct WhatsApp response to coordinate schedule
+                  </span>
+                </div>
               </div>
-            ) : (
-              <form onSubmit={handleSiteVisitSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-mono tracking-wider uppercase text-white/60 mb-1.5">
-                      LOCATION / CITY
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Hyderabad, Factory, Studio"
-                      value={siteVisitData.location}
-                      onChange={(e) => setSiteVisitData({ ...siteVisitData, location: e.target.value })}
-                      className="w-full px-4 py-3 rounded-lg bg-white/[0.03] border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
-                    />
-                  </div>
+            </div>
 
+            {/* Right Column: Separate Vertical Price Tag / Pass Tile Card */}
+            <div className="lg:col-span-6 flex justify-start lg:justify-end">
+              <div className="w-full max-w-md bg-gradient-to-b from-[#090D14] to-[#04060A] border border-white/[0.14] rounded-2xl p-6 sm:p-8 relative shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-hidden">
+                
+                {/* Price Tag Ticket Notch / Top Accent */}
+                <div className="flex items-center justify-between pb-5 border-b border-white/[0.1] mb-6">
                   <div>
-                    <label className="block text-xs font-mono tracking-wider uppercase text-white/60 mb-1.5">
-                      PREFERRED DATE
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Next week, Oct 20"
-                      value={siteVisitData.date}
-                      onChange={(e) => setSiteVisitData({ ...siteVisitData, date: e.target.value })}
-                      className="w-full px-4 py-3 rounded-lg bg-white/[0.03] border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
-                    />
+                    <span className="font-mono text-[10px] tracking-[0.28em] uppercase text-[#008CFF] font-semibold block mb-0.5">
+                      PASS // ON-LOCATION
+                    </span>
+                    <span className="text-lg font-editorial font-bold uppercase tracking-tight text-white">
+                      SITE VISIT PLAN
+                    </span>
+                  </div>
+                  {/* Price Tag Stamp */}
+                  <div className="text-right">
+                    <span className="inline-block px-3 py-1 rounded border border-[#008CFF]/40 bg-[#008CFF]/10 text-[#008CFF] font-mono text-[11px] font-bold tracking-wider uppercase">
+                      ON-SITE RECCE
+                    </span>
+                    <span className="block text-[10px] font-mono text-white/40 tracking-wider mt-1">
+                      DIRECT WHATSAPP
+                    </span>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-mono tracking-wider uppercase text-white/60 mb-1.5">
-                    PROJECT / COMPANY
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Project or company name"
-                    value={siteVisitData.company}
-                    onChange={(e) => setSiteVisitData({ ...siteVisitData, company: e.target.value })}
-                    className="w-full px-4 py-3 rounded-lg bg-white/[0.03] border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
-                  />
-                </div>
+                {/* Clean Simple Form Inside Card */}
+                {siteVisitSubmitted ? (
+                  <div className="py-8 text-center">
+                    <div className="w-12 h-12 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/40 flex items-center justify-center mx-auto mb-4">
+                      <Check className="w-6 h-6 text-[#008CFF]" />
+                    </div>
+                    <h3 className="font-editorial text-xl font-bold uppercase text-white mb-2">
+                      REQUEST INITIATED
+                    </h3>
+                    <p className="text-xs text-white/70 font-mono leading-relaxed mb-6">
+                      WhatsApp chat opened with pre-filled site visit details.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setSiteVisitSubmitted(false)}
+                      className="font-mono text-xs uppercase tracking-widest text-[#008CFF] hover:underline"
+                    >
+                      Update Details & Resend →
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSiteVisitWhatsApp} className="space-y-4">
+                    {/* Location */}
+                    <div>
+                      <label className="block text-[11px] font-mono tracking-wider uppercase text-white/60 mb-1.5 flex items-center gap-1.5">
+                        <MapPin className="w-3 h-3 text-[#008CFF]" />
+                        <span>LOCATION / CITY *</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Hyderabad, Factory, Campus"
+                        value={siteVisitData.location}
+                        onChange={(e) => setSiteVisitData({ ...siteVisitData, location: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-lg bg-black/40 border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-xs font-mono tracking-wider uppercase text-white/60 mb-1.5">
-                    SHORT MESSAGE
-                  </label>
-                  <textarea
-                    rows={2}
-                    placeholder="Brief details about the location or shoot requirement."
-                    value={siteVisitData.message}
-                    onChange={(e) => setSiteVisitData({ ...siteVisitData, message: e.target.value })}
-                    className="w-full px-4 py-3 rounded-lg bg-white/[0.03] border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#008CFF] transition-colors resize-none leading-relaxed"
-                  />
-                </div>
+                    {/* Preferred Date */}
+                    <div>
+                      <label className="block text-[11px] font-mono tracking-wider uppercase text-white/60 mb-1.5 flex items-center gap-1.5">
+                        <Calendar className="w-3 h-3 text-[#008CFF]" />
+                        <span>PREFERRED DATE</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Next week, Oct 15-20"
+                        value={siteVisitData.date}
+                        onChange={(e) => setSiteVisitData({ ...siteVisitData, date: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-lg bg-black/40 border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
+                      />
+                    </div>
 
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    className="w-full sm:w-auto py-3.5 px-8 rounded-full bg-white/[0.08] hover:bg-white/15 border border-white/15 hover:border-white/30 text-white font-mono text-xs uppercase tracking-[0.2em] font-semibold flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer"
-                  >
-                    <span>REQUEST SITE VISIT</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </form>
-            )}
+                    {/* Client / Company */}
+                    <div>
+                      <label className="block text-[11px] font-mono tracking-wider uppercase text-white/60 mb-1.5 flex items-center gap-1.5">
+                        <Building className="w-3 h-3 text-[#008CFF]" />
+                        <span>CLIENT / COMPANY NAME</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Brand Name or Client"
+                        value={siteVisitData.clientName}
+                        onChange={(e) => setSiteVisitData({ ...siteVisitData, clientName: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-lg bg-black/40 border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
+                      />
+                    </div>
+
+                    {/* Short Message / Notes */}
+                    <div>
+                      <label className="block text-[11px] font-mono tracking-wider uppercase text-white/60 mb-1.5">
+                        <span>SHORT MESSAGE / REQUIREMENT</span>
+                      </label>
+                      <textarea
+                        rows={2}
+                        placeholder="Shoot details, venue size, outdoor/indoor..."
+                        value={siteVisitData.notes}
+                        onChange={(e) => setSiteVisitData({ ...siteVisitData, notes: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-lg bg-black/40 border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#008CFF] transition-colors resize-none"
+                      />
+                    </div>
+
+                    {/* Direct WhatsApp Redirect CTA */}
+                    <div className="pt-2">
+                      <button
+                        type="submit"
+                        className="w-full py-3.5 px-6 rounded-full bg-[#008CFF] hover:bg-[#209CFF] text-white font-mono text-xs uppercase tracking-[0.2em] font-bold flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer shadow-[0_0_24px_rgba(0,140,255,0.35)] active:scale-98"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        <span>REQUEST SITE VISIT ON WHATSAPP</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+
+                      <div className="text-center mt-3">
+                        <a
+                          href={`https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent("Hi BRANDSHOOTS, I would like to request an on-location site visit for our shoot.")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-mono text-[11px] tracking-wider text-white/50 hover:text-white transition-colors"
+                        >
+                          Or tap to chat directly with {DISPLAY_PHONE} →
+                        </a>
+                      </div>
+                    </div>
+                  </form>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
