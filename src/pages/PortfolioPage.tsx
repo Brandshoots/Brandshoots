@@ -23,7 +23,7 @@ export const PortfolioPage: React.FC = () => {
   }, []);
 
   return (
-    <main className="relative w-full min-h-screen bg-[#05070B] text-white overflow-x-hidden select-none">
+    <main className="relative w-full min-h-screen bg-[#030508] text-white select-none">
       {/* 1. HOMEPAGE-MATCHED NAVIGATION BAR */}
       <PortfolioNavbar onOpenContact={() => setContactModalOpen(true)} />
 

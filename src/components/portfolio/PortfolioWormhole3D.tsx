@@ -1,636 +1,491 @@
-import React, { useEffect, useRef, useState } from 'react';
-import * as THREE from 'three';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowRight, ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { CLIENT_PROJECTS, ClientProject } from '../../data/clientsData';
+import { CLIENT_PROJECTS } from '../../data/clientsData';
+import { ArrowUpRight, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
-// 3D Spatial Layout Matrix along the forward Wormhole Corridor (10 Projects)
-// Alternating: CENTER -> RIGHT -> LEFT -> DEEP RIGHT -> DEEP LEFT -> CENTER -> LEFT -> RIGHT -> DEEP LEFT -> CENTER
-interface SpatialSlot {
-  x: number;
-  y: number;
-  z: number;
-  rotY: number;
-  rotX: number;
+/**
+ * PHASE 3 PORTFOLIO — 3D ALTERNATING EDITORIAL CORRIDOR
+ *
+ * Implements the user's hand-drawn reference architecture:
+ * - Top Header: Navbar + "Our Portfolio"
+ * - Frame 1: 3D Tile on the LEFT (angled in 3D perspective), Title & Matter on the RIGHT.
+ * - Frame 2: Matter on the LEFT, 3D Tile on the RIGHT (angled in 3D perspective).
+ * - "Every tile should come from left to right" on entry during scroll.
+ * - "dont keep them before only": Upcoming tiles are NOT visible beforehand;
+ *   only the active chapter and its transition are on screen.
+ * - Authentic 3D perspective with CSS transform-style preserve-3d and rotateY.
+ * - GSAP ScrollTrigger with precision snap for all 10 clients.
+ */
+
+// Smooth cubic easing helper
+function easeOutCubic(t: number): number {
+  return 1 - Math.pow(1 - Math.max(0, Math.min(1, t)), 3);
 }
 
-const DESKTOP_SLOTS: SpatialSlot[] = [
-  { x: 0, y: 0, z: 0, rotY: 0, rotX: 0 }, // 0. Santhi Pipes (Center)
-  { x: 3.3, y: 0.2, z: -9.0, rotY: -0.32, rotX: 0.04 }, // 1. Viswatuff Glass (Right)
-  { x: -3.3, y: -0.2, z: -18.0, rotY: 0.32, rotX: -0.04 }, // 2. Bags World (Left)
-  { x: 3.6, y: 0.25, z: -27.0, rotY: -0.36, rotX: 0.05 }, // 3. Aabharan Jewellers (Deep Right)
-  { x: -3.6, y: -0.25, z: -36.0, rotY: 0.36, rotX: -0.05 }, // 4. Fresh & Fresh (Deep Left)
-  { x: 0, y: 0, z: -45.0, rotY: 0, rotX: 0 }, // 5. Dayanidhi Creations (Center)
-  { x: -3.3, y: 0.2, z: -54.0, rotY: 0.32, rotX: 0.04 }, // 6. Jain Beauty Studio (Left)
-  { x: 3.3, y: -0.2, z: -63.0, rotY: -0.32, rotX: -0.04 }, // 7. RK Home Living (Right)
-  { x: -3.5, y: 0.2, z: -72.0, rotY: 0.35, rotX: 0.04 }, // 8. SB Ventures (Deep Left)
-  { x: 0, y: 0, z: -81.0, rotY: 0, rotX: 0 }, // 9. KC Overseas (Center)
-];
-
-const MOBILE_SLOTS: SpatialSlot[] = [
-  { x: 0, y: 0, z: 0, rotY: 0, rotX: 0 },
-  { x: 1.7, y: 0.15, z: -8.5, rotY: -0.25, rotX: 0.02 },
-  { x: -1.7, y: -0.15, z: -17.0, rotY: 0.25, rotX: -0.02 },
-  { x: 1.8, y: 0.18, z: -25.5, rotY: -0.28, rotX: 0.03 },
-  { x: -1.8, y: -0.18, z: -34.0, rotY: 0.28, rotX: -0.03 },
-  { x: 0, y: 0, z: -42.5, rotY: 0, rotX: 0 },
-  { x: -1.7, y: 0.15, z: -51.0, rotY: 0.25, rotX: 0.02 },
-  { x: 1.7, y: -0.15, z: -59.5, rotY: -0.25, rotX: -0.02 },
-  { x: -1.8, y: 0.15, z: -68.0, rotY: 0.28, rotX: 0.02 },
-  { x: 0, y: 0, z: -76.5, rotY: 0, rotX: 0 },
-];
-
 export const PortfolioWormhole3D: React.FC = () => {
-  const sectionRef = useRef<HTMLElement>(null);
-  const pinContainerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const progressBarRef = useRef<HTMLDivElement>(null);
+  const totalProjects = CLIENT_PROJECTS.length; // 10 projects
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Active Project State
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [selectedProject, setSelectedProject] = useState<ClientProject | null>(null);
+  // Fractional scroll progression across chapters: 0.0 to 9.0
+  const [scrollUnit, setScrollUnit] = useState<number>(0);
+  const [activeIndex, setActiveIndex] = useState<number>(0);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
 
-  const activeProject = CLIENT_PROJECTS[activeIndex] || CLIENT_PROJECTS[0];
+  // Video references for memory-efficient playback
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
+  // Track responsive screen size
   useEffect(() => {
-    const pinContainer = pinContainerRef.current;
-    const canvas = canvasRef.current;
-    if (!pinContainer || !canvas) return;
-
-    const isMobile = window.innerWidth < 768;
-    const width = pinContainer.clientWidth || window.innerWidth;
-    const height = pinContainer.clientHeight || window.innerHeight;
-
-    const slots = isMobile ? MOBILE_SLOTS : DESKTOP_SLOTS;
-    const totalProjects = CLIENT_PROJECTS.length; // 10
-
-    // 1. WebGL Three.js Renderer
-    const renderer = new THREE.WebGLRenderer({
-      canvas,
-      antialias: true,
-      alpha: true,
-      powerPreference: 'high-performance',
-    });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
-
-    // 2. Scene & Fog (Creates the Infinite Deep Corridor/Wormhole Mist)
-    const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x05070b, isMobile ? 0.038 : 0.028);
-
-    // 3. Perspective Camera
-    const camera = new THREE.PerspectiveCamera(isMobile ? 54 : 44, width / height, 0.1, 120);
-    const startCamZ = isMobile ? 6.2 : 5.8;
-    camera.position.set(0, 0, startCamZ);
-
-    // 4. Lighting System
-    const ambientLight = new THREE.AmbientLight(0x060912, 2.2);
-    scene.add(ambientLight);
-
-    // Moving Key Blue Light attached to camera focus
-    const cameraLight = new THREE.PointLight(0x008cff, 4.2, 35);
-    cameraLight.position.set(0, 1.5, startCamZ - 1.5);
-    scene.add(cameraLight);
-
-    const warmFillLight = new THREE.DirectionalLight(0xffffff, 1.6);
-    warmFillLight.position.set(4, 6, 8);
-    scene.add(warmFillLight);
-
-    // 5. Subtle Spatial Runway / Corridor Grid Floor
-    const gridGeo = new THREE.PlaneGeometry(16, 120, 16, 60);
-    const gridMat = new THREE.MeshBasicMaterial({
-      color: 0x07152d,
-      wireframe: true,
-      transparent: true,
-      opacity: 0.18,
-    });
-    const gridMesh = new THREE.Mesh(gridGeo, gridMat);
-    gridMesh.rotation.x = -Math.PI / 2;
-    gridMesh.position.set(0, isMobile ? -2.4 : -2.8, -45);
-    scene.add(gridMesh);
-
-    // 6. Build Physical 3D 9:16 Video Reel Screens
-    const screensGroup = new THREE.Group();
-    scene.add(screensGroup);
-
-    const textureLoader = new THREE.TextureLoader();
-    const frameW = isMobile ? 1.45 : 2.05;
-    const frameH = (frameW * 16) / 9; // 9:16 aspect ratio
-    const chassisDepth = 0.055;
-
-    const casingGeo = new THREE.BoxGeometry(frameW + 0.08, frameH + 0.08, chassisDepth);
-    const screenGeo = new THREE.PlaneGeometry(frameW, frameH);
-    const rimEdgeGeo = new THREE.EdgesGeometry(screenGeo);
-
-    const casingMat = new THREE.MeshStandardMaterial({
-      color: 0x080b12,
-      roughness: 0.35,
-      metalness: 0.88,
-    });
-
-    const rimLineMat = new THREE.LineBasicMaterial({
-      color: 0x008cff,
-      transparent: true,
-      opacity: 0.5,
-    });
-
-    interface ReelMeshItem {
-      group: THREE.Group;
-      screenMesh: THREE.Mesh;
-      video: HTMLVideoElement;
-      videoTex: THREE.VideoTexture;
-      posterTex: THREE.Texture;
-      mat: THREE.MeshStandardMaterial;
-      slot: SpatialSlot;
-      index: number;
-    }
-
-    const reelItems: ReelMeshItem[] = [];
-
-    CLIENT_PROJECTS.forEach((project, i) => {
-      const slot = slots[i] || slots[0];
-      const frameGroup = new THREE.Group();
-
-      // Chassis body
-      const casingMesh = new THREE.Mesh(casingGeo, casingMat);
-      frameGroup.add(casingMesh);
-
-      // HTML5 Video
-      const video = document.createElement('video');
-      video.src = project.videoUrl;
-      video.crossOrigin = 'anonymous';
-      video.loop = true;
-      video.muted = true;
-      video.playsInline = true;
-      video.setAttribute('playsinline', '');
-      video.setAttribute('webkit-playsinline', '');
-      video.preload = i < 2 ? 'auto' : 'metadata';
-
-      const videoTex = new THREE.VideoTexture(video);
-      videoTex.colorSpace = THREE.SRGBColorSpace;
-      videoTex.minFilter = THREE.LinearFilter;
-      videoTex.magFilter = THREE.LinearFilter;
-
-      // Poster Texture
-      const posterTex = textureLoader.load(project.posterUrl);
-      posterTex.colorSpace = THREE.SRGBColorSpace;
-
-      // Screen Material
-      const filmMat = new THREE.MeshStandardMaterial({
-        map: posterTex,
-        roughness: 0.28,
-        metalness: 0.12,
-        side: THREE.FrontSide,
-      });
-
-      video.addEventListener('playing', () => {
-        filmMat.map = videoTex;
-        filmMat.needsUpdate = true;
-      });
-
-      const screenMesh = new THREE.Mesh(screenGeo, filmMat);
-      screenMesh.position.z = chassisDepth / 2 + 0.002;
-      frameGroup.add(screenMesh);
-
-      // Neon rim accent
-      const rimLine = new THREE.LineSegments(rimEdgeGeo, rimLineMat);
-      rimLine.position.z = chassisDepth / 2 + 0.003;
-      frameGroup.add(rimLine);
-
-      // Initial placement in 3D Corridor
-      frameGroup.position.set(slot.x, slot.y, slot.z);
-      frameGroup.rotation.set(slot.rotX, slot.rotY, 0);
-
-      screensGroup.add(frameGroup);
-
-      reelItems.push({
-        group: frameGroup,
-        screenMesh,
-        video,
-        videoTex,
-        posterTex,
-        mat: filmMat,
-        slot,
-        index: i,
-      });
-    });
-
-    // Start video for initial reel
-    if (reelItems[0]?.video) {
-      reelItems[0].video.play().catch(() => {});
-    }
-
-    // Scroll/touch kick to guarantee video autoplay policies
-    const kickVideos = () => {
-      reelItems.forEach((item, idx) => {
-        if (Math.abs(idx - activeIndex) <= 1 && item.video.paused) {
-          item.video.play().catch(() => {});
-        }
-      });
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
     };
-    window.addEventListener('scroll', kickVideos, { passive: true, once: true });
-    window.addEventListener('touchstart', kickVideos, { passive: true, once: true });
-    window.addEventListener('click', kickVideos, { passive: true, once: true });
-
-    // 7. Scroll State Management
-    const scrollState = {
-      progress: 0,
-      targetIndex: 0,
-    };
-
-    // 8. GSAP ScrollTrigger Pinned Timeline (900% scroll distance with 1/9 snap)
-    const ctx = gsap.context(() => {
-      ScrollTrigger.create({
-        trigger: sectionRef.current,
-        start: 'top top',
-        end: '+=900%', // 9 viewports for 10 projects
-        pin: pinContainerRef.current,
-        scrub: 0.9,
-        anticipatePin: 1,
-        snap: {
-          snapTo: 1 / (totalProjects - 1),
-          duration: { min: 0.35, max: 0.75 },
-          delay: 0.08,
-          ease: 'power2.inOut',
-        },
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          scrollState.progress = self.progress;
-
-          // Compute fractional project index (0.0 to 9.0)
-          const virtualIndex = self.progress * (totalProjects - 1);
-          scrollState.targetIndex = virtualIndex;
-
-          const currentNearest = Math.round(virtualIndex);
-          setActiveIndex((prev) => (prev !== currentNearest ? currentNearest : prev));
-
-          if (progressBarRef.current) {
-            progressBarRef.current.style.transform = `scaleX(${self.progress})`;
-          }
-
-          // Smart Video Memory Optimization:
-          // Only play active & adjacent reels, pause distant ones
-          reelItems.forEach((item, idx) => {
-            const dist = Math.abs(idx - virtualIndex);
-            if (dist <= 1.25) {
-              if (item.video.paused) {
-                item.video.play().catch(() => {});
-              }
-            } else {
-              if (!item.video.paused) {
-                item.video.pause();
-              }
-            }
-          });
-        },
-      });
-    }, sectionRef);
-
-    // 9. Render Loop: Camera Dolly & Perspective Interpolation
-    let animId: number;
-    let currentCamZ = startCamZ;
-    let currentCamX = 0;
-    let currentCamY = 0;
-
-    const tick = () => {
-      animId = requestAnimationFrame(tick);
-      const time = performance.now() * 0.001;
-
-      const u = scrollState.targetIndex; // fractional index 0 to 9
-      const baseIdx = Math.floor(u);
-      const nextIdx = Math.min(totalProjects - 1, baseIdx + 1);
-      const factor = u - baseIdx;
-
-      const currentSlot = slots[baseIdx] || slots[0];
-      const nextSlot = slots[nextIdx] || currentSlot;
-
-      // Interpolated project Z & X in world coordinates
-      const interpolatedTargetZ = currentSlot.z + (nextSlot.z - currentSlot.z) * factor;
-      const interpolatedTargetX = currentSlot.x + (nextSlot.x - currentSlot.x) * factor;
-      const interpolatedTargetY = currentSlot.y + (nextSlot.y - currentSlot.y) * factor;
-
-      // Desired camera destination:
-      // Camera stays in front of the active reel target
-      const targetCamZPos = interpolatedTargetZ + (isMobile ? 6.2 : 5.8);
-      // Camera subtly shifts toward the active reel's lateral side
-      const targetCamXPos = interpolatedTargetX * (isMobile ? 0.35 : 0.42);
-      const targetCamYPos = interpolatedTargetY * 0.3;
-
-      // Smooth camera interpolation
-      currentCamZ += (targetCamZPos - currentCamZ) * 0.09;
-      currentCamX += (targetCamXPos - currentCamX) * 0.09;
-      currentCamY += (targetCamYPos - currentCamY) * 0.09;
-
-      camera.position.set(currentCamX, currentCamY, currentCamZ);
-
-      // Light moves with camera
-      cameraLight.position.set(currentCamX, currentCamY + 1.2, currentCamZ - 1.8);
-
-      // Camera smoothly points toward the active target zone in front
-      camera.lookAt(interpolatedTargetX * 0.7, interpolatedTargetY * 0.5, interpolatedTargetZ);
-
-      // Micro floating depth on individual reel meshes
-      reelItems.forEach((item, idx) => {
-        const floatY = Math.sin(time * 1.1 + idx * 1.3) * 0.04;
-        item.group.position.y = item.slot.y + floatY;
-
-        // Active reel subtly turns toward viewer when camera is closest
-        const distToCam = Math.abs(item.group.position.z - currentCamZ);
-        if (distToCam < 8.0) {
-          const focusT = Math.max(0, 1 - Math.abs(idx - u));
-          item.group.rotation.y = item.slot.rotY * (1 - focusT * 0.65);
-          item.group.scale.setScalar(1.0 + focusT * 0.06);
-        } else {
-          item.group.rotation.y = item.slot.rotY;
-          item.group.scale.setScalar(1.0);
-        }
-
-        // Keep active video texture refreshing
-        if (item.videoTex && item.video.readyState >= 2 && !item.video.paused) {
-          item.videoTex.needsUpdate = true;
-        }
-      });
-
-      renderer.render(scene, camera);
-    };
-
-    tick();
-
-    // 10. Resize Listener
-    const handleResize = () => {
-      const w = pinContainer.clientWidth || window.innerWidth;
-      const h = pinContainer.clientHeight || window.innerHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-    };
-    window.addEventListener('resize', handleResize);
-
-    // Cleanup
-    return () => {
-      cancelAnimationFrame(animId);
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('scroll', kickVideos);
-      window.removeEventListener('touchstart', kickVideos);
-      window.removeEventListener('click', kickVideos);
-      ctx.revert();
-
-      reelItems.forEach((item) => {
-        item.video.pause();
-        item.video.removeAttribute('src');
-        item.video.load();
-        item.videoTex.dispose();
-        item.posterTex.dispose();
-      });
-
-      casingGeo.dispose();
-      screenGeo.dispose();
-      rimEdgeGeo.dispose();
-      casingMat.dispose();
-      rimLineMat.dispose();
-      gridGeo.dispose();
-      gridMat.dispose();
-      renderer.dispose();
-    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Programmatic snap navigation (Next / Prev buttons)
-  const jumpToProject = (index: number) => {
-    const trigger = ScrollTrigger.getById('portfolio-wormhole-trigger') || ScrollTrigger.getAll()[0];
-    if (trigger) {
-      const total = CLIENT_PROJECTS.length - 1;
-      const targetProgress = Math.max(0, Math.min(1, index / total));
-      const targetScroll = trigger.start + targetProgress * (trigger.end - trigger.start);
-      window.scrollTo({ top: targetScroll, behavior: 'smooth' });
-    }
-  };
+  // Set up GSAP ScrollTrigger with Snap
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const snapPoints = 1 / (totalProjects - 1);
+
+    const st = ScrollTrigger.create({
+      trigger: container,
+      start: 'top top',
+      end: 'bottom bottom',
+      scrub: 0.45,
+      snap: {
+        snapTo: snapPoints,
+        duration: { min: 0.28, max: 0.65 },
+        delay: 0.03,
+        ease: 'power2.out',
+      },
+      onUpdate: (self) => {
+        const u = self.progress * (totalProjects - 1);
+        setScrollUnit(u);
+        const currentActive = Math.round(u);
+        setActiveIndex(currentActive);
+      },
+    });
+
+    return () => {
+      st.kill();
+    };
+  }, [totalProjects]);
+
+  // Video playback management: play active and adjacent, pause distant
+  useEffect(() => {
+    videoRefs.current.forEach((video, idx) => {
+      if (!video) return;
+      const distance = Math.abs(scrollUnit - idx);
+      if (distance < 0.75) {
+        if (video.paused) {
+          video.play().catch(() => {});
+        }
+      } else {
+        if (!video.paused) {
+          video.pause();
+        }
+      }
+    });
+  }, [scrollUnit]);
+
+  // Smooth jump to project chapter
+  const scrollToProject = useCallback(
+    (index: number) => {
+      if (!containerRef.current) return;
+      const container = containerRef.current;
+      const totalScrollable = container.offsetHeight - window.innerHeight;
+      const targetTop = container.offsetTop + (index / (totalProjects - 1)) * totalScrollable;
+      window.scrollTo({
+        top: targetTop,
+        behavior: 'smooth',
+      });
+    },
+    [totalProjects]
+  );
 
   return (
-    <section
-      id="portfolio-wormhole"
-      ref={sectionRef}
-      className="relative w-full bg-[#05070B] text-white overflow-hidden select-none"
+    <div
+      ref={containerRef}
+      className="relative w-full bg-[#030508] text-white select-none"
+      style={{
+        // 100vh per project ensures adequate scroll space and exact snap settle
+        height: `${totalProjects * 100}vh`,
+      }}
     >
-      {/* 100vw × 100vh Pinned Viewport Container */}
-      <div
-        ref={pinContainerRef}
-        className="relative w-full h-[100dvh] min-h-[100dvh] flex items-center justify-center overflow-hidden"
-      >
-        {/* ======================================================== */}
-        {/* TOP: DISCREET EDITORIAL CORRIDOR LABEL & TRACK BAR        */}
-        {/* ======================================================== */}
-        <div className="absolute top-7 sm:top-10 inset-x-0 z-40 flex items-center justify-between px-6 sm:px-12 pointer-events-none">
-          <div className="flex items-center gap-2.5">
-            <span className="w-2 h-2 rounded-full bg-[#008CFF] shadow-[0_0_10px_#008CFF] animate-pulse" />
-            <span className="font-mono text-[10px] sm:text-xs tracking-[0.32em] uppercase text-[#008CFF] font-semibold">
-              PORTFOLIO // 3D CORRIDOR WORMHOLE
-            </span>
-          </div>
+      {/* ================================================================== */}
+      {/* FIXED 100vw × 100vh CINEMATIC VIEWPORT PINNED FOR SCROLL PROGRESS */}
+      {/* ================================================================== */}
+      <div className="fixed inset-0 w-full h-full overflow-hidden flex flex-col justify-between pointer-events-none">
+        {/* ========================================================= */}
+        {/* SUBTLE ARCHITECTURAL BACKGROUND (NO FAKE BLUR, CLEAN DARK)*/}
+        {/* ========================================================= */}
+        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+          {/* Deep Obsidian Background */}
+          <div className="absolute inset-0 bg-[#030508]" />
 
-          {/* Active Project Counter: 01 / 10 */}
-          <div className="flex items-center gap-2 font-mono text-[11px] sm:text-xs tracking-widest text-white/50">
-            <span className="text-[#008CFF] font-bold">
-              {String(activeIndex + 1).padStart(2, '0')}
-            </span>
-            <span className="text-white/25">/</span>
-            <span>{String(CLIENT_PROJECTS.length).padStart(2, '0')}</span>
-          </div>
-        </div>
-
-        {/* Top Progress Track Bar */}
-        <div className="absolute top-0 inset-x-0 h-[2px] bg-white/10 z-40 pointer-events-none">
+          {/* Faint Radial Accent Light Behind Active Scene */}
           <div
-            ref={progressBarRef}
-            className="w-full h-full bg-[#008CFF] origin-left shadow-[0_0_8px_#008CFF]"
-            style={{ transform: 'scaleX(0)' }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] rounded-full pointer-events-none"
+            style={{
+              background: 'radial-gradient(circle, rgba(0, 140, 255, 0.05) 0%, rgba(3, 5, 8, 0) 70%)',
+            }}
+          />
+
+          {/* Minimal Architectural Grid Guidelines */}
+          <div
+            className="absolute inset-0 opacity-[0.035] pointer-events-none"
+            style={{
+              backgroundImage:
+                'linear-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.2) 1px, transparent 1px)',
+              backgroundSize: '120px 120px',
+            }}
           />
         </div>
 
-        {/* ======================================================== */}
-        {/* THREE.JS WEBGL CANVAS (3D Wormhole Corridor Viewport)    */}
-        {/* ======================================================== */}
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 w-full h-full block z-10 pointer-events-none"
-        />
+        {/* ========================================================= */}
+        {/* TOP HEADER: "OUR PORTFOLIO" (FROM USER REFERENCE SKETCH) */}
+        {/* ========================================================= */}
+        <div className="relative z-20 w-full px-6 sm:px-10 md:px-16 pt-20 sm:pt-24 md:pt-28 flex items-center justify-between pointer-events-none">
+          {/* Left Sub-heading: Our Portfolio */}
+          <div className="flex items-center gap-3">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
+            <h1 className="text-sm sm:text-base md:text-lg font-display font-bold tracking-[0.2em] uppercase text-white/90">
+              Our Portfolio
+            </h1>
+            <span className="hidden sm:inline text-white/20 font-mono text-xs">//</span>
+            <span className="hidden sm:inline text-white/40 font-mono text-xs tracking-[0.16em]">
+              3D CINEMATIC ARCHIVE
+            </span>
+          </div>
 
-        {/* Subtle Vignette Gradient Masks */}
-        <div className="absolute inset-0 pointer-events-none z-15 bg-gradient-to-t from-[#05070B] via-transparent to-[#05070B]/70 opacity-90" />
-        <div className="absolute inset-0 pointer-events-none z-15 bg-gradient-to-r from-[#05070B]/80 via-transparent to-[#05070B]/80 opacity-60" />
-
-        {/* ======================================================== */}
-        {/* MINIMAL ACTIVE PROJECT INFORMATION (CENTER-BOTTOM HERO)   */}
-        {/* ======================================================== */}
-        <div className="absolute bottom-9 sm:bottom-12 lg:bottom-14 inset-x-0 z-30 flex flex-col items-center justify-center text-center px-6 pointer-events-none">
-          <div className="max-w-2xl flex flex-col items-center">
-            {/* Category / Discipline */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/30 mb-2 sm:mb-3 shadow-[0_0_15px_rgba(0,140,255,0.25)]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_6px_#008CFF]" />
-              <span className="font-mono text-[9px] sm:text-[11px] tracking-[0.3em] uppercase text-[#008CFF] font-semibold">
-                {activeProject.category} • {activeProject.year}
-              </span>
-            </div>
-
-            {/* Client Name (Dominates with cinematic grandeur) */}
-            <h2 className="font-display font-black text-2xl xs:text-3xl sm:text-5xl lg:text-6xl uppercase tracking-tight text-white mb-3 sm:mb-4 drop-shadow-[0_4px_30px_rgba(0,0,0,0.95)]">
-              {activeProject.name}
-            </h2>
-
-            {/* Action CTA: VIEW PROJECT → (Interactive) */}
-            <button
-              type="button"
-              onClick={() => setSelectedProject(activeProject)}
-              className="group pointer-events-auto inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-white/10 hover:bg-[#008CFF] border border-white/20 hover:border-[#008CFF] text-white font-sans text-xs tracking-[0.24em] uppercase font-semibold transition-all duration-300 shadow-[0_10px_25px_rgba(0,0,0,0.6)] hover:shadow-[0_0_25px_rgba(0,140,255,0.6)] cursor-pointer active:scale-95"
-            >
-              <span>VIEW PROJECT</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-            </button>
+          {/* Right Chapter Counter */}
+          <div className="flex items-center gap-2 font-mono text-xs sm:text-sm tracking-[0.2em] text-white/50">
+            <span className="text-[#008CFF] font-semibold">
+              {String(activeIndex + 1).padStart(2, '0')}
+            </span>
+            <span className="text-white/20">/</span>
+            <span>{String(totalProjects).padStart(2, '0')}</span>
           </div>
         </div>
 
-        {/* ======================================================== */}
-        {/* LATERAL CORRIDOR NAVIGATION ARROWS (CLICK TO STEP)       */}
-        {/* ======================================================== */}
-        <div className="hidden sm:flex absolute inset-y-0 inset-x-8 z-35 items-center justify-between pointer-events-none">
-          <button
-            type="button"
-            onClick={() => jumpToProject(Math.max(0, activeIndex - 1))}
-            disabled={activeIndex === 0}
-            className={`pointer-events-auto w-11 h-11 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-white/70 hover:text-white transition-all duration-200 cursor-pointer ${
-              activeIndex === 0 ? 'opacity-20 cursor-not-allowed' : 'opacity-80 hover:opacity-100 hover:scale-110'
-            }`}
-            aria-label="Previous Project"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
+        {/* ========================================================= */}
+        {/* MAIN 3D WORKSPACE: ALTERNATING TILE & MATTER LAYOUT       */}
+        {/* ========================================================= */}
+        <div className="relative z-10 w-full flex-1 flex items-center justify-center px-4 sm:px-8 md:px-14 lg:px-20 pointer-events-none">
+          {CLIENT_PROJECTS.map((project, idx) => {
+            const delta = scrollUnit - idx; // 0 = fully focused, < 0 = upcoming, > 0 = exiting
 
-          <button
-            type="button"
-            onClick={() => jumpToProject(Math.min(CLIENT_PROJECTS.length - 1, activeIndex + 1))}
-            disabled={activeIndex === CLIENT_PROJECTS.length - 1}
-            className={`pointer-events-auto w-11 h-11 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-white/70 hover:text-white transition-all duration-200 cursor-pointer ${
-              activeIndex === CLIENT_PROJECTS.length - 1 ? 'opacity-20 cursor-not-allowed' : 'opacity-80 hover:opacity-100 hover:scale-110'
-            }`}
-            aria-label="Next Project"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
+            // STRICT "dont keep them before only" RULE:
+            // Only render when the chapter is currently active or transitioning!
+            // When delta < -1 or delta > 1, element is completely hidden.
+            if (delta < -1.05 || delta > 1.05) {
+              return null;
+            }
 
-        {/* ======================================================== */}
-        {/* BOTTOM: FOOTER NAVIGATION HINT                           */}
-        {/* ======================================================== */}
-        <div className="absolute bottom-3 sm:bottom-4 inset-x-0 z-40 flex items-center justify-between px-6 sm:px-12 text-white/30 font-mono text-[9px] sm:text-[10px] tracking-[0.25em] uppercase pointer-events-none">
-          <span>SCROLL TO ADVANCE WORMHOLE</span>
-          <span>10 CINEMATIC CHAPTERS</span>
-        </div>
-      </div>
+            // Layout Mode: Alternating based on index
+            // Even index (0, 2, 4, 6, 8): Tile on LEFT, Matter on RIGHT (Top Sketch)
+            // Odd index (1, 3, 5, 7, 9): Matter on LEFT, Tile on RIGHT (Bottom Sketch)
+            const isTileOnLeft = idx % 2 === 0;
 
-      {/* ======================================================== */}
-      {/* FULLSCREEN PROJECT DETAILS MODAL / DRAWER                */}
-      {/* ======================================================== */}
-      {selectedProject && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 bg-[#05070B]/90 backdrop-blur-2xl animate-fadeIn select-auto">
-          {/* Outer Modal Container */}
-          <div className="relative w-full max-w-4xl max-h-[90vh] bg-[#0A0D15] border border-white/15 rounded-3xl overflow-y-auto p-6 sm:p-10 shadow-[0_25px_70px_rgba(0,0,0,0.95)]">
-            {/* Close Button */}
-            <button
-              type="button"
-              onClick={() => setSelectedProject(null)}
-              aria-label="Close Project Details"
-              className="absolute top-5 right-5 sm:top-7 sm:right-7 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center text-white hover:text-[#008CFF] transition-all cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            // Transition Calculations:
+            // "Every tile should come from left to right"
+            let tileTransform = '';
+            let matterTransform = '';
+            let opacity = 1;
 
-            {/* Modal Header */}
-            <div className="mb-6">
-              <span className="font-mono text-xs tracking-[0.3em] uppercase text-[#008CFF] font-semibold block mb-2">
-                {selectedProject.category} • {selectedProject.year}
-              </span>
-              <h2 className="font-display font-black text-3xl sm:text-5xl uppercase tracking-tight text-white mb-3">
-                {selectedProject.name}
-              </h2>
-              <p className="text-base sm:text-lg text-white/80 font-light max-w-2xl">
-                {selectedProject.headline}
-              </p>
-            </div>
+            if (delta < 0) {
+              // ENTERING (delta goes from -1 to 0):
+              // Tile enters coming from the left towards its target slot!
+              const progress = delta + 1; // 0 to 1
+              const ease = easeOutCubic(progress);
 
-            {/* Large 16:9 / Video Showcase */}
-            <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black/80 border border-white/10 mb-8">
-              <video
-                src={selectedProject.videoUrl}
-                poster={selectedProject.posterUrl}
-                controls
-                autoPlay
-                playsInline
-                className="w-full h-full object-contain"
-              />
-            </div>
+              opacity = ease;
 
-            {/* Narrative Story */}
-            <div className="mb-8">
-              <h3 className="font-mono text-xs tracking-[0.3em] uppercase text-white/50 mb-2">
-                PROJECT NARRATIVE
-              </h3>
-              <p className="text-sm sm:text-base text-white/85 leading-relaxed font-light">
-                {selectedProject.story}
-              </p>
-            </div>
+              if (isMobile) {
+                // Mobile: Enters from left smoothly with subtle perspective
+                const startX = -35 * (1 - ease);
+                tileTransform = `translate3d(${startX}vw, 0px, 0px) scale(${0.9 + 0.1 * ease})`;
+                matterTransform = `translate3d(${(1 - ease) * 20}px, 0px, 0px)`;
+              } else {
+                // Desktop: Tile moves in from the left with 3D angle settling into place
+                const enterStartX = -45; // Start 45vw to the left
+                const currentX = enterStartX * (1 - ease);
+                const targetRotY = isTileOnLeft ? 24 : -24; // 3D perspective angle
+                const currentRotY = targetRotY + (1 - ease) * 18;
 
-            {/* Deliverables & Metrics Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 border-t border-white/10">
-              {/* Deliverables */}
-              <div>
-                <h4 className="font-mono text-xs tracking-[0.3em] uppercase text-white/50 mb-3">
-                  PRODUCTION DELIVERABLES
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {selectedProject.deliverables.map((item, dIdx) => (
-                    <span
-                      key={dIdx}
-                      className="px-3 py-1 rounded-md bg-white/5 border border-white/10 font-mono text-xs text-white/70"
+                tileTransform = `translate3d(${currentX}vw, 0px, ${-120 * (1 - ease)}px) rotateY(${currentRotY}deg) scale(${
+                  0.86 + 0.14 * ease
+                })`;
+
+                matterTransform = `translate3d(${(1 - ease) * (isTileOnLeft ? 40 : -40)}px, 0px, 0px)`;
+              }
+            } else if (delta > 0) {
+              // EXITING (delta goes from 0 to 1):
+              // Exiting tile moves off to the left or slides away (matching the bottom sketch where left tile exits off edge)
+              const progress = delta; // 0 to 1
+              const ease = progress * progress;
+
+              opacity = Math.max(0, 1 - progress);
+
+              if (isMobile) {
+                const exitX = -30 * ease;
+                tileTransform = `translate3d(${exitX}vw, 0px, 0px) scale(${1 - 0.15 * ease})`;
+                matterTransform = `translate3d(${ease * 20}px, 0px, 0px)`;
+              } else {
+                const exitX = -40 * ease; // Exits towards the left offscreen
+                const targetRotY = isTileOnLeft ? 24 : -24;
+
+                tileTransform = `translate3d(${exitX}vw, 0px, ${-160 * ease}px) rotateY(${
+                  targetRotY + ease * 15
+                }deg) scale(${1 - 0.2 * ease})`;
+
+                matterTransform = `translate3d(${ease * (isTileOnLeft ? 30 : -30)}px, 0px, 0px)`;
+              }
+            } else {
+              // ACTIVE / SETTLED (delta = 0)
+              opacity = 1;
+              if (isMobile) {
+                tileTransform = `translate3d(0vw, 0px, 0px) scale(1)`;
+              } else {
+                const targetRotY = isTileOnLeft ? 24 : -24;
+                tileTransform = `translate3d(0vw, 0px, 0px) rotateY(${targetRotY}deg) scale(1)`;
+              }
+              matterTransform = `translate3d(0px, 0px, 0px)`;
+            }
+
+            return (
+              <div
+                key={project.id}
+                className="absolute inset-x-4 sm:inset-x-8 md:inset-x-14 lg:inset-x-20 top-24 sm:top-28 lg:top-32 bottom-20 lg:bottom-24 flex items-center justify-center transition-opacity duration-150"
+                style={{
+                  opacity,
+                  visibility: opacity > 0.01 ? 'visible' : 'hidden',
+                  pointerEvents: Math.abs(delta) < 0.25 ? 'auto' : 'none',
+                  perspective: isMobile ? '850px' : '1350px',
+                  perspectiveOrigin: isTileOnLeft ? '38% 50%' : '62% 50%',
+                  transformStyle: 'preserve-3d',
+                }}
+              >
+                {/* Responsive Layout Container */}
+                <div
+                  className={`w-full max-w-7xl h-full flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-4 sm:gap-6 lg:gap-14 ${
+                    isTileOnLeft ? 'lg:flex-row' : 'lg:flex-row-reverse'
+                  }`}
+                  style={{ transformStyle: 'preserve-3d' }}
+                >
+                  {/* =================================================== */}
+                  {/* 1. 3D VIDEO TILE (ANGLED RECTANGULAR SCREEN)        */}
+                  {/* =================================================== */}
+                  <div
+                    className="w-full lg:w-1/2 flex items-center justify-center shrink-0"
+                    style={{
+                      transformStyle: 'preserve-3d',
+                      transform: tileTransform,
+                      transition: 'transform 0.05s ease-out',
+                    }}
+                  >
+                    <div
+                      className="relative group rounded-xl sm:rounded-2xl overflow-hidden bg-[#070b12] border border-white/20 shadow-2xl"
+                      style={{
+                        // 58vh desktop, 34vh mobile with breathing room, native 9:16 aspect ratio
+                        height: isMobile ? 'min(34vh, 290px)' : 'min(58vh, 520px)',
+                        aspectRatio: '9 / 16',
+                        boxShadow:
+                          '0 30px 90px -15px rgba(0, 0, 0, 0.95), 0 0 45px -10px rgba(0, 140, 255, 0.25)',
+                      }}
                     >
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </div>
+                      {/* Razor-thin Electric Blue Rim Lighting */}
+                      <div className="absolute inset-0 border border-[#008CFF]/30 rounded-xl sm:rounded-2xl pointer-events-none z-20" />
 
-              {/* Performance Metrics */}
-              {selectedProject.metrics && selectedProject.metrics.length > 0 && (
-                <div>
-                  <h4 className="font-mono text-xs tracking-[0.3em] uppercase text-white/50 mb-3">
-                    MEASURABLE IMPACT
-                  </h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    {selectedProject.metrics.map((m, mIdx) => (
-                      <div
-                        key={mIdx}
-                        className="p-3 rounded-xl bg-white/5 border border-white/10"
-                      >
-                        <div className="font-display font-black text-xl text-[#008CFF]">
-                          {m.value}
+                      {/* Corner Accent Brackets */}
+                      <div className="absolute top-2.5 left-2.5 w-3.5 h-3.5 border-t-2 border-l-2 border-[#008CFF] pointer-events-none z-20" />
+                      <div className="absolute top-2.5 right-2.5 w-3.5 h-3.5 border-t-2 border-r-2 border-[#008CFF] pointer-events-none z-20" />
+                      <div className="absolute bottom-2.5 left-2.5 w-3.5 h-3.5 border-b-2 border-l-2 border-[#008CFF] pointer-events-none z-20" />
+                      <div className="absolute bottom-2.5 right-2.5 w-3.5 h-3.5 border-b-2 border-r-2 border-[#008CFF] pointer-events-none z-20" />
+
+                      {/* Client Logo Watermark in Upper Corner */}
+                      {project.logoUrl && (
+                        <div className="absolute top-3.5 left-3.5 z-20 px-2 py-0.5 rounded bg-black/60 backdrop-blur-md border border-white/10 pointer-events-none">
+                          <img
+                            src={project.logoUrl}
+                            alt={project.name}
+                            className="h-3.5 sm:h-4.5 w-auto object-contain filter brightness-110 drop-shadow"
+                          />
                         </div>
-                        <div className="font-mono text-[10px] tracking-wider uppercase text-white/50">
-                          {m.label}
-                        </div>
+                      )}
+
+                      {/* Chapter Indicator Badge */}
+                      <div className="absolute top-3.5 right-3.5 z-20 px-2 py-0.5 rounded bg-black/70 backdrop-blur-md border border-white/10 font-mono text-[9px] sm:text-[10px] text-white/70 tracking-widest pointer-events-none">
+                        {String(idx + 1).padStart(2, '0')}
                       </div>
-                    ))}
+
+                      {/* Real HTML5 Looping Video Reel */}
+                      <video
+                        ref={(el) => (videoRefs.current[idx] = el)}
+                        src={project.videoUrl}
+                        poster={project.posterUrl}
+                        playsInline
+                        muted
+                        loop
+                        preload="metadata"
+                        className="w-full h-full object-cover rounded-xl sm:rounded-2xl bg-black"
+                      />
+                    </div>
+                  </div>
+
+                  {/* =================================================== */}
+                  {/* 2. MATTER ABOUT THAT CLIENT (EDITORIAL COPY & DATA) */}
+                  {/* =================================================== */}
+                  <div
+                    className="w-full lg:w-1/2 flex flex-col justify-center text-center lg:text-left shrink-0 max-w-xl"
+                    style={{
+                      transform: matterTransform,
+                      transition: 'transform 0.05s ease-out',
+                    }}
+                  >
+                    {/* Category Kicker */}
+                    <div className="flex items-center justify-center lg:justify-start gap-2 mb-1 sm:mb-2">
+                      <span className="text-[10px] sm:text-xs font-mono uppercase tracking-[0.24em] text-[#008CFF] font-semibold">
+                        // {String(idx + 1).padStart(2, '0')} • {project.category}
+                      </span>
+                      <span className="text-white/20 font-mono text-xs">•</span>
+                      <span className="text-[10px] sm:text-xs font-mono text-white/50">
+                        {project.year}
+                      </span>
+                    </div>
+
+                    {/* Big Client Display Title */}
+                    <h2 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-display font-extrabold tracking-tight text-white uppercase drop-shadow-md leading-[1.05]">
+                      {project.name}
+                    </h2>
+
+                    {/* Headline Hook */}
+                    <p className="mt-1 sm:mt-2 text-xs sm:text-base md:text-lg font-medium text-white/90 tracking-wide line-clamp-1">
+                      {project.headline}
+                    </p>
+
+                    {/* In-depth Matter Story Paragraph */}
+                    <p className="mt-1.5 sm:mt-2.5 text-[11px] sm:text-sm md:text-[15px] text-white/60 leading-relaxed font-sans line-clamp-2 sm:line-clamp-3">
+                      {project.story}
+                    </p>
+
+                    {/* Deliverables Chips (Hidden on very small mobile to prevent overflow) */}
+                    {project.deliverables && project.deliverables.length > 0 && (
+                      <div className="mt-3 hidden sm:flex flex-wrap items-center justify-center lg:justify-start gap-1.5 sm:gap-2">
+                        {project.deliverables.slice(0, 3).map((item, dIdx) => (
+                          <span
+                            key={dIdx}
+                            className="px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/10 text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-white/70"
+                          >
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Impact Metrics Row (Desktop only) */}
+                    {project.metrics && project.metrics.length > 0 && (
+                      <div className="mt-3.5 hidden sm:grid grid-cols-2 gap-4 max-w-xs pt-2.5 border-t border-white/[0.08]">
+                        {project.metrics.map((metric, mIdx) => (
+                          <div key={mIdx}>
+                            <div className="text-base sm:text-lg font-display font-bold text-white">
+                              {metric.value}
+                            </div>
+                            <div className="text-[10px] font-mono uppercase tracking-wider text-[#008CFF]/90">
+                              {metric.label}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Action Link */}
+                    <div className="mt-3 sm:mt-5 flex items-center justify-center lg:justify-start">
+                      <Link
+                        to={`/portfolio/${project.slug}`}
+                        className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-[#008CFF]/15 hover:bg-[#008CFF]/25 border border-[#008CFF]/40 hover:border-[#008CFF] text-[10px] sm:text-xs font-mono uppercase tracking-[0.2em] text-white transition-all duration-200 cursor-pointer shadow-[0_0_20px_rgba(0,140,255,0.15)] hover:shadow-[0_0_30px_rgba(0,140,255,0.3)]"
+                      >
+                        <Sparkles className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-[#008CFF]" />
+                        <span>VIEW FULL ARCHIVE</span>
+                        <ArrowUpRight className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-[#008CFF]" />
+                      </Link>
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* ========================================================= */}
+        {/* BOTTOM CONTROLS & TIMELINE TRACKER                        */}
+        {/* ========================================================= */}
+        <div className="relative z-20 w-full px-6 sm:px-10 md:px-16 pb-5 sm:pb-8 flex flex-col sm:flex-row items-center justify-between gap-3 pointer-events-auto">
+          {/* Scroll Navigation Prompt */}
+          <div className="text-[10px] sm:text-[11px] font-mono text-white/35 uppercase tracking-[0.22em] flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-white/30 animate-pulse" />
+            <span>SCROLL TO ADVANCE PROJECTS</span>
+          </div>
+
+          {/* Interactive Chapter Timeline Ticks */}
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-black/40 px-3 py-1.5 rounded-full border border-white/10 backdrop-blur-md">
+            {CLIENT_PROJECTS.map((proj, pIdx) => {
+              const isActive = activeIndex === pIdx;
+              return (
+                <button
+                  key={proj.id}
+                  type="button"
+                  onClick={() => scrollToProject(pIdx)}
+                  aria-label={`Jump to ${proj.name}`}
+                  className="group relative py-1 px-1 focus:outline-none cursor-pointer"
+                >
+                  <span
+                    className={`block transition-all duration-300 rounded-full ${
+                      isActive
+                        ? 'w-6 sm:w-8 h-1.5 bg-[#008CFF] shadow-[0_0_8px_#008CFF]'
+                        : 'w-1.5 h-1.5 bg-white/20 hover:bg-white/50'
+                    }`}
+                  />
+                  {/* Tooltip on Hover */}
+                  <span className="absolute bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap bg-black/90 border border-white/15 px-2 py-0.5 rounded text-[9px] font-mono uppercase tracking-wider text-white">
+                    {proj.name}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Stepper Buttons */}
+          <div className="hidden sm:flex items-center gap-2">
+            <button
+              type="button"
+              disabled={activeIndex === 0}
+              onClick={() => scrollToProject(Math.max(0, activeIndex - 1))}
+              aria-label="Previous Project"
+              className="w-8 h-8 rounded-full border border-white/10 hover:border-white/30 flex items-center justify-center text-white/70 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              disabled={activeIndex === totalProjects - 1}
+              onClick={() => scrollToProject(Math.min(totalProjects - 1, activeIndex + 1))}
+              aria-label="Next Project"
+              className="w-8 h-8 rounded-full border border-white/10 hover:border-white/30 flex items-center justify-center text-white/70 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
-      )}
-    </section>
+      </div>
+    </div>
   );
 };
-
-export default PortfolioWormhole3D;
