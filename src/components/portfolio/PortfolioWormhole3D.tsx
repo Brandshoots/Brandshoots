@@ -11,15 +11,22 @@ gsap.registerPlugin(ScrollTrigger);
 /**
  * PHASE 3 PORTFOLIO — CINEMATIC ENVIRONMENT REFRESH
  *
- * Core Enhancements (Preserving all approved geometry & typography):
- * - Physical Dark Studio Environment: Brushed dark floor plane (roughness: 0.62) with soft specular falloff.
- * - Faint Grounding Sheen: Very low opacity (0.08) grounding footprint beneath the reel chassis.
- * - Traveling Light Corridor: Soft, deep cinematic blue volumetric glow behind active project
- *   glides laterally (Left ↔ Right) and through depth (Z) as user scrolls to the next project.
- * - Scroll-Driven Lighting & Atmosphere: Light intensity and rim-glint subtly peak on snap-focus.
- * - Subtle Camera Motion: Restrained forward push (0.24 units), organic vertical drift (0.03 units),
- *   and delicate lateral dolly lean (0.12 units) during scroll transitions.
- * - Perfectly balanced: Felt, not noticed.
+ * Core Enhancements (Preserving all approved geometry, typography & layout):
+ * 1. Physical Studio Environment:
+ *    - Studio Cyclorama Back Wall (Z = -6.5) receiving dynamic 3D light falloff.
+ *    - Polished Dark Concrete/Epoxy Floor (Y = -1.62) with subtle perspective seams & specular sheen.
+ *    - Grounding Contact Shadow (Ambient Occlusion) right under each reel footprint.
+ *    - Soft Inverted Glossy Floor Reflection beneath the reel, visually grounding it in space.
+ * 2. Cinematic Light Tunnel / Traveling Pocket Light:
+ *    - Soft volumetric blue atmospheric haze pocket behind the active project (Z = -2.2).
+ *    - As user scrolls, the pocket light dynamically travels through depth and laterally (Left ↔ Right).
+ *    - Back wall and floor catch the shifting studio illumination.
+ * 3. Scroll-Driven Lighting & Active Emphasis:
+ *    - When settled in snap focus, light intensity and rim glint subtly peak.
+ * 4. Subtle Cinematic Camera Motion:
+ *    - Restrained forward push (0.28 units), organic vertical drift (0.035 units), and lateral dolly lean (0.12 units).
+ * 5. Mobile Optimized:
+ *    - Floor and light pocket adapt to mobile bounds (Y = -0.82) with 60fps performance.
  */
 
 const PANEL_WIDTH = 1.76;
@@ -29,35 +36,78 @@ const CAM_Z = 7.0; // camera distance from active plane at Z = 0
 // In-memory procedural soft radial gradient for volumetric back pocket
 function createSoftLightTexture(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 256;
+  canvas.width = 512;
+  canvas.height = 512;
   const ctx = canvas.getContext('2d')!;
-  const grad = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
-  grad.addColorStop(0, 'rgba(0, 120, 240, 0.22)');
-  grad.addColorStop(0.35, 'rgba(0, 80, 190, 0.10)');
-  grad.addColorStop(0.7, 'rgba(2, 12, 35, 0.03)');
+  const grad = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+  grad.addColorStop(0, 'rgba(0, 140, 255, 0.32)');
+  grad.addColorStop(0.35, 'rgba(0, 90, 210, 0.16)');
+  grad.addColorStop(0.65, 'rgba(2, 14, 45, 0.05)');
   grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
   ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 256, 256);
+  ctx.fillRect(0, 0, 512, 512);
   const texture = new THREE.CanvasTexture(canvas);
   texture.needsUpdate = true;
   return texture;
 }
 
-// In-memory procedural soft floor contact sheen texture
-function createFloorContactTexture(): THREE.CanvasTexture {
+// In-memory procedural contact shadow (ambient occlusion under base of reel)
+function createContactShadowTexture(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 256;
-  canvas.height = 256;
+  canvas.height = 128;
   const ctx = canvas.getContext('2d')!;
-  const grad = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
-  grad.addColorStop(0, 'rgba(0, 110, 220, 0.16)');
-  grad.addColorStop(0.45, 'rgba(0, 60, 140, 0.06)');
-  grad.addColorStop(0.75, 'rgba(2, 6, 18, 0.02)');
+  const grad = ctx.createRadialGradient(128, 64, 0, 128, 64, 120);
+  grad.addColorStop(0, 'rgba(0, 0, 0, 0.85)');
+  grad.addColorStop(0.5, 'rgba(0, 0, 0, 0.45)');
+  grad.addColorStop(0.85, 'rgba(0, 10, 25, 0.15)');
   grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
   ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 256, 256);
+  ctx.fillRect(0, 0, 256, 128);
   const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
+// In-memory procedural dark studio floor with subtle perspective depth seams
+function createStudioFloorTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 1024;
+  const ctx = canvas.getContext('2d')!;
+
+  // Dark studio base
+  ctx.fillStyle = '#03050a';
+  ctx.fillRect(0, 0, 1024, 1024);
+
+  // Very subtle studio concrete grain / noise
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.015)';
+  for (let i = 0; i < 4000; i++) {
+    const x = Math.random() * 1024;
+    const y = Math.random() * 1024;
+    ctx.fillRect(x, y, 1.5, 1.5);
+  }
+
+  // Faint studio floor panel seams (spaced every 128px)
+  ctx.strokeStyle = 'rgba(0, 140, 255, 0.035)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x <= 1024; x += 128) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, 1024);
+    ctx.stroke();
+  }
+  for (let y = 0; y <= 1024; y += 128) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(1024, y);
+    ctx.stroke();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(4, 4);
   texture.needsUpdate = true;
   return texture;
 }
@@ -79,6 +129,7 @@ export const PortfolioWormhole3D: React.FC = () => {
 
   // Environmental lighting & meshes refs
   const floorMeshRef = useRef<THREE.Mesh | null>(null);
+  const backWallMeshRef = useRef<THREE.Mesh | null>(null);
   const lightPocketMeshRef = useRef<THREE.Mesh | null>(null);
   const lightPocketMatRef = useRef<THREE.MeshBasicMaterial | null>(null);
   const pocketPointLightRef = useRef<THREE.PointLight | null>(null);
@@ -88,7 +139,8 @@ export const PortfolioWormhole3D: React.FC = () => {
     screenMesh: THREE.Mesh;
     chassisMesh: THREE.Mesh;
     rimLine: THREE.LineSegments;
-    contactPoolMesh: THREE.Mesh;
+    contactShadowMesh: THREE.Mesh;
+    floorReflectionMesh: THREE.Mesh;
     baseX: number;
     baseY: number;
     baseRotY: number;
@@ -113,10 +165,10 @@ export const PortfolioWormhole3D: React.FC = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // 1. Scene with Pure Black Background and Distance Fog
+    // 1. Scene with Pure Black Background and Calibrated Distance Fog
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x020305);
-    scene.fog = new THREE.FogExp2(0x020305, 0.024);
+    scene.fog = new THREE.FogExp2(0x020305, 0.022);
     sceneRef.current = scene;
 
     // 2. Perspective Camera
@@ -142,67 +194,83 @@ export const PortfolioWormhole3D: React.FC = () => {
     renderer.toneMappingExposure = 1.15;
     rendererRef.current = renderer;
 
-    // 4. Physical Studio Environment: Dark Brushed Reflective Floor Plane
-    const floorGeo = new THREE.PlaneGeometry(36, 44);
+    // 4. Physical Studio Environment: Dark Polished Studio Floor
+    const floorTexture = createStudioFloorTexture();
+    const floorGeo = new THREE.PlaneGeometry(44, 44);
     const floorMat = new THREE.MeshStandardMaterial({
-      color: 0x020306,
-      roughness: 0.62,
-      metalness: 0.45,
-      transparent: true,
-      opacity: 0.75,
+      map: floorTexture,
+      roughness: 0.38,
+      metalness: 0.65,
     });
     const floorMesh = new THREE.Mesh(floorGeo, floorMat);
     floorMesh.rotation.x = -Math.PI / 2;
-    floorMesh.position.set(0, mobile ? -0.85 : -1.68, -4.0);
+    floorMesh.position.set(0, mobile ? -0.82 : -1.62, -4.0);
     scene.add(floorMesh);
     floorMeshRef.current = floorMesh;
 
-    // 5. Studio & Atmospheric Lighting
-    const ambientLight = new THREE.AmbientLight(0x0a101d, 2.0);
+    // 5. Studio Cyclorama Back Wall (Catches soft environmental studio light)
+    const backWallGeo = new THREE.PlaneGeometry(54, 30);
+    const backWallMat = new THREE.MeshStandardMaterial({
+      color: 0x03050a,
+      roughness: 0.85,
+      metalness: 0.15,
+    });
+    const backWallMesh = new THREE.Mesh(backWallGeo, backWallMat);
+    backWallMesh.position.set(0, 0, -6.8);
+    scene.add(backWallMesh);
+    backWallMeshRef.current = backWallMesh;
+
+    // 6. Studio Lighting System
+    const ambientLight = new THREE.AmbientLight(0x0c1424, 1.8);
     scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 2.2);
-    dirLight.position.set(4, 10, 8);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
+    dirLight.position.set(4, 12, 8);
     scene.add(dirLight);
 
     // Subtle blue accent specular point light attached to camera
-    const camPointLight = new THREE.PointLight(0x008cff, 1.4, 20);
+    const camPointLight = new THREE.PointLight(0x008cff, 1.8, 22);
     camPointLight.position.set(0, 0, 1.5);
     camera.add(camPointLight);
     scene.add(camera);
 
-    // 6. Traveling Volumetric Light Corridor Pocket behind Active Project
+    // 7. Traveling Volumetric Light Corridor Pocket behind Active Project
     const lightPocketTexture = createSoftLightTexture();
-    const lightPocketGeo = new THREE.PlaneGeometry(10, 10);
+    const lightPocketGeo = new THREE.PlaneGeometry(12, 12);
     const lightPocketMat = new THREE.MeshBasicMaterial({
       map: lightPocketTexture,
       transparent: true,
-      opacity: 0.20,
+      opacity: 0.28,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
     });
     const lightPocketMesh = new THREE.Mesh(lightPocketGeo, lightPocketMat);
-    lightPocketMesh.position.set(mobile ? 0 : -2.35, mobile ? 0.65 : 0.0, -2.5);
+    lightPocketMesh.position.set(mobile ? 0 : -2.35, mobile ? 0.65 : 0.0, -2.4);
     scene.add(lightPocketMesh);
     lightPocketMeshRef.current = lightPocketMesh;
     lightPocketMatRef.current = lightPocketMat;
 
     // Soft traveling studio PointLight behind the active project pocket
-    const pocketPointLight = new THREE.PointLight(0x0077ee, 1.5, 14, 1.8);
-    pocketPointLight.position.set(mobile ? 0 : -2.35, mobile ? 0.8 : 0.3, -1.4);
+    const pocketPointLight = new THREE.PointLight(0x0077ee, 2.4, 16, 1.6);
+    pocketPointLight.position.set(mobile ? 0 : -2.35, mobile ? 0.8 : 0.3, -1.5);
     scene.add(pocketPointLight);
     pocketPointLightRef.current = pocketPointLight;
 
-    // 7. Construct 10 Physical 3D Reel Panels with Grounding Contact Sheen
+    // 8. Construct 10 Physical 3D Reel Panels with Grounding & Reflection
     const textureLoader = new THREE.TextureLoader();
-    const floorContactTexture = createFloorContactTexture();
+    const contactShadowTexture = createContactShadowTexture();
     const panels: typeof panelsRef.current = [];
 
     // Shared geometries
     const screenGeo = new THREE.PlaneGeometry(PANEL_WIDTH, PANEL_HEIGHT);
     const boxGeo = new THREE.BoxGeometry(PANEL_WIDTH + 0.04, PANEL_HEIGHT + 0.04, 0.04);
     const edgesGeo = new THREE.EdgesGeometry(boxGeo);
-    const contactPoolGeo = new THREE.PlaneGeometry(2.3, 1.2);
+
+    // Grounding contact shadow geometry
+    const shadowGeo = new THREE.PlaneGeometry(PANEL_WIDTH * 1.25, 0.45);
+
+    // Subtle floor reflection geometry (lower half of reel mirrored down into floor)
+    const reflGeo = new THREE.PlaneGeometry(PANEL_WIDTH, PANEL_HEIGHT * 0.4);
 
     CLIENT_PROJECTS.forEach((project, i) => {
       const panelGroup = new THREE.Group();
@@ -241,18 +309,33 @@ export const PortfolioWormhole3D: React.FC = () => {
       const rimLine = new THREE.LineSegments(edgesGeo, rimLineMat);
       panelGroup.add(rimLine);
 
-      // Floor Contact Specular Sheen Pool (Grounds the reel on the dark studio floor)
-      const contactPoolMat = new THREE.MeshBasicMaterial({
-        map: floorContactTexture,
+      // Contact Shadow directly beneath reel base (Ambient Occlusion on floor)
+      const contactShadowMat = new THREE.MeshBasicMaterial({
+        map: contactShadowTexture,
+        transparent: true,
+        opacity: i === 0 ? 0.75 : 0.0,
+        depthWrite: false,
+      });
+      const contactShadowMesh = new THREE.Mesh(shadowGeo, contactShadowMat);
+      contactShadowMesh.rotation.x = -Math.PI / 2;
+      contactShadowMesh.position.set(0, mobile ? -1.46 : -1.61, 0.05);
+      panelGroup.add(contactShadowMesh);
+
+      // High-res fallback poster texture
+      const posterTexture = textureLoader.load(project.posterUrl);
+      posterTexture.colorSpace = THREE.SRGBColorSpace;
+
+      // Soft Inverted Floor Reflection (Visually grounds reel into glossy floor)
+      const floorReflectionMat = new THREE.MeshBasicMaterial({
+        map: posterTexture,
         transparent: true,
         opacity: i === 0 ? 0.12 : 0.0,
         depthWrite: false,
-        blending: THREE.AdditiveBlending,
       });
-      const contactPoolMesh = new THREE.Mesh(contactPoolGeo, contactPoolMat);
-      contactPoolMesh.rotation.x = -Math.PI / 2;
-      contactPoolMesh.position.set(0, mobile ? -1.5 : -1.66, 0.08);
-      panelGroup.add(contactPoolMesh);
+      const floorReflectionMesh = new THREE.Mesh(reflGeo, floorReflectionMat);
+      floorReflectionMesh.scale.y = -1; // inverted reflection
+      floorReflectionMesh.position.set(0, mobile ? -1.88 : -2.05, 0.02);
+      panelGroup.add(floorReflectionMesh);
 
       // Video element setup
       const video = document.createElement('video');
@@ -263,10 +346,6 @@ export const PortfolioWormhole3D: React.FC = () => {
       video.muted = true;
       video.playsInline = true;
       video.preload = 'metadata';
-
-      // High-res fallback poster texture
-      const posterTexture = textureLoader.load(project.posterUrl);
-      posterTexture.colorSpace = THREE.SRGBColorSpace;
 
       // Screen plane mesh
       const screenMat = new THREE.MeshBasicMaterial({
@@ -289,7 +368,8 @@ export const PortfolioWormhole3D: React.FC = () => {
         screenMesh,
         chassisMesh,
         rimLine,
-        contactPoolMesh,
+        contactShadowMesh,
+        floorReflectionMesh,
         baseX,
         baseY,
         baseRotY,
@@ -317,7 +397,7 @@ export const PortfolioWormhole3D: React.FC = () => {
         rendererRef.current.setSize(w, h);
       }
       if (floorMeshRef.current) {
-        floorMeshRef.current.position.y = isMob ? -0.85 : -1.68;
+        floorMeshRef.current.position.y = isMob ? -0.82 : -1.62;
       }
       // Update responsive coordinates
       panels.forEach((p, idx) => {
@@ -325,7 +405,8 @@ export const PortfolioWormhole3D: React.FC = () => {
         p.baseX = isMob ? 0 : (isLeft ? -2.35 : 2.35);
         p.baseY = isMob ? 0.65 : 0.0;
         p.baseRotY = isMob ? (isLeft ? 0.14 : -0.14) : (isLeft ? 0.38 : -0.38);
-        p.contactPoolMesh.position.y = isMob ? -1.5 : -1.66;
+        p.contactShadowMesh.position.y = isMob ? -1.46 : -1.61;
+        p.floorReflectionMesh.position.y = isMob ? -1.88 : -2.05;
       });
     };
     window.addEventListener('resize', handleResize);
@@ -349,7 +430,8 @@ export const PortfolioWormhole3D: React.FC = () => {
         p.videoTexture?.dispose();
         p.posterTexture.dispose();
       });
-      floorContactTexture.dispose();
+      floorTexture.dispose();
+      contactShadowTexture.dispose();
       lightPocketTexture.dispose();
       renderer.dispose();
     };
@@ -386,22 +468,22 @@ export const PortfolioWormhole3D: React.FC = () => {
     if (lightPocketMeshRef.current && lightPocketMatRef.current) {
       lightPocketMeshRef.current.position.x = targetLightX;
       lightPocketMeshRef.current.position.y = mobile ? 0.65 : 0.0;
-      lightPocketMeshRef.current.position.z = -2.5 - 1.5 * midTravelDip;
-      lightPocketMatRef.current.opacity = 0.16 + snapFocus * 0.08;
+      lightPocketMeshRef.current.position.z = -2.4 - 1.8 * midTravelDip;
+      lightPocketMatRef.current.opacity = 0.22 + snapFocus * 0.10;
     }
 
     if (pocketPointLightRef.current) {
       pocketPointLightRef.current.position.x = targetLightX;
-      pocketPointLightRef.current.position.y = mobile ? 0.8 : 0.25;
-      pocketPointLightRef.current.position.z = -1.3 - 1.0 * midTravelDip;
-      pocketPointLightRef.current.intensity = 1.1 + snapFocus * 0.6;
+      pocketPointLightRef.current.position.y = mobile ? 0.8 : 0.3;
+      pocketPointLightRef.current.position.z = -1.4 - 1.2 * midTravelDip;
+      pocketPointLightRef.current.intensity = 1.8 + snapFocus * 0.8;
     }
 
     // 3. Subtle Restrained Cinematic Camera Motion
-    // Forward push during scroll travel: max 0.24 units
-    const camPushZ = midTravelDip * 0.24;
-    // Tiny vertical organic drift: max 0.03 units
-    const camDriftY = Math.sin(u * Math.PI) * 0.03;
+    // Forward push during scroll travel: max 0.28 units
+    const camPushZ = midTravelDip * 0.28;
+    // Tiny vertical organic drift: max 0.035 units
+    const camDriftY = Math.sin(u * Math.PI) * 0.035;
     // Delicate lateral dolly lean toward the active project: max 0.12 units
     const activeIsLeft = Math.round(u) % 2 === 0;
     const activeTargetX = mobile ? 0 : (activeIsLeft ? -2.35 : 2.35);
@@ -412,7 +494,7 @@ export const PortfolioWormhole3D: React.FC = () => {
     camera.position.x = camLeanX;
     camera.lookAt(camLeanX * 0.3, camera.position.y, 0);
 
-    // 4. Panel Transitions & Grounding Sheen Dynamics
+    // 4. Panel Transitions & Grounding Dynamics
     panels.forEach((p, idx) => {
       const delta = u - idx; // 0 = active hero, < 0 = upcoming (entering), > 0 = exiting
 
@@ -486,11 +568,13 @@ export const PortfolioWormhole3D: React.FC = () => {
       // Rim light glint peaks slightly when snapped in focus
       const dist = Math.abs(delta);
       const activeEmphasis = dist < 0.35 ? (1.0 - dist * 2.8) : 0;
-      (p.rimLine.material as THREE.LineBasicMaterial).opacity = (0.40 + activeEmphasis * 0.14) * opacity;
+      (p.rimLine.material as THREE.LineBasicMaterial).opacity = (0.40 + activeEmphasis * 0.16) * opacity;
 
-      // Grounding contact sheen pool under panel
-      (p.contactPoolMesh.material as THREE.MeshBasicMaterial).opacity =
-        (0.10 + activeEmphasis * 0.06) * opacity;
+      // Grounding contact shadow & floor reflection
+      (p.contactShadowMesh.material as THREE.MeshBasicMaterial).opacity =
+        (0.65 + activeEmphasis * 0.15) * opacity;
+      (p.floorReflectionMesh.material as THREE.MeshBasicMaterial).opacity =
+        (0.10 + activeEmphasis * 0.05) * opacity;
 
       // Video playback: play only when in close hero focus
       if (dist < 0.65 && opacity > 0.6) {
@@ -503,6 +587,9 @@ export const PortfolioWormhole3D: React.FC = () => {
           }
           (p.screenMesh.material as THREE.MeshBasicMaterial).map = p.videoTexture;
           (p.screenMesh.material as THREE.MeshBasicMaterial).needsUpdate = true;
+          // Sync floor reflection texture
+          (p.floorReflectionMesh.material as THREE.MeshBasicMaterial).map = p.videoTexture;
+          (p.floorReflectionMesh.material as THREE.MeshBasicMaterial).needsUpdate = true;
         }
       } else {
         if (p.isPlaying) {
@@ -510,6 +597,8 @@ export const PortfolioWormhole3D: React.FC = () => {
           p.video.pause();
           (p.screenMesh.material as THREE.MeshBasicMaterial).map = p.posterTexture;
           (p.screenMesh.material as THREE.MeshBasicMaterial).needsUpdate = true;
+          (p.floorReflectionMesh.material as THREE.MeshBasicMaterial).map = p.posterTexture;
+          (p.floorReflectionMesh.material as THREE.MeshBasicMaterial).needsUpdate = true;
         }
       }
     });
