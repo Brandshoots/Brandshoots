@@ -55,6 +55,63 @@ const CYLINDER_ITEMS = Array.from({ length: TOTAL_SLOTS }, (_, i) => ({
   index: i
 }));
 
+const HeroCylinderVideo: React.FC<{ src: string; poster: string }> = React.memo(({ src, poster }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.defaultMuted = true;
+    video.muted = true;
+    video.playsInline = true;
+    video.setAttribute('muted', '');
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+    video.setAttribute('autoplay', '');
+    video.setAttribute('loop', '');
+
+    const startPlayback = () => {
+      const p = video.play();
+      if (p !== undefined) {
+        p.catch(() => {
+          const unlock = () => {
+            video.play().catch(() => {});
+          };
+          window.addEventListener('click', unlock, { once: true, passive: true });
+          window.addEventListener('touchstart', unlock, { once: true, passive: true });
+        });
+      }
+    };
+
+    startPlayback();
+    video.addEventListener('loadeddata', startPlayback, { once: true });
+    video.addEventListener('canplay', startPlayback, { once: true });
+    video.addEventListener('loadedmetadata', startPlayback, { once: true });
+
+    return () => {
+      video.removeEventListener('loadeddata', startPlayback);
+      video.removeEventListener('canplay', startPlayback);
+      video.removeEventListener('loadedmetadata', startPlayback);
+    };
+  }, [src]);
+
+  return (
+    <video
+      ref={videoRef}
+      src={src}
+      poster={poster}
+      autoPlay
+      loop
+      muted
+      playsInline
+      preload="auto"
+      className="w-full h-full object-cover rounded-[15px]"
+    />
+  );
+});
+HeroCylinderVideo.displayName = 'HeroCylinderVideo';
+
 export const ReelWall3D: React.FC<ReelWall3DProps> = ({ onLoaded }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const rotGroupRef = useRef<HTMLDivElement>(null);
@@ -147,16 +204,8 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({ onLoaded }) => {
               }}
             >
               <div className="relative w-full h-full rounded-[16px] overflow-hidden bg-[#07090E] border border-white/10 ring-1 ring-black/80 shadow-[0_16px_50px_rgba(0,0,0,0.95)]">
-                {/* Real 9:16 BrandShoots Video */}
-                <video
-                  src={item.src}
-                  poster={item.poster}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="w-full h-full object-cover rounded-[15px]"
-                />
+                {/* Real 9:16 BrandShoots Video with Autoplay Guarantee */}
+                <HeroCylinderVideo src={item.src} poster={item.poster} />
 
                 {/* Subtle Inner Bezel Glass Glare */}
                 <div className="absolute inset-0 pointer-events-none rounded-[15px] bg-gradient-to-b from-white/10 via-transparent to-black/40" />

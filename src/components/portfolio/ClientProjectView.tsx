@@ -9,7 +9,7 @@ export const ClientProjectView: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
 
   // Find project by slug
   const projectIndex = CLIENT_PROJECTS.findIndex((p) => p.slug === clientSlug);
@@ -32,6 +32,21 @@ export const ClientProjectView: React.FC = () => {
       return () => ctx.revert();
     }
   }, [clientSlug]);
+
+  // Guaranteed autoplay on project view mount & slug transition
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      video.defaultMuted = true;
+      video.muted = isMuted;
+      video.playsInline = true;
+      video.setAttribute('muted', '');
+      video.setAttribute('playsinline', '');
+      video.setAttribute('webkit-playsinline', '');
+      video.play().catch(() => {});
+      setIsPlaying(true);
+    }
+  }, [clientSlug, isMuted]);
 
   const togglePlay = () => {
     if (videoRef.current) {

@@ -78,6 +78,12 @@ export const MobileCinematicHero: React.FC = () => {
   useEffect(() => {
     const vid = videoRef.current;
     if (vid) {
+      vid.defaultMuted = true;
+      vid.muted = true;
+      vid.playsInline = true;
+      vid.setAttribute('muted', '');
+      vid.setAttribute('playsinline', '');
+      vid.setAttribute('webkit-playsinline', '');
       vid.currentTime = 0;
       if (isPlaying) {
         vid.play().catch(() => {});

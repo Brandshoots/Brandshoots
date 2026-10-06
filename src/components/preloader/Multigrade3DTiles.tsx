@@ -40,6 +40,7 @@ const PreloaderVideoCard: React.FC<{
     video.playsInline = true;
     video.setAttribute('muted', '');
     video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
     video.setAttribute('autoplay', '');
     video.setAttribute('loop', '');
 
@@ -57,16 +58,17 @@ const PreloaderVideoCard: React.FC<{
       }
     };
 
-    if (video.readyState >= 2) {
-      startPlayback();
-    } else {
-      video.addEventListener('loadeddata', startPlayback, { once: true });
-      video.addEventListener('canplay', startPlayback, { once: true });
-    }
+    // Immediately trigger playback without waiting
+    startPlayback();
+
+    video.addEventListener('loadeddata', startPlayback, { once: true });
+    video.addEventListener('canplay', startPlayback, { once: true });
+    video.addEventListener('loadedmetadata', startPlayback, { once: true });
 
     return () => {
       video.removeEventListener('loadeddata', startPlayback);
       video.removeEventListener('canplay', startPlayback);
+      video.removeEventListener('loadedmetadata', startPlayback);
     };
   }, [source, isVideo]);
 
@@ -145,17 +147,18 @@ export const Multigrade3DTiles: React.FC<Multigrade3DTilesProps> = ({
   const columns: TileData[][] = reelPairs.map((pair, colIdx) => {
     const list: TileData[] = [];
     for (let c = 0; c < 5; c++) {
+      const isCardVideo = c >= 1 && c <= 3;
       list.push({
         id: `c${colIdx}-${c * 2}`,
         source: pair[0].source,
         poster: pair[0].poster,
-        isVideo: c === 2,
+        isVideo: isCardVideo,
       });
       list.push({
         id: `c${colIdx}-${c * 2 + 1}`,
         source: pair[1].source,
         poster: pair[1].poster,
-        isVideo: c === 2,
+        isVideo: isCardVideo,
       });
     }
     return list;

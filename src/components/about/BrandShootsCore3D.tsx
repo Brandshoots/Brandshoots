@@ -166,9 +166,11 @@ export const BrandShootsCore3D: React.FC = () => {
       video.src = reel.video;
       video.crossOrigin = 'anonymous';
       video.loop = true;
+      video.defaultMuted = true;
       video.muted = true;
       video.playsInline = true;
       video.autoplay = true;
+      video.setAttribute('muted', '');
       video.setAttribute('playsinline', '');
       video.setAttribute('webkit-playsinline', '');
       video.play().catch(() => {});
