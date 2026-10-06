@@ -2,19 +2,28 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Instagram, Youtube, Facebook, X } from 'lucide-react';
 
-interface PortfolioNavbarProps {
-  onOpenContact: () => void;
+interface ContactNavbarProps {
+  onScrollToForm?: () => void;
 }
 
-export const PortfolioNavbar: React.FC<PortfolioNavbarProps> = ({ onOpenContact }) => {
+export const ContactNavbar: React.FC<ContactNavbarProps> = ({ onScrollToForm }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleGetInTouch = () => {
+    if (onScrollToForm) {
+      onScrollToForm();
+    } else {
+      const el = document.getElementById('contact-form');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <>
       {/* ========================================================= */}
-      {/* 1. DESKTOP / MAIN NAVIGATION BAR (HOMEPAGE ALIGNED & FIXED) */}
+      {/* 1. DESKTOP / MAIN NAVIGATION BAR (IDENTICAL TO HOMEPAGE)  */}
       {/* ========================================================= */}
-      <header className="fixed top-0 left-0 right-0 z-50 w-full px-5 sm:px-8 md:px-12 lg:px-16 pt-4 sm:pt-5 pb-3 bg-gradient-to-b from-[#030508]/95 via-[#030508]/70 to-transparent backdrop-blur-md flex items-center justify-between pointer-events-auto transition-all duration-300 border-b border-white/[0.04]">
+      <header className="absolute top-0 left-0 right-0 z-50 w-full px-5 sm:px-8 md:px-12 lg:px-16 pt-5 sm:pt-6 md:pt-7 flex items-center justify-between">
         {/* Brand Logo (Upper Left) */}
         <div className="flex items-center">
           <Link
@@ -32,21 +41,20 @@ export const PortfolioNavbar: React.FC<PortfolioNavbarProps> = ({ onOpenContact 
 
         {/* Desktop Minimal Navigation */}
         <nav className="hidden md:flex items-center gap-8 lg:gap-11 text-white/85 font-sans text-xs lg:text-[13px] tracking-[0.22em] uppercase font-medium">
-          {/* Home Icon */}
+          {/* Home Icon (Electric Blue) */}
           <Link
             to="/"
             aria-label="Home"
             className="text-white/85 hover:text-[#008CFF] transition-colors duration-200 flex items-center justify-center p-1"
           >
             <svg
-              className="w-4 h-4 fill-current"
+              className="w-4 h-4 fill-current drop-shadow-[0_0_8px_rgba(0,140,255,0.4)]"
               viewBox="0 0 24 24"
             >
               <path d="M12 3L2 12h3v8h6v-5h2v5h6v-8h3L12 3z" />
             </svg>
           </Link>
 
-          {/* About Link */}
           <Link
             to="/about"
             className="hover:text-white transition-colors duration-200 cursor-pointer uppercase tracking-[0.22em]"
@@ -54,27 +62,25 @@ export const PortfolioNavbar: React.FC<PortfolioNavbarProps> = ({ onOpenContact 
             About
           </Link>
 
-          {/* Active Portfolio Item */}
-          <span className="text-[#008CFF] font-semibold tracking-[0.22em] flex items-center gap-1.5 cursor-default drop-shadow-[0_0_10px_rgba(0,140,255,0.7)]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_6px_#008CFF]" />
-            <span>Portfolio</span>
-          </span>
-
-          {/* Contact Trigger */}
-          <button
-            type="button"
-            onClick={onOpenContact}
+          <Link
+            to="/portfolio"
             className="hover:text-white transition-colors duration-200 cursor-pointer uppercase tracking-[0.22em]"
           >
-            Contact
-          </button>
+            Portfolio
+          </Link>
+
+          {/* Active Contact */}
+          <span className="text-[#008CFF] font-semibold tracking-[0.22em] flex items-center gap-1.5 cursor-default">
+            <span>Contact</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
+          </span>
         </nav>
 
-        {/* Desktop Right CTA: Get in Touch */}
+        {/* Desktop Right CTA: Get in Touch (Scrolls to form) */}
         <div className="hidden md:flex items-center">
           <button
             type="button"
-            onClick={onOpenContact}
+            onClick={handleGetInTouch}
             className="text-white hover:text-[#008CFF] font-sans text-xs lg:text-[13px] tracking-[0.22em] uppercase font-semibold transition-colors duration-200 cursor-pointer"
           >
             Get in Touch
@@ -98,7 +104,7 @@ export const PortfolioNavbar: React.FC<PortfolioNavbarProps> = ({ onOpenContact 
       {/* 2. MOBILE TRANSLUCENT BLURRED NAVIGATION MENU (TRANS-BLUR) */}
       {/* ========================================================= */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 flex flex-col justify-between p-6 sm:p-8 select-none bg-[#05070A]/90 backdrop-blur-2xl transition-all duration-300 animate-fadeIn pointer-events-auto">
+        <div className="fixed inset-0 z-50 flex flex-col justify-between p-6 sm:p-8 select-none bg-[#05070A]/85 backdrop-blur-2xl transition-all duration-300 animate-fadeIn">
           {/* Top Bar with Logo and Close Button */}
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
             <Link
@@ -117,7 +123,7 @@ export const PortfolioNavbar: React.FC<PortfolioNavbarProps> = ({ onOpenContact 
               type="button"
               onClick={() => setMobileMenuOpen(false)}
               aria-label="Close Navigation"
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center text-white/90 hover:text-white transition-colors"
+              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center text-white/90 hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -144,69 +150,65 @@ export const PortfolioNavbar: React.FC<PortfolioNavbarProps> = ({ onOpenContact 
               About
             </Link>
 
-            <span className="text-xl font-display font-semibold tracking-[0.16em] uppercase text-[#008CFF] flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
-              <span>Portfolio</span>
+            <Link
+              to="/portfolio"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-xl font-display font-semibold tracking-[0.16em] uppercase text-white/80 hover:text-white transition-colors duration-200"
+            >
+              Portfolio
+            </Link>
+
+            <span className="text-xl font-display font-bold tracking-[0.16em] uppercase text-[#008CFF] flex items-center gap-2 cursor-default">
+              <span>Contact</span>
+              <span className="w-2 h-2 rounded-full bg-[#008CFF] shadow-[0_0_10px_#008CFF]" />
             </span>
 
             <button
               type="button"
               onClick={() => {
                 setMobileMenuOpen(false);
-                onOpenContact();
+                handleGetInTouch();
               }}
-              className="text-xl font-display font-semibold tracking-[0.16em] uppercase text-white/90 hover:text-[#008CFF] transition-colors duration-200"
+              className="mt-4 px-8 py-3.5 rounded-full bg-[#008CFF] text-white text-xs tracking-[0.24em] uppercase font-bold shadow-[0_0_24px_rgba(0,140,255,0.5)] hover:bg-[#209CFF] transition-all duration-200 active:scale-95"
             >
-              Contact
-            </button>
-
-            {/* Prominent CTA in Mobile Menu */}
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenContact();
-              }}
-              className="mt-4 px-8 py-3.5 rounded-full bg-[#008CFF] hover:bg-[#52B2FF] text-white font-sans text-xs tracking-[0.24em] uppercase font-bold transition-all shadow-[0_0_20px_rgba(0,140,255,0.4)]"
-            >
-              Get in Touch
+              Start A Conversation
             </button>
           </div>
 
-          {/* Bottom Social Links & Legal */}
-          <div className="border-t border-white/10 pt-5 flex flex-col items-center gap-4">
-            <div className="flex items-center gap-6 text-white/70">
+          {/* Bottom Socials */}
+          <div className="border-t border-white/10 pt-4 flex flex-col items-center gap-3">
+            <div className="flex items-center gap-5">
               <a
                 href="https://instagram.com/wearebrandshoots"
                 target="_blank"
-                rel="noreferrer"
-                className="hover:text-[#008CFF] transition-colors"
+                rel="noopener noreferrer"
                 aria-label="Instagram"
+                className="w-10 h-10 rounded-full bg-white/5 hover:bg-[#008CFF] flex items-center justify-center text-white/80 hover:text-white transition-colors"
               >
-                <Instagram className="w-5 h-5" />
+                <Instagram className="w-4 h-4" />
               </a>
               <a
                 href="https://youtube.com/@wearebrandshoots"
                 target="_blank"
-                rel="noreferrer"
-                className="hover:text-[#008CFF] transition-colors"
+                rel="noopener noreferrer"
                 aria-label="YouTube"
+                className="w-10 h-10 rounded-full bg-white/5 hover:bg-[#008CFF] flex items-center justify-center text-white/80 hover:text-white transition-colors"
               >
-                <Youtube className="w-5 h-5" />
+                <Youtube className="w-4 h-4" />
               </a>
               <a
                 href="https://facebook.com/wearebrandshoots"
                 target="_blank"
-                rel="noreferrer"
-                className="hover:text-[#008CFF] transition-colors"
+                rel="noopener noreferrer"
                 aria-label="Facebook"
+                className="w-10 h-10 rounded-full bg-white/5 hover:bg-[#008CFF] flex items-center justify-center text-white/80 hover:text-white transition-colors"
               >
-                <Facebook className="w-5 h-5" />
+                <Facebook className="w-4 h-4" />
               </a>
             </div>
-            <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-white/40">
-              © 2026 BRANDSHOOTS • ALL RIGHTS RESERVED
-            </p>
+            <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-white/40">
+              @wearebrandshoots
+            </span>
           </div>
         </div>
       )}
@@ -214,4 +216,4 @@ export const PortfolioNavbar: React.FC<PortfolioNavbarProps> = ({ onOpenContact 
   );
 };
 
-export default PortfolioNavbar;
+export default ContactNavbar;

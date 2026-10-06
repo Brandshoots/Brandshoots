@@ -8,34 +8,38 @@ import { ArrowUpRight, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 gsap.registerPlugin(ScrollTrigger);
 
 /**
- * PHASE 3 PORTFOLIO — 3D ALTERNATING EDITORIAL CORRIDOR
+ * PHASE 3 PORTFOLIO — 3D TIME MACHINE WORMHOLE CORRIDOR
  *
- * Implements the user's hand-drawn reference architecture:
- * - Top Header: Navbar + "Our Portfolio"
- * - Frame 1: 3D Tile on the LEFT (angled in 3D perspective), Title & Matter on the RIGHT.
- * - Frame 2: Matter on the LEFT, 3D Tile on the RIGHT (angled in 3D perspective).
- * - "Every tile should come from left to right" on entry during scroll.
- * - "dont keep them before only": Upcoming tiles are NOT visible beforehand;
- *   only the active chapter and its transition are on screen.
- * - Authentic 3D perspective with CSS transform-style preserve-3d and rotateY.
- * - GSAP ScrollTrigger with precision snap for all 10 clients.
+ * Built directly according to the client's hand-drawn specifications:
+ * 1. Fixed Top Navbar + "Our Portfolio" header with chapter counter.
+ * 2. 3D Alternating Composition:
+ *    - Frame 1: 3D Tile on the LEFT (angled in 3D perspective), Title & Matter on the RIGHT.
+ *    - Frame 2: Matter on the LEFT, 3D Tile on the RIGHT (angled in 3D perspective).
+ * 3. 3D Time Machine Wormhole Effect:
+ *    - Reels enter with real 3D spatial velocity from the side (translateX, translateZ, rotateY).
+ *    - Distinctive 3D perspective (perspective: 800px) with dramatic optical convergence.
+ *    - Concentric wormhole warp rings in background that pulse with scroll.
+ * 4. NO client logo on the video (removed completely).
+ * 5. "dont keep them before only": Upcoming reels are strictly hidden until their chapter begins.
+ * 6. Smooth GSAP ScrollTrigger snapping for all 10 clients.
  */
 
-// Smooth cubic easing helper
-function easeOutCubic(t: number): number {
-  return 1 - Math.pow(1 - Math.max(0, Math.min(1, t)), 3);
+// Cubic smoothstep easing
+function smoothstep(t: number): number {
+  const c = Math.max(0, Math.min(1, t));
+  return c * c * (3 - 2 * c);
 }
 
 export const PortfolioWormhole3D: React.FC = () => {
   const totalProjects = CLIENT_PROJECTS.length; // 10 projects
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Fractional scroll progression across chapters: 0.0 to 9.0
+  // Fractional scroll unit across chapters: 0.0 to 9.0
   const [scrollUnit, setScrollUnit] = useState<number>(0);
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
-  // Video references for memory-efficient playback
+  // Video references for playback control
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
   // Track responsive screen size
@@ -48,7 +52,7 @@ export const PortfolioWormhole3D: React.FC = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Set up GSAP ScrollTrigger with Snap
+  // GSAP ScrollTrigger configuration with Snap lock
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -59,7 +63,7 @@ export const PortfolioWormhole3D: React.FC = () => {
       trigger: container,
       start: 'top top',
       end: 'bottom bottom',
-      scrub: 0.45,
+      scrub: 0.4,
       snap: {
         snapTo: snapPoints,
         duration: { min: 0.28, max: 0.65 },
@@ -116,7 +120,7 @@ export const PortfolioWormhole3D: React.FC = () => {
       ref={containerRef}
       className="relative w-full bg-[#030508] text-white select-none"
       style={{
-        // 100vh per project ensures adequate scroll space and exact snap settle
+        // 100vh per project for generous scroll travel and exact snap settle
         height: `${totalProjects * 100}vh`,
       }}
     >
@@ -125,27 +129,78 @@ export const PortfolioWormhole3D: React.FC = () => {
       {/* ================================================================== */}
       <div className="fixed inset-0 w-full h-full overflow-hidden flex flex-col justify-between pointer-events-none">
         {/* ========================================================= */}
-        {/* SUBTLE ARCHITECTURAL BACKGROUND (NO FAKE BLUR, CLEAN DARK)*/}
+        {/* TIME MACHINE WORMHOLE TUNNEL BACKGROUND (3D WARP RINGS)   */}
         {/* ========================================================= */}
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-          {/* Deep Obsidian Background */}
+          {/* Deep Obsidian Abyss */}
           <div className="absolute inset-0 bg-[#030508]" />
 
-          {/* Faint Radial Accent Light Behind Active Scene */}
-          <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] rounded-full pointer-events-none"
-            style={{
-              background: 'radial-gradient(circle, rgba(0, 140, 255, 0.05) 0%, rgba(3, 5, 8, 0) 70%)',
-            }}
-          />
+          {/* 3D Concentric Wormhole Warp Rings */}
+          <svg
+            className="absolute inset-0 w-full h-full opacity-45 pointer-events-none"
+            xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="none"
+          >
+            <defs>
+              <radialGradient id="wormholeCenterGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#008CFF" stopOpacity="0.25" />
+                <stop offset="40%" stopColor="#008CFF" stopOpacity="0.08" />
+                <stop offset="100%" stopColor="#030508" stopOpacity="0" />
+              </radialGradient>
+              <linearGradient id="wormholeStreakGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#008CFF" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="transparent" stopOpacity="0" />
+              </linearGradient>
+            </defs>
 
-          {/* Minimal Architectural Grid Guidelines */}
+            {/* Receding Perspective Tunnel Guideway */}
+            <line x1="0%" y1="0%" x2="50%" y2="50%" stroke="rgba(0,140,255,0.12)" strokeWidth="1" />
+            <line x1="100%" y1="0%" x2="50%" y2="50%" stroke="rgba(0,140,255,0.12)" strokeWidth="1" />
+            <line x1="0%" y1="100%" x2="50%" y2="50%" stroke="rgba(0,140,255,0.18)" strokeWidth="1" />
+            <line x1="100%" y1="100%" x2="50%" y2="50%" stroke="rgba(0,140,255,0.18)" strokeWidth="1" />
+
+            {/* Dynamic Receding Wormhole Ellipses */}
+            {[
+              { rx: '48%', ry: '38%', opacity: 0.12, stroke: '#008CFF' },
+              { rx: '36%', ry: '28%', opacity: 0.18, stroke: '#008CFF' },
+              { rx: '25%', ry: '19%', opacity: 0.25, stroke: '#008CFF' },
+              { rx: '16%', ry: '12%', opacity: 0.35, stroke: '#008CFF' },
+              { rx: '9%', ry: '7%', opacity: 0.45, stroke: '#00d2ff' },
+            ].map((ring, rIdx) => {
+              // Subtle scroll-linked pulsing
+              const pulseScale = 1 + (((scrollUnit * 0.2 + rIdx * 0.15) % 1) - 0.5) * 0.08;
+              return (
+                <ellipse
+                  key={rIdx}
+                  cx="50%"
+                  cy="50%"
+                  rx={ring.rx}
+                  ry={ring.ry}
+                  fill="none"
+                  stroke={ring.stroke}
+                  strokeWidth="1.2"
+                  strokeDasharray="6 8"
+                  opacity={ring.opacity}
+                  style={{
+                    transform: `scale(${pulseScale})`,
+                    transformOrigin: '50% 50%',
+                    transition: 'transform 0.1s ease-out',
+                  }}
+                />
+              );
+            })}
+
+            {/* Center Wormhole Event Horizon Core */}
+            <circle cx="50%" cy="50%" r="220" fill="url(#wormholeCenterGlow)" />
+          </svg>
+
+          {/* Architectural Subtle Grid */}
           <div
-            className="absolute inset-0 opacity-[0.035] pointer-events-none"
+            className="absolute inset-0 opacity-[0.03] pointer-events-none"
             style={{
               backgroundImage:
-                'linear-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.2) 1px, transparent 1px)',
-              backgroundSize: '120px 120px',
+                'linear-gradient(rgba(255, 255, 255, 0.25) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.25) 1px, transparent 1px)',
+              backgroundSize: '100px 100px',
             }}
           />
         </div>
@@ -153,16 +208,16 @@ export const PortfolioWormhole3D: React.FC = () => {
         {/* ========================================================= */}
         {/* TOP HEADER: "OUR PORTFOLIO" (FROM USER REFERENCE SKETCH) */}
         {/* ========================================================= */}
-        <div className="relative z-20 w-full px-6 sm:px-10 md:px-16 pt-20 sm:pt-24 md:pt-28 flex items-center justify-between pointer-events-none">
+        <div className="relative z-20 w-full px-6 sm:px-10 md:px-16 pt-24 md:pt-28 flex items-center justify-between pointer-events-none">
           {/* Left Sub-heading: Our Portfolio */}
           <div className="flex items-center gap-3">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
-            <h1 className="text-sm sm:text-base md:text-lg font-display font-bold tracking-[0.2em] uppercase text-white/90">
+            <span className="w-2 h-2 rounded-full bg-[#008CFF] shadow-[0_0_10px_#008CFF]" />
+            <h1 className="text-sm sm:text-base md:text-lg font-display font-bold tracking-[0.22em] uppercase text-white/90">
               Our Portfolio
             </h1>
             <span className="hidden sm:inline text-white/20 font-mono text-xs">//</span>
-            <span className="hidden sm:inline text-white/40 font-mono text-xs tracking-[0.16em]">
-              3D CINEMATIC ARCHIVE
+            <span className="hidden sm:inline text-white/40 font-mono text-xs tracking-[0.18em]">
+              3D TIME MACHINE CORRIDOR
             </span>
           </div>
 
@@ -177,85 +232,99 @@ export const PortfolioWormhole3D: React.FC = () => {
         </div>
 
         {/* ========================================================= */}
-        {/* MAIN 3D WORKSPACE: ALTERNATING TILE & MATTER LAYOUT       */}
+        {/* MAIN 3D WORKSPACE: ALTERNATING 3D TILE & MATTER LAYOUT     */}
         {/* ========================================================= */}
         <div className="relative z-10 w-full flex-1 flex items-center justify-center px-4 sm:px-8 md:px-14 lg:px-20 pointer-events-none">
           {CLIENT_PROJECTS.map((project, idx) => {
-            const delta = scrollUnit - idx; // 0 = fully focused, < 0 = upcoming, > 0 = exiting
+            const delta = scrollUnit - idx; // 0 = active/focused, < 0 = upcoming, > 0 = exiting
 
             // STRICT "dont keep them before only" RULE:
-            // Only render when the chapter is currently active or transitioning!
-            // When delta < -1 or delta > 1, element is completely hidden.
+            // Upcoming reels are strictly hidden and not rendered beforehand!
             if (delta < -1.05 || delta > 1.05) {
               return null;
             }
 
             // Layout Mode: Alternating based on index
-            // Even index (0, 2, 4, 6, 8): Tile on LEFT, Matter on RIGHT (Top Sketch)
-            // Odd index (1, 3, 5, 7, 9): Matter on LEFT, Tile on RIGHT (Bottom Sketch)
+            // Even index (0, 2, 4, 6, 8): 3D Tile on LEFT, Matter on RIGHT (Top Sketch)
+            // Odd index (1, 3, 5, 7, 9): Matter on LEFT, 3D Tile on RIGHT (Bottom Sketch)
             const isTileOnLeft = idx % 2 === 0;
 
-            // Transition Calculations:
-            // "Every tile should come from left to right"
+            // Target 3D Perspective Angles (Dramatic 3D trapezoidal convergence)
+            // Left tile angles inwards towards right: rotateY(+32deg)
+            // Right tile angles inwards towards left: rotateY(-32deg)
+            const targetRotY = isTileOnLeft ? 32 : -32;
+
+            // 3D Time Machine Dynamic Spatial Trajectory
             let tileTransform = '';
             let matterTransform = '';
             let opacity = 1;
 
             if (delta < 0) {
+              // ------------------------------------------------------------------
               // ENTERING (delta goes from -1 to 0):
-              // Tile enters coming from the left towards its target slot!
+              // "Every tile should come from left to right" in 3D through the wormhole!
+              // ------------------------------------------------------------------
               const progress = delta + 1; // 0 to 1
-              const ease = easeOutCubic(progress);
+              const ease = smoothstep(progress);
 
               opacity = ease;
 
               if (isMobile) {
-                // Mobile: Enters from left smoothly with subtle perspective
-                const startX = -35 * (1 - ease);
-                tileTransform = `translate3d(${startX}vw, 0px, 0px) scale(${0.9 + 0.1 * ease})`;
-                matterTransform = `translate3d(${(1 - ease) * 20}px, 0px, 0px)`;
+                // Mobile 3D entry: sweeps in from the left with subtle 3D tilt
+                const startX = -45 * (1 - ease);
+                const currentRotY = targetRotY * 0.5 * ease;
+                tileTransform = `translate3d(${startX}vw, 0px, ${-200 * (1 - ease)}px) rotateY(${currentRotY}deg) scale(${
+                  0.88 + 0.12 * ease
+                })`;
+                matterTransform = `translate3d(${(1 - ease) * 25}px, 0px, 0px)`;
               } else {
-                // Desktop: Tile moves in from the left with 3D angle settling into place
-                const enterStartX = -45; // Start 45vw to the left
-                const currentX = enterStartX * (1 - ease);
-                const targetRotY = isTileOnLeft ? 24 : -24; // 3D perspective angle
-                const currentRotY = targetRotY + (1 - ease) * 18;
+                // Desktop 3D Time Machine Entry:
+                // Reel rushes in from the left and deep in the wormhole (translateZ: -500px -> 0px)!
+                const startX = -50 * (1 - ease); // comes from left to right
+                const startZ = -550 * (1 - ease); // rushes forward from deep space
+                const currentRotY = targetRotY + (1 - ease) * 28; // dramatic uncoiling rotation
 
-                tileTransform = `translate3d(${currentX}vw, 0px, ${-120 * (1 - ease)}px) rotateY(${currentRotY}deg) scale(${
-                  0.86 + 0.14 * ease
+                tileTransform = `translate3d(${startX}vw, 0px, ${startZ}px) rotateY(${currentRotY}deg) scale(${
+                  0.82 + 0.18 * ease
                 })`;
 
-                matterTransform = `translate3d(${(1 - ease) * (isTileOnLeft ? 40 : -40)}px, 0px, 0px)`;
+                matterTransform = `translate3d(${(1 - ease) * (isTileOnLeft ? 50 : -50)}px, 0px, 0px)`;
               }
             } else if (delta > 0) {
+              // ------------------------------------------------------------------
               // EXITING (delta goes from 0 to 1):
-              // Exiting tile moves off to the left or slides away (matching the bottom sketch where left tile exits off edge)
+              // Outgoing reel exits to the side into 3D space (as drawn in bottom sketch)
+              // ------------------------------------------------------------------
               const progress = delta; // 0 to 1
               const ease = progress * progress;
 
               opacity = Math.max(0, 1 - progress);
 
               if (isMobile) {
-                const exitX = -30 * ease;
-                tileTransform = `translate3d(${exitX}vw, 0px, 0px) scale(${1 - 0.15 * ease})`;
-                matterTransform = `translate3d(${ease * 20}px, 0px, 0px)`;
+                const exitX = -35 * ease;
+                tileTransform = `translate3d(${exitX}vw, 0px, ${-150 * ease}px) scale(${1 - 0.15 * ease})`;
+                matterTransform = `translate3d(${ease * 25}px, 0px, 0px)`;
               } else {
-                const exitX = -40 * ease; // Exits towards the left offscreen
-                const targetRotY = isTileOnLeft ? 24 : -24;
+                // Outgoing reel shoots outward towards the side and deep into tunnel
+                const exitX = (isTileOnLeft ? -45 : 45) * ease;
+                const exitZ = -450 * ease;
+                const currentRotY = targetRotY + (isTileOnLeft ? 22 : -22) * ease;
 
-                tileTransform = `translate3d(${exitX}vw, 0px, ${-160 * ease}px) rotateY(${
-                  targetRotY + ease * 15
-                }deg) scale(${1 - 0.2 * ease})`;
+                tileTransform = `translate3d(${exitX}vw, 0px, ${exitZ}px) rotateY(${currentRotY}deg) scale(${
+                  1 - 0.22 * ease
+                })`;
 
-                matterTransform = `translate3d(${ease * (isTileOnLeft ? 30 : -30)}px, 0px, 0px)`;
+                matterTransform = `translate3d(${ease * (isTileOnLeft ? 40 : -40)}px, 0px, 0px)`;
               }
             } else {
+              // ------------------------------------------------------------------
               // ACTIVE / SETTLED (delta = 0)
+              // Locked in dramatic 3D perspective
+              // ------------------------------------------------------------------
               opacity = 1;
               if (isMobile) {
-                tileTransform = `translate3d(0vw, 0px, 0px) scale(1)`;
+                tileTransform = `translate3d(0vw, 0px, 0px) rotateY(${targetRotY * 0.4}deg) scale(1)`;
               } else {
-                const targetRotY = isTileOnLeft ? 24 : -24;
                 tileTransform = `translate3d(0vw, 0px, 0px) rotateY(${targetRotY}deg) scale(1)`;
               }
               matterTransform = `translate3d(0px, 0px, 0px)`;
@@ -269,8 +338,9 @@ export const PortfolioWormhole3D: React.FC = () => {
                   opacity,
                   visibility: opacity > 0.01 ? 'visible' : 'hidden',
                   pointerEvents: Math.abs(delta) < 0.25 ? 'auto' : 'none',
-                  perspective: isMobile ? '850px' : '1350px',
-                  perspectiveOrigin: isTileOnLeft ? '38% 50%' : '62% 50%',
+                  // Dramatic perspective lens for unmistakable 3D optical depth
+                  perspective: isMobile ? '650px' : '820px',
+                  perspectiveOrigin: isTileOnLeft ? '35% 50%' : '65% 50%',
                   transformStyle: 'preserve-3d',
                 }}
               >
@@ -282,28 +352,40 @@ export const PortfolioWormhole3D: React.FC = () => {
                   style={{ transformStyle: 'preserve-3d' }}
                 >
                   {/* =================================================== */}
-                  {/* 1. 3D VIDEO TILE (ANGLED RECTANGULAR SCREEN)        */}
+                  {/* 1. 3D VIDEO REEL TILE (ANGLED 3D CINEMA SCREEN)     */}
                   {/* =================================================== */}
                   <div
                     className="w-full lg:w-1/2 flex items-center justify-center shrink-0"
                     style={{
                       transformStyle: 'preserve-3d',
                       transform: tileTransform,
-                      transition: 'transform 0.05s ease-out',
+                      transition: 'transform 0.04s ease-out',
                     }}
                   >
                     <div
-                      className="relative group rounded-xl sm:rounded-2xl overflow-hidden bg-[#070b12] border border-white/20 shadow-2xl"
+                      className="relative group rounded-2xl overflow-hidden bg-[#070b12] border-2 border-white/20 shadow-2xl"
                       style={{
                         // 58vh desktop, 34vh mobile with breathing room, native 9:16 aspect ratio
                         height: isMobile ? 'min(34vh, 290px)' : 'min(58vh, 520px)',
                         aspectRatio: '9 / 16',
-                        boxShadow:
-                          '0 30px 90px -15px rgba(0, 0, 0, 0.95), 0 0 45px -10px rgba(0, 140, 255, 0.25)',
+                        // Multi-layer physical 3D drop shadow & electric blue rim glow
+                        boxShadow: isTileOnLeft
+                          ? '25px 35px 90px -15px rgba(0, 0, 0, 0.95), 0 0 50px -10px rgba(0, 140, 255, 0.35)'
+                          : '-25px 35px 90px -15px rgba(0, 0, 0, 0.95), 0 0 50px -10px rgba(0, 140, 255, 0.35)',
                       }}
                     >
-                      {/* Razor-thin Electric Blue Rim Lighting */}
-                      <div className="absolute inset-0 border border-[#008CFF]/30 rounded-xl sm:rounded-2xl pointer-events-none z-20" />
+                      {/* Razor-thin Electric Blue Outer Rim Highlight */}
+                      <div className="absolute inset-0 border border-[#008CFF]/40 rounded-2xl pointer-events-none z-20" />
+
+                      {/* 3D Glass Light Glint Reflection Gradient */}
+                      <div
+                        className="absolute inset-0 pointer-events-none z-20 rounded-2xl"
+                        style={{
+                          background: isTileOnLeft
+                            ? 'linear-gradient(125deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 40%, transparent 60%)'
+                            : 'linear-gradient(235deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 40%, transparent 60%)',
+                        }}
+                      />
 
                       {/* Corner Accent Brackets */}
                       <div className="absolute top-2.5 left-2.5 w-3.5 h-3.5 border-t-2 border-l-2 border-[#008CFF] pointer-events-none z-20" />
@@ -311,23 +393,13 @@ export const PortfolioWormhole3D: React.FC = () => {
                       <div className="absolute bottom-2.5 left-2.5 w-3.5 h-3.5 border-b-2 border-l-2 border-[#008CFF] pointer-events-none z-20" />
                       <div className="absolute bottom-2.5 right-2.5 w-3.5 h-3.5 border-b-2 border-r-2 border-[#008CFF] pointer-events-none z-20" />
 
-                      {/* Client Logo Watermark in Upper Corner */}
-                      {project.logoUrl && (
-                        <div className="absolute top-3.5 left-3.5 z-20 px-2 py-0.5 rounded bg-black/60 backdrop-blur-md border border-white/10 pointer-events-none">
-                          <img
-                            src={project.logoUrl}
-                            alt={project.name}
-                            className="h-3.5 sm:h-4.5 w-auto object-contain filter brightness-110 drop-shadow"
-                          />
-                        </div>
-                      )}
-
-                      {/* Chapter Indicator Badge */}
-                      <div className="absolute top-3.5 right-3.5 z-20 px-2 py-0.5 rounded bg-black/70 backdrop-blur-md border border-white/10 font-mono text-[9px] sm:text-[10px] text-white/70 tracking-widest pointer-events-none">
-                        {String(idx + 1).padStart(2, '0')}
+                      {/* Chapter Indicator Badge (Clean, No Client Logo) */}
+                      <div className="absolute top-3.5 right-3.5 z-20 px-2.5 py-0.5 rounded-full bg-black/75 backdrop-blur-md border border-white/15 font-mono text-[9px] sm:text-[10px] text-white/80 tracking-widest pointer-events-none flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
+                        <span>REEL {String(idx + 1).padStart(2, '0')}</span>
                       </div>
 
-                      {/* Real HTML5 Looping Video Reel */}
+                      {/* Real HTML5 Looping Video Reel (Pure Clean Video, No Watermark Logo) */}
                       <video
                         ref={(el) => (videoRefs.current[idx] = el)}
                         src={project.videoUrl}
@@ -336,7 +408,7 @@ export const PortfolioWormhole3D: React.FC = () => {
                         muted
                         loop
                         preload="metadata"
-                        className="w-full h-full object-cover rounded-xl sm:rounded-2xl bg-black"
+                        className="w-full h-full object-cover rounded-2xl bg-black"
                       />
                     </div>
                   </div>
@@ -348,12 +420,12 @@ export const PortfolioWormhole3D: React.FC = () => {
                     className="w-full lg:w-1/2 flex flex-col justify-center text-center lg:text-left shrink-0 max-w-xl"
                     style={{
                       transform: matterTransform,
-                      transition: 'transform 0.05s ease-out',
+                      transition: 'transform 0.04s ease-out',
                     }}
                   >
                     {/* Category Kicker */}
                     <div className="flex items-center justify-center lg:justify-start gap-2 mb-1 sm:mb-2">
-                      <span className="text-[10px] sm:text-xs font-mono uppercase tracking-[0.24em] text-[#008CFF] font-semibold">
+                      <span className="text-[10px] sm:text-xs font-mono uppercase tracking-[0.26em] text-[#008CFF] font-semibold">
                         // {String(idx + 1).padStart(2, '0')} • {project.category}
                       </span>
                       <span className="text-white/20 font-mono text-xs">•</span>
@@ -377,7 +449,7 @@ export const PortfolioWormhole3D: React.FC = () => {
                       {project.story}
                     </p>
 
-                    {/* Deliverables Chips (Hidden on very small mobile to prevent overflow) */}
+                    {/* Deliverables Chips (Hidden on small mobile) */}
                     {project.deliverables && project.deliverables.length > 0 && (
                       <div className="mt-3 hidden sm:flex flex-wrap items-center justify-center lg:justify-start gap-1.5 sm:gap-2">
                         {project.deliverables.slice(0, 3).map((item, dIdx) => (

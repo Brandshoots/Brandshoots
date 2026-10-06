@@ -15,19 +15,21 @@ import { ContactModal } from './components/hero/ContactModal';
 import { ClientProjectView } from './components/portfolio/ClientProjectView';
 import { AboutPage } from './pages/AboutPage';
 import { PortfolioPage } from './pages/PortfolioPage';
+import { ContactPage } from './pages/ContactPage';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export function App() {
   const location = useLocation();
   const [preloaderActive, setPreloaderActive] = useState(() => {
-    // If nopreload query param is provided or directly accessing a project/about/portfolio route, bypass
+    // If nopreload query param is provided or directly accessing a project/about/portfolio/contact route, bypass
     if (typeof window !== 'undefined') {
       if (window.location.search.includes('nopreload')) return false;
       if (
         window.location.pathname.startsWith('/portfolio') ||
         window.location.pathname.startsWith('/projects/') ||
-        window.location.pathname.startsWith('/about')
+        window.location.pathname.startsWith('/about') ||
+        window.location.pathname.startsWith('/contact')
       ) {
         return false;
       }
@@ -331,6 +333,9 @@ export function App() {
 
         {/* ABOUT — always accessible, has its own StrokeRevealPreloader */}
         <Route path="/about" element={<AboutPage />} />
+
+        {/* CONTACT — always accessible, has its own StrokeRevealPreloader */}
+        <Route path="/contact" element={<ContactPage />} />
       </Routes>
     </main>
   );
