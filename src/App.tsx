@@ -70,6 +70,13 @@ export function App() {
     let isProgrammaticScrolling = false;
     let lastScrollY = window.scrollY;
 
+    const getElementDocTop = (el: HTMLElement | null): number => {
+      if (!el) return 0;
+      const target = el.parentElement?.classList.contains('pin-spacer') ? el.parentElement : el;
+      const rect = target.getBoundingClientRect();
+      return Math.round(rect.top + window.scrollY);
+    };
+
     const getTargets = () => {
       const hero = document.getElementById('hero');
       const whatWeDo = document.getElementById('what-we-do');
@@ -81,11 +88,11 @@ export function App() {
 
       const vh = window.innerHeight;
       const heroTop = 0;
-      const whatWeDoTop = whatWeDo.offsetTop;
-      const clientsTop = clients.offsetTop;
+      const whatWeDoTop = getElementDocTop(whatWeDo);
+      const clientsTop = getElementDocTop(clients);
       const clientsEnd = clientsTop + Math.round(vh * 1.6);
-      const leadershipTop = leadership.offsetTop;
-      const ctaTop = cta.offsetTop;
+      const leadershipTop = getElementDocTop(leadership);
+      const ctaTop = getElementDocTop(cta);
       const maxScroll = Math.max(0, document.documentElement.scrollHeight - vh);
 
       return {
@@ -122,9 +129,9 @@ export function App() {
         }
       }
 
-      // 2. Between What We Do and Clients (clientsTop)
+      // 2. Between What We Do and Clients Start (clientsTop)
       if (currentScroll >= whatWeDoTop - 30 && currentScroll < clientsTop - 30) {
-        const mid = whatWeDoTop + (clientsTop - whatWeDoTop) * 0.4;
+        const mid = whatWeDoTop + (clientsTop - whatWeDoTop) * 0.35;
         if (isScrollingDown) {
           return currentScroll > mid ? clientsTop : whatWeDoTop;
         } else {
@@ -133,21 +140,31 @@ export function App() {
       }
 
       // 3. Inside Clients Pinned Scrub Region (clientsTop to clientsEnd)
-      // The section is pinned, user is actively rotating client logos
+      // The section is pinned to 100vh, user is scrubbing 3-5 client logos
       if (currentScroll >= clientsTop - 30 && currentScroll <= clientsEnd + 30) {
-        if (currentScroll < clientsTop + 40 && !isScrollingDown) {
+        if (currentScroll < clientsTop + 50 && !isScrollingDown) {
           return whatWeDoTop;
         }
-        if (currentScroll > clientsEnd - 40 && isScrollingDown) {
+        if (currentScroll > clientsEnd - 50 && isScrollingDown) {
           return leadershipTop;
         }
         // Active scrubbing range: do not snap-interfere while user is reviewing logos
         return null;
       }
 
-      // 4. Between Leadership (leadershipTop) and CTA (ctaTop)
-      if (currentScroll > clientsEnd + 30 && currentScroll < ctaTop - 30) {
-        const mid = leadershipTop + (ctaTop - leadershipTop) * 0.42;
+      // 4. Between Clients Pin End and Leadership (leadershipTop)
+      if (currentScroll > clientsEnd + 30 && currentScroll < leadershipTop - 30) {
+        const mid = clientsEnd + (leadershipTop - clientsEnd) * 0.35;
+        if (isScrollingDown) {
+          return currentScroll > mid ? leadershipTop : clientsTop;
+        } else {
+          return currentScroll < mid ? clientsTop : leadershipTop;
+        }
+      }
+
+      // 5. Between Leadership (leadershipTop) and CTA (ctaTop)
+      if (currentScroll >= leadershipTop - 30 && currentScroll < ctaTop - 30) {
+        const mid = leadershipTop + (ctaTop - leadershipTop) * 0.4;
         if (isScrollingDown) {
           return currentScroll > mid ? ctaTop : leadershipTop;
         } else {
@@ -155,7 +172,7 @@ export function App() {
         }
       }
 
-      // 5. Between CTA and Page Bottom (maxScroll / Footer)
+      // 6. Between CTA and Page Bottom (maxScroll / Footer)
       if (currentScroll >= ctaTop - 30) {
         const mid = ctaTop + (maxScroll - ctaTop) * 0.5;
         if (isScrollingDown) {

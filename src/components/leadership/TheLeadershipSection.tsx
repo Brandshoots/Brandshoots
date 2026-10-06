@@ -46,42 +46,42 @@ export const TheLeadershipSection: React.FC = () => {
         });
 
         // Eyebrow label & soft aura
-        tl.from(labelDotRef.current, { scale: 0, opacity: 0, duration: 0.3, ease: 'back.out(1.7)' })
-          .from(labelTextRef.current, { x: -14, opacity: 0, duration: 0.35, ease: 'power3.out' }, '-=0.15')
-          .from(backdropGlowRef.current, { scale: 0.8, opacity: 0, duration: 0.5, ease: 'power2.out' }, '-=0.2')
+        tl.from(labelDotRef.current, { scale: 0, opacity: 0, duration: 0.25, ease: 'back.out(1.7)' })
+          .from(labelTextRef.current, { x: -10, opacity: 0, duration: 0.25, ease: 'power3.out' }, '-=0.15')
+          .from(backdropGlowRef.current, { scale: 0.8, opacity: 0, duration: 0.35, ease: 'power2.out' }, '-=0.2')
           
           // 1. IMAGE: Smooth curtain surge + scale recovery
           .fromTo(
             portraitMaskRef.current,
-            { opacity: 0, scale: 0.94, y: 20 },
-            { opacity: 1, scale: 1, y: 0, duration: 0.7, ease: 'power3.out' },
-            '-=0.25'
+            { opacity: 0, scale: 0.96, y: 15 },
+            { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: 'power3.out' },
+            '-=0.2'
           )
           .fromTo(
             portraitImgRef.current,
-            { scale: 1.15 },
-            { scale: 1.0, duration: 0.85, ease: 'power2.out' },
+            { scale: 1.1 },
+            { scale: 1.0, duration: 0.5, ease: 'power2.out' },
             '<'
           )
-          .fromTo(lightSheenRef.current, { xPercent: -150, opacity: 0.8 }, { xPercent: 200, opacity: 0, duration: 0.7, ease: 'power2.inOut' }, '-=0.3')
+          .fromTo(lightSheenRef.current, { xPercent: -150, opacity: 0.8 }, { xPercent: 200, opacity: 0, duration: 0.5, ease: 'power2.inOut' }, '-=0.3')
           
           // 2. NAME: Clean curtain reveal from below inside overflow-hidden mask
           .fromTo(
             [nameLine1Ref.current, nameLine2Ref.current],
             { yPercent: 105, opacity: 0 },
-            { yPercent: 0, opacity: 1, stagger: 0.08, duration: 0.6, ease: 'power3.out' },
-            '-=0.35'
+            { yPercent: 0, opacity: 1, stagger: 0.05, duration: 0.4, ease: 'power3.out' },
+            '-=0.3'
           )
           
           // 3. DETAILS: Designation & Accent Line
-          .fromTo(designationRef.current, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' }, '-=0.3')
-          .fromTo(accentLineRef.current, { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: 'power2.out' }, '-=0.25')
+          .fromTo(designationRef.current, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }, '-=0.25')
+          .fromTo(accentLineRef.current, { scaleX: 0 }, { scaleX: 1, duration: 0.3, ease: 'power2.out' }, '-=0.25')
           
           // 4. DESCRIPTION: Staggered reveal
-          .fromTo(bioParagraphRef.current, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.25')
+          .fromTo(bioParagraphRef.current, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' }, '-=0.25')
           
           // 5. DETAILS: Pillars subtle fade/slide
-          .fromTo(pillarsRef.current, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' }, '-=0.2');
+          .fromTo(pillarsRef.current, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }, '-=0.25');
 
         // Continuous subtle scroll parallax on portrait image
         if (portraitImgRef.current && sectionRef.current) {
@@ -114,54 +114,54 @@ export const TheLeadershipSection: React.FC = () => {
           .fromTo(
             labelDotRef.current,
             { scale: 0, opacity: 0 },
-            { scale: 1, opacity: 1, duration: 0.3, ease: 'power2.out' }
+            { scale: 1, opacity: 1, duration: 0.25, ease: 'power2.out' }
           )
           .fromTo(
             labelTextRef.current,
-            { y: 15, opacity: 0 },
-            { y: 0, opacity: 1, duration: 0.4, ease: 'power3.out' },
-            '-=0.2'
+            { y: 10, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.25, ease: 'power3.out' },
+            '-=0.15'
           )
           .fromTo(
             portraitMaskRef.current,
-            { opacity: 0, scale: 0.94, y: 15 },
-            { opacity: 1, scale: 1, y: 0, duration: 0.65, ease: 'power3.out' },
-            '-=0.2'
+            { opacity: 0, scale: 0.96, y: 10 },
+            { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: 'power3.out' },
+            '-=0.15'
           )
           .fromTo(
             portraitImgRef.current,
-            { scale: 1.12 },
-            { scale: 1.0, duration: 0.8, ease: 'power2.out' },
-            '-=0.6'
+            { scale: 1.08 },
+            { scale: 1.0, duration: 0.5, ease: 'power2.out' },
+            '-=0.45'
           )
           .fromTo(
             [nameLine1Ref.current, nameLine2Ref.current],
             { yPercent: 105, opacity: 0 },
-            { yPercent: 0, opacity: 1, stagger: 0.08, duration: 0.55, ease: 'power3.out' },
-            '-=0.35'
+            { yPercent: 0, opacity: 1, stagger: 0.05, duration: 0.35, ease: 'power3.out' },
+            '-=0.25'
           )
           .fromTo(
             designationRef.current,
-            { y: 12, opacity: 0 },
-            { y: 0, opacity: 1, duration: 0.4, ease: 'power2.out' },
+            { y: 10, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.3, ease: 'power2.out' },
             '-=0.2'
           )
           .fromTo(
             accentLineRef.current,
             { scaleX: 0 },
-            { scaleX: 1, duration: 0.45, ease: 'power2.out' },
+            { scaleX: 1, duration: 0.3, ease: 'power2.out' },
             '-=0.2'
           )
           .fromTo(
             bioParagraphRef.current,
-            { y: 14, opacity: 0 },
-            { y: 0, opacity: 1, duration: 0.45, ease: 'power2.out' },
+            { y: 10, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.3, ease: 'power2.out' },
             '-=0.2'
           )
           .fromTo(
             pillarsRef.current,
-            { y: 12, opacity: 0 },
-            { y: 0, opacity: 1, duration: 0.4, ease: 'power2.out' },
+            { y: 10, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.3, ease: 'power2.out' },
             '-=0.2'
           );
       });

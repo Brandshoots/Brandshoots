@@ -1,0 +1,12 @@
+node_modules
+dist
+.git
+reports
+scripts
+/Reels/
+/Official Clients/
+/public/reels_original/
+BrandShoots Company Profile 2026.pdf
+test-*.html
+!public/reels/**
+!public/clients/**

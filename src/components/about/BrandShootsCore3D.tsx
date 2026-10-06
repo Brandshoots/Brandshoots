@@ -689,90 +689,55 @@ export const BrandShootsCore3D: React.FC = () => {
     campaigns and visual content built around the story.
   </p>
 
-  <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-mono uppercase tracking-wider text-white/60">
-    <span className="px-3 py-1 rounded-md bg-white/10 border border-white/20">
-      Creative Direction
-    </span>
-
-    <span className="px-3 py-1 rounded-md bg-white/10 border border-white/20 text-[#008CFF]">
-      Production
-    </span>
-
-    <span className="px-3 py-1 rounded-md bg-white/10 border border-white/20">
-      Post Production
-    </span>
-  </div>
 </div>
 
-            {/* ---------------------------------------------------- */}
-            {/* CHAPTER 03: ENTERPRISE IMPACT                        */}
-            {/* ---------------------------------------------------- */}
-            <div
-              ref={chapter3Ref}
-              className="absolute inset-x-0 mx-auto flex flex-col items-center text-center will-change-transform opacity-0 pointer-events-none"
-              style={{ zIndex: 50 }}
-            >
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/40 mb-3 sm:mb-4 shadow-[0_0_15px_rgba(0,140,255,0.2)]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_6px_#008CFF]" />
-                <span className="font-mono text-[9px] sm:text-[11px] tracking-[0.32em] uppercase text-[#008CFF] font-semibold">
-                  CHAPTER 03 // ENTERPRISE IMPACT
-                </span>
-              </div>
+{/* ---------------------------------------------------- */}
+{/* CHAPTER 03: BRAND IMPACT                             */}
+{/* ---------------------------------------------------- */}
+<div
+  ref={chapter3Ref}
+  className="absolute inset-x-0 mx-auto flex flex-col items-center text-center will-change-transform opacity-0 pointer-events-none"
+  style={{ zIndex: 50 }}
+>
 
-              <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white leading-[1.15] mb-4 drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-2xl">
-                SCALING ENTERPRISES FROM REGIONAL POWER TO{' '}
-                <span className="text-[#008CFF]">NATIONAL DOMINANCE.</span>
-              </h2>
+  <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white leading-[1.15] mb-4 drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-2xl">
+    DIFFERENT BRANDS.{' '}
+    <span className="text-[#008CFF]">ONE CREATIVE VISION.</span>
+  </h2>
 
-              <p className="text-xs sm:text-sm lg:text-base text-white/90 leading-relaxed max-w-2xl font-light mb-5 sm:mb-6 drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]">
-                Trusted by industrial heavyweights like <strong className="text-white font-semibold">Santhi Pipes</strong> and <strong className="text-white font-semibold">Viswatuff Glass</strong>, alongside premier lifestyle, hospitality, and corporate leaders. We build end-to-end campaigns that have generated millions of organic views and tangible commercial growth. We don't just shoot videos; we build market leaders.
-              </p>
+  <p className="text-xs sm:text-sm lg:text-base text-white/90 leading-relaxed max-w-2xl font-light mb-5 sm:mb-6 drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]">
+    From industrial and corporate brands to retail, hospitality and lifestyle,
+    BRANDSHOOTS creates visual work shaped around each brand, its audience and
+    its story. Every project begins with understanding what makes the brand
+    worth watching.
+  </p>
 
-              <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-mono uppercase tracking-wider text-white/60">
-                <span className="px-3 py-1 rounded-md bg-white/10 border border-white/20 text-[#008CFF]">
-                  Millions Organic Views
-                </span>
-                <span className="px-3 py-1 rounded-md bg-white/10 border border-white/20">
-                  Industrial to Lifestyle
-                </span>
-                <span className="px-3 py-1 rounded-md bg-white/10 border border-white/20">
-                  Tangible Business ROI
-                </span>
-              </div>
-            </div>
+</div>
 
-            {/* ---------------------------------------------------- */}
-            {/* CHAPTER 04: THE CORE MANIFESTO                       */}
-            {/* ---------------------------------------------------- */}
-            <div
-              ref={chapter4Ref}
-              className="absolute inset-x-0 mx-auto flex flex-col items-center text-center will-change-transform opacity-0 pointer-events-none mt-28 sm:mt-32"
-              style={{ zIndex: 50 }}
-            >
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/40 mb-3 sm:mb-4 shadow-[0_0_15px_rgba(0,140,255,0.2)]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
-                <span className="font-mono text-[9px] sm:text-[11px] tracking-[0.35em] uppercase text-[#008CFF] font-bold">
-                  THE CORE CREED
-                </span>
-              </div>
+{/* ---------------------------------------------------- */}
+{/* CHAPTER 04: THE BRANDSHOOTS CREED                   */}
+{/* ---------------------------------------------------- */}
+<div
+  ref={chapter4Ref}
+  className="absolute inset-x-0 mx-auto flex flex-col items-center text-center will-change-transform opacity-0 pointer-events-none mt-28 sm:mt-32"
+  style={{ zIndex: 50 }}
+>
+  <br />
 
-              <h3 className="text-2xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white leading-tight mb-3 drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-2xl">
-                CREATE WITH AUDACITY. SHOOT WITH PURPOSE.{' '}
-                <span className="text-[#008CFF]">GROW WITHOUT CEILING.</span>
-              </h3>
+  <h3 className="text-2xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white leading-tight mb-3 drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-2xl">
+    WE CREATE STORIES THAT{' '}
+    <span className="text-[#008CFF]">MOVE PEOPLE.</span>
+  </h3>
 
-              <p className="text-xs sm:text-sm lg:text-base text-white/85 leading-relaxed max-w-xl font-light mb-5 drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]">
-                Whether you are launching an empire or redefining an industry standard, BRANDSHOOTS is your unfair competitive advantage in moving pictures.
-              </p>
 
-              <div className="flex items-center gap-3 font-mono text-[11px] sm:text-xs tracking-[0.35em] uppercase text-[#008CFF] font-bold">
-                <span>CREATE</span>
-                <span className="text-white/40">•</span>
-                <span>SHOOT</span>
-                <span className="text-white/40">•</span>
-                <span>GROW</span>
-              </div>
-            </div>
+  <div className="flex items-center gap-3 font-mono text-[11px] sm:text-xs tracking-[0.35em] uppercase text-[#008CFF] font-bold">
+    <span>CREATE</span>
+    <span className="text-white/40">•</span>
+    <span>SHOOT</span>
+    <span className="text-white/40">•</span>
+    <span>GROW</span>
+  </div>
+</div>
           </div>
         </div>
 
