@@ -2,19 +2,19 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Instagram, Youtube, Facebook, X } from 'lucide-react';
 
-interface AboutNavbarProps {
+interface PortfolioNavbarProps {
   onOpenContact: () => void;
 }
 
-export const AboutNavbar: React.FC<AboutNavbarProps> = ({ onOpenContact }) => {
+export const PortfolioNavbar: React.FC<PortfolioNavbarProps> = ({ onOpenContact }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <>
       {/* ========================================================= */}
-      {/* 1. DESKTOP / MAIN NAVIGATION BAR (IDENTICAL TO HOMEPAGE)  */}
+      {/* 1. DESKTOP / MAIN NAVIGATION BAR (HOMEPAGE ALIGNED)       */}
       {/* ========================================================= */}
-      <header className="absolute top-0 left-0 right-0 z-50 w-full px-5 sm:px-8 md:px-12 lg:px-16 pt-5 sm:pt-6 md:pt-7 flex items-center justify-between">
+      <header className="absolute top-0 left-0 right-0 z-50 w-full px-5 sm:px-8 md:px-12 lg:px-16 pt-5 sm:pt-6 md:pt-7 flex items-center justify-between pointer-events-auto">
         {/* Brand Logo (Upper Left) */}
         <div className="flex items-center">
           <Link
@@ -32,32 +32,35 @@ export const AboutNavbar: React.FC<AboutNavbarProps> = ({ onOpenContact }) => {
 
         {/* Desktop Minimal Navigation */}
         <nav className="hidden md:flex items-center gap-8 lg:gap-11 text-white/85 font-sans text-xs lg:text-[13px] tracking-[0.22em] uppercase font-medium">
-          {/* Home Icon (Electric Blue) */}
+          {/* Home Icon */}
           <Link
             to="/"
             aria-label="Home"
-            className="text-[#008CFF] hover:text-[#52B2FF] transition-colors duration-200 flex items-center justify-center p-1"
+            className="text-white/85 hover:text-[#008CFF] transition-colors duration-200 flex items-center justify-center p-1"
           >
             <svg
-              className="w-4 h-4 fill-current drop-shadow-[0_0_8px_rgba(0,140,255,0.75)]"
+              className="w-4 h-4 fill-current"
               viewBox="0 0 24 24"
             >
               <path d="M12 3L2 12h3v8h6v-5h2v5h6v-8h3L12 3z" />
             </svg>
           </Link>
 
-          {/* Active About */}
-          <span className="text-[#008CFF] font-semibold tracking-[0.22em] flex items-center gap-1.5 cursor-default">
-            <span>About</span>
-          </span>
-
+          {/* About Link */}
           <Link
-            to="/portfolio"
+            to="/about"
             className="hover:text-white transition-colors duration-200 cursor-pointer uppercase tracking-[0.22em]"
           >
-            Portfolio
+            About
           </Link>
 
+          {/* Active Portfolio Item */}
+          <span className="text-[#008CFF] font-semibold tracking-[0.22em] flex items-center gap-1.5 cursor-default drop-shadow-[0_0_10px_rgba(0,140,255,0.7)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_6px_#008CFF]" />
+            <span>Portfolio</span>
+          </span>
+
+          {/* Contact Trigger */}
           <button
             type="button"
             onClick={onOpenContact}
@@ -95,7 +98,7 @@ export const AboutNavbar: React.FC<AboutNavbarProps> = ({ onOpenContact }) => {
       {/* 2. MOBILE TRANSLUCENT BLURRED NAVIGATION MENU (TRANS-BLUR) */}
       {/* ========================================================= */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 flex flex-col justify-between p-6 sm:p-8 select-none bg-[#05070A]/85 backdrop-blur-2xl transition-all duration-300 animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex flex-col justify-between p-6 sm:p-8 select-none bg-[#05070A]/90 backdrop-blur-2xl transition-all duration-300 animate-fadeIn pointer-events-auto">
           {/* Top Bar with Logo and Close Button */}
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
             <Link
@@ -133,17 +136,18 @@ export const AboutNavbar: React.FC<AboutNavbarProps> = ({ onOpenContact }) => {
               <span>Home</span>
             </Link>
 
-            <span className="text-xl font-display font-semibold tracking-[0.16em] uppercase text-[#008CFF]">
-              About
-            </span>
-
             <Link
-              to="/portfolio"
+              to="/about"
               onClick={() => setMobileMenuOpen(false)}
-              className="text-xl font-display font-semibold tracking-[0.16em] uppercase text-white/90 hover:text-[#008CFF] transition-colors duration-200"
+              className="text-xl font-display font-semibold tracking-[0.16em] uppercase text-white/80 hover:text-white transition-colors duration-200"
             >
-              Portfolio
+              About
             </Link>
+
+            <span className="text-xl font-display font-semibold tracking-[0.16em] uppercase text-[#008CFF] flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
+              <span>Portfolio</span>
+            </span>
 
             <button
               type="button"
@@ -163,51 +167,46 @@ export const AboutNavbar: React.FC<AboutNavbarProps> = ({ onOpenContact }) => {
                 setMobileMenuOpen(false);
                 onOpenContact();
               }}
-              className="mt-3 px-8 py-3.5 rounded-full bg-[#008CFF] text-white text-xs tracking-[0.24em] uppercase font-bold shadow-[0_0_24px_rgba(0,140,255,0.5)] hover:bg-[#209CFF] transition-all duration-200 active:scale-95"
+              className="mt-4 px-8 py-3.5 rounded-full bg-[#008CFF] hover:bg-[#52B2FF] text-white font-sans text-xs tracking-[0.24em] uppercase font-bold transition-all shadow-[0_0_20px_rgba(0,140,255,0.4)]"
             >
               Get in Touch
             </button>
           </div>
 
-          {/* Bottom Social Media Links & Icons */}
-          <div className="relative z-10 border-t border-white/10 pt-5 flex flex-col items-center gap-3.5 text-center">
-            <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-white/45">
-              Connect With Us
-            </span>
-            <div className="flex items-center gap-4">
+          {/* Bottom Social Links & Legal */}
+          <div className="border-t border-white/10 pt-5 flex flex-col items-center gap-4">
+            <div className="flex items-center gap-6 text-white/70">
               <a
                 href="https://instagram.com/wearebrandshoots"
                 target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Instagram /wearebrandshoots"
-                className="w-11 h-11 rounded-full bg-white/[0.08] hover:bg-[#008CFF] border border-white/15 hover:border-[#008CFF] flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 shadow-md hover:shadow-[0_0_16px_rgba(0,140,255,0.6)] active:scale-95"
+                rel="noreferrer"
+                className="hover:text-[#008CFF] transition-colors"
+                aria-label="Instagram"
               >
                 <Instagram className="w-5 h-5" />
               </a>
-
               <a
                 href="https://youtube.com/@wearebrandshoots"
                 target="_blank"
-                rel="noopener noreferrer"
-                aria-label="YouTube /wearebrandshoots"
-                className="w-11 h-11 rounded-full bg-white/[0.08] hover:bg-[#008CFF] border border-white/15 hover:border-[#008CFF] flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 shadow-md hover:shadow-[0_0_16px_rgba(0,140,255,0.6)] active:scale-95"
+                rel="noreferrer"
+                className="hover:text-[#008CFF] transition-colors"
+                aria-label="YouTube"
               >
                 <Youtube className="w-5 h-5" />
               </a>
-
               <a
                 href="https://facebook.com/wearebrandshoots"
                 target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Facebook /wearebrandshoots"
-                className="w-11 h-11 rounded-full bg-white/[0.08] hover:bg-[#008CFF] border border-white/15 hover:border-[#008CFF] flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 shadow-md hover:shadow-[0_0_16px_rgba(0,140,255,0.6)] active:scale-95"
+                rel="noreferrer"
+                className="hover:text-[#008CFF] transition-colors"
+                aria-label="Facebook"
               >
                 <Facebook className="w-5 h-5" />
               </a>
             </div>
-            <span className="font-mono text-[11px] tracking-[0.2em] text-[#008CFF] font-semibold">
-              /wearebrandshoots
-            </span>
+            <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-white/40">
+              © 2026 BRANDSHOOTS • ALL RIGHTS RESERVED
+            </p>
           </div>
         </div>
       )}
@@ -215,4 +214,4 @@ export const AboutNavbar: React.FC<AboutNavbarProps> = ({ onOpenContact }) => {
   );
 };
 
-export default AboutNavbar;
+export default PortfolioNavbar;

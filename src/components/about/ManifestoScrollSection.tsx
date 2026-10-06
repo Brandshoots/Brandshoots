@@ -317,8 +317,8 @@ export const ManifestoScrollSection: React.FC = () => {
 
         {/* Bottom Status */}
         <div className="shrink-0 w-full flex items-center justify-between text-white/35 font-mono text-[11px] tracking-[0.24em] uppercase pt-4 border-t border-white/[0.06]">
-          <span>BRANDSHOOTS METHODOLOGY</span>
-          <span>SCROLL TO PROGRESS IN 3D</span>
+          <span>BRANDSHOOTS</span>
+          <span>SCROLL TO PROGRESS</span>
         </div>
       </div>
     </section>

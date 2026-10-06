@@ -14,17 +14,18 @@ import { BrandShootsFooter } from './components/footer/BrandShootsFooter';
 import { ContactModal } from './components/hero/ContactModal';
 import { ClientProjectView } from './components/portfolio/ClientProjectView';
 import { AboutPage } from './pages/AboutPage';
+import { PortfolioPage } from './pages/PortfolioPage';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export function App() {
   const location = useLocation();
   const [preloaderActive, setPreloaderActive] = useState(() => {
-    // If nopreload query param is provided or directly accessing a project/about route, bypass
+    // If nopreload query param is provided or directly accessing a project/about/portfolio route, bypass
     if (typeof window !== 'undefined') {
       if (window.location.search.includes('nopreload')) return false;
       if (
-        window.location.pathname.startsWith('/portfolio/') ||
+        window.location.pathname.startsWith('/portfolio') ||
         window.location.pathname.startsWith('/projects/') ||
         window.location.pathname.startsWith('/about')
       ) {
@@ -323,7 +324,8 @@ export function App() {
           }
         />
 
-        {/* PORTFOLIO — always accessible, has its own internal logic */}
+        {/* PORTFOLIO 3D WORMHOLE EXPERIENCE */}
+        <Route path="/portfolio" element={<PortfolioPage />} />
         <Route path="/portfolio/:clientSlug" element={<ClientProjectView />} />
         <Route path="/projects/:clientSlug" element={<ClientProjectView />} />
 
