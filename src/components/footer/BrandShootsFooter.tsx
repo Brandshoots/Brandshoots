@@ -170,13 +170,12 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = ({ onOpenCont
                   </Link>
                 </li>
                 <li>
-                  <button
-                    type="button"
-                    onClick={() => scrollToSection('clients')}
+                  <Link
+                    to="/portfolio"
                     className="hover:text-[#008CFF] transition-colors duration-200 cursor-pointer"
                   >
-                    PROJECTS
-                  </button>
+                    PORTFOLIO
+                  </Link>
                 </li>
                 <li>
                   <button
@@ -188,14 +187,18 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = ({ onOpenCont
                   </button>
                 </li>
                 <li>
-                  <button
-                    type="button"
-                    onClick={handleOpenContact}
+                  <Link
+                    to="/contact"
+                    onClick={() => {
+                      if (onOpenContact && window.location.pathname === '/contact') {
+                        handleOpenContact();
+                      }
+                    }}
                     className="text-[#008CFF] hover:text-[#52B2FF] font-semibold transition-colors duration-200 cursor-pointer flex items-center gap-1.5"
                   >
                     <span>CONTACT</span>
                     <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_6px_#008CFF]" />
-                  </button>
+                  </Link>
                 </li>
               </ul>
             </nav>

@@ -257,31 +257,28 @@ export const BrandShootsHero: React.FC = () => {
           >
             About
           </Link>
-          <button
-            type="button"
-            onClick={scrollToAbout}
+          <Link
+            to="/portfolio"
             className="hover:text-white transition-colors duration-200 cursor-pointer uppercase tracking-[0.22em]"
           >
             Portfolio
-          </button>
-          <button
-            type="button"
-            onClick={() => setContactModalOpen(true)}
+          </Link>
+          <Link
+            to="/contact"
             className="hover:text-white transition-colors duration-200 cursor-pointer uppercase tracking-[0.22em]"
           >
             Contact
-          </button>
+          </Link>
         </nav>
 
-        {/* Desktop Right CTA: Get in Touch (Interactive Button Modal) */}
+        {/* Desktop Right CTA: Get in Touch (Navigates to /contact) */}
         <div ref={getInTouchRef} className="hidden md:flex items-center">
-          <button
-            type="button"
-            onClick={() => setContactModalOpen(true)}
+          <Link
+            to="/contact"
             className="text-white hover:text-[#008CFF] font-sans text-xs lg:text-[13px] tracking-[0.22em] uppercase font-semibold transition-colors duration-200 cursor-pointer"
           >
             Get in Touch
-          </button>
+          </Link>
         </div>
 
         {/* Mobile Hamburger Button */}
@@ -352,38 +349,29 @@ export const BrandShootsHero: React.FC = () => {
             >
               About
             </Link>
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                scrollToAbout();
-              }}
+            <Link
+              to="/portfolio"
+              onClick={() => setMobileMenuOpen(false)}
               className="text-xl font-display font-semibold tracking-[0.16em] uppercase text-white/90 hover:text-[#008CFF] transition-colors duration-200"
             >
               Portfolio
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setContactModalOpen(true);
-              }}
+            </Link>
+            <Link
+              to="/contact"
+              onClick={() => setMobileMenuOpen(false)}
               className="text-xl font-display font-semibold tracking-[0.16em] uppercase text-white/90 hover:text-[#008CFF] transition-colors duration-200"
             >
               Contact
-            </button>
+            </Link>
 
             {/* Prominent CTA in Mobile Menu */}
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setContactModalOpen(true);
-              }}
-              className="mt-3 px-8 py-3.5 rounded-full bg-[#008CFF] text-white text-xs tracking-[0.24em] uppercase font-bold shadow-[0_0_24px_rgba(0,140,255,0.5)] hover:bg-[#209CFF] transition-all duration-200 active:scale-95"
+            <Link
+              to="/contact"
+              onClick={() => setMobileMenuOpen(false)}
+              className="mt-3 px-8 py-3.5 rounded-full bg-[#008CFF] text-white text-xs tracking-[0.24em] uppercase font-bold shadow-[0_0_24px_rgba(0,140,255,0.5)] hover:bg-[#209CFF] transition-all duration-200 active:scale-95 inline-block text-center"
             >
               Get in Touch
-            </button>
+            </Link>
           </div>
 
           {/* Bottom Social Media Links & Icons */}

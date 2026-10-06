@@ -7,10 +7,10 @@ import { Instagram, Youtube, Facebook, ArrowUpRight, ArrowUp, Sparkles } from 'l
 gsap.registerPlugin(ScrollTrigger);
 
 interface AboutFooterProps {
-  onOpenContact: () => void;
+  onOpenContact?: () => void;
 }
 
-export const AboutFooter: React.FC<AboutFooterProps> = ({ onOpenContact }) => {
+export const AboutFooter: React.FC<AboutFooterProps> = ({ onOpenContact: _onOpenContact }) => {
   const ctaSectionRef = useRef<HTMLDivElement>(null);
   const glowAuraRef = useRef<HTMLDivElement>(null);
   const tagRef = useRef<HTMLDivElement>(null);
@@ -208,11 +208,10 @@ export const AboutFooter: React.FC<AboutFooterProps> = ({ onOpenContact }) => {
           ref={btnWrapperRef}
           className="flex items-center justify-center will-change-transform"
         >
-          <button
-            ref={magneticBtnRef}
-            type="button"
-            onClick={onOpenContact}
-            onMouseMove={handleMouseMove}
+          <Link
+            to="/contact"
+            ref={magneticBtnRef as any}
+            onMouseMove={handleMouseMove as any}
             onMouseLeave={handleMouseLeave}
             className="relative inline-flex items-center gap-3.5 sm:gap-4 px-10 sm:px-14 py-4 sm:py-5 rounded-full bg-[#080D17] border border-[#008CFF]/70 hover:border-[#008CFF] text-[#F7F9FF] font-mono text-xs sm:text-sm tracking-[0.28em] uppercase font-bold shadow-[0_0_30px_rgba(0,140,255,0.3)] hover:shadow-[0_0_55px_rgba(0,140,255,0.7)] transition-all duration-200 cursor-pointer active:scale-95 overflow-hidden"
           >
@@ -225,7 +224,7 @@ export const AboutFooter: React.FC<AboutFooterProps> = ({ onOpenContact }) => {
               <span>GET IN TOUCH</span>
               <ArrowUpRight className="w-4 h-4 text-[#008CFF]" />
             </span>
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -296,13 +295,12 @@ export const AboutFooter: React.FC<AboutFooterProps> = ({ onOpenContact }) => {
                 </button>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={onOpenContact}
+                <Link
+                  to="/contact"
                   className="text-[#008CFF] hover:text-[#60B8FF] font-semibold cursor-pointer"
                 >
                   CONTACT
-                </button>
+                </Link>
               </li>
             </ul>
           </nav>

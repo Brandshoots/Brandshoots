@@ -1,8 +1,8 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowUpRight, Sparkles } from 'lucide-react';
-import { ContactModal } from '../hero/ContactModal';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -10,26 +10,16 @@ interface FinalCtaSectionProps {
   onOpenContact?: () => void;
 }
 
-export const FinalCtaSection: React.FC<FinalCtaSectionProps> = ({ onOpenContact }) => {
-  const [internalModalOpen, setInternalModalOpen] = useState(false);
-
+export const FinalCtaSection: React.FC<FinalCtaSectionProps> = ({ onOpenContact: _onOpenContact }) => {
   const sectionRef = useRef<HTMLElement>(null);
   const backdropAuraRef = useRef<HTMLDivElement>(null);
   const headlineLine1Ref = useRef<HTMLSpanElement>(null);
   const headlineLine2Ref = useRef<HTMLSpanElement>(null);
   const supportingCopyRef = useRef<HTMLParagraphElement>(null);
   const buttonWrapperRef = useRef<HTMLDivElement>(null);
-  const magneticBtnRef = useRef<HTMLButtonElement>(null);
+  const magneticBtnRef = useRef<HTMLAnchorElement>(null);
   const btnContentRef = useRef<HTMLSpanElement>(null);
   const btnGlowRef = useRef<HTMLDivElement>(null);
-
-  const handleOpenContact = () => {
-    if (onOpenContact) {
-      onOpenContact();
-    } else {
-      setInternalModalOpen(true);
-    }
-  };
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -273,11 +263,10 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = ({ onOpenContact 
                 className="absolute inset-0 rounded-full bg-[#008CFF]/25 blur-xl group-hover:bg-[#008CFF]/45 transition-all duration-300 pointer-events-none"
               />
 
-              <button
-                ref={magneticBtnRef}
-                type="button"
-                onClick={handleOpenContact}
-                onMouseMove={handleMouseMove}
+              <Link
+                to="/contact"
+                ref={magneticBtnRef as any}
+                onMouseMove={handleMouseMove as any}
                 onMouseLeave={handleMouseLeave}
                 className="relative inline-flex items-center gap-2.5 sm:gap-4 px-7 sm:px-11 py-3.5 sm:py-4.5 rounded-full bg-[#080D17] border border-[#008CFF]/60 hover:border-[#008CFF] text-[#F7F9FF] font-mono text-xs sm:text-sm tracking-[0.28em] uppercase font-bold shadow-[0_0_30px_rgba(0,140,255,0.3)] hover:shadow-[0_0_50px_rgba(0,140,255,0.65)] transition-all duration-200 cursor-pointer overflow-hidden will-change-transform active:scale-95"
               >
@@ -292,18 +281,12 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = ({ onOpenContact 
                   <span>CONTACT US</span>
                   <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#008CFF] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
                 </span>
-              </button>
+              </Link>
             </div>
           </div>
 
         </div>
       </section>
-
-      {/* Integrated Contact Modal */}
-      <ContactModal
-        isOpen={internalModalOpen}
-        onClose={() => setInternalModalOpen(false)}
-      />
     </>
   );
 };

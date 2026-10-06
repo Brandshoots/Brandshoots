@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 import { Instagram, Youtube, Facebook, X } from 'lucide-react';
 
 interface PortfolioNavbarProps {
-  onOpenContact: () => void;
+  onOpenContact?: () => void;
 }
 
-export const PortfolioNavbar: React.FC<PortfolioNavbarProps> = ({ onOpenContact }) => {
+export const PortfolioNavbar: React.FC<PortfolioNavbarProps> = ({ onOpenContact: _onOpenContact }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -61,24 +61,22 @@ export const PortfolioNavbar: React.FC<PortfolioNavbarProps> = ({ onOpenContact 
           </span>
 
           {/* Contact Trigger */}
-          <button
-            type="button"
-            onClick={onOpenContact}
+          <Link
+            to="/contact"
             className="hover:text-white transition-colors duration-200 cursor-pointer uppercase tracking-[0.22em]"
           >
             Contact
-          </button>
+          </Link>
         </nav>
 
-        {/* Desktop Right CTA: Get in Touch */}
+        {/* Desktop Right CTA: Get in Touch (Navigates to /contact) */}
         <div className="hidden md:flex items-center">
-          <button
-            type="button"
-            onClick={onOpenContact}
+          <Link
+            to="/contact"
             className="text-white hover:text-[#008CFF] font-sans text-xs lg:text-[13px] tracking-[0.22em] uppercase font-semibold transition-colors duration-200 cursor-pointer"
           >
             Get in Touch
-          </button>
+          </Link>
         </div>
 
         {/* Mobile Hamburger Button */}
@@ -149,28 +147,22 @@ export const PortfolioNavbar: React.FC<PortfolioNavbarProps> = ({ onOpenContact 
               <span>Portfolio</span>
             </span>
 
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenContact();
-              }}
+            <Link
+              to="/contact"
+              onClick={() => setMobileMenuOpen(false)}
               className="text-xl font-display font-semibold tracking-[0.16em] uppercase text-white/90 hover:text-[#008CFF] transition-colors duration-200"
             >
               Contact
-            </button>
+            </Link>
 
             {/* Prominent CTA in Mobile Menu */}
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenContact();
-              }}
-              className="mt-4 px-8 py-3.5 rounded-full bg-[#008CFF] hover:bg-[#52B2FF] text-white font-sans text-xs tracking-[0.24em] uppercase font-bold transition-all shadow-[0_0_20px_rgba(0,140,255,0.4)]"
+            <Link
+              to="/contact"
+              onClick={() => setMobileMenuOpen(false)}
+              className="mt-4 px-8 py-3.5 rounded-full bg-[#008CFF] hover:bg-[#52B2FF] text-white font-sans text-xs tracking-[0.24em] uppercase font-bold transition-all shadow-[0_0_20px_rgba(0,140,255,0.4)] inline-block text-center"
             >
               Get in Touch
-            </button>
+            </Link>
           </div>
 
           {/* Bottom Social Links & Legal */}

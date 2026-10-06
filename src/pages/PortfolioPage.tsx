@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { StrokeRevealPreloader } from '../components/about/StrokeRevealPreloader';
 import { PortfolioNavbar } from '../components/portfolio/PortfolioNavbar';
 import { PortfolioWormhole3D } from '../components/portfolio/PortfolioWormhole3D';
 import { ContactModal } from '../components/hero/ContactModal';
@@ -8,6 +9,12 @@ import { ContactModal } from '../components/hero/ContactModal';
 gsap.registerPlugin(ScrollTrigger);
 
 export const PortfolioPage: React.FC = () => {
+  const [preloaderActive, setPreloaderActive] = useState(() => {
+    if (typeof window !== 'undefined' && window.location.search.includes('nopreload')) {
+      return false;
+    }
+    return true;
+  });
   const [contactModalOpen, setContactModalOpen] = useState(false);
 
   // Set document title and scroll to top on mount
@@ -24,6 +31,11 @@ export const PortfolioPage: React.FC = () => {
 
   return (
     <main className="relative w-full min-h-screen bg-[#030508] text-white select-none">
+      {/* Page Preloader */}
+      {preloaderActive && (
+        <StrokeRevealPreloader onComplete={() => setPreloaderActive(false)} />
+      )}
+
       {/* 1. HOMEPAGE-MATCHED NAVIGATION BAR */}
       <PortfolioNavbar onOpenContact={() => setContactModalOpen(true)} />
 

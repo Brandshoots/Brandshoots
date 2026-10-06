@@ -38,6 +38,11 @@ export function App() {
   });
   const [contactModalOpen, setContactModalOpen] = useState(false);
 
+  // Always reset scroll to top on page navigation
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   // Butter-smooth Lenis inertial scrolling synchronized with GSAP ScrollTrigger (homepage only)
   useEffect(() => {
     if (preloaderActive) return;

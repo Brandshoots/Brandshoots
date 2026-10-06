@@ -32,74 +32,74 @@ export const StrokeRevealPreloader: React.FC<StrokeRevealPreloaderProps> = ({ on
         });
       });
 
-      // 2. Master Fast Preloader Timeline
+      // 2. Master Cinematic Page-to-Page Preloader Timeline (Refined, Graceful Pacing)
       const tl = gsap.timeline({
         onComplete: () => {
           gsap.to(containerRef.current, {
             opacity: 0,
-            scale: 1.04,
-            duration: 0.45,
+            scale: 1.03,
+            duration: 0.55,
             ease: 'power3.inOut',
             onComplete,
           });
         },
       });
 
-      // Rapid Sequence:
+      // Sequence:
       // A. Electric blue ambient glow emerges
       tl.to(
         glowRef.current,
         {
-          scale: 1.15,
-          opacity: 0.45,
-          duration: 0.4,
+          scale: 1.2,
+          opacity: 0.5,
+          duration: 0.6,
           ease: 'power2.out',
         },
         0.05
       )
-        // B. Logo strokes draw rapidly
+        // B. Logo strokes draw smoothly and deliberately
         .to(
           pathsRef.current,
           {
             strokeDashoffset: 0,
-            duration: 0.55,
-            stagger: 0.014,
+            duration: 1.1,
+            stagger: 0.022,
             ease: 'power2.inOut',
           },
-          0.1
+          0.15
         )
-        // C. Logo snaps to full brand fill
+        // C. Logo transitions smoothly to full brand fill
         .to(
           pathsRef.current,
           {
             fill: (i) => LOGO_PATHS[i].fill,
             stroke: 'transparent',
-            filter: 'drop-shadow(0 0 16px rgba(0,140,255,0.45))',
-            duration: 0.3,
+            filter: 'drop-shadow(0 0 20px rgba(0,140,255,0.5))',
+            duration: 0.45,
             ease: 'power2.out',
           },
-          0.62
+          1.15
         )
-        // D. Tagline reveals swiftly
+        // D. Tagline reveals with elegant spacing
         .to(
           taglineRef.current,
           {
             y: 0,
             opacity: 1,
-            duration: 0.25,
+            duration: 0.4,
             ease: 'power2.out',
           },
-          0.72
+          1.35
         )
-        // E. Brief micro-hold then exit
+        // E. Intentional cinematic hold so user can register the brand logo
         .to(
           svgRef.current,
           {
-            scale: 1.02,
-            duration: 0.25,
-            ease: 'power1.out',
+            scale: 1.015,
+            duration: 0.65,
+            ease: 'sine.inOut',
           },
-          0.85
+          1.5
         );
     }, containerRef);
 
