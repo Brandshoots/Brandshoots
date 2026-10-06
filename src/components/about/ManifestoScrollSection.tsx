@@ -247,9 +247,7 @@ export const ManifestoScrollSection: React.FC = () => {
               ref={createSubRef}
               className="mt-6 sm:mt-9 max-w-xl px-4 flex flex-col items-center"
             >
-              <span className="font-mono text-xs sm:text-sm tracking-[0.32em] uppercase text-[#008CFF] font-semibold mb-2">
-                01 // NARRATIVE ARCHITECTURE & RAW IDEAS
-              </span>
+
               <p className="font-editorial text-sm sm:text-base text-white/70 font-normal leading-relaxed">
                 Before a camera rolls, we architect the vision. Strategy, script, and aesthetic intent crafted to resonate deeply.
               </p>
@@ -279,9 +277,7 @@ export const ManifestoScrollSection: React.FC = () => {
               ref={shootSubRef}
               className="mt-6 sm:mt-9 max-w-xl px-4 flex flex-col items-center"
             >
-              <span className="font-mono text-xs sm:text-sm tracking-[0.32em] uppercase text-[#008CFF] font-semibold mb-2">
-                02 // UNCOMPROMISING PRODUCTION CRAFT
-              </span>
+
               <p className="font-editorial text-sm sm:text-base text-white/70 font-normal leading-relaxed">
                 Cinematic lighting, high-end lenses, and disciplined on-set execution. We capture frames that command undivided attention.
               </p>
@@ -311,9 +307,7 @@ export const ManifestoScrollSection: React.FC = () => {
               ref={growSubRef}
               className="mt-6 sm:mt-9 max-w-xl px-4 flex flex-col items-center"
             >
-              <span className="font-mono text-xs sm:text-sm tracking-[0.32em] uppercase text-[#008CFF] font-semibold mb-2">
-                03 // EXPONENTIAL DIGITAL VELOCITY
-              </span>
+
               <p className="font-editorial text-sm sm:text-base text-white/70 font-normal leading-relaxed">
                 Crafted content distributed with purpose. Turning impressions into loyal communities and compounding brand value.
               </p>

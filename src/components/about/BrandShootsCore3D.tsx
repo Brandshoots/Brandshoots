@@ -349,7 +349,7 @@ export const BrandShootsCore3D: React.FC = () => {
       tl.to(pill1Ref.current, { color: '#008CFF', scale: 1.25, duration: 0.15 }, 0.18);
       if (activeChapterLabelRef.current) {
         tl.call(() => {
-          if (activeChapterLabelRef.current) activeChapterLabelRef.current.innerText = '01 // THE MANIFESTO';
+          if (activeChapterLabelRef.current) activeChapterLabelRef.current.innerText = '1';
         }, [], 0.18);
       }
       // Hold Chapter 1 (0.53 -> 0.95)
@@ -373,7 +373,7 @@ export const BrandShootsCore3D: React.FC = () => {
       tl.to(pill2Ref.current, { color: '#008CFF', scale: 1.25, duration: 0.15 }, 1.15);
       if (activeChapterLabelRef.current) {
         tl.call(() => {
-          if (activeChapterLabelRef.current) activeChapterLabelRef.current.innerText = '02 // PRODUCTION CRAFT';
+          if (activeChapterLabelRef.current) activeChapterLabelRef.current.innerText = '2';
         }, [], 1.15);
       }
       // Hold Chapter 2 (1.5 -> 1.95)
@@ -397,7 +397,7 @@ export const BrandShootsCore3D: React.FC = () => {
       tl.to(pill3Ref.current, { color: '#008CFF', scale: 1.25, duration: 0.15 }, 2.15);
       if (activeChapterLabelRef.current) {
         tl.call(() => {
-          if (activeChapterLabelRef.current) activeChapterLabelRef.current.innerText = '03 // ENTERPRISE IMPACT';
+          if (activeChapterLabelRef.current) activeChapterLabelRef.current.innerText = '3';
         }, [], 2.15);
       }
       // Hold Chapter 3 (2.5 -> 2.95)
@@ -444,7 +444,7 @@ export const BrandShootsCore3D: React.FC = () => {
       tl.to(pill4Ref.current, { color: '#008CFF', scale: 1.25, duration: 0.15 }, 3.2);
       if (activeChapterLabelRef.current) {
         tl.call(() => {
-          if (activeChapterLabelRef.current) activeChapterLabelRef.current.innerText = '04 // THE CORE IDENTITY';
+          if (activeChapterLabelRef.current) activeChapterLabelRef.current.innerText = '4';
         }, [], 3.2);
       }
     }, sectionRef);
@@ -541,24 +541,7 @@ export const BrandShootsCore3D: React.FC = () => {
             </span>
           </div>
 
-          {/* Chapter HUD Track */}
-          <div className="flex items-center gap-3 sm:gap-4 font-mono text-[11px] sm:text-xs tracking-widest text-white/35">
-            <span ref={pill1Ref} className="transition-all duration-300">
-              01
-            </span>
-            <span className="text-white/20">•</span>
-            <span ref={pill2Ref} className="transition-all duration-300">
-              02
-            </span>
-            <span className="text-white/20">•</span>
-            <span ref={pill3Ref} className="transition-all duration-300">
-              03
-            </span>
-            <span className="text-white/20">•</span>
-            <span ref={pill4Ref} className="transition-all duration-300">
-              04
-            </span>
-          </div>
+
         </div>
 
         {/* Top Progress Track Bar */}
@@ -627,11 +610,9 @@ export const BrandShootsCore3D: React.FC = () => {
             ref={introHintRef}
             className="mt-4 sm:mt-5 flex items-center gap-3 transition-opacity"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
             <span className="font-mono text-[10px] sm:text-xs tracking-[0.32em] uppercase text-white/70 font-semibold">
-              SCROLL TO DISCOVER BRANDSHOOTS
+              SCROLL TO EXPLORE
             </span>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
           </div>
         </div>
 
@@ -741,16 +722,7 @@ export const BrandShootsCore3D: React.FC = () => {
           </div>
         </div>
 
-        {/* ======================================================== */}
-        {/* BOTTOM: FOOTER NAVIGATION HINTS (Z-INDEX: 60)            */}
-        {/* ======================================================== */}
-        <div
-          className="absolute bottom-5 sm:bottom-7 inset-x-0 flex items-center justify-between px-6 sm:px-12 text-white/30 font-mono text-[9px] sm:text-[10px] tracking-[0.25em] uppercase pointer-events-none"
-          style={{ zIndex: 60 }}
-        >
-          <span>VERTICAL 9:16 REEL ARCHIVE</span>
-          <span>SCROLL TO TRAVERSE DOSSIER</span>
-        </div>
+
       </div>
     </section>
   );

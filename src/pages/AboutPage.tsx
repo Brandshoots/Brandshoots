@@ -65,36 +65,31 @@ export const AboutPage: React.FC = () => {
 
   return (
     <main className="relative w-full min-h-screen bg-[#04060A] text-white overflow-x-hidden">
-      {/* 1. FAST SVG STROKE-DRAWING PRELOADER */}
+      {/* 1. FAST SVG STROKE-DRAWING PRELOADER OVERLAY */}
       {preloaderActive && (
         <StrokeRevealPreloader onComplete={() => setPreloaderActive(false)} />
       )}
 
-      {/* 2. CINEMATIC ABOUT PAGE CHAPTERS */}
-      {!preloaderActive && (
-        <>
-          {/* Exact Homepage-Matched Navigation Bar */}
-          <AboutNavbar onOpenContact={() => setContactModalOpen(true)} />
+      {/* 2. CINEMATIC ABOUT PAGE CHAPTERS (Rendered seamlessly underneath preloader overlay) */}
+      <AboutNavbar onOpenContact={() => setContactModalOpen(true)} />
 
-          {/* 3D Brand Manifesto: CREATE -> SHOOT -> GROW with Amplified 3D Depth */}
-          <ManifestoScrollSection />
+      {/* 3D Brand Manifesto: CREATE -> SHOOT -> GROW with Amplified 3D Depth */}
+      <ManifestoScrollSection />
 
-          {/* Rebuilt 100vw × 100vh 3D Chapter: THE BRANDSHOOTS CORE */}
-          <BrandShootsCore3D />
+      {/* Rebuilt 100vw × 100vh 3D Chapter: THE BRANDSHOOTS CORE */}
+      <BrandShootsCore3D />
 
-          {/* Leadership: Durgarao Vallepu */}
-          <AboutLeadershipSection />
+      {/* Leadership: Durgarao Vallepu */}
+      <AboutLeadershipSection />
 
-          {/* Ready to Collaborate (Heavy GSAP) & Footer */}
-          <AboutFooter onOpenContact={() => setContactModalOpen(true)} />
+      {/* Ready to Collaborate (Heavy GSAP) & Footer */}
+      <AboutFooter onOpenContact={() => setContactModalOpen(true)} />
 
-          {/* Contact Modal */}
-          <ContactModal
-            isOpen={contactModalOpen}
-            onClose={() => setContactModalOpen(false)}
-          />
-        </>
-      )}
+      {/* Contact Modal */}
+      <ContactModal
+        isOpen={contactModalOpen}
+        onClose={() => setContactModalOpen(false)}
+      />
     </main>
   );
 };

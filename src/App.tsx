@@ -35,9 +35,11 @@ export function App() {
   });
   const [contactModalOpen, setContactModalOpen] = useState(false);
 
-  // Butter-smooth Lenis inertial scrolling synchronized with GSAP ScrollTrigger
+  // Butter-smooth Lenis inertial scrolling synchronized with GSAP ScrollTrigger (homepage only)
   useEffect(() => {
     if (preloaderActive) return;
+    // Only run the homepage scroll engine on the homepage route
+    if (location.pathname !== '/') return;
 
     const lenis = new Lenis({
       duration: 1.2,
@@ -290,36 +292,44 @@ export function App() {
 
   return (
     <main className="relative w-full min-h-screen bg-[#05070B] overflow-x-hidden snap-y snap-proximity md:snap-none">
-      {/* 1. Master Cinematic Startup Preloader */}
-      {preloaderActive && (
-        <BrandShootsPreloader onComplete={() => setPreloaderActive(false)} />
-      )}
+      {/* Routes: non-homepage routes always render regardless of preloader state */}
+      <Routes>
+        {/* HOMEPAGE — gated behind cinematic startup preloader */}
+        <Route
+          path="/"
+          element={
+            <>
+              {/* 1. Master Cinematic Startup Preloader (homepage only) */}
+              {preloaderActive && (
+                <BrandShootsPreloader onComplete={() => setPreloaderActive(false)} />
+              )}
 
-      {/* 2. BrandShoots Cinematic Experience */}
-      {!preloaderActive && (
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <>
-                <BrandShootsHero />
-                <WhatWeDoSection />
-                <OurClientsSection />
-                <TheLeadershipSection />
-                <FinalCtaSection onOpenContact={() => setContactModalOpen(true)} />
-                <BrandShootsFooter onOpenContact={() => setContactModalOpen(true)} />
-                <ContactModal
-                  isOpen={contactModalOpen}
-                  onClose={() => setContactModalOpen(false)}
-                />
-              </>
-            }
-          />
-          <Route path="/portfolio/:clientSlug" element={<ClientProjectView />} />
-          <Route path="/projects/:clientSlug" element={<ClientProjectView />} />
-          <Route path="/about" element={<AboutPage />} />
-        </Routes>
-      )}
+              {/* 2. BrandShoots Cinematic Homepage Sections */}
+              {!preloaderActive && (
+                <div id="homepage-experience" className="w-full">
+                  <BrandShootsHero />
+                  <WhatWeDoSection />
+                  <OurClientsSection />
+                  <TheLeadershipSection />
+                  <FinalCtaSection onOpenContact={() => setContactModalOpen(true)} />
+                  <BrandShootsFooter onOpenContact={() => setContactModalOpen(true)} />
+                  <ContactModal
+                    isOpen={contactModalOpen}
+                    onClose={() => setContactModalOpen(false)}
+                  />
+                </div>
+              )}
+            </>
+          }
+        />
+
+        {/* PORTFOLIO — always accessible, has its own internal logic */}
+        <Route path="/portfolio/:clientSlug" element={<ClientProjectView />} />
+        <Route path="/projects/:clientSlug" element={<ClientProjectView />} />
+
+        {/* ABOUT — always accessible, has its own StrokeRevealPreloader */}
+        <Route path="/about" element={<AboutPage />} />
+      </Routes>
     </main>
   );
 }

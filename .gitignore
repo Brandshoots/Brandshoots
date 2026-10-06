@@ -27,3 +27,5 @@ dist-ssr
 test-*.html
 
 .vercel
+
+reports/

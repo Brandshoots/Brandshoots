@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useLayoutEffect } from 'react';
 import gsap from 'gsap';
 import { LOGO_PATHS } from './logoPaths';
 
@@ -13,25 +13,15 @@ export const StrokeRevealPreloader: React.FC<StrokeRevealPreloaderProps> = ({ on
   const pathsRef = useRef<(SVGPathElement | null)[]>([]);
   const taglineRef = useRef<HTMLDivElement>(null);
 
-  const [pathLengths, setPathLengths] = useState<number[]>([]);
-
-  useEffect(() => {
-    // Measure total length of each SVG path dynamically
-    const lengths = pathsRef.current.map((path) => (path ? path.getTotalLength() : 800));
-    setPathLengths(lengths);
-  }, []);
-
-  useEffect(() => {
-    if (pathLengths.length === 0) return;
-
+  useLayoutEffect(() => {
     const ctx = gsap.context(() => {
       // 1. Initial State: Screen is pitch black, paths hidden, glow dim
       gsap.set(glowRef.current, { scale: 0.5, opacity: 0 });
       gsap.set(taglineRef.current, { y: 15, opacity: 0 });
 
-      pathsRef.current.forEach((path, i) => {
+      pathsRef.current.forEach((path) => {
         if (!path) return;
-        const len = pathLengths[i] || 800;
+        const len = (typeof path.getTotalLength === 'function' ? path.getTotalLength() : 800) || 800;
         gsap.set(path, {
           strokeDasharray: len,
           strokeDashoffset: len,
@@ -114,7 +104,7 @@ export const StrokeRevealPreloader: React.FC<StrokeRevealPreloaderProps> = ({ on
     }, containerRef);
 
     return () => ctx.revert();
-  }, [pathLengths, onComplete]);
+  }, [onComplete]);
 
   return (
     <div

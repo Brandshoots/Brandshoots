@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -74,8 +74,9 @@ export const OurClientsSection: React.FC = () => {
     return () => cancelAnimationFrame(animId);
   }, []);
 
-  // 2. GSAP ScrollTrigger: natural scroll movement as user scrolls past section
-  useEffect(() => {
+  // 2. GSAP ScrollTrigger: natural scroll movement as user scrolls past section (useLayoutEffect for clean DOM unmount)
+  useLayoutEffect(() => {
+    let pinTrigger: ReturnType<typeof ScrollTrigger.create> | null = null;
     const ctx = gsap.context(() => {
       if (sectionRef.current) {
         // Heading reveal on viewport entry
@@ -101,7 +102,7 @@ export const OurClientsSection: React.FC = () => {
         // Locks the section full screen (100vh). As user scrolls, it rotates ~4 client logos (3 to 5 logos).
         // Once those 3-5 logos have scrolled, it releases and transitions to the next section.
         let lastProgress = 0;
-        ScrollTrigger.create({
+        pinTrigger = ScrollTrigger.create({
           trigger: sectionRef.current,
           start: 'top top',
           end: () => `+=${Math.round(window.innerHeight * 1.6)}`,
@@ -128,7 +129,23 @@ export const OurClientsSection: React.FC = () => {
       }
     }, sectionRef);
 
-    return () => ctx.revert();
+    return () => {
+      // Kill pinned ScrollTrigger FIRST before reverting context.
+      // If we don't, GSAP tries removeChild on a pin-spacer that React already detached → crash.
+      try {
+        if (pinTrigger) {
+          pinTrigger.kill(true);
+          pinTrigger = null;
+        }
+      } catch (_) {
+        // swallow any edge-case DOM errors during unmount
+      }
+      try {
+        ctx.revert();
+      } catch (_) {
+        // swallow any edge-case DOM errors during unmount
+      }
+    };
   }, [totalItems]);
 
   // 3. Mouse & Touch Drag Handlers (User-Controlled)
@@ -170,11 +187,12 @@ export const OurClientsSection: React.FC = () => {
   };
 
   return (
-    <section
-      id="clients"
-      ref={sectionRef}
-      className="relative w-full h-[100dvh] max-h-[100dvh] bg-[#05070B] text-white flex flex-col justify-between py-4 sm:py-6 lg:py-8 px-4 sm:px-8 lg:px-12 select-none overflow-hidden snap-start snap-always"
-    >
+    <div id="clients-chapter" className="relative w-full">
+      <section
+        id="clients"
+        ref={sectionRef}
+        className="relative w-full h-[100dvh] max-h-[100dvh] bg-[#05070B] text-white flex flex-col justify-between py-4 sm:py-6 lg:py-8 px-4 sm:px-8 lg:px-12 select-none overflow-hidden snap-start snap-always"
+      >
       {/* Background Architectural Atmosphere & Blue Aura */}
       <div className="absolute inset-0 pointer-events-none">
         <div
@@ -393,7 +411,8 @@ export const OurClientsSection: React.FC = () => {
         </div>
       </div>
     </section>
-  );
+  </div>
+);
 };
 
 export default OurClientsSection;
