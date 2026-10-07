@@ -82,7 +82,7 @@ export const TestimonialsSection3D: React.FC = () => {
       if (targetIdx === currentIndex || isTransitioningRef.current) return;
       isTransitioningRef.current = true;
 
-      // 1. Current quote: opacity 1 -> 0, y 0 -> -30
+      // 1. OLD: opacity 1 -> 0, y -20
       const outTl = gsap.timeline({
         onComplete: () => {
           if (splitRef.current) {
@@ -101,8 +101,8 @@ export const TestimonialsSection3D: React.FC = () => {
       if (quoteContainerRef.current) {
         outTl.to(quoteContainerRef.current, {
           opacity: 0,
-          y: -30,
-          duration: 0.32,
+          y: -20,
+          duration: 0.28,
           ease: 'power2.in',
         });
       }
@@ -112,18 +112,18 @@ export const TestimonialsSection3D: React.FC = () => {
           authorRef.current,
           {
             opacity: 0,
-            y: -20,
-            duration: 0.25,
+            y: -14,
+            duration: 0.22,
             ease: 'power2.in',
           },
-          '-=0.18'
+          '-=0.14'
         );
       }
     },
     [currentIndex]
   );
 
-  // Incoming animation triggered when currentIndex updates
+  // Incoming animation: NEW: opacity 0 -> 1, y 20 -> 0
   useEffect(() => {
     if (!shouldAnimateInRef.current) return;
     shouldAnimateInRef.current = false;
@@ -135,7 +135,7 @@ export const TestimonialsSection3D: React.FC = () => {
 
     // Reset container positions
     gsap.set(quoteContainerRef.current, { opacity: 1, y: 0 });
-    gsap.set(authorRef.current, { opacity: 0, y: 24 });
+    gsap.set(authorRef.current, { opacity: 0, y: 16 });
 
     let lines: any = quoteTextRef.current;
     try {
@@ -154,30 +154,30 @@ export const TestimonialsSection3D: React.FC = () => {
       },
     });
 
-    // New quote: opacity 0 -> 1, y 30 -> 0
+    // NEW quote: opacity 0 -> 1, y 20 -> 0
     inTl.fromTo(
       lines,
-      { opacity: 0, y: 30 },
+      { opacity: 0, y: 20 },
       {
         opacity: 1,
         y: 0,
-        duration: 0.58,
-        stagger: 0.06,
-        ease: 'power3.out',
+        duration: 0.5,
+        stagger: 0.05,
+        ease: 'power2.out',
       }
     );
 
     // Client name follows slightly after
     inTl.fromTo(
       authorRef.current,
-      { opacity: 0, y: 20 },
+      { opacity: 0, y: 14 },
       {
         opacity: 1,
         y: 0,
-        duration: 0.48,
-        ease: 'power3.out',
+        duration: 0.42,
+        ease: 'power2.out',
       },
-      '-=0.28'
+      '-=0.24'
     );
   }, [currentIndex]);
 
@@ -211,48 +211,48 @@ export const TestimonialsSection3D: React.FC = () => {
       if (eyebrowRef.current) {
         masterTl.fromTo(
           eyebrowRef.current,
-          { opacity: 0, y: 20 },
-          { opacity: 1, y: 0, duration: 0.4, ease: 'power3.out' },
+          { opacity: 0, y: 14 },
+          { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' },
           0
         );
       }
 
-      // 2. Main title reveal
+      // 2. Compact heading reveal
       if (headingRef.current) {
         masterTl.fromTo(
           headingRef.current,
-          { opacity: 0, y: 28 },
-          { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' },
-          0.1
+          { opacity: 0, y: 18 },
+          { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' },
+          0.08
         );
       }
 
-      // 3. Large quote SplitText reveal
+      // 3. Quote reveal (opacity 0 -> 1, y 20 -> 0)
       masterTl.fromTo(
         initialLines,
-        { opacity: 0, y: 32 },
-        { opacity: 1, y: 0, duration: 0.6, stagger: 0.06, ease: 'power3.out' },
-        0.22
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.5, stagger: 0.05, ease: 'power2.out' },
+        0.18
       );
 
       // 4. Client author attribution
       if (authorRef.current) {
         masterTl.fromTo(
           authorRef.current,
-          { opacity: 0, y: 20 },
-          { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' },
-          0.42
+          { opacity: 0, y: 14 },
+          { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' },
+          0.34
         );
       }
 
-      // 5. Minimal 01-05 number indicator
+      // 5. Subtle number indicator
       if (navRef.current) {
         const buttons = navRef.current.querySelectorAll('.testimonial-nav-btn');
         masterTl.fromTo(
           buttons,
-          { opacity: 0, y: 15 },
-          { opacity: 1, y: 0, duration: 0.35, stagger: 0.04, ease: 'power3.out' },
-          0.48
+          { opacity: 0, y: 10 },
+          { opacity: 1, y: 0, duration: 0.3, stagger: 0.03, ease: 'power2.out' },
+          0.4
         );
       }
     }, sectionRef);
@@ -298,12 +298,12 @@ export const TestimonialsSection3D: React.FC = () => {
     }
   };
 
-  // Subtle auto-advance (8.5s), paused on hover
+  // Subtle auto-advance (9s), paused on hover
   useEffect(() => {
     if (isHovered) return;
     const timer = setInterval(() => {
       goTo((currentIndex + 1) % TESTIMONIALS.length);
-    }, 8500);
+    }, 9000);
     return () => clearInterval(timer);
   }, [currentIndex, isHovered, goTo]);
 
@@ -313,15 +313,15 @@ export const TestimonialsSection3D: React.FC = () => {
     <section
       id="testimonials"
       ref={sectionRef}
-      className="relative w-full min-h-[85vh] lg:min-h-[90vh] py-24 sm:py-32 lg:py-40 bg-[#08090C] text-white overflow-hidden select-none border-t border-white/[0.08]"
+      className="relative w-full py-20 sm:py-28 lg:py-32 bg-[#08090C] text-white overflow-hidden select-none border-t border-white/[0.06]"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Fine Atmospheric Grid */}
+      {/* Subtle Fine Grid Texture */}
       <div
-        className="absolute inset-0 opacity-[0.025] pointer-events-none"
+        className="absolute inset-0 opacity-[0.02] pointer-events-none"
         style={{
           backgroundImage: `
             linear-gradient(to right, rgba(255,255,255,0.12) 1px, transparent 1px),
@@ -331,81 +331,73 @@ export const TestimonialsSection3D: React.FC = () => {
         }}
       />
 
-      <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16 flex flex-col justify-between min-h-[65vh]">
-        {/* Top: Minimal Eyebrow + Bold Studio Heading */}
-        <div>
-          <div ref={eyebrowRef} className="flex items-center gap-2 mb-4 sm:mb-5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
-            <span className="font-mono text-[11px] sm:text-xs uppercase tracking-[0.28em] text-[#008CFF] font-semibold">
+      {/* Spacious Open Container */}
+      <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-14">
+        {/* 1. Compact Studio Header */}
+        <div className="mb-12 sm:mb-16">
+          <div ref={eyebrowRef} className="flex items-center gap-2 mb-2 sm:mb-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
+            <span className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#008CFF] font-medium">
               CLIENT RESONANCE
             </span>
           </div>
 
           <h2
             ref={headingRef}
-            className="font-display font-black text-3xl xs:text-4xl sm:text-5xl lg:text-6xl tracking-[-0.035em] uppercase text-white leading-[0.95]"
+            className="font-display font-bold text-lg sm:text-xl md:text-2xl tracking-[-0.02em] uppercase text-white/90"
           >
             TRUSTED BY <span className="text-[#008CFF]">VISIONARIES.</span>
           </h2>
         </div>
 
-        {/* Testimonial Focus: Pure Typography in Expansive Negative Space */}
-        <div className="my-14 sm:my-20 lg:my-24 max-w-5xl min-h-[260px] sm:min-h-[290px] lg:min-h-[310px] flex flex-col justify-center">
+        {/* 2. Refined Testimonial Column (Strict 650–780px Desktop Width, 2-3 Lines) */}
+        <div className="max-w-[740px] min-h-[180px] sm:min-h-[190px] lg:min-h-[200px] flex flex-col justify-center">
           <div ref={quoteContainerRef} className="relative">
             <p
               key={`quote-${currentIndex}`}
               ref={quoteTextRef}
-              className="font-display font-bold text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-[46px] xl:text-[50px] leading-[1.18] sm:leading-[1.15] tracking-[-0.02em] uppercase text-white/95"
+              className="font-sans font-light sm:font-normal text-lg sm:text-2xl lg:text-[27px] leading-[1.42] sm:leading-[1.4] tracking-[-0.015em] text-white/90"
             >
               “{current.quote}”
             </p>
           </div>
 
-          {/* Client Attribution: Quiet, Human, Clean */}
-          <div ref={authorRef} key={`author-${currentIndex}`} className="mt-8 sm:mt-12 lg:mt-14">
-            <div className="font-sans font-semibold text-lg sm:text-xl lg:text-2xl text-white tracking-wide">
+          {/* 3. Small, Refined Client Info */}
+          <div ref={authorRef} key={`author-${currentIndex}`} className="mt-7 sm:mt-9">
+            <div className="font-sans font-medium text-sm sm:text-base text-white tracking-wide">
               {current.author}
             </div>
-            <div className="font-mono text-xs sm:text-sm text-white/50 tracking-[0.16em] uppercase mt-1 sm:mt-1.5">
+            <div className="font-mono text-[10px] sm:text-[11px] text-white/45 tracking-[0.16em] uppercase mt-1">
               {current.role},{' '}
               <span className="text-[#008CFF] font-medium">{current.client}</span>
             </div>
           </div>
         </div>
 
-        {/* Minimal Number Strip: 01 02 03 04 05 */}
-        <div
-          ref={navRef}
-          className="pt-8 sm:pt-10 border-t border-white/[0.08] flex items-center justify-between"
-        >
-          <div className="flex items-center gap-6 sm:gap-10">
-            {TESTIMONIALS.map((_, idx) => {
-              const numStr = String(idx + 1).padStart(2, '0');
-              const isActive = idx === currentIndex;
-              return (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => goTo(idx)}
-                  aria-label={`Go to testimonial ${numStr}`}
-                  className={`testimonial-nav-btn relative py-2 font-mono text-xs sm:text-sm tracking-[0.22em] transition-colors duration-300 cursor-pointer ${
-                    isActive
-                      ? 'text-[#008CFF] font-bold'
-                      : 'text-white/30 hover:text-white/70 font-normal'
-                  }`}
-                >
-                  <span>{numStr}</span>
-                  <span
-                    className={`absolute bottom-0 left-0 right-0 h-[2px] bg-[#008CFF] transition-all duration-300 ${
-                      isActive
-                        ? 'opacity-100 scale-x-100 shadow-[0_0_8px_#008CFF]'
-                        : 'opacity-0 scale-x-0'
-                    }`}
-                  />
-                </button>
-              );
-            })}
-          </div>
+        {/* 4. Subtle, Minimal Number Row (01 - 05) */}
+        <div ref={navRef} className="mt-12 sm:mt-16 flex items-center gap-5 sm:gap-7">
+          {TESTIMONIALS.map((_, idx) => {
+            const numStr = String(idx + 1).padStart(2, '0');
+            const isActive = idx === currentIndex;
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => goTo(idx)}
+                aria-label={`Go to testimonial ${numStr}`}
+                className={`testimonial-nav-btn relative py-1 font-mono text-[11px] sm:text-xs tracking-[0.2em] transition-colors duration-200 cursor-pointer ${
+                  isActive
+                    ? 'text-[#008CFF] font-medium'
+                    : 'text-white/25 hover:text-white/60 font-normal'
+                }`}
+              >
+                <span>{numStr}</span>
+                {isActive && (
+                  <span className="absolute -bottom-0.5 left-0 right-0 h-[1.5px] bg-[#008CFF]" />
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
     </section>
