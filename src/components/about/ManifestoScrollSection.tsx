@@ -48,111 +48,152 @@ export const ManifestoScrollSection: React.FC = () => {
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
-          end: '+=250%',
+          end: '+=240%',
           pin: pinWrapperRef.current,
-          scrub: 1.0,
+          scrub: 0.9,
           anticipatePin: 1,
           invalidateOnRefresh: true,
         },
       });
 
-      // Initial clean setup: Stage 1 CREATE is active; Stage 2 & 3 are hidden
+      // Initial 3D Spatial Setup (Sharp & Dimensional with subtle DOF)
       gsap.set(createWrapRef.current, {
-        autoAlpha: 1,
-        yPercent: 0,
+        opacity: 1,
         scale: 1,
+        z: 0,
+        rotateX: 0,
+        zIndex: 10,
+        transformPerspective: 1400,
+      });
+      gsap.set(createTextRef.current, {
+        scale: 1,
+        filter: 'blur(0px)',
+        transformPerspective: 1400,
       });
 
       gsap.set(shootWrapRef.current, {
-        autoAlpha: 0,
-        yPercent: 25,
-        scale: 0.96,
+        opacity: 0,
+        scale: 0.45,
+        z: -550,
+        rotateX: 14,
+        rotateY: -10,
+        filter: 'blur(5px)',
+        zIndex: 20,
+        transformPerspective: 1400,
       });
 
       gsap.set(growWrapRef.current, {
-        autoAlpha: 0,
-        yPercent: 25,
-        scale: 0.96,
+        opacity: 0,
+        scale: 0.4,
+        z: -700,
+        rotateX: -16,
+        rotateY: 10,
+        filter: 'blur(6px)',
+        zIndex: 30,
+        transformPerspective: 1400,
       });
 
       // ====================================================================
-      // THREE CLEAN, SEQUENTIAL, NON-OVERLAPPING MANIFESTO STAGES
+      // THREE-STAGE 3D DEPTH CHOREOGRAPHY (Crisp Transitions)
       // ====================================================================
 
-      // Phase 1 (0.00s -> 0.70s): CREATE holds centered & sharp
-      tl.to(progressBarRef.current, { width: '33%', duration: 0.7, ease: 'none' }, 0);
-
-      // Transition 1 -> 2 (0.70s -> 1.00s): CREATE exits UP, then SHOOT enters FROM BELOW
-      tl.to(
-        createWrapRef.current,
-        {
-          autoAlpha: 0,
-          yPercent: -25,
-          scale: 1.03,
-          duration: 0.3,
-          ease: 'power2.in',
-        },
-        0.7
-      )
+      // Phase 1 (0.00 -> 0.46): CREATE flies into camera in 3D & SHOOT rushes from deep Z-space
+      tl.to(progressBarRef.current, { width: '33%', duration: 0.35, ease: 'none' }, 0)
+        .to(
+          createWrapRef.current,
+          {
+            scale: 2.2,
+            z: 400,
+            rotateX: -12,
+            opacity: 0,
+            filter: 'blur(6px)',
+            duration: 0.42,
+            ease: 'power2.in',
+          },
+          0.04
+        )
+        .to(
+          createSubRef.current,
+          { y: -50, opacity: 0, duration: 0.28 },
+          0.05
+        )
+        // Interactive tracking expansion on headline
+        .to(createTextRef.current, { letterSpacing: '-0.02em', duration: 0.4 }, 0)
+        // SHOOT charges forward into sharp focal plane
         .to(
           shootWrapRef.current,
           {
-            autoAlpha: 1,
-            yPercent: 0,
-            scale: 1.0,
-            duration: 0.3,
+            opacity: 1,
+            scale: 1,
+            z: 0,
+            rotateX: 0,
+            rotateY: 0,
+            filter: 'blur(0px)',
+            duration: 0.45,
             ease: 'power2.out',
           },
-          1.0
+          0.16
         )
         .to(
           bgVolumetricRef.current,
           {
             background:
-              'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.22) 0%, rgba(11, 16, 78, 0.35) 50%, transparent 80%)',
-            duration: 0.4,
+              'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.26) 0%, rgba(11, 16, 78, 0.45) 50%, transparent 80%)',
+            scale: 1.25,
+            duration: 0.45,
           },
-          0.85
-        )
-        // Phase 2 (1.00s -> 1.70s): SHOOT holds centered & sharp
-        .to(progressBarRef.current, { width: '66%', duration: 0.7, ease: 'none' }, 1.0);
+          0.18
+        );
 
-      // Transition 2 -> 3 (1.70s -> 2.00s): SHOOT exits UP, then GROW enters FROM BELOW
-      tl.to(
-        shootWrapRef.current,
-        {
-          autoAlpha: 0,
-          yPercent: -25,
-          scale: 1.03,
-          duration: 0.3,
-          ease: 'power2.in',
-        },
-        1.7
-      )
+      // Phase 2 (0.46 -> 0.92): SHOOT plunges past camera in 3D & GROW charges from background
+      tl.to(progressBarRef.current, { width: '66%', duration: 0.35, ease: 'none' }, 0.46)
+        .to(
+          shootWrapRef.current,
+          {
+            scale: 2.4,
+            z: 450,
+            rotateX: 14,
+            rotateY: 10,
+            opacity: 0,
+            filter: 'blur(6px)',
+            duration: 0.42,
+            ease: 'power2.in',
+          },
+          0.48
+        )
+        .to(
+          shootSubRef.current,
+          { y: -50, opacity: 0, duration: 0.28 },
+          0.48
+        )
+        .to(shootTextRef.current, { letterSpacing: '-0.02em', duration: 0.4 }, 0.16)
+        // GROW bursts into focus with volumetric presence
         .to(
           growWrapRef.current,
           {
-            autoAlpha: 1,
-            yPercent: 0,
-            scale: 1.0,
-            duration: 0.3,
+            opacity: 1,
+            scale: 1,
+            z: 0,
+            rotateX: 0,
+            rotateY: 0,
+            filter: 'blur(0px)',
+            duration: 0.46,
             ease: 'power2.out',
           },
-          2.0
+          0.56
         )
         .to(
           bgVolumetricRef.current,
           {
             background:
-              'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.28) 0%, rgba(7, 11, 51, 0.45) 50%, transparent 85%)',
-            duration: 0.4,
+              'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.32) 0%, rgba(7, 11, 51, 0.55) 50%, transparent 85%)',
+            scale: 1.35,
+            duration: 0.45,
           },
-          1.85
+          0.58
         )
-        // Phase 3 (2.00s -> 2.70s): GROW holds centered & sharp to 100%
-        .to(progressBarRef.current, { width: '100%', duration: 0.7, ease: 'none' }, 2.0)
-        // Final hold (2.70s -> 3.00s)
-        .to({}, { duration: 0.3 }, 2.7);
+        .to(growTextRef.current, { letterSpacing: '-0.02em', duration: 0.4 }, 0.56)
+        .to(progressBarRef.current, { width: '100%', duration: 0.3, ease: 'none' }, 0.72);
     }, sectionRef);
 
     return () => {
@@ -169,18 +210,18 @@ export const ManifestoScrollSection: React.FC = () => {
     >
       <div
         ref={pinWrapperRef}
-        className="relative w-full h-[100dvh] min-h-[100dvh] flex flex-col justify-between items-center py-8 sm:py-12 px-6 sm:px-10 lg:px-12 max-w-7xl mx-auto z-10 overflow-hidden"
+        className="relative w-full h-[100dvh] min-h-[100dvh] flex flex-col justify-between items-center py-8 sm:py-12 px-6 sm:px-12 max-w-[1720px] mx-auto z-10 overflow-hidden"
       >
         {/* ======================================================== */}
         {/* TOP: EYEBROW & PROGRESS TELEMETRY                        */}
         {/* ======================================================== */}
         <div className="shrink-0 w-full flex flex-col items-center text-center z-20 pt-16 sm:pt-14">
-          <div className="inline-flex items-center gap-2.5 font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold mb-3">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
-            <span>01 // THE MANIFESTO</span>
+          <div className="flex items-center gap-3 mb-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#008CFF] shadow-[0_0_12px_#008CFF]" />
+
           </div>
 
-          <div className="w-36 sm:w-48 h-[2px] bg-white/10 rounded-full mt-1 overflow-hidden">
+          <div className="w-36 sm:w-48 h-[2px] bg-white/10 rounded-full mt-2 overflow-hidden">
             <div
               ref={progressBarRef}
               className="h-full bg-gradient-to-r from-[#008CFF] to-[#60B8FF] w-0 transition-all"
@@ -200,79 +241,98 @@ export const ManifestoScrollSection: React.FC = () => {
         />
 
         {/* ======================================================== */}
-        {/* CENTER: EDITORIAL TRANSFORMATION STAGE                   */}
+        {/* CENTER: 3D VOLUMETRIC TRANSFORMATION STAGE               */}
         {/* ======================================================== */}
         <div
           ref={stageRef}
           className="flex-1 w-full flex items-center justify-center relative will-change-transform"
+          style={{ perspective: '1400px', transformStyle: 'preserve-3d' }}
         >
           {/* ------------------------------------------------------ */}
-          {/* STAGE 1: CREATE.                                       */}
+          {/* 3D STAGE 1: CREATE.                                    */}
           {/* ------------------------------------------------------ */}
           <div
             ref={createWrapRef}
             className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none will-change-transform"
+            style={{ transformStyle: 'preserve-3d' }}
           >
             <h2
               ref={createTextRef}
-              className="font-display font-black uppercase text-[12vw] xs:text-[11vw] sm:text-[10vw] md:text-[8.5vw] lg:text-[112px] xl:text-[132px] leading-[0.9] tracking-[-0.035em] text-[#F7F9FF] will-change-transform"
+              className="font-display font-black uppercase text-[15vw] sm:text-[14vw] md:text-[13vw] lg:text-[160px] xl:text-[200px] leading-[0.84] tracking-[-0.04em] text-[#F7F9FF] will-change-transform filter drop-shadow-[0_25px_60px_rgba(0,0,0,0.95)]"
+              style={{
+                textShadow:
+                  '0 2px 0 #CBD5E1, 0 6px 1px rgba(0,0,0,0.7), 0 20px 40px rgba(0,0,0,0.95)',
+              }}
             >
-              CREATE<span className="text-[#008CFF]">.</span>
+              CREATE<span className="text-[#008CFF] drop-shadow-[0_0_20px_#008CFF]">.</span>
             </h2>
 
             <div
               ref={createSubRef}
-              className="mt-4 sm:mt-6 max-w-xl px-4 flex flex-col items-center"
+              className="mt-6 sm:mt-9 max-w-xl px-4 flex flex-col items-center"
             >
-              <p className="font-sans text-sm sm:text-base md:text-[17px] text-white/75 font-normal leading-[1.65]">
+
+              <p className="font-editorial text-sm sm:text-base text-white/70 font-normal leading-relaxed">
                 Before a camera rolls, we architect the vision. Strategy, script, and aesthetic intent crafted to resonate deeply.
               </p>
             </div>
           </div>
 
           {/* ------------------------------------------------------ */}
-          {/* STAGE 2: SHOOT.                                        */}
+          {/* 3D STAGE 2: SHOOT.                                     */}
           {/* ------------------------------------------------------ */}
           <div
             ref={shootWrapRef}
             className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none will-change-transform"
+            style={{ transformStyle: 'preserve-3d' }}
           >
             <h2
               ref={shootTextRef}
-              className="font-display font-black uppercase text-[12vw] xs:text-[11vw] sm:text-[10vw] md:text-[8.5vw] lg:text-[112px] xl:text-[132px] leading-[0.9] tracking-[-0.035em] text-[#F7F9FF] will-change-transform"
+              className="font-display font-black uppercase text-[15vw] sm:text-[14vw] md:text-[13vw] lg:text-[160px] xl:text-[200px] leading-[0.84] tracking-[-0.04em] text-[#F7F9FF] will-change-transform filter drop-shadow-[0_25px_60px_rgba(0,0,0,0.95)]"
+              style={{
+                textShadow:
+                  '0 2px 0 #60B8FF, 0 6px 1px rgba(0,0,0,0.7), 0 20px 40px rgba(0,140,255,0.4)',
+              }}
             >
-              SHOOT<span className="text-[#008CFF]">.</span>
+              SHOOT<span className="text-[#008CFF] drop-shadow-[0_0_25px_#008CFF]">.</span>
             </h2>
 
             <div
               ref={shootSubRef}
-              className="mt-4 sm:mt-6 max-w-xl px-4 flex flex-col items-center"
+              className="mt-6 sm:mt-9 max-w-xl px-4 flex flex-col items-center"
             >
-              <p className="font-sans text-sm sm:text-base md:text-[17px] text-white/75 font-normal leading-[1.65]">
+
+              <p className="font-editorial text-sm sm:text-base text-white/70 font-normal leading-relaxed">
                 Cinematic lighting, high-end lenses, and disciplined on-set execution. We capture frames that command undivided attention.
               </p>
             </div>
           </div>
 
           {/* ------------------------------------------------------ */}
-          {/* STAGE 3: GROW.                                         */}
+          {/* 3D STAGE 3: GROW.                                      */}
           {/* ------------------------------------------------------ */}
           <div
             ref={growWrapRef}
             className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none will-change-transform"
+            style={{ transformStyle: 'preserve-3d' }}
           >
             <h2
               ref={growTextRef}
-              className="font-display font-black uppercase text-[12vw] xs:text-[11vw] sm:text-[10vw] md:text-[8.5vw] lg:text-[112px] xl:text-[132px] leading-[0.9] tracking-[-0.035em] text-[#008CFF] will-change-transform"
+              className="font-display font-black uppercase text-[15vw] sm:text-[14vw] md:text-[13vw] lg:text-[160px] xl:text-[200px] leading-[0.84] tracking-[-0.04em] text-[#008CFF] will-change-transform filter drop-shadow-[0_25px_70px_rgba(0,140,255,0.6)]"
+              style={{
+                textShadow:
+                  '0 2px 0 #28A0FF, 0 8px 2px rgba(0,0,0,0.8), 0 25px 50px rgba(0,140,255,0.5)',
+              }}
             >
-              GROW<span className="text-[#F7F9FF]">.</span>
+              GROW<span className="text-white drop-shadow-[0_0_20px_#fff]">.</span>
             </h2>
 
             <div
               ref={growSubRef}
-              className="mt-4 sm:mt-6 max-w-xl px-4 flex flex-col items-center"
+              className="mt-6 sm:mt-9 max-w-xl px-4 flex flex-col items-center"
             >
-              <p className="font-sans text-sm sm:text-base md:text-[17px] text-white/75 font-normal leading-[1.65]">
+
+              <p className="font-editorial text-sm sm:text-base text-white/70 font-normal leading-relaxed">
                 Crafted content distributed with purpose. Turning impressions into loyal communities and compounding brand value.
               </p>
             </div>

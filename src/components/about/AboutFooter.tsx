@@ -152,7 +152,7 @@ export const AboutFooter: React.FC<AboutFooterProps> = ({ onOpenContact: _onOpen
       {/* ======================================================== */}
       <div
         ref={ctaSectionRef}
-        className="relative z-10 max-w-7xl mx-auto text-center py-24 sm:py-32 px-6 sm:px-10 lg:px-12 border-b border-white/[0.08] overflow-hidden"
+        className="relative z-10 max-w-5xl mx-auto text-center py-28 sm:py-36 px-6 sm:px-12 border-b border-white/[0.08] overflow-hidden"
       >
         {/* Ambient Volumetric Blue Core */}
         <div
@@ -160,21 +160,24 @@ export const AboutFooter: React.FC<AboutFooterProps> = ({ onOpenContact: _onOpen
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] max-w-[950px] h-[550px] pointer-events-none"
           style={{
             background:
-              'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.16) 0%, rgba(11, 16, 78, 0.18) 50%, transparent 75%)',
+              'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.22) 0%, rgba(11, 16, 78, 0.25) 50%, transparent 75%)',
+            filter: 'blur(95px)',
           }}
         />
 
-        {/* Unified Eyebrow */}
+        {/* Tag Pill */}
         <div
           ref={tagRef}
-          className="inline-flex items-center gap-2.5 font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold mb-3 sm:mb-4"
+          className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#008CFF]/10 border border-[#008CFF]/30 mb-7"
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
-          <span>04 // NEXT CHAPTER</span>
+          <span className="w-2 h-2 rounded-full bg-[#008CFF] shadow-[0_0_10px_#008CFF]" />
+          <span className="font-mono text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold">
+            READY TO COLLABORATE?
+          </span>
         </div>
 
         {/* Monolithic Heading with Masked Line Splitting */}
-        <h2 className="font-display font-black uppercase text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[0.92] tracking-[-0.035em] text-[#F7F9FF] mb-4 sm:mb-6">
+        <h2 className="font-display font-black uppercase text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.88] tracking-tight text-[#F7F9FF] mb-7 filter drop-shadow-[0_15px_35px_rgba(0,0,0,0.95)]">
           <span className="overflow-hidden block py-1">
             <span ref={line1Ref} className="inline-block will-change-transform">
               LET’S CREATE SOMETHING
@@ -183,7 +186,7 @@ export const AboutFooter: React.FC<AboutFooterProps> = ({ onOpenContact: _onOpen
           <span className="overflow-hidden block py-1 mt-0.5 sm:mt-1">
             <span
               ref={line2Ref}
-              className="inline-block will-change-transform text-[#008CFF] drop-shadow-[0_0_24px_rgba(0,140,255,0.6)]"
+              className="inline-block will-change-transform text-[#008CFF] drop-shadow-[0_0_30px_rgba(0,140,255,0.7)]"
             >
               UNFORGETTABLE.
             </span>
@@ -191,10 +194,10 @@ export const AboutFooter: React.FC<AboutFooterProps> = ({ onOpenContact: _onOpen
         </h2>
 
         {/* Supporting Copy */}
-        <div className="overflow-hidden max-w-xl mx-auto mb-8 sm:mb-10">
+        <div className="overflow-hidden max-w-xl mx-auto mb-11">
           <p
             ref={copyRef}
-            className="font-sans text-sm sm:text-base md:text-[17px] text-white/75 leading-[1.65] font-normal"
+            className="font-editorial text-base sm:text-lg md:text-xl text-white/70 leading-relaxed font-normal"
           >
             Have an idea, a brand, or a visual production worth elevating? Partner with BrandShoots.
           </p>
@@ -210,16 +213,16 @@ export const AboutFooter: React.FC<AboutFooterProps> = ({ onOpenContact: _onOpen
             ref={magneticBtnRef as any}
             onMouseMove={handleMouseMove as any}
             onMouseLeave={handleMouseLeave}
-            className="relative inline-flex items-center gap-3 px-7 py-3 sm:px-8 sm:py-3.5 rounded-full bg-[#008CFF] hover:bg-[#0077DB] text-white font-mono text-xs sm:text-sm tracking-[0.22em] uppercase font-semibold shadow-[0_0_25px_rgba(0,140,255,0.4)] hover:shadow-[0_0_40px_rgba(0,140,255,0.6)] transition-all duration-200 cursor-pointer active:scale-95 overflow-hidden"
+            className="relative inline-flex items-center gap-3.5 sm:gap-4 px-10 sm:px-14 py-4 sm:py-5 rounded-full bg-[#080D17] border border-[#008CFF]/70 hover:border-[#008CFF] text-[#F7F9FF] font-mono text-xs sm:text-sm tracking-[0.28em] uppercase font-bold shadow-[0_0_30px_rgba(0,140,255,0.3)] hover:shadow-[0_0_55px_rgba(0,140,255,0.7)] transition-all duration-200 cursor-pointer active:scale-95 overflow-hidden"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#008CFF]/20 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700 pointer-events-none" />
             <span
               ref={btnContentRef}
-              className="relative z-10 flex items-center gap-3"
+              className="relative z-10 flex items-center gap-3 sm:gap-4"
             >
-              <Sparkles className="w-4 h-4 text-white animate-pulse" />
+              <Sparkles className="w-4 h-4 text-[#008CFF] animate-pulse" />
               <span>GET IN TOUCH</span>
-              <ArrowUpRight className="w-4 h-4 text-white" />
+              <ArrowUpRight className="w-4 h-4 text-[#008CFF]" />
             </span>
           </Link>
         </div>
@@ -228,7 +231,7 @@ export const AboutFooter: React.FC<AboutFooterProps> = ({ onOpenContact: _onOpen
       {/* ======================================================== */}
       {/* 2. BASE FOOTER NAVIGATION & BRAND IDENTITY               */}
       {/* ======================================================== */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 pt-12 pb-10 flex flex-col justify-between">
+      <div className="relative z-10 max-w-[1720px] mx-auto px-6 sm:px-12 lg:px-16 pt-12 pb-10 flex flex-col justify-between">
         <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-8 pb-10 border-b border-white/[0.08]">
           {/* Logo */}
           <div className="flex flex-col items-center md:items-start">
