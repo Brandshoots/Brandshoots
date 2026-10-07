@@ -5,10 +5,12 @@ import 'lenis/dist/lenis.css';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { BrandShootsPreloader } from './components/preloader/BrandShootsPreloader';
+import { MainNavbar } from './components/navbar/MainNavbar';
 import { BrandShootsHero } from './components/hero/BrandShootsHero';
 import { WhatWeDoSection } from './components/what-we-do/WhatWeDoSection';
 import { OurClientsSection } from './components/clients/OurClientsSection';
 import { TheLeadershipSection } from './components/leadership/TheLeadershipSection';
+import { TestimonialsSection3D } from './components/testimonials/TestimonialsSection3D';
 import { FinalCtaSection } from './components/cta/FinalCtaSection';
 import { BrandShootsFooter } from './components/footer/BrandShootsFooter';
 import { ContactModal } from './components/hero/ContactModal';
@@ -71,169 +73,39 @@ export function App() {
     // Expose lenis globally for interactive triggers
     (window as any).__lenis = lenis;
 
-    // -------------------------------------------------------------------------
-    // CINEMATIC 100vh / 100vw CHAPTER SNAP-LOCKING SYSTEM
-    // -------------------------------------------------------------------------
-    // Firmly locks each chapter into full 100vh/100vw frame upon scroll rest.
-    // Prevents awkward half-section resting, prevents stranded views.
-    let snapTimeout: number | undefined;
-    let isProgrammaticScrolling = false;
-    let lastScrollY = window.scrollY;
-
-    const getElementDocTop = (el: HTMLElement | null): number => {
-      if (!el) return 0;
-      const target = el.parentElement?.classList.contains('pin-spacer') ? el.parentElement : el;
-      const rect = target.getBoundingClientRect();
-      return Math.round(rect.top + window.scrollY);
-    };
-
+    // Section positions for keyboard navigation
     const getTargets = () => {
       const hero = document.getElementById('hero');
       const whatWeDo = document.getElementById('what-we-do');
       const clients = document.getElementById('clients');
       const leadership = document.getElementById('leadership');
+      const testimonials = document.getElementById('testimonials');
       const cta = document.getElementById('cta');
 
       if (!hero || !whatWeDo || !clients || !leadership || !cta) return null;
 
       const vh = window.innerHeight;
       const heroTop = 0;
-      const whatWeDoTop = getElementDocTop(whatWeDo);
-      const clientsTop = getElementDocTop(clients);
-      const clientsEnd = clientsTop + Math.round(vh * 1.6);
-      const leadershipTop = getElementDocTop(leadership);
-      const ctaTop = getElementDocTop(cta);
+      const whatWeDoTop = whatWeDo.offsetTop;
+      const clientsTop = clients.offsetTop;
+      const leadershipTop = leadership.offsetTop;
+      const testimonialsTop = testimonials ? testimonials.offsetTop : leadershipTop + 600;
+      const ctaTop = cta.offsetTop;
       const maxScroll = Math.max(0, document.documentElement.scrollHeight - vh);
 
       return {
         heroTop,
         whatWeDoTop,
         clientsTop,
-        clientsEnd,
         leadershipTop,
+        testimonialsTop,
         ctaTop,
         maxScroll,
       };
     };
 
-    const determineTarget = (currentScroll: number, isScrollingDown: boolean) => {
-      const targets = getTargets();
-      if (!targets) return null;
-
-      const {
-        heroTop,
-        whatWeDoTop,
-        clientsTop,
-        clientsEnd,
-        leadershipTop,
-        ctaTop,
-        maxScroll,
-      } = targets;
-
-      // 1. Between Hero (0) and What We Do (whatWeDoTop)
-      if (currentScroll < whatWeDoTop - 30) {
-        if (isScrollingDown) {
-          return currentScroll > whatWeDoTop * 0.28 ? whatWeDoTop : heroTop;
-        } else {
-          return currentScroll < whatWeDoTop * 0.72 ? heroTop : whatWeDoTop;
-        }
-      }
-
-      // 2. Between What We Do and Clients Start (clientsTop)
-      if (currentScroll >= whatWeDoTop - 30 && currentScroll < clientsTop - 30) {
-        const mid = whatWeDoTop + (clientsTop - whatWeDoTop) * 0.35;
-        if (isScrollingDown) {
-          return currentScroll > mid ? clientsTop : whatWeDoTop;
-        } else {
-          return currentScroll < mid + 60 ? whatWeDoTop : clientsTop;
-        }
-      }
-
-      // 3. Inside Clients Pinned Scrub Region (clientsTop to clientsEnd)
-      // The section is pinned to 100vh, user is scrubbing 3-5 client logos
-      if (currentScroll >= clientsTop - 30 && currentScroll <= clientsEnd + 30) {
-        if (currentScroll < clientsTop + 50 && !isScrollingDown) {
-          return whatWeDoTop;
-        }
-        if (currentScroll > clientsEnd - 50 && isScrollingDown) {
-          return leadershipTop;
-        }
-        // Active scrubbing range: do not snap-interfere while user is reviewing logos
-        return null;
-      }
-
-      // 4. Between Clients Pin End and Leadership (leadershipTop)
-      if (currentScroll > clientsEnd + 30 && currentScroll < leadershipTop - 30) {
-        const mid = clientsEnd + (leadershipTop - clientsEnd) * 0.35;
-        if (isScrollingDown) {
-          return currentScroll > mid ? leadershipTop : clientsTop;
-        } else {
-          return currentScroll < mid ? clientsTop : leadershipTop;
-        }
-      }
-
-      // 5. Between Leadership (leadershipTop) and CTA (ctaTop)
-      if (currentScroll >= leadershipTop - 30 && currentScroll < ctaTop - 30) {
-        const mid = leadershipTop + (ctaTop - leadershipTop) * 0.4;
-        if (isScrollingDown) {
-          return currentScroll > mid ? ctaTop : leadershipTop;
-        } else {
-          return currentScroll < mid ? leadershipTop : ctaTop;
-        }
-      }
-
-      // 6. Between CTA and Page Bottom (maxScroll / Footer)
-      if (currentScroll >= ctaTop - 30) {
-        const mid = ctaTop + (maxScroll - ctaTop) * 0.5;
-        if (isScrollingDown) {
-          return currentScroll > mid ? maxScroll : ctaTop;
-        } else {
-          return currentScroll < mid ? ctaTop : maxScroll;
-        }
-      }
-
-      return null;
-    };
-
-    const handleScrollSnap = () => {
-      if (isProgrammaticScrolling || location.pathname !== '/') return;
-
-      const currentScroll = window.scrollY;
-      const isScrollingDown = currentScroll >= lastScrollY;
-      lastScrollY = currentScroll;
-
-      window.clearTimeout(snapTimeout);
-      snapTimeout = window.setTimeout(() => {
-        if (isProgrammaticScrolling) return;
-
-        // If still coasting with momentum, wait for inertial velocity to subside
-        if (Math.abs(lenis.velocity) > 0.15) {
-          handleScrollSnap();
-          return;
-        }
-
-        const currentPos = window.scrollY;
-        const targetTop = determineTarget(currentPos, isScrollingDown);
-        if (targetTop === null) return;
-
-        // If already within 6px of target, section is firmly locked
-        if (Math.abs(currentPos - targetTop) <= 6) return;
-
-        const isMobile = window.innerWidth < 768;
-        isProgrammaticScrolling = true;
-        lenis.scrollTo(targetTop, {
-          duration: isMobile ? 0.6 : 0.8,
-          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-          onComplete: () => {
-            isProgrammaticScrolling = false;
-          },
-        });
-      }, 130);
-    };
-
-    lenis.on('scroll', handleScrollSnap);
-
     // Keyboard Section Navigation (ArrowDown, ArrowUp, PageDown, PageUp)
+    let isProgrammaticScrolling = false;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (location.pathname !== '/' || isProgrammaticScrolling) return;
       if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp'].includes(e.key)) {
@@ -246,6 +118,7 @@ export function App() {
           targets.whatWeDoTop,
           targets.clientsTop,
           targets.leadershipTop,
+          targets.testimonialsTop,
           targets.ctaTop,
           targets.maxScroll,
         ];
@@ -289,17 +162,15 @@ export function App() {
 
     return () => {
       clearTimeout(timer);
-      window.clearTimeout(snapTimeout);
       window.removeEventListener('keydown', handleKeyDown);
       delete (window as any).__lenis;
-      lenis.off('scroll', handleScrollSnap);
       gsap.ticker.remove(ticker);
       lenis.destroy();
     };
   }, [preloaderActive, location.pathname]);
 
   return (
-    <main className="relative w-full min-h-screen bg-[#05070B] overflow-x-hidden snap-y snap-proximity md:snap-none">
+    <main className="relative w-full min-h-screen bg-[#05070B] overflow-x-hidden">
       {/* Routes: non-homepage routes always render regardless of preloader state */}
       <Routes>
         {/* HOMEPAGE — gated behind cinematic startup preloader */}
@@ -315,10 +186,12 @@ export function App() {
               {/* 2. BrandShoots Cinematic Homepage Sections */}
               {!preloaderActive && (
                 <div id="homepage-experience" className="w-full">
+                  <MainNavbar onOpenContact={() => setContactModalOpen(true)} />
                   <BrandShootsHero />
                   <WhatWeDoSection />
                   <OurClientsSection />
                   <TheLeadershipSection />
+                  <TestimonialsSection3D />
                   <FinalCtaSection onOpenContact={() => setContactModalOpen(true)} />
                   <BrandShootsFooter onOpenContact={() => setContactModalOpen(true)} />
                   <ContactModal

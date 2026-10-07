@@ -4,73 +4,147 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { CLIENT_PROJECTS, ClientProject } from '../../data/clientsData';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Play, Maximize2 } from 'lucide-react';
+import { FullScreenReelModal } from './FullScreenReelModal';
 
 gsap.registerPlugin(ScrollTrigger);
 
 /**
- * PHASE 3 PORTFOLIO — SIMPLE LIGHT DUST & DARK BLUE GALAXY ENVIRONMENT
+ * PHASE 3 PORTFOLIO — 3D TIME MACHINE WORMHOLE CORRIDOR
  *
- * Core Concept:
- * - Environment: Near-black (#020308) with deep midnight/indigo cosmic galaxy depth and soft dark blue nebulas.
- * - Simple Light Dust: Delicate ambient stardust motes (~320 particles) drifting naturally in 3D space with gentle parallax.
- * - Sized & Positioned strictly according to approved geometry:
- *   Panel width 1.76, height 3.12 (9:16 vertical ratio).
- *   Alternating Left wall (X = -2.35) and Right wall (X = +2.35), inward angle rotY = ±22°.
- * - Clean editorial typography sits on the opposite side with zero mesh overlap.
- * - Dynamic 3D wormhole travel: upcoming reels fly in from depth, exiting reels sweep past camera to the side.
- * - Pure 60fps WebGL performance with single-video decoding on active reel.
+ * Core Concept & User Approvals:
+ * - Environment: Near-black (#020306) with subtle dark light graphics & BrandShoots signature Electric Blue (#008CFF).
+ * - Light Graphics in Background: Faint architectural coordinate grid lines, subtle curved horizon arc, and soft stardust motes.
+ * - Reel Frame: Premium titanium curved smartphone/cinema display chassis with smooth rounded corners, beveled chamfer,
+ *   flush rounded video screen, razor-thin electric blue perimeter contour line, and subtle gorilla glass specular sheen.
+ * - Interactive: Hovering over active reel shows pointer + "WATCH FULLSCREEN" badge.
+ *   Clicking the reel or "WATCH FULLSCREEN REEL" button immediately launches the FullScreenReelModal with unmuted audio.
+ * - Geometry & Spacing: Approved 9:16 vertical ratio (1.76 × 3.12), alternating Left (-2.35) and Right (+2.35) inward walls (±22°).
  */
 
 const PANEL_WIDTH = 1.76;
 const PANEL_HEIGHT = 3.12; // exact 9:16 vertical reel proportion
+const CORNER_RADIUS = 0.15; // smooth luxurious rounded corners
 const CAM_Z = 7.0; // camera distance from active plane at Z = 0
-const DUST_COUNT = 320;
+const DUST_COUNT = 140;
 
-// In-memory procedural soft dark blue galaxy backdrop texture (near-black with deep cosmic indigo/sapphire nebulas)
-function createGalaxyTexture(): THREE.CanvasTexture {
+// Helper: Create rounded rectangle shape in Three.js
+function createRoundedRectShape(width: number, height: number, radius: number): THREE.Shape {
+  const shape = new THREE.Shape();
+  const x = -width / 2;
+  const y = -height / 2;
+  const w = width;
+  const h = height;
+  const r = radius;
+
+  shape.moveTo(x + r, y);
+  shape.lineTo(x + w - r, y);
+  shape.quadraticCurveTo(x + w, y, x + w, y + r);
+  shape.lineTo(x + w, y + h - r);
+  shape.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  shape.lineTo(x + r, y + h);
+  shape.quadraticCurveTo(x, y + h, x, y + h - r);
+  shape.lineTo(x, y + r);
+  shape.quadraticCurveTo(x, y, x + r, y);
+
+  return shape;
+}
+
+// Helper: Create rounded screen geometry with normalized UV coordinates
+function createRoundedScreenGeometry(w: number, h: number, r: number): THREE.BufferGeometry {
+  const shape = createRoundedRectShape(w, h, r);
+  const geo = new THREE.ShapeGeometry(shape, 28);
+  const posAttr = geo.getAttribute('position');
+  const uvs = new Float32Array(posAttr.count * 2);
+  for (let i = 0; i < posAttr.count; i++) {
+    const px = posAttr.getX(i);
+    const py = posAttr.getY(i);
+    uvs[i * 2 + 0] = (px + w / 2) / w;
+    uvs[i * 2 + 1] = (py + h / 2) / h;
+  }
+  geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+  return geo;
+}
+
+// Helper: Create continuous perimeter line for the electric blue rim contour
+function createRoundedRimLineGeometry(w: number, h: number, r: number, z: number = 0.028): THREE.BufferGeometry {
+  const shape = createRoundedRectShape(w, h, r);
+  const points = shape.getPoints(54);
+  const pts3D = points.map((p) => new THREE.Vector3(p.x, p.y, z));
+  pts3D.push(pts3D[0].clone()); // close loop
+  return new THREE.BufferGeometry().setFromPoints(pts3D);
+}
+
+// Procedural dark cinematic backdrop texture with subtle light graphics (near-black with BrandShoots Electric Blue #008CFF)
+function createDarkCinematicBackdropTexture(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
   canvas.height = 1024;
   const ctx = canvas.getContext('2d')!;
 
-  // Near-black cosmic base
-  ctx.fillStyle = '#020308';
+  // 1. Rich near-black studio base
+  ctx.fillStyle = '#020306';
   ctx.fillRect(0, 0, 1024, 1024);
 
-  // Soft, deep dark blue galaxy nebula clouds (subtle, dark, atmospheric)
-  const nebulae = [
-    { x: 300, y: 360, r: 440, color: 'rgba(8, 24, 56, 0.28)' },
-    { x: 740, y: 640, r: 480, color: 'rgba(6, 18, 44, 0.24)' },
-    { x: 512, y: 480, r: 380, color: 'rgba(10, 32, 72, 0.22)' },
-    { x: 220, y: 780, r: 340, color: 'rgba(5, 16, 38, 0.22)' },
-    { x: 820, y: 260, r: 360, color: 'rgba(8, 26, 60, 0.20)' },
-  ];
+  // 2. Faint BrandShoots Electric Blue (#008CFF) volumetric ambient glow in deep center
+  const centerGlow = ctx.createRadialGradient(512, 512, 50, 512, 512, 520);
+  centerGlow.addColorStop(0, 'rgba(0, 140, 255, 0.09)');
+  centerGlow.addColorStop(0.35, 'rgba(0, 95, 210, 0.04)');
+  centerGlow.addColorStop(0.70, 'rgba(0, 40, 120, 0.01)');
+  centerGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = centerGlow;
+  ctx.fillRect(0, 0, 1024, 1024);
 
-  nebulae.forEach((n) => {
-    const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
-    grad.addColorStop(0, n.color);
-    grad.addColorStop(0.5, n.color.replace('0.', '0.0'));
-    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 1024, 1024);
+  // 3. Light Graphics: Minimal architectural coordinate grid lines (very dark, not too bright)
+  ctx.strokeStyle = 'rgba(0, 140, 255, 0.035)';
+  ctx.lineWidth = 1;
+  const gridSize = 72;
+  for (let x = 0; x <= 1024; x += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, 1024);
+    ctx.stroke();
+  }
+  for (let y = 0; y <= 1024; y += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(1024, y);
+    ctx.stroke();
+  }
+
+  // 4. Light Graphics: Subtle curved horizon arc
+  ctx.strokeStyle = 'rgba(0, 140, 255, 0.08)';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.arc(512, 980, 680, Math.PI * 1.18, Math.PI * 1.82);
+  ctx.stroke();
+
+  // 5. Light Graphics: Delicate coordinate crosshairs at key grid intersections
+  ctx.strokeStyle = 'rgba(0, 140, 255, 0.12)';
+  ctx.lineWidth = 1.5;
+  const crosshairPoints = [
+    { x: 216, y: 288 },
+    { x: 808, y: 288 },
+    { x: 512, y: 504 },
+    { x: 216, y: 720 },
+    { x: 808, y: 720 },
+  ];
+  crosshairPoints.forEach((pt) => {
+    ctx.beginPath();
+    ctx.moveTo(pt.x - 7, pt.y);
+    ctx.lineTo(pt.x + 7, pt.y);
+    ctx.moveTo(pt.x, pt.y - 7);
+    ctx.lineTo(pt.x, pt.y + 7);
+    ctx.stroke();
   });
 
-  // Very subtle cyan-blue cosmic dust veil
-  const gradCenter = ctx.createRadialGradient(512, 512, 40, 512, 512, 580);
-  gradCenter.addColorStop(0, 'rgba(0, 110, 220, 0.05)');
-  gradCenter.addColorStop(0.45, 'rgba(0, 50, 120, 0.02)');
-  gradCenter.addColorStop(1, 'rgba(0, 0, 0, 0)');
-  ctx.fillStyle = gradCenter;
-  ctx.fillRect(0, 0, 1024, 1024);
-
-  // Faint micro stardust in deep galaxy
-  for (let i = 0; i < 180; i++) {
+  // 6. Subtle micro stardust motes in deep space
+  for (let i = 0; i < 90; i++) {
     const x = Math.random() * 1024;
     const y = Math.random() * 1024;
-    const radius = Math.random() * 1.0 + 0.3;
-    const alpha = Math.random() * 0.28 + 0.06;
-    ctx.fillStyle = `rgba(170, 210, 255, ${alpha})`;
+    const radius = Math.random() * 0.9 + 0.3;
+    const alpha = Math.random() * 0.22 + 0.05;
+    ctx.fillStyle = `rgba(180, 220, 255, ${alpha})`;
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.fill();
@@ -81,7 +155,7 @@ function createGalaxyTexture(): THREE.CanvasTexture {
   return texture;
 }
 
-// In-memory procedural soft circular particle texture for light dust
+// Procedural soft circular particle texture for 3D dust
 function createDustParticleTexture(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 64;
@@ -89,8 +163,8 @@ function createDustParticleTexture(): THREE.CanvasTexture {
   const ctx = canvas.getContext('2d')!;
   const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
   grad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
-  grad.addColorStop(0.25, 'rgba(160, 215, 255, 0.55)');
-  grad.addColorStop(0.65, 'rgba(60, 140, 240, 0.15)');
+  grad.addColorStop(0.25, 'rgba(120, 195, 255, 0.50)');
+  grad.addColorStop(0.65, 'rgba(0, 140, 255, 0.14)');
   grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 64, 64);
@@ -99,16 +173,34 @@ function createDustParticleTexture(): THREE.CanvasTexture {
   return texture;
 }
 
-// Soft traveling backlight pocket texture
+// Subtle gorilla glass specular sheen texture
+function createGlassGlareTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d')!;
+  const grad = ctx.createLinearGradient(0, 0, 256, 512);
+  grad.addColorStop(0, 'rgba(255, 255, 255, 0.16)');
+  grad.addColorStop(0.20, 'rgba(0, 140, 255, 0.06)');
+  grad.addColorStop(0.50, 'rgba(255, 255, 255, 0.015)');
+  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 256, 512);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
+// Soft traveling backlight pocket texture (strictly BrandShoots #008CFF)
 function createSoftLightTexture(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
   canvas.height = 512;
   const ctx = canvas.getContext('2d')!;
   const grad = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
-  grad.addColorStop(0, 'rgba(0, 130, 245, 0.20)');
-  grad.addColorStop(0.35, 'rgba(0, 75, 180, 0.09)');
-  grad.addColorStop(0.65, 'rgba(2, 10, 32, 0.02)');
+  grad.addColorStop(0, 'rgba(0, 140, 255, 0.22)');
+  grad.addColorStop(0.35, 'rgba(0, 90, 200, 0.08)');
+  grad.addColorStop(0.65, 'rgba(2, 6, 20, 0.01)');
   grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 512, 512);
@@ -127,13 +219,17 @@ export const PortfolioWormhole3D: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
+  // Full screen reel player state
+  const [fullScreenProject, setFullScreenProject] = useState<ClientProject | null>(null);
+  const [isHoveringReel, setIsHoveringReel] = useState<boolean>(false);
+
   // Three.js instances
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
 
-  // Galaxy & dust refs
-  const galaxyMeshRef = useRef<THREE.Mesh | null>(null);
+  // Backdrop & dust refs
+  const backdropMeshRef = useRef<THREE.Mesh | null>(null);
   const dustGeoRef = useRef<THREE.BufferGeometry | null>(null);
   const dustBaseYRef = useRef<Float32Array | null>(null);
   const dustSpeedsRef = useRef<Float32Array | null>(null);
@@ -143,11 +239,14 @@ export const PortfolioWormhole3D: React.FC = () => {
   const lightPocketMatRef = useRef<THREE.MeshBasicMaterial | null>(null);
   const pocketPointLightRef = useRef<THREE.PointLight | null>(null);
 
+  const activeIndexRef = useRef<number>(0);
+  activeIndexRef.current = activeIndex;
+
   const panelsRef = useRef<{
     group: THREE.Group;
     screenMesh: THREE.Mesh;
     chassisMesh: THREE.Mesh;
-    rimLine: THREE.LineSegments;
+    rimLine: THREE.LineSegments | THREE.LineLoop;
     baseX: number;
     baseY: number;
     baseRotY: number;
@@ -167,15 +266,15 @@ export const PortfolioWormhole3D: React.FC = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Initialize Three.js Scene, Camera, Light Dust, Galaxy, and 3D Panels
+  // Initialize Three.js Scene, Camera, Light Dust, Dark Backdrop, and 3D Panels
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // 1. Scene with Deep Near-Black Dark Blue Galaxy Atmosphere
+    // 1. Scene with Pure Dark Cinematic Space
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x020308);
-    scene.fog = new THREE.FogExp2(0x020308, 0.022);
+    scene.background = new THREE.Color(0x020306);
+    scene.fog = new THREE.FogExp2(0x020306, 0.024);
     sceneRef.current = scene;
 
     // 2. Perspective Camera looking straight down center (0, 0, 0)
@@ -201,21 +300,21 @@ export const PortfolioWormhole3D: React.FC = () => {
     renderer.toneMappingExposure = 1.15;
     rendererRef.current = renderer;
 
-    // 4. Subtle Dark Blue Galaxy Backdrop Mesh
-    const galaxyTexture = createGalaxyTexture();
-    const galaxyGeo = new THREE.PlaneGeometry(56, 36);
-    const galaxyMat = new THREE.MeshBasicMaterial({
-      map: galaxyTexture,
+    // 4. Subtle Dark Cinematic Backdrop with Light Graphics
+    const backdropTexture = createDarkCinematicBackdropTexture();
+    const backdropGeo = new THREE.PlaneGeometry(54, 34);
+    const backdropMat = new THREE.MeshBasicMaterial({
+      map: backdropTexture,
       transparent: true,
-      opacity: 0.65,
+      opacity: 0.85,
       depthWrite: false,
     });
-    const galaxyMesh = new THREE.Mesh(galaxyGeo, galaxyMat);
-    galaxyMesh.position.set(0, 0, -18.0);
-    scene.add(galaxyMesh);
-    galaxyMeshRef.current = galaxyMesh;
+    const backdropMesh = new THREE.Mesh(backdropGeo, backdropMat);
+    backdropMesh.position.set(0, 0, -19.0);
+    scene.add(backdropMesh);
+    backdropMeshRef.current = backdropMesh;
 
-    // 5. Simple Light Dust Particle System (~320 floating stardust motes)
+    // 5. Floating Dust Particle System (Simple, delicate stardust motes)
     const dustParticleTexture = createDustParticleTexture();
     const dustGeo = new THREE.BufferGeometry();
     const dustPositions = new Float32Array(DUST_COUNT * 3);
@@ -223,12 +322,12 @@ export const PortfolioWormhole3D: React.FC = () => {
     const dustSpeeds = new Float32Array(DUST_COUNT);
 
     for (let i = 0; i < DUST_COUNT; i++) {
-      dustPositions[i * 3 + 0] = (Math.random() - 0.5) * 26; // X: -13 to +13
-      const y = (Math.random() - 0.5) * 16;
-      dustPositions[i * 3 + 1] = y; // Y: -8 to +8
+      dustPositions[i * 3 + 0] = (Math.random() - 0.5) * 24; // X: -12 to +12
+      const y = (Math.random() - 0.5) * 15;
+      dustPositions[i * 3 + 1] = y; // Y: -7.5 to +7.5
       dustBaseY[i] = y;
-      dustPositions[i * 3 + 2] = (Math.random() - 0.5) * 30 - 4; // Z: -19 to +11
-      dustSpeeds[i] = Math.random() * 0.8 + 0.4;
+      dustPositions[i * 3 + 2] = (Math.random() - 0.5) * 28 - 2; // Z: -16 to +12
+      dustSpeeds[i] = Math.random() * 0.7 + 0.3;
     }
     dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
     dustGeoRef.current = dustGeo;
@@ -236,10 +335,10 @@ export const PortfolioWormhole3D: React.FC = () => {
     dustSpeedsRef.current = dustSpeeds;
 
     const dustMat = new THREE.PointsMaterial({
-      size: 0.065,
+      size: 0.08,
       map: dustParticleTexture,
       transparent: true,
-      opacity: 0.28,
+      opacity: 0.24,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
@@ -247,15 +346,15 @@ export const PortfolioWormhole3D: React.FC = () => {
     scene.add(dustPoints);
 
     // 6. Atmospheric Lighting
-    const ambientLight = new THREE.AmbientLight(0x060c18, 1.6);
+    const ambientLight = new THREE.AmbientLight(0x060c18, 1.8);
     scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 2.2);
     dirLight.position.set(4, 12, 8);
     scene.add(dirLight);
 
-    // Subtle blue accent specular point light attached to camera
-    const camPointLight = new THREE.PointLight(0x008cff, 1.4, 20);
+    // Camera accent point light (BrandShoots Electric Blue #008CFF)
+    const camPointLight = new THREE.PointLight(0x008cff, 1.5, 22);
     camPointLight.position.set(0, 0, 1.5);
     camera.add(camPointLight);
     scene.add(camera);
@@ -266,7 +365,7 @@ export const PortfolioWormhole3D: React.FC = () => {
     const lightPocketMat = new THREE.MeshBasicMaterial({
       map: lightPocketTexture,
       transparent: true,
-      opacity: 0.15,
+      opacity: 0.16,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
     });
@@ -277,19 +376,37 @@ export const PortfolioWormhole3D: React.FC = () => {
     lightPocketMatRef.current = lightPocketMat;
 
     // Traveling studio PointLight behind active project
-    const pocketPointLight = new THREE.PointLight(0x0077ee, 1.4, 14, 1.8);
+    const pocketPointLight = new THREE.PointLight(0x008cff, 1.4, 14, 1.8);
     pocketPointLight.position.set(mobile ? 0 : -2.35, mobile ? 0.8 : 0.3, -1.4);
     scene.add(pocketPointLight);
     pocketPointLightRef.current = pocketPointLight;
 
-    // 8. Construct 10 Physical 3D Reel Panels (Approved Layout & Geometry)
+    // 8. Construct 10 Physical 3D Reel Panels (Masterpiece Curved Chassis & Rounded Screen)
     const textureLoader = new THREE.TextureLoader();
+    const glareTexture = createGlassGlareTexture();
     const panels: typeof panelsRef.current = [];
 
-    // Shared geometries
-    const screenGeo = new THREE.PlaneGeometry(PANEL_WIDTH, PANEL_HEIGHT);
-    const boxGeo = new THREE.BoxGeometry(PANEL_WIDTH + 0.04, PANEL_HEIGHT + 0.04, 0.04);
-    const edgesGeo = new THREE.EdgesGeometry(boxGeo);
+    // Shared Geometries for Ultra-Sleek Curved Titanium Cinema Display
+    // A. Extruded Obsidian Titanium Chassis with smooth rounded corners and beveled chamfer
+    const chassisShape = createRoundedRectShape(PANEL_WIDTH + 0.05, PANEL_HEIGHT + 0.05, CORNER_RADIUS + 0.02);
+    const chassisGeo = new THREE.ExtrudeGeometry(chassisShape, {
+      depth: 0.05,
+      bevelEnabled: true,
+      bevelSegments: 4,
+      steps: 1,
+      bevelSize: 0.022,
+      bevelThickness: 0.022,
+    });
+    chassisGeo.center();
+
+    // B. Inner Rounded Screen Geometry with normalized UVs
+    const screenGeo = createRoundedScreenGeometry(PANEL_WIDTH, PANEL_HEIGHT, CORNER_RADIUS);
+
+    // C. Razor-thin Electric Blue (#008CFF) Rounded Contour Rim Line
+    const rimLineGeo = createRoundedRimLineGeometry(PANEL_WIDTH + 0.01, PANEL_HEIGHT + 0.01, CORNER_RADIUS + 0.005, 0.028);
+
+    // D. Rounded Glass Reflection Glare Plane
+    const glareGeo = createRoundedScreenGeometry(PANEL_WIDTH, PANEL_HEIGHT, CORNER_RADIUS);
 
     CLIENT_PROJECTS.forEach((project, i) => {
       const panelGroup = new THREE.Group();
@@ -308,27 +425,28 @@ export const PortfolioWormhole3D: React.FC = () => {
         panelGroup.scale.setScalar(0.78);
       }
 
-      // Dark titanium backplate chassis
+      // 1. Obsidian Titanium Backplate Chassis (Curved, metallic, luxury)
       const chassisMat = new THREE.MeshStandardMaterial({
-        color: 0x060910,
-        roughness: 0.25,
-        metalness: 0.85,
+        color: 0x090e18,
+        roughness: 0.22,
+        metalness: 0.92,
         transparent: true,
         opacity: i === 0 ? 1.0 : 0.0,
       });
-      const chassisMesh = new THREE.Mesh(boxGeo, chassisMat);
+      const chassisMesh = new THREE.Mesh(chassisGeo, chassisMat);
+      chassisMesh.position.set(0, 0, -0.015);
       panelGroup.add(chassisMesh);
 
-      // Razor-thin electric blue edge line
+      // 2. Razor-thin BrandShoots Electric Blue (#008CFF) Contour Edge Loop
       const rimLineMat = new THREE.LineBasicMaterial({
         color: 0x008cff,
         transparent: true,
-        opacity: i === 0 ? 0.45 : 0.0,
+        opacity: i === 0 ? 0.55 : 0.0,
       });
-      const rimLine = new THREE.LineSegments(edgesGeo, rimLineMat);
+      const rimLine = new THREE.LineLoop(rimLineGeo, rimLineMat);
       panelGroup.add(rimLine);
 
-      // Video element setup
+      // 3. Video element setup
       const video = document.createElement('video');
       video.src = project.videoUrl;
       video.poster = project.posterUrl;
@@ -338,11 +456,11 @@ export const PortfolioWormhole3D: React.FC = () => {
       video.playsInline = true;
       video.preload = 'metadata';
 
-      // High-res fallback poster texture
+      // 4. High-res poster fallback texture
       const posterTexture = textureLoader.load(project.posterUrl);
       posterTexture.colorSpace = THREE.SRGBColorSpace;
 
-      // Screen plane mesh
+      // 5. Rounded Screen Plane Mesh
       const screenMat = new THREE.MeshBasicMaterial({
         map: posterTexture,
         side: THREE.FrontSide,
@@ -350,8 +468,20 @@ export const PortfolioWormhole3D: React.FC = () => {
         opacity: i === 0 ? 1.0 : 0.0,
       });
       const screenMesh = new THREE.Mesh(screenGeo, screenMat);
-      screenMesh.position.z = 0.025; // sit flush on front of chassis
+      screenMesh.position.set(0, 0, 0.024); // sit flush in front of chassis
       panelGroup.add(screenMesh);
+
+      // 6. Delicate Gorilla Glass Glare Sheen Overlay
+      const glareMat = new THREE.MeshBasicMaterial({
+        map: glareTexture,
+        transparent: true,
+        opacity: i === 0 ? 0.08 : 0.0,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const glareMesh = new THREE.Mesh(glareGeo, glareMat);
+      glareMesh.position.set(0, 0, 0.029);
+      panelGroup.add(glareMesh);
 
       // Initially show only Chapter 0
       panelGroup.visible = i === 0;
@@ -374,6 +504,58 @@ export const PortfolioWormhole3D: React.FC = () => {
     });
 
     panelsRef.current = panels;
+
+    // Handle Raycaster Pointer Interaction (Click to Play Full Screen & Hover Pointer)
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    const handlePointerMove = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+      if (!cameraRef.current) return;
+      raycaster.setFromCamera(mouse, cameraRef.current);
+
+      const activePanel = panelsRef.current[activeIndexRef.current];
+      if (activePanel && activePanel.group.visible) {
+        const intersects = raycaster.intersectObjects([activePanel.screenMesh, activePanel.chassisMesh], true);
+        if (intersects.length > 0) {
+          canvas.style.cursor = 'pointer';
+          setIsHoveringReel(true);
+          return;
+        }
+      }
+      canvas.style.cursor = 'default';
+      setIsHoveringReel(false);
+    };
+
+    const handlePointerDown = (e: MouseEvent) => {
+      // Ignore if clicking on UI buttons or links
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'BUTTON' || target.tagName === 'A' || target.closest('button') || target.closest('a')) {
+        return;
+      }
+
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+      if (!cameraRef.current) return;
+      raycaster.setFromCamera(mouse, cameraRef.current);
+
+      const activePanel = panelsRef.current[activeIndexRef.current];
+      if (activePanel && activePanel.group.visible) {
+        const intersects = raycaster.intersectObjects([activePanel.screenMesh, activePanel.chassisMesh], true);
+        if (intersects.length > 0) {
+          // Launch Full Screen Reel Video!
+          setFullScreenProject(CLIENT_PROJECTS[activeIndexRef.current]);
+        }
+      }
+    };
+
+    window.addEventListener('mousemove', handlePointerMove);
+    window.addEventListener('click', handlePointerDown);
 
     // Handle Window Resize
     const handleResize = () => {
@@ -404,12 +586,12 @@ export const PortfolioWormhole3D: React.FC = () => {
     const animate = () => {
       animId = requestAnimationFrame(animate);
 
-      // Subtle organic floating motion for dust particles
+      // Subtle organic floating motion for dust motes
       if (dustGeoRef.current && dustBaseYRef.current && dustSpeedsRef.current) {
         const posAttr = dustGeoRef.current.getAttribute('position') as THREE.BufferAttribute;
         const time = Date.now() * 0.0006;
         for (let i = 0; i < DUST_COUNT; i++) {
-          const y = dustBaseYRef.current[i] + Math.sin(time * dustSpeedsRef.current[i] + i) * 0.25;
+          const y = dustBaseYRef.current[i] + Math.sin(time * dustSpeedsRef.current[i] + i) * 0.22;
           posAttr.setY(i, y);
         }
         posAttr.needsUpdate = true;
@@ -423,6 +605,8 @@ export const PortfolioWormhole3D: React.FC = () => {
 
     return () => {
       cancelAnimationFrame(animId);
+      window.removeEventListener('mousemove', handlePointerMove);
+      window.removeEventListener('click', handlePointerDown);
       window.removeEventListener('resize', handleResize);
       panels.forEach((p) => {
         p.video.pause();
@@ -430,14 +614,19 @@ export const PortfolioWormhole3D: React.FC = () => {
         p.videoTexture?.dispose();
         p.posterTexture.dispose();
       });
-      galaxyTexture.dispose();
+      chassisGeo.dispose();
+      screenGeo.dispose();
+      rimLineGeo.dispose();
+      glareGeo.dispose();
+      backdropTexture.dispose();
       dustParticleTexture.dispose();
       lightPocketTexture.dispose();
+      glareTexture.dispose();
       renderer.dispose();
     };
   }, []);
 
-  // Update Dynamic Three.js Wormhole Motion & Galaxy Environment based on Scroll Unit
+  // Update Dynamic Three.js Wormhole Motion & Dark Space based on Scroll Unit
   const updateThreeScene = useCallback((u: number) => {
     const panels = panelsRef.current;
     const camera = cameraRef.current;
@@ -463,7 +652,7 @@ export const PortfolioWormhole3D: React.FC = () => {
     const snapDist = Math.abs(u - Math.round(u));
     const snapFocus = Math.max(0, 1.0 - snapDist * 2.8);
 
-    // 2. Cinematic Traveling Light Pocket in Galaxy
+    // 2. Cinematic Traveling Light Pocket in Dark Space
     const midTravelDip = Math.sin(Math.PI * frac); // 0 at settle, 1 at mid-scroll
     if (lightPocketMeshRef.current && lightPocketMatRef.current) {
       lightPocketMeshRef.current.position.x = targetLightX;
@@ -479,17 +668,14 @@ export const PortfolioWormhole3D: React.FC = () => {
       pocketPointLightRef.current.intensity = 1.2 + snapFocus * 0.6;
     }
 
-    // 3. Subtle Parallax for Galaxy Backdrop
-    if (galaxyMeshRef.current) {
-      galaxyMeshRef.current.position.x = targetLightX * 0.10;
+    // 3. Subtle Parallax for Backdrop
+    if (backdropMeshRef.current) {
+      backdropMeshRef.current.position.x = targetLightX * 0.08;
     }
 
     // 4. Subtle Restrained Cinematic Camera Motion
-    // Forward push during scroll travel: max 0.28 units
     const camPushZ = midTravelDip * 0.28;
-    // Tiny vertical organic drift: max 0.035 units
     const camDriftY = Math.sin(u * Math.PI) * 0.035;
-    // Delicate lateral dolly lean toward the active project: max 0.12 units
     const activeIsLeft = Math.round(u) % 2 === 0;
     const activeTargetX = mobile ? 0 : (activeIsLeft ? -2.35 : 2.35);
     const camLeanX = activeTargetX * 0.05 * (1.0 - midTravelDip * 0.5);
@@ -549,7 +735,6 @@ export const PortfolioWormhole3D: React.FC = () => {
         opacity = Math.min(1.0, ease * 1.5);
       } else if (delta > 0) {
         // Exiting off to the side past camera (delta: 0.0 -> 1.0)
-        // "like reel going 3D from side"
         const t = delta;
         const ease = t * t;
 
@@ -573,7 +758,7 @@ export const PortfolioWormhole3D: React.FC = () => {
       // Rim light glint peaks slightly when snapped in focus
       const dist = Math.abs(delta);
       const activeEmphasis = dist < 0.35 ? (1.0 - dist * 2.8) : 0;
-      (p.rimLine.material as THREE.LineBasicMaterial).opacity = (0.40 + activeEmphasis * 0.16) * opacity;
+      (p.rimLine.material as THREE.LineBasicMaterial).opacity = (0.45 + activeEmphasis * 0.25) * opacity;
 
       // Video playback: play only when in close hero focus
       if (dist < 0.65 && opacity > 0.6) {
@@ -657,138 +842,175 @@ export const PortfolioWormhole3D: React.FC = () => {
   const textOpacity = Math.max(0, 1 - snapDistance * 2.8);
 
   return (
-    <div
-      ref={containerRef}
-      className="relative w-full bg-[#020308] text-white select-none"
-      style={{
-        // 100vh per project for generous scroll travel and exact snap settle
-        height: `${totalProjects * 100}vh`,
-      }}
-    >
-      {/* ================================================================== */}
-      {/* FIXED 100vw × 100vh CINEMATIC VIEWPORT PINNED FOR SCROLL PROGRESS */}
-      {/* ================================================================== */}
-      <div className="fixed inset-0 w-full h-full overflow-hidden flex flex-col justify-between pointer-events-none">
-        {/* ========================================================= */}
-        {/* 1. THREE.JS 3D WEBGL CANVAS (REAL 3D CORRIDOR ENGINE)     */}
-        {/* ========================================================= */}
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 w-full h-full block z-0"
-        />
+    <>
+      <div
+        ref={containerRef}
+        className="relative w-full bg-[#020306] text-white select-none"
+        style={{
+          // 100vh per project for generous scroll travel and exact snap settle
+          height: `${totalProjects * 100}vh`,
+        }}
+      >
+        {/* ================================================================== */}
+        {/* FIXED 100vw × 100vh CINEMATIC VIEWPORT PINNED FOR SCROLL PROGRESS */}
+        {/* ================================================================== */}
+        <div className="fixed inset-0 w-full h-full overflow-hidden flex flex-col justify-between pointer-events-none">
+          {/* ========================================================= */}
+          {/* 1. THREE.JS 3D WEBGL CANVAS (REAL 3D CORRIDOR ENGINE)     */}
+          {/* ========================================================= */}
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 w-full h-full block z-0 pointer-events-auto"
+          />
 
-        {/* ========================================================= */}
-        {/* 2. MINIMAL TOP STATUS // PROJECT COUNTER (SUBTLE & CLEAN) */}
-        {/* ========================================================= */}
-        <div className="relative z-20 w-full px-6 sm:px-10 md:px-16 pt-24 md:pt-28 flex items-center justify-between pointer-events-none">
-          {/* Subtle Category Kicker */}
-          <div className="flex items-center gap-2 font-mono text-[11px] sm:text-xs tracking-[0.24em] uppercase text-white/40">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
-            <span className="text-white/60">BRANDSHOOTS ARCHIVE</span>
-            <span className="hidden sm:inline text-white/20">//</span>
-            <span className="hidden sm:inline text-white/40">3D CORRIDOR</span>
+          {/* ========================================================= */}
+          {/* 2. MINIMAL TOP STATUS // PROJECT COUNTER (SUBTLE & CLEAN) */}
+          {/* ========================================================= */}
+          <div className="relative z-20 w-full px-6 sm:px-10 md:px-16 pt-24 md:pt-28 flex items-center justify-between pointer-events-none">
+            {/* Subtle Category Kicker */}
+            <div className="flex items-center gap-2 font-mono text-[11px] sm:text-xs tracking-[0.24em] uppercase text-white/40">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
+              <span className="text-white/60">BRANDSHOOTS ARCHIVE</span>
+              <span className="hidden sm:inline text-white/20">//</span>
+              <span className="hidden sm:inline text-white/40">3D CORRIDOR</span>
+            </div>
+
+            {/* Minimal Project Counter */}
+            <div className="flex items-center gap-2 font-mono text-xs sm:text-sm tracking-[0.2em] text-white/50">
+              <span className="text-[#008CFF] font-semibold">
+                {String(activeIndex + 1).padStart(2, '0')}
+              </span>
+              <span className="text-white/20">/</span>
+              <span>{String(totalProjects).padStart(2, '0')}</span>
+            </div>
           </div>
 
-          {/* Minimal Project Counter */}
-          <div className="flex items-center gap-2 font-mono text-xs sm:text-sm tracking-[0.2em] text-white/50">
-            <span className="text-[#008CFF] font-semibold">
-              {String(activeIndex + 1).padStart(2, '0')}
-            </span>
-            <span className="text-white/20">/</span>
-            <span>{String(totalProjects).padStart(2, '0')}</span>
-          </div>
-        </div>
+          {/* ========================================================= */}
+          {/* 3. HOVER BADGE OVER ACTIVE REEL: CLICK TO PLAY FULLSCREEN */}
+          {/* ========================================================= */}
+          {isHoveringReel && textOpacity > 0.5 && (
+            <div
+              className={`fixed z-30 pointer-events-none transition-all duration-200 hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-[#008CFF]/90 text-white font-mono text-xs tracking-wider uppercase font-bold shadow-[0_0_24px_rgba(0,140,255,0.7)] backdrop-blur-md animate-pulse ${
+                isLeft ? 'left-[22%] top-[50%]' : 'right-[22%] top-[50%]'
+              }`}
+            >
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>CLICK TO PLAY FULLSCREEN</span>
+            </div>
+          )}
 
-        {/* ========================================================= */}
-        {/* 3. INTEGRATED MINIMAL PROJECT EDITORIAL INFORMATION       */}
-        {/*    (Positioned cleanly on opposite side of active reel)   */}
-        {/* ========================================================= */}
-        <div className="relative z-10 w-full flex-1 flex items-center px-6 sm:px-12 md:px-16 lg:px-24 xl:px-32 pointer-events-none">
-          <div
-            className={`w-full flex pointer-events-auto transition-all duration-200 ${
-              isMobile
-                ? 'justify-center items-end text-center mt-auto mb-16'
-                : isLeft
-                ? 'justify-end items-center text-left'
-                : 'justify-start items-center text-left'
-            }`}
-            style={{
-              opacity: textOpacity,
-              transform: `translateY(${(1 - textOpacity) * 16}px)`,
-            }}
-          >
-            <div className="max-w-md lg:max-w-lg xl:max-w-xl flex flex-col">
-              {/* Category / Type Kicker */}
-              <div className="text-[11px] sm:text-xs font-mono uppercase tracking-[0.26em] text-[#008CFF] font-semibold mb-1.5 sm:mb-2.5">
-                // {String(activeIndex + 1).padStart(2, '0')} • {currentProject.category} • {currentProject.year}
-              </div>
+          {/* ========================================================= */}
+          {/* 4. INTEGRATED MINIMAL PROJECT EDITORIAL INFORMATION       */}
+          {/*    (Positioned cleanly on opposite side of active reel)   */}
+          {/* ========================================================= */}
+          <div className="relative z-10 w-full flex-1 flex items-center px-6 sm:px-12 md:px-16 lg:px-24 xl:px-32 pointer-events-none">
+            <div
+              className={`w-full flex pointer-events-auto transition-all duration-200 ${
+                isMobile
+                  ? 'justify-center items-end text-center mt-auto mb-16'
+                  : isLeft
+                  ? 'justify-end items-center text-left'
+                  : 'justify-start items-center text-left'
+              }`}
+              style={{
+                opacity: textOpacity,
+                transform: `translateY(${(1 - textOpacity) * 16}px)`,
+              }}
+            >
+              <div className="max-w-md lg:max-w-lg xl:max-w-xl flex flex-col">
+                {/* Category / Type Kicker */}
+                <div className="text-[11px] sm:text-xs font-mono uppercase tracking-[0.26em] text-[#008CFF] font-semibold mb-1.5 sm:mb-2.5">
+                  // {String(activeIndex + 1).padStart(2, '0')} • {currentProject.category} • {currentProject.year}
+                </div>
 
-              {/* Big Client Display Title */}
-              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-extrabold tracking-tight text-white uppercase drop-shadow-md leading-[1.05]">
-                {currentProject.name}
-              </h2>
+                {/* Big Client Display Title */}
+                <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-extrabold tracking-tight text-white uppercase drop-shadow-md leading-[1.05]">
+                  {currentProject.name}
+                </h2>
 
-              {/* Headline Hook */}
-              <p className="mt-2.5 sm:mt-3 text-sm sm:text-base md:text-lg font-medium text-white/90 tracking-wide">
-                {currentProject.headline}
-              </p>
+                {/* Headline Hook */}
+                <p className="mt-2.5 sm:mt-3 text-sm sm:text-base md:text-lg font-medium text-white/90 tracking-wide">
+                  {currentProject.headline}
+                </p>
 
-              {/* One Clean Editorial Story Sentence */}
-              <p className="mt-2 text-xs sm:text-sm md:text-base text-white/60 leading-relaxed font-sans line-clamp-3">
-                {currentProject.story}
-              </p>
+                {/* One Clean Editorial Story Sentence */}
+                <p className="mt-2 text-xs sm:text-sm md:text-base text-white/60 leading-relaxed font-sans line-clamp-3">
+                  {currentProject.story}
+                </p>
 
-              {/* Discrete View Project Action Link */}
-              <div className="mt-4 sm:mt-6">
-                <Link
-                  to={`/portfolio/${currentProject.slug}`}
-                  className="inline-flex items-center gap-2 text-xs sm:text-sm font-mono uppercase tracking-[0.22em] text-[#008CFF] hover:text-white transition-colors duration-200 group"
-                >
-                  <span className="border-b border-[#008CFF]/50 group-hover:border-white pb-0.5">
-                    VIEW FULL PROJECT
-                  </span>
-                  <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                </Link>
+                {/* Discrete Watch Fullscreen Reel Action Button */}
+                <div className="mt-5 sm:mt-6 flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setFullScreenProject(currentProject)}
+                    className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#008CFF]/15 hover:bg-[#008CFF] border border-[#008CFF]/60 hover:border-[#008CFF] text-[#008CFF] hover:text-white font-mono text-xs tracking-[0.20em] uppercase font-bold transition-all duration-200 cursor-pointer shadow-[0_0_15px_rgba(0,140,255,0.2)] active:scale-95 group"
+                  >
+                    <Play className="w-3.5 h-3.5 fill-current text-[#008CFF] group-hover:text-white" />
+                    <span>WATCH FULLSCREEN REEL</span>
+                    <Maximize2 className="w-3 h-3 text-[#008CFF] group-hover:text-white ml-0.5" />
+                  </button>
+
+                  <Link
+                    to={`/portfolio/${currentProject.slug}`}
+                    className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-[0.18em] text-white/60 hover:text-white transition-colors duration-200 group"
+                  >
+                    <span className="border-b border-white/20 group-hover:border-white pb-0.5">
+                      DETAILS
+                    </span>
+                    <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* ========================================================= */}
-        {/* 4. SUBTLE BOTTOM STATUS & NAVIGATION                      */}
-        {/* ========================================================= */}
-        <div className="relative z-20 w-full px-6 sm:px-10 md:px-16 pb-6 sm:pb-8 flex items-center justify-between text-[11px] font-mono text-white/35 uppercase tracking-[0.22em] pointer-events-auto">
-          {/* Scroll Prompt */}
-          <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-white/30 animate-pulse" />
-            <span>SCROLL TO TRAVEL CORRIDOR</span>
-          </div>
+          {/* ========================================================= */}
+          {/* 5. SUBTLE BOTTOM STATUS & NAVIGATION                      */}
+          {/* ========================================================= */}
+          <div className="relative z-20 w-full px-6 sm:px-10 md:px-16 pb-6 sm:pb-8 flex items-center justify-between text-[11px] font-mono text-white/35 uppercase tracking-[0.22em] pointer-events-auto">
+            {/* Scroll Prompt */}
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-white/30 animate-pulse" />
+              <span>SCROLL TO TRAVEL CORRIDOR</span>
+            </div>
 
-          {/* Quick Stepper Index */}
-          <div className="flex items-center gap-2">
-            {CLIENT_PROJECTS.map((_, pIdx) => {
-              const isActive = activeIndex === pIdx;
-              return (
-                <button
-                  key={pIdx}
-                  type="button"
-                  onClick={() => scrollToProject(pIdx)}
-                  aria-label={`Jump to project ${pIdx + 1}`}
-                  className="py-1 px-0.5 focus:outline-none cursor-pointer"
-                >
-                  <span
-                    className={`block transition-all duration-300 rounded-full ${
-                      isActive
-                        ? 'w-5 sm:w-7 h-1 bg-[#008CFF] shadow-[0_0_6px_#008CFF]'
-                        : 'w-1 h-1 bg-white/20 hover:bg-white/50'
-                    }`}
-                  />
-                </button>
-              );
-            })}
+            {/* Quick Stepper Index */}
+            <div className="flex items-center gap-2">
+              {CLIENT_PROJECTS.map((_, pIdx) => {
+                const isActive = activeIndex === pIdx;
+                return (
+                  <button
+                    key={pIdx}
+                    type="button"
+                    onClick={() => scrollToProject(pIdx)}
+                    aria-label={`Jump to project ${pIdx + 1}`}
+                    className="py-1 px-0.5 focus:outline-none cursor-pointer"
+                  >
+                    <span
+                      className={`block transition-all duration-300 rounded-full ${
+                        isActive
+                          ? 'w-5 sm:w-7 h-1 bg-[#008CFF] shadow-[0_0_6px_#008CFF]'
+                          : 'w-1 h-1 bg-white/20 hover:bg-white/50'
+                      }`}
+                    />
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* ================================================================== */}
+      {/* 6. FULLSCREEN CINEMATIC REEL MODAL PLAYER                          */}
+      {/* ================================================================== */}
+      <FullScreenReelModal
+        isOpen={Boolean(fullScreenProject)}
+        project={fullScreenProject}
+        onClose={() => setFullScreenProject(null)}
+      />
+    </>
   );
 };
+
+export default PortfolioWormhole3D;

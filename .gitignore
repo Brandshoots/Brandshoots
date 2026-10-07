@@ -29,3 +29,4 @@ test-*.html
 .vercel
 
 reports/
+scratch_*.png

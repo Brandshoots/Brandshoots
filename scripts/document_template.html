@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BRANDSHOOTS — Complete Website Visual Architecture & Flow Specification</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+  @page {
+    size: A4;
+    margin: 14mm 12mm 14mm 12mm;
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #05070B;
+    color: #E2E8F0;
+    margin: 0;
+    padding: 0;
+    font-size: 8.8pt;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+  }
+
+  .page-break {
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Cover Page */
+  .cover-container {
+    height: 100%;
+    min-height: 260mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 24mm 14mm;
+    border: 1px solid rgba(0, 140, 255, 0.3);
+    background: radial-gradient(circle at 50% 15%, rgba(0, 140, 255, 0.16) 0%, rgba(5, 7, 11, 0.98) 70%);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cover-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    padding-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .brand-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 140, 255, 0.18);
+    border: 1px solid #008CFF;
+    padding: 4px 14px;
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8pt;
+    color: #008CFF;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+  }
+
+  .cover-title-group {
+    margin: 35mm 0;
+  }
+
+  .doc-subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10pt;
+    color: #60B8FF;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .doc-title {
+    font-size: 36pt;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: #FFFFFF;
+    margin: 0 0 16px 0;
+    text-transform: uppercase;
+  }
+
+  .doc-title span {
+    color: #008CFF;
+  }
+
+  .doc-description {
+    font-size: 11pt;
+    color: #94A3B8;
+    max-width: 620px;
+    line-height: 1.6;
+    font-weight: 400;
+  }
+
+  .cover-metadata {
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding-top: 16px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8pt;
+  }
+
+  .meta-item .meta-label {
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+
+  .meta-item .meta-val {
+    color: #F8FAFC;
+    font-weight: 600;
+  }
+
+  /* Section Headers */
+  h1.section-title {
+    font-size: 17pt;
+    font-weight: 800;
+    color: #FFFFFF;
+    letter-spacing: -0.02em;
+    border-bottom: 2px solid #008CFF;
+    padding-bottom: 6px;
+    margin-top: 18px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-transform: uppercase;
+  }
+
+  h1.section-title span.sec-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10pt;
+    color: #008CFF;
+    background: rgba(0, 140, 255, 0.12);
+    padding: 3px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 140, 255, 0.3);
+  }
+
+  h2.sub-title {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #F1F5F9;
+    margin-top: 14px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  h2.sub-title::before {
+    content: '';
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: #008CFF;
+  }
+
+  p {
+    margin: 0 0 8px 0;
+    color: #CBD5E1;
+  }
+
+  /* Screenshot Card Presentation */
+  .screenshot-frame {
+    margin: 8px 0 12px 0;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+    background: #0B0F19;
+    padding: 5px;
+    box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.85);
+    position: relative;
+  }
+
+  .screenshot-frame img {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    object-position: top center;
+    display: block;
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .screenshot-frame.tall img {
+    max-height: 230px;
+  }
+
+  .grid-2 .screenshot-frame img {
+    max-height: 155px;
+  }
+
+  .screenshot-caption {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.2pt;
+    color: #94A3B8;
+    padding: 5px 4px 1px 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .screenshot-caption .caption-tag {
+    color: #008CFF;
+    font-weight: 600;
+  }
+
+  /* Grids */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  /* Callout Boxes */
+  .card-box {
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-left: 3px solid #008CFF;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+  }
+
+  .card-box.purple {
+    border-left-color: #A855F7;
+  }
+
+  .card-box.cyan {
+    border-left-color: #06B6D4;
+  }
+
+  .box-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.2pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #60B8FF;
+    margin-bottom: 3px;
+    letter-spacing: 0.1em;
+  }
+
+  /* Tables */
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 7.8pt;
+  }
+
+  table.data-table th, table.data-table td {
+    padding: 6px 8px;
+    text-align: left;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  table.data-table th {
+    background: #0F172A;
+    color: #60B8FF;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  table.data-table tr:nth-child(even) {
+    background: rgba(15, 23, 42, 0.35);
+  }
+
+  ul.spec-list {
+    margin: 3px 0 8px 0;
+    padding-left: 16px;
+    color: #CBD5E1;
+  }
+
+  ul.spec-list li {
+    margin-bottom: 3px;
+  }
+
+  .flow-diagram {
+    background: #090D16;
+    border: 1px dashed rgba(0, 140, 255, 0.35);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin: 8px 0 10px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.2pt;
+    color: #94A3B8;
+  }
+
+  .flow-step {
+    display: inline-block;
+    background: rgba(0, 140, 255, 0.15);
+    color: #E2E8F0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 140, 255, 0.3);
+    font-weight: 600;
+  }
+
+  .flow-arrow {
+    display: inline-block;
+    color: #008CFF;
+    margin: 0 4px;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<!-- ======================================================================= -->
+<!-- COVER PAGE                                                              -->
+<!-- ======================================================================= -->
+<div class="cover-container page-break">
+  <div class="cover-header">
+    <div class="brand-badge">BRANDSHOOTS CINEMATIC SUITE</div>
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 8pt; color: #64748B;">PRODUCTION SPECIFICATION // V2.4</div>
+  </div>
+
+  <div class="cover-title-group">
+    <div class="doc-subtitle">COMPREHENSIVE WEBSITE VISUAL & ARCHITECTURAL BLUEPRINT</div>
+    <h1 class="doc-title">BRAND<span>SHOOTS</span></h1>
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 14pt; color: #38BDF8; margin-bottom: 20px; letter-spacing: 0.15em;">
+      CREATE. SHOOT. GROW.
+    </div>
+    <div class="doc-description">
+      An exhaustive visual breakdown and architectural audit of the entire BrandShoots web experience. Details every page, 3D WebGL environment, dynamic interaction layer, ScrollTrigger progression, and physical camera choreography.
+    </div>
+  </div>
+
+  <div class="cover-metadata">
+    <div class="meta-item">
+      <div class="meta-label">Primary Stack</div>
+      <div class="meta-val">Three.js / GSAP 3 / React</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Scroll Engine</div>
+      <div class="meta-val">Lenis Inertial Smoothing</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">PBR Color Space</div>
+      <div class="meta-val">ACESFilmic Tone Mapping</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Studio Base</div>
+      <div class="meta-val">Hyderabad, India</div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================================= -->
+<!-- CHAPTER 1: EXECUTIVE OVERVIEW & CREATIVE DIRECTION                     -->
+<!-- ======================================================================= -->
+<div class="page-break">
+  <h1 class="section-title">
+    <span>1. Executive Overview & Design System</span>
+    <span class="sec-num">CH 01</span>
+  </h1>
+
+  <p>
+    <strong>BRANDSHOOTS</strong> is an ultra-premium creative branding and cinematic production studio based in Hyderabad, India. The studio architects end-to-end commercial brand films, 9:16 vertical video assets, social velocity campaigns, and high-production digital experiences for forward-thinking enterprises.
+  </p>
+
+  <h2 class="sub-title">1.1 Core Creative Direction & Philosophy</h2>
+  <p>
+    Unlike conventional agency or corporate SaaS websites, the BrandShoots website operates as a <strong>continuous cinematic film</strong>. The user does not simply consume static web pages; they journey through an evolving obsidian studio universe where real video assets, 3D geometry, interactive cameras, and editorial typography react in real time.
+  </p>
+
+  <div class="grid-3 avoid-break">
+    <div class="card-box">
+      <div class="box-label">01 // CREATE</div>
+      <strong style="color: #F8FAFC;">Vision & Strategy</strong>
+      <p style="font-size: 7.8pt; margin-top: 3px;">Architecting narrative, script, visual treatment, and aesthetic intent before a lens opens on set.</p>
+    </div>
+    <div class="card-box purple">
+      <div class="box-label">02 // SHOOT</div>
+      <strong style="color: #F8FAFC;">Physical Cinematography</strong>
+      <p style="font-size: 7.8pt; margin-top: 3px;">Cinematic lighting, high-end cinema glass, titanium rigging, and disciplined on-set direction.</p>
+    </div>
+    <div class="card-box cyan">
+      <div class="box-label">03 // GROW</div>
+      <strong style="color: #F8FAFC;">Brand Equity & Scale</strong>
+      <p style="font-size: 7.8pt; margin-top: 3px;">Distributing crafted 9:16 reels and films to turn viewers into high-conviction client communities.</p>
+    </div>
+  </div>
+
+  <h2 class="sub-title">1.2 Global Design System & Palette</h2>
+  <table class="data-table avoid-break">
+    <thead>
+      <tr>
+        <th>Design Token</th>
+        <th>Hex / Value</th>
+        <th>Visual Role & Material Property</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Obsidian Black</strong></td>
+        <td>#04060A / #05070B</td>
+        <td>Deep, void background absorbing stray light; zero banding; infinite studio depth.</td>
+      </tr>
+      <tr>
+        <td><strong>Electric Studio Blue</strong></td>
+        <td>#008CFF / #139EF2</td>
+        <td>High-visibility focal accents, point light emitters, 1px chassis rim lines, active states.</td>
+      </tr>
+      <tr>
+        <td><strong>Pure High-Key White</strong></td>
+        <td>#FFFFFF / #F7F9FF</td>
+        <td>Monolithic display typography, high-contrast headings with drop shadow depth.</td>
+      </tr>
+      <tr>
+        <td><strong>Titanium Chassis</strong></td>
+        <td>#0A0D14 (metalness 0.88)</td>
+        <td>Physical dark casing surrounding 3D video tiles and interactive dossier panels.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="sub-title">1.3 Kinetic Scroll Architecture (Lenis + GSAP)</h2>
+  <p>
+    Scrolling across the site is governed by <strong>Lenis Inertial Smoothing</strong> directly synchronized with <strong>GSAP ScrollTrigger</strong> ticker loop. This ensures that every 3D camera pan, rotation scrub, and text reveal moves with mathematical physical inertia (duration 1.2s, exponential ease), eliminating scroll judder and creating an effortless cinematic flow.
+  </p>
+
+  <div class="flow-diagram avoid-break">
+    <span class="flow-step">User Input (Wheel / Touch)</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-step">Lenis Normalizer</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-step">ScrollTrigger.update()</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-step">Three.js Scrub</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-step">ACESFilmic Render</span>
+  </div>
+</div>
+
+<!-- ======================================================================= -->
+<!-- CHAPTER 2: GLOBAL NAVIGATION ARCHITECTURE                              -->
+<!-- ======================================================================= -->
+<div class="page-break">
+  <h1 class="section-title">
+    <span>2. Global Navigation: Dual-State Dynamic Island</span>
+    <span class="sec-num">CH 02</span>
+  </h1>
+
+  <p>
+    Navigation across BrandShoots employs a bespoke <strong>Dual-State Responsive Dynamic Island</strong> that adapts seamlessly to the user's scroll depth and device context.
+  </p>
+
+  <div class="grid-2 avoid-break">
+    <div class="card-box">
+      <div class="box-label">STATE 1 // EXPANDED GLASS BAR (TOP OF PAGE)</div>
+      <p style="font-size: 7.8pt;">
+        When the visitor is anchored at the top of any page, the navbar occupies a wide, airy pill-shaped glass container:
+      </p>
+      <ul class="spec-list" style="font-size: 7.8pt;">
+        <li>Official BrandShoots Vector Logo anchored on the left.</li>
+        <li>Clean editorial navigation links: ABOUT, PORTFOLIO, CONTACT.</li>
+        <li>Frosted glass backing (backdrop-blur-md, bg-black/40) with razor 1px white/10 border.</li>
+        <li>High-contrast CONTACT pill button with hover glow physics.</li>
+      </ul>
+    </div>
+
+    <div class="card-box cyan">
+      <div class="box-label">STATE 2 // COLLAPSED DYNAMIC ISLAND (DURING SCROLL)</div>
+      <p style="font-size: 7.8pt;">
+        Upon scrolling down 80px, the header morphs into a detached, floating island centered at the top:
+      </p>
+      <ul class="spec-list" style="font-size: 7.8pt;">
+        <li>Centered floating notch (max-w-[280px], h-12).</li>
+        <li>Compact BrandShoots logo glyph on the left.</li>
+        <li>Direct ABOUT and PORTFOLIO links for one-tap navigation.</li>
+        <li>Subtle 3-line hamburger menu icon that triggers the fullscreen blur modal.</li>
+        <li>Mathematically dead-centered with Apple-fluid cubic-bezier(0.16, 1, 0.3, 1) transition.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 class="sub-title">2.1 Fullscreen Blur Modal Menu</h2>
+  <p>
+    Clicking the hamburger lines on either mobile or the collapsed Dynamic Island triggers an ethereal fullscreen modal overlay:
+  </p>
+  <ul class="spec-list">
+    <li><strong>Backdrop Atmosphere:</strong> Deep obsidian frosted glass with backdrop-blur-2xl and radial deep-blue glow.</li>
+    <li><strong>Staggered Link Reveal:</strong> Oversized editorial typography links (HOME, ABOUT, PORTFOLIO, CONTACT) slide in with staggered clip-path animation.</li>
+    <li><strong>Direct Business Connectors:</strong> Quick WhatsApp shortcut (+91 7075960672) and official social icons (Instagram, YouTube, Facebook) anchored at the bottom.</li>
+  </ul>
+</div>
+
+<!-- ======================================================================= -->
+<!-- CHAPTER 3: HOMEPAGE DEEP DIVE (SECTIONS 1 TO 4)                        -->
+<!-- ======================================================================= -->
+<div class="page-break">
+  <h1 class="section-title">
+    <span>3. Homepage (/) — Part 1: Hero to Clients</span>
+    <span class="sec-num">CH 03</span>
+  </h1>
+
+  <h2 class="sub-title">3.1 Multi-Grade Preloader & 3D Hero Cylinder</h2>
+  <p>
+    The homepage opens with an authentic video tile preloader and transitions into the 3D studio where 9:16 vertical films curve outward in an architectural cylinder.
+  </p>
+
+  <div class="screenshot-frame tall avoid-break">
+    <img src="{{IMAGE_HERO}}" alt="BrandShoots 3D Hero Cylinder" />
+    <div class="screenshot-caption">
+      <span>FIG 3.1 // 3D HERO CYLINDER — PHYSICAL 9:16 REEL WALL & MONOLITHIC DISPLAY</span>
+      <span class="caption-tag">THREE.JS WEBGL</span>
+    </div>
+  </div>
+
+  <div class="grid-2 avoid-break">
+    <div class="card-box">
+      <div class="box-label">VISUAL REPRESENTATION</div>
+      <p style="font-size: 7.8pt;">
+        Real video reels mapped onto 3D planes with dark obsidian titanium frames, 1px #008CFF rim highlights, and ambient light pocketing. The central brand statement "CREATE. SHOOT. GROW." dominates the foreground.
+      </p>
+    </div>
+    <div class="card-box cyan">
+      <div class="box-label">FLOW & INTERACTION</div>
+      <p style="font-size: 7.8pt;">
+        Moving the cursor tilts the 3D cylinder. Hovering over any reel activates raycasting: the frame floats forward in Z-space, lights brighten, and the video plays. Clicking launches the full case study.
+      </p>
+    </div>
+  </div>
+
+  <h2 class="sub-title">3.2 What We Do & Our Clients (Auto-scrolling 1:1 Cards)</h2>
+  <div class="grid-2 avoid-break">
+    <div class="screenshot-frame">
+      <img src="{{IMAGE_WHAT_WE_DO}}" alt="What We Do Section" />
+      <div class="screenshot-caption">
+        <span>FIG 3.2 // WHAT WE DO (4 PILLARS)</span>
+        <span class="caption-tag">EDITORIAL</span>
+      </div>
+    </div>
+    <div class="screenshot-frame">
+      <img src="{{IMAGE_CLIENTS}}" alt="Our Clients Auto-scrolling Section" />
+      <div class="screenshot-caption">
+        <span>FIG 3.3 // OUR CLIENTS (1:1 WHITE CARDS)</span>
+        <span class="caption-tag">MARQUEE</span>
+      </div>
+    </div>
+  </div>
+  <p>
+    <strong>What We Do:</strong> 4 pillars (Brand Strategy, Commercial Films, 9:16 Social Velocity, Enterprise Production) with live video hover reveals.
+    <br>
+    <strong>Our Clients:</strong> High-contrast client logos on clean square white cards with normalized aspect ratios, gliding in a non-stop, friction-free horizontal loop.
+  </p>
+</div>
+
+<!-- ======================================================================= -->
+<!-- CHAPTER 4: HOMEPAGE DEEP DIVE (SECTIONS 5 TO 8)                        -->
+<!-- ======================================================================= -->
+<div class="page-break">
+  <h1 class="section-title">
+    <span>4. Homepage (/) — Part 2: Leadership to Footer</span>
+    <span class="sec-num">CH 04</span>
+  </h1>
+
+  <h2 class="sub-title">4.1 The Leadership Spotlight (Founder Durgarao Vallepu)</h2>
+  <div class="screenshot-frame tall avoid-break">
+    <img src="{{IMAGE_LEADERSHIP_HOME}}" alt="Leadership Section Founder" />
+    <div class="screenshot-caption">
+      <span>FIG 4.1 // LEADERSHIP SPOTLIGHT — 4:5 PORTRAIT WITH CORNER FOCUS BRACKETS & CURTAIN REVEAL</span>
+      <span class="caption-tag">GSAP CLIP-PATH</span>
+    </div>
+  </div>
+
+  <ul class="spec-list avoid-break">
+    <li><strong>Visual Representation:</strong> High-impact 4:5 editorial portrait with four technical corner focus brackets and subtle bottom depth vignette. Accompanied by oversized typography: "DURGARAO VALLEPU".</li>
+    <li><strong>Kinetic Flow:</strong> On scroll entry, the portrait unveils via a diagonal clip-path curtain (polygon(0% 100% -> 0% 0%)) while the founder's name animates line-by-line from masked overflow containers. Interactive mouse movement tilts the portrait card in 3D.</li>
+  </ul>
+
+  <h2 class="sub-title">4.2 3D Testimonials & Upgraded Cinematic Footer</h2>
+  <div class="grid-2 avoid-break">
+    <div class="screenshot-frame">
+      <img src="{{IMAGE_TESTIMONIALS}}" alt="3D Testimonials Section" />
+      <div class="screenshot-caption">
+        <span>FIG 4.2 // 3D TESTIMONIALS (TILT CARDS)</span>
+        <span class="caption-tag">PERSPECTIVE 3D</span>
+      </div>
+    </div>
+    <div class="screenshot-frame">
+      <img src="{{IMAGE_FOOTER_HOME}}" alt="Cinematic Upgraded Footer" />
+      <div class="screenshot-caption">
+        <span>FIG 4.3 // UPGRADED FOOTER (FINAL FRAME)</span>
+        <span class="caption-tag">CINEMATIC FRAME</span>
+      </div>
+    </div>
+  </div>
+
+  <p>
+    <strong>3D Testimonials:</strong> Floating perspective cards with real client reviews, electric-blue 5-star badges, mouse tilt physics, and counter telemetry (01/04).
+    <br>
+    <strong>Cinematic Footer:</strong> Acts as the final shot of a film: soft deep-blue atmospheric horizon, BrandShoots mark, "LET'S CREATE SOMETHING WORTH REMEMBERING", refined circular social icons, and Back to Top jump.
+  </p>
+</div>
+
+<!-- ======================================================================= -->
+<!-- CHAPTER 5: THE ABOUT PAGE DEEP DIVE                                    -->
+<!-- ======================================================================= -->
+<div class="page-break">
+  <h1 class="section-title">
+    <span>5. The About Page (/about) — 3D Core & Manifesto</span>
+    <span class="sec-num">CH 05</span>
+  </h1>
+
+  <h2 class="sub-title">5.1 3D Brand Manifesto (CREATE -> SHOOT -> GROW)</h2>
+  <div class="screenshot-frame avoid-break">
+    <img src="{{IMAGE_MANIFESTO}}" alt="3D Manifesto CREATE" />
+    <div class="screenshot-caption">
+      <span>FIG 5.1 // 3D MANIFESTO — MONOLITHIC TYPOGRAPHY TRAVERSING Z-SPACE DEPTH</span>
+      <span class="caption-tag">3D PERSPECTIVE SCROLL</span>
+    </div>
+  </div>
+  <p>
+    A three-stage pinned spatial sequence. As the visitor scrolls, <strong>CREATE.</strong> flies forward past the camera into soft depth-of-field, while <strong>SHOOT.</strong> rushes from background infinity into razor-sharp focus, followed by <strong>GROW.</strong>. Top progress telemetry dynamically tracks the journey.
+  </p>
+
+  <h2 class="sub-title">5.2 The BrandShoots Core 3D (The Sharp Sphere & Reel Universe)</h2>
+  <p>
+    A custom 100vw × 100vh pinned 3D environment connecting authentic vertical reels to a central physical 3D sphere.
+  </p>
+
+  <div class="grid-3 avoid-break">
+    <div class="screenshot-frame">
+      <img src="{{IMAGE_CORE_INTRO}}" alt="BrandShoots 3D Core Sphere Intro" />
+      <div class="screenshot-caption">
+        <span>FIG 5.2A // 3D SPHERE CORE</span>
+        <span class="caption-tag">SHARP PBR</span>
+      </div>
+    </div>
+    <div class="screenshot-frame">
+      <img src="{{IMAGE_CORE_CH1}}" alt="BrandShoots Chapter 1 Dossier" />
+      <div class="screenshot-caption">
+        <span>FIG 5.2B // CH 01 DOSSIER</span>
+        <span class="caption-tag">MASKED REVEAL</span>
+      </div>
+    </div>
+    <div class="screenshot-frame">
+      <img src="{{IMAGE_CORE_CH4}}" alt="BrandShoots Chapter 4 Creed Climax" />
+      <div class="screenshot-caption">
+        <span>FIG 5.2C // CH 04 CREED FINALE</span>
+        <span class="caption-tag">CORE EXPANSION</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-box avoid-break" style="margin-top: 10px;">
+    <div class="box-label">SPHERE PHYSICAL SPECIFICATIONS & SCROLLTRIGGER CHOREOGRAPHY</div>
+    <ul class="spec-list" style="font-size: 7.8pt;">
+      <li><strong>Obsidian Physical Sphere:</strong> Created via MeshPhysicalMaterial with 0.95 clearcoat and 0.16 roughness; catches dynamic specular glints from directional key and blue rim lights.</li>
+      <li><strong>Precision Gimbal Rings:</strong> Dual concentric orbital rings tilted at 24° and -35° counter-rotate subtly in synchrony, conveying mechanical studio precision.</li>
+      <li><strong>Reduced Blur Architecture:</strong> Heavy full-screen backdrop filters were eliminated. The sphere and 9:16 reels remain 100% sharp and readable at all scroll depths. Localized 6px blur is restricted solely to the dossier card containers.</li>
+      <li><strong>4-Chapter Progression:</strong>
+        <br>• Chapter 1: Camera moves in (Z: 7.6), masked lines reveal "WE CREATE STORIES. WE MAKE THEM MOVE."
+        <br>• Chapter 2: Camera pans left (Z: 8.0), aligning with production reel craft.
+        <br>• Chapter 3: Camera moves forward (Z: 7.6), exploring enterprise scale.
+        <br>• Chapter 4 (Climax): Sphere scales up to 1.18x radiantly as the BrandShoots Creed ("CREATE • SHOOT • GROW") locks into center stage.
+      </li>
+    </ul>
+  </div>
+</div>
+
+<!-- ======================================================================= -->
+<!-- CHAPTER 6: PORTFOLIO & CONTACT PAGES                                   -->
+<!-- ======================================================================= -->
+<div class="page-break">
+  <h1 class="section-title">
+    <span>6. Portfolio & Contact Page Blueprints</span>
+    <span class="sec-num">CH 06</span>
+  </h1>
+
+  <h2 class="sub-title">6.1 The 3D Time-Machine Wormhole (/portfolio)</h2>
+  <div class="screenshot-frame avoid-break">
+    <img src="{{IMAGE_PORTFOLIO_WORMHOLE}}" alt="Portfolio 3D Wormhole Corridor" />
+    <div class="screenshot-caption">
+      <span>FIG 6.1 // 3D TIME MACHINE WORMHOLE — ALTERNATING REEL WALLS & CONCRETE STUDIO FLOOR</span>
+      <span class="caption-tag">THREE.JS PERSPECTIVE</span>
+    </div>
+  </div>
+
+  <div class="grid-2 avoid-break">
+    <div class="card-box">
+      <div class="box-label">ENVIRONMENT ARCHITECTURE</div>
+      <p style="font-size: 7.8pt;">
+        A dark industrial studio corridor. Features a dark reflective concrete floor with physical perspective expansion seams, chassis contact shadows, and a traveling light pocket that tracks the active project.
+      </p>
+    </div>
+    <div class="card-box cyan">
+      <div class="box-label">WORMHOLE SCROLL MECHANICS</div>
+      <p style="font-size: 7.8pt;">
+        Projects alternate left (-2.35) and right (+2.35) with inward tilts (±22°). Scrolling pulls each film from deep Z-space into the central viewing portal. Clicking any reel opens the Fullscreen Cinema Modal.
+      </p>
+    </div>
+  </div>
+
+  <h2 class="sub-title">6.2 Contact & Site Visit Booking (/contact)</h2>
+  <div class="screenshot-frame avoid-break">
+    <img src="{{IMAGE_CONTACT_PAGE}}" alt="Contact Page Form and Site Visit" />
+    <div class="screenshot-caption">
+      <span>FIG 6.2 // CONTACT INTERFACE — EDITORIAL INTAKE & VERTICAL SITE VISIT TILE (₹2,000)</span>
+      <span class="caption-tag">DIRECT WHATSAPP ROUTING</span>
+    </div>
+  </div>
+
+  <div class="card-box avoid-break">
+    <div class="box-label">COMMERCIAL ONBOARDING & DIRECT WHATSAPP INTEGRATION</div>
+    <ul class="spec-list" style="font-size: 7.8pt;">
+      <li><strong>Site Visit Dedicated Price Tag Card:</strong> High-impact vertical card priced at ₹2,000 for on-location brand evaluation, site cinematography scouting, and strategy sessions across Hyderabad.</li>
+      <li><strong>Direct WhatsApp Routing:</strong> Automated link generation pre-fills a custom message routing directly to WhatsApp (+91 7075960672), eliminating friction and converting leads instantaneously.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ======================================================================= -->
+<!-- CHAPTER 7: SUMMARY ARCHITECTURAL MATRIX                                -->
+<!-- ======================================================================= -->
+<div class="page-break">
+  <h1 class="section-title">
+    <span>7. Complete Website Architecture Matrix</span>
+    <span class="sec-num">CH 07</span>
+  </h1>
+
+  <p>
+    Below is the complete reference matrix of all pages, primary sections, visual geometries, animation controllers, and interaction triggers active across the BRANDSHOOTS production codebase.
+  </p>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Route</th>
+        <th>Section</th>
+        <th>Visual Assets & Geometries</th>
+        <th>Animation Engine</th>
+        <th>Interaction Triggers</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>/</td>
+        <td>Preloader</td>
+        <td>Multi-grade 3D video planes, SVG logo path</td>
+        <td>GSAP Timeline + Audio FX</td>
+        <td>Auto-reveal + Instant Click bypass</td>
+      </tr>
+      <tr>
+        <td>/</td>
+        <td>Dynamic Navbar</td>
+        <td>Detached island notch, glass blur pill</td>
+        <td>GSAP ScrollTrigger + CSS easing</td>
+        <td>Scroll position (>80px) + Drawer click</td>
+      </tr>
+      <tr>
+        <td>/</td>
+        <td>Hero 3D Cylinder</td>
+        <td>Cylindrical 9:16 video carousel, studio lights</td>
+        <td>Three.js WebGL + GSAP scrub</td>
+        <td>Pointer raycasting + Mouse tilt</td>
+      </tr>
+      <tr>
+        <td>/</td>
+        <td>What We Do</td>
+        <td>4 capability cards, floating preview frames</td>
+        <td>Tailwind CSS + GSAP hover</td>
+        <td>Card hover summons live reel</td>
+      </tr>
+      <tr>
+        <td>/</td>
+        <td>Our Clients</td>
+        <td>1:1 white cards, high-contrast client logos</td>
+        <td>Continuous CSS Marquee Loop</td>
+        <td>Auto-scroll + Hover pause</td>
+      </tr>
+      <tr>
+        <td>/</td>
+        <td>Leadership</td>
+        <td>4:5 portrait, corner focus brackets</td>
+        <td>GSAP clip-path polygon reveal</td>
+        <td>ScrollTrigger + 3D card tilt hover</td>
+      </tr>
+      <tr>
+        <td>/</td>
+        <td>3D Testimonials</td>
+        <td>Floating 3D perspective review cards</td>
+        <td>GSAP Carousel + CSS 3D</td>
+        <td>Pointer tilt + Next/Prev buttons + Swipe</td>
+      </tr>
+      <tr>
+        <td>/</td>
+        <td>Cinematic Footer</td>
+        <td>Deep-blue atmospheric glow, circular socials</td>
+        <td>GSAP staged reveal</td>
+        <td>ScrollTrigger entry + Back-to-Top</td>
+      </tr>
+      <tr>
+        <td>/about</td>
+        <td>3D Manifesto</td>
+        <td>Monolithic CREATE • SHOOT • GROW type</td>
+        <td>GSAP ScrollTrigger scrub</td>
+        <td>Scroll depth (0-100%) + Mouse tilt</td>
+      </tr>
+      <tr>
+        <td>/about</td>
+        <td>3D Core Universe</td>
+        <td>Obsidian sphere, gimbal rings, 9:16 reels</td>
+        <td>Three.js ACESFilmic + GSAP scrub</td>
+        <td>Scroll-driven 4-chapter camera + Touch tilt</td>
+      </tr>
+      <tr>
+        <td>/about</td>
+        <td>About Leadership</td>
+        <td>Founder portrait with scroll scrub parallax</td>
+        <td>GSAP ScrollTrigger scrub</td>
+        <td>Scroll scrub + Hover tilt physics</td>
+      </tr>
+      <tr>
+        <td>/portfolio</td>
+        <td>Wormhole 3D</td>
+        <td>Alternating 9:16 walls, reflective studio floor</td>
+        <td>Three.js WebGL + Scroll snap</td>
+        <td>Scroll depth + Click opens Cinema Modal</td>
+      </tr>
+      <tr>
+        <td>/contact</td>
+        <td>Inquiry & Site Visit</td>
+        <td>Editorial form, ₹2,000 Site Visit price card</td>
+        <td>Tailwind CSS + Form validation</td>
+        <td>Direct WhatsApp routing (+91 7075960672)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top: 25px; padding: 15px; border: 1px solid rgba(0, 140, 255, 0.3); background: rgba(0, 140, 255, 0.05); border-radius: 8px;">
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 8pt; color: #008CFF; font-weight: 700; margin-bottom: 4px;">ARCHITECTURAL CONCLUSION</div>
+    <p style="font-size: 8.5pt; margin: 0; color: #E2E8F0;">
+      The BRANDSHOOTS platform establishes a new benchmark for creative studio websites by seamlessly marrying Three.js WebGL spatial computing with rigorous editorial typography and smooth kinetic scrolling. Every section reinforces the studio's uncompromising standard: <strong>"WE CREATE STORIES. WE MAKE THEM MOVE."</strong>
+    </p>
+  </div>
+</div>
+
+</body>
+</html>
