@@ -415,7 +415,7 @@ export const TheLeadershipSection: React.FC = () => {
       {/* ======================================================== */}
       {/* 2. VIEWPORT CONTAINER — BESPOKE EDITORIAL SPREAD          */}
       {/* ======================================================== */}
-      <div className="relative w-full max-w-[1720px] mx-auto z-10">
+      <div className="relative w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 z-10">
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-5 xs:gap-6 sm:gap-8 lg:gap-12 xl:gap-16 items-center">
           
           {/* ==================================================== */}
@@ -490,14 +490,14 @@ export const TheLeadershipSection: React.FC = () => {
           >
             
             {/* Top Eyebrow: THE LEADERSHIP */}
-            <div className="flex items-center gap-2 sm:gap-2.5 mb-1.5 sm:mb-2.5">
+            <div className="flex items-center gap-2 mb-3 sm:mb-4">
               <span
                 ref={labelDotRef}
-                className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-[#008CFF] shadow-[0_0_10px_#008CFF] inline-block shrink-0"
+                className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_6px_#008CFF] inline-block shrink-0"
               />
               <span
                 ref={labelTextRef}
-                className="font-mono text-[11px] sm:text-xs md:text-[13px] tracking-[0.35em] uppercase text-[#008CFF] font-semibold"
+                className="font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold"
               >
                 03 // THE LEADERSHIP
               </span>
@@ -505,14 +505,14 @@ export const TheLeadershipSection: React.FC = () => {
 
             {/* Large Founder Name: DURGARAO VALLEPU (SplitText Masked Line Reveal) */}
             <div ref={nameContainerRef} className="overflow-hidden will-change-transform">
-              <h2 className="font-display font-black uppercase tracking-[-0.035em] text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-[0.88] text-[#F7F9FF] filter drop-shadow-[0_12px_28px_rgba(0,0,0,0.9)]">
+              <h2 className="font-display font-black uppercase tracking-[-0.035em] text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-[0.9] text-white filter drop-shadow-[0_12px_28px_rgba(0,0,0,0.9)]">
                 <span className="overflow-hidden block py-0.5">
                   <span ref={nameLine1Ref} className="inline-block will-change-transform">
                     DURGARAO
                   </span>
                 </span>
                 <span className="overflow-hidden block py-0.5">
-                  <span ref={nameLine2Ref} className="inline-block will-change-transform text-[#F7F9FF]">
+                  <span ref={nameLine2Ref} className="inline-block will-change-transform text-white">
                     VALLEPU
                   </span>
                 </span>
@@ -520,9 +520,9 @@ export const TheLeadershipSection: React.FC = () => {
             </div>
 
             {/* Designation & Electric Line */}
-            <div ref={designationRef} className="flex items-center gap-2 sm:gap-2.5 mt-2 sm:mt-2.5">
+            <div ref={designationRef} className="flex items-center gap-2 mt-3 sm:mt-4">
               <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_6px_#008CFF]" />
-              <p className="font-mono text-xs sm:text-sm md:text-[15px] tracking-[0.26em] uppercase text-white/80 font-medium">
+              <p className="font-mono text-xs sm:text-sm tracking-[0.24em] uppercase text-white/75 font-medium">
                 Founder, <span className="text-[#008CFF] font-semibold">BRANDSHOOTS</span>
               </p>
             </div>
@@ -530,14 +530,14 @@ export const TheLeadershipSection: React.FC = () => {
             {/* Gradient Accent Divider (Reacts to Scroll Scrub) */}
             <div
               ref={accentLineRef}
-              className="w-20 sm:w-32 lg:w-36 h-[1.5px] sm:h-[2px] bg-gradient-to-r from-[#008CFF] to-transparent my-2 sm:my-2.5 lg:my-3 origin-left"
+              className="w-20 sm:w-28 lg:w-32 h-[1.5px] sm:h-[2px] bg-gradient-to-r from-[#008CFF] to-transparent my-2.5 sm:my-3 lg:my-3.5 origin-left"
             />
 
             {/* Editorial Founder Statement ("Matter about him") */}
             <div className="max-w-xl">
               <p
                 ref={bioParagraphRef}
-                className="font-editorial text-xs xs:text-sm sm:text-base lg:text-lg xl:text-[19px] leading-[1.45] sm:leading-[1.6] text-white/75 font-normal tracking-[-0.01em]"
+                className="font-sans text-sm sm:text-base lg:text-[17px] leading-[1.65] text-white/75 font-normal"
               >
                 Leading the creative direction and cinematic vision at BRANDSHOOTS. Driven by the philosophy that transformative brands are forged at the intersection of high-impact visual storytelling and strategic digital scale — shaping every film, commercial, and campaign to capture genuine human emotion and command cultural presence.
               </p>
@@ -546,7 +546,7 @@ export const TheLeadershipSection: React.FC = () => {
             {/* Core Tenets / Pillars: Echoing CREATE. SHOOT. GROW. with GSAP Hover/Tap Interactions */}
             <div
               ref={pillarsRef}
-              className="flex flex-wrap items-center justify-center lg:justify-start gap-2 sm:gap-2.5 mt-3 sm:mt-4 lg:mt-5"
+              className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 mt-5 sm:mt-6"
             >
               <span
                 ref={pill1Ref}
@@ -554,7 +554,7 @@ export const TheLeadershipSection: React.FC = () => {
                 onMouseLeave={() => handlePillLeave(pill1Ref.current, false)}
                 onPointerDown={() => handlePillTouchStart(pill1Ref.current)}
                 onPointerUp={() => handlePillTouchEnd(pill1Ref.current, false)}
-                className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-[10px] xs:text-[11px] sm:text-xs font-mono uppercase tracking-[0.2em] text-white/70 cursor-pointer select-none will-change-transform inline-block"
+                className="px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-[11px] sm:text-xs font-mono uppercase tracking-[0.22em] text-white/75 cursor-pointer select-none will-change-transform inline-block"
               >
                 CREATE WITH INTENT
               </span>
@@ -564,7 +564,7 @@ export const TheLeadershipSection: React.FC = () => {
                 onMouseLeave={() => handlePillLeave(pill2Ref.current, true)}
                 onPointerDown={() => handlePillTouchStart(pill2Ref.current)}
                 onPointerUp={() => handlePillTouchEnd(pill2Ref.current, true)}
-                className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-[#008CFF]/10 border border-[#008CFF]/30 text-[10px] xs:text-[11px] sm:text-xs font-mono uppercase tracking-[0.2em] text-[#008CFF] font-medium cursor-pointer select-none will-change-transform inline-block"
+                className="px-3.5 py-1.5 rounded-full bg-[#008CFF]/10 border border-[#008CFF]/30 text-[11px] sm:text-xs font-mono uppercase tracking-[0.22em] text-[#008CFF] font-medium cursor-pointer select-none will-change-transform inline-block"
               >
                 SHOOT WITH PURPOSE
               </span>
@@ -574,7 +574,7 @@ export const TheLeadershipSection: React.FC = () => {
                 onMouseLeave={() => handlePillLeave(pill3Ref.current, false)}
                 onPointerDown={() => handlePillTouchStart(pill3Ref.current)}
                 onPointerUp={() => handlePillTouchEnd(pill3Ref.current, false)}
-                className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-[10px] xs:text-[11px] sm:text-xs font-mono uppercase tracking-[0.2em] text-white/70 cursor-pointer select-none will-change-transform inline-block"
+                className="px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-[11px] sm:text-xs font-mono uppercase tracking-[0.22em] text-white/75 cursor-pointer select-none will-change-transform inline-block"
               >
                 GROW DIGITAL PRESENCE
               </span>

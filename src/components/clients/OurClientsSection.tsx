@@ -74,14 +74,17 @@ export const OurClientsSection: React.FC = () => {
       {/* ======================================================== */}
       {/* TOP: EDITORIAL HEADING + DEDICATED PORTFOLIO CTA BUTTON  */}
       {/* ======================================================== */}
-      <div className="relative w-full max-w-[1720px] mx-auto flex flex-col items-center text-center px-4 sm:px-8 mb-12 sm:mb-16 z-20">
-        <span className="text-[#008CFF] text-xs sm:text-sm font-mono uppercase tracking-[0.25em] mb-2 font-semibold">
-          OUR CLIENTS & PARTNERS
-        </span>
-        <h2 className="font-editorial font-black uppercase text-3xl xs:text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tight leading-none text-white">
-          OUR CLIENTS
+      <div className="relative w-full max-w-7xl mx-auto flex flex-col items-center text-center px-6 sm:px-10 lg:px-12 mb-12 sm:mb-16 z-20">
+        <div className="flex items-center gap-2 mb-3 sm:mb-4">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_6px_#008CFF]" />
+          <span className="font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold">
+            02 // CLIENTS & PARTNERS
+          </span>
+        </div>
+        <h2 className="font-display font-black uppercase tracking-[-0.035em] text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[0.92] text-white">
+          OUR CLIENTS<span className="text-[#008CFF]">.</span>
         </h2>
-        <p className="mt-3 sm:mt-4 text-sm sm:text-base md:text-lg text-neutral-400 max-w-xl font-light">
+        <p className="mt-4 sm:mt-5 text-sm sm:text-base md:text-lg text-white/60 max-w-xl font-normal leading-relaxed">
           Trusted by industry pioneers and category-defining brands.
         </p>
 
@@ -89,7 +92,7 @@ export const OurClientsSection: React.FC = () => {
         <button
           type="button"
           onClick={() => navigate('/portfolio')}
-          className="mt-6 inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white/5 hover:bg-[#008CFF]/15 border border-white/15 hover:border-[#008CFF]/50 text-white/90 hover:text-white text-xs sm:text-sm font-mono uppercase tracking-[0.2em] transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.5)] group/cta cursor-pointer"
+          className="mt-6 sm:mt-8 inline-flex items-center gap-2 px-6 py-2.5 sm:px-7 sm:py-3 rounded-full bg-white/[0.06] hover:bg-[#008CFF]/20 border border-white/15 hover:border-[#008CFF]/50 text-white font-mono text-xs sm:text-sm uppercase tracking-[0.22em] font-semibold transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.5)] group/cta cursor-pointer"
         >
           <span>OUR PORTFOLIO</span>
           <svg

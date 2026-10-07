@@ -575,11 +575,10 @@ export const WhatWeDoSection: React.FC = () => {
             ref={introLayerRef}
             className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-30"
           >
-            {/* Eyebrow */}
-            <div className="flex items-center gap-3 font-mono text-[11px] sm:text-xs tracking-[0.35em] uppercase text-[#1497F5] font-bold mb-6 sm:mb-8">
-              <span className="w-8 h-[1.5px] bg-[#1497F5]" />
-              <span>WHAT WE DO</span>
-              <span className="w-8 h-[1.5px] bg-[#1497F5]" />
+            {/* Unified Eyebrow */}
+            <div className="inline-flex items-center gap-2.5 font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold mb-4 sm:mb-6">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
+              <span>01 // WHAT WE DO</span>
             </div>
 
             {/* Monumental Headline */}
@@ -641,7 +640,7 @@ export const WhatWeDoSection: React.FC = () => {
                   className="absolute inset-x-8 sm:inset-x-16 top-1/2 -translate-y-1/2 h-[1px] bg-gradient-to-r from-transparent via-[#1497F5]/50 to-transparent pointer-events-none z-0 opacity-0"
                 />
 
-                <div className="w-full h-full max-w-[1500px] mx-auto px-6 sm:px-10 md:px-12 lg:px-16 xl:px-20 pt-16 pb-14 sm:py-0 flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-5 sm:gap-8 lg:gap-16 z-10">
+                <div className="w-full h-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 pt-16 pb-14 sm:py-0 flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-5 sm:gap-8 lg:gap-16 z-10">
                   {/* Monumental Editorial Typography */}
                   <div
                     ref={(el) => (typoRefs.current[idx] = el)}
@@ -650,18 +649,18 @@ export const WhatWeDoSection: React.FC = () => {
                     }`}
                   >
                     {/* Chapter Number & Category */}
-                    <div className="flex items-center gap-3 sm:gap-4 mb-2 sm:mb-4">
-                      <span className="font-mono text-sm sm:text-base md:text-xl font-bold tracking-[0.25em] text-[#1497F5]">
+                    <div className="flex items-center gap-2.5 sm:gap-3 mb-2 sm:mb-3">
+                      <span className="font-mono text-xs sm:text-sm md:text-base font-bold tracking-[0.28em] text-[#008CFF]">
                         {mission.number}
                       </span>
-                      <span className="w-8 sm:w-12 h-[1.5px] bg-[#1497F5]" />
-                      <span className="font-mono text-[10px] sm:text-xs tracking-[0.25em] uppercase text-slate-500 font-bold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
+                      <span className="font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-slate-500 font-semibold">
                         {mission.category}
                       </span>
                     </div>
 
                     {/* Massive Editorial Title */}
-                    <h3 className="font-editorial font-black uppercase text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-7xl xl:text-8xl leading-[0.9] tracking-[-0.035em] text-[#0A0D14]">
+                    <h3 className="font-display font-black uppercase text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-7xl xl:text-8xl leading-[0.9] tracking-[-0.035em] text-[#0A0D14]">
                       {mission.titleLines.map((line, lIdx) => (
                         <span key={lIdx} className="block">
                           {line}
@@ -670,13 +669,13 @@ export const WhatWeDoSection: React.FC = () => {
                     </h3>
 
                     {/* Concise Editorial Description */}
-                    <p className="mt-3 sm:mt-5 max-w-lg font-sans text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
+                    <p className="mt-3 sm:mt-5 max-w-lg font-sans text-sm sm:text-base md:text-[17px] leading-[1.65] text-slate-600 font-normal">
                       {mission.description}
                     </p>
 
                     {/* Editorial Tag */}
-                    <div className="mt-3 sm:mt-6 inline-flex items-center gap-2 self-start px-3 py-1 rounded-full bg-[#1497F5]/10 text-[#0080E5] border border-[#1497F5]/25 text-[9px] sm:text-[10px] font-mono tracking-[0.2em] uppercase font-semibold">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#1497F5]" />
+                    <div className="mt-3 sm:mt-5 inline-flex items-center gap-2 self-start px-3.5 py-1.5 rounded-full bg-[#008CFF]/10 text-[#008CFF] border border-[#008CFF]/25 font-mono text-[11px] sm:text-xs tracking-[0.22em] uppercase font-semibold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
                       <span>{mission.tag}</span>
                     </div>
                   </div>
@@ -733,10 +732,10 @@ export const WhatWeDoSection: React.FC = () => {
             ref={finalLayerRef}
             className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-30 pointer-events-none"
           >
-            <div className="flex items-center gap-3 font-mono text-[11px] sm:text-xs tracking-[0.35em] uppercase text-[#1497F5] font-bold mb-6 sm:mb-8">
-              <span className="w-8 h-[1.5px] bg-[#1497F5]" />
+            {/* Unified Eyebrow */}
+            <div className="inline-flex items-center gap-2.5 font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold mb-4 sm:mb-6">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
               <span>THE BRANDSHOOTS STANDARD</span>
-              <span className="w-8 h-[1.5px] bg-[#1497F5]" />
             </div>
 
             <h2

@@ -206,23 +206,23 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = ({ onOpenContact:
         {/* ======================================================== */}
         {/* 2. MAIN EDITORIAL CONTENT CONTAINER                       */}
         {/* ======================================================== */}
-        <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col items-center text-center my-auto">
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 flex flex-col items-center text-center my-auto">
           
           {/* Eyebrow Tag: 04 // NEXT CHAPTER */}
-          <div className="flex items-center gap-2.5 mb-3 sm:mb-5 lg:mb-6 overflow-hidden">
-            <span className="w-2 h-2 rounded-full bg-[#008CFF] shadow-[0_0_10px_#008CFF]" />
-            <span className="font-mono text-xs sm:text-[13px] tracking-[0.35em] uppercase text-[#008CFF] font-semibold">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4 overflow-hidden">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_6px_#008CFF]" />
+            <span className="font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold">
               04 // NEXT CHAPTER
             </span>
           </div>
 
           {/* Monolithic Heading: LET'S GROW YOUR BUSINESS. */}
-          <h2 className="font-display font-black uppercase tracking-[-0.04em] text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-[98px] 2xl:text-[112px] leading-[0.9] text-[#F7F9FF] flex flex-col items-center filter drop-shadow-[0_16px_36px_rgba(0,0,0,0.92)]">
+          <h2 className="font-display font-black uppercase tracking-[-0.035em] text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-[0.9] text-white flex flex-col items-center filter drop-shadow-[0_16px_36px_rgba(0,0,0,0.92)]">
             {/* Line 1: LET'S GROW */}
             <span className="overflow-hidden inline-block py-0.5 sm:py-1">
               <span
                 ref={headlineLine1Ref}
-                className="inline-block will-change-transform text-[#F7F9FF]"
+                className="inline-block will-change-transform text-white"
               >
                 LET'S GROW
               </span>
@@ -232,7 +232,7 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = ({ onOpenContact:
             <span className="overflow-hidden inline-block py-0.5 sm:py-1 mt-0.5 sm:mt-1">
               <span
                 ref={headlineLine2Ref}
-                className="inline-block will-change-transform text-[#F7F9FF]"
+                className="inline-block will-change-transform text-white"
               >
                 YOUR BUSINESS
                 <span className="text-[#008CFF] drop-shadow-[0_0_24px_rgba(0,140,255,0.8)]">.</span>
@@ -241,10 +241,10 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = ({ onOpenContact:
           </h2>
 
           {/* Supporting Copy */}
-          <div className="overflow-hidden mt-4 sm:mt-6 lg:mt-8 max-w-2xl px-4">
+          <div className="overflow-hidden mt-4 sm:mt-6 max-w-xl px-4">
             <p
               ref={supportingCopyRef}
-              className="font-editorial text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl text-white/70 font-normal leading-[1.5] tracking-[-0.012em]"
+              className="font-sans text-sm sm:text-base md:text-lg text-white/70 font-normal leading-[1.6]"
             >
               “Have an idea, a brand, or a story worth telling?<br className="hidden sm:inline" />
               {' '}Let’s create something that moves people.”

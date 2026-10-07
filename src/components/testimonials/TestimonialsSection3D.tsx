@@ -348,31 +348,31 @@ export const TestimonialsSection3D: React.FC = () => {
       />
 
       {/* Spacious Open Editorial Container */}
-      <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-14">
-        {/* 1. Compact Studio Header */}
+      <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-10 lg:px-12">
+        {/* 1. Standard Studio Header */}
         <div className="mb-12 sm:mb-16">
-          <div ref={eyebrowRef} className="flex items-center gap-2 mb-2 sm:mb-2.5">
+          <div ref={eyebrowRef} className="flex items-center gap-2 mb-3 sm:mb-4">
             <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_6px_#008CFF]" />
-            <span className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#008CFF] font-semibold">
+            <span className="font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold">
               CLIENT RESONANCE
             </span>
           </div>
 
           <h2
             ref={headingRef}
-            className="font-display font-bold text-lg sm:text-xl md:text-2xl tracking-[-0.02em] uppercase text-[#0A0D14]"
+            className="font-display font-black uppercase tracking-[-0.035em] text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[0.92] text-[#0A0D14]"
           >
             TRUSTED BY <span className="text-[#008CFF]">VISIONARIES.</span>
           </h2>
         </div>
 
-        {/* 2. Refined Testimonial Column (Strict 650–780px Desktop Width, 2-3 Lines) */}
+        {/* 2. Refined Testimonial Column (Strict 650–740px Desktop Width, 2-3 Lines) */}
         <div className="max-w-[740px] min-h-[180px] sm:min-h-[190px] lg:min-h-[200px] flex flex-col justify-center">
           <div ref={quoteContainerRef} className="relative">
             <p
               key={`quote-${currentIndex}`}
               ref={quoteTextRef}
-              className="font-sans font-light sm:font-normal text-lg sm:text-2xl lg:text-[27px] leading-[1.42] sm:leading-[1.4] tracking-[-0.015em] text-[#0F172A]"
+              className="font-sans font-normal text-lg sm:text-xl md:text-2xl lg:text-[26px] leading-[1.45] tracking-[-0.015em] text-[#0F172A]"
             >
               “{current.quote}”
             </p>
@@ -380,10 +380,10 @@ export const TestimonialsSection3D: React.FC = () => {
 
           {/* 3. Small, Refined Client Info */}
           <div ref={authorRef} key={`author-${currentIndex}`} className="mt-7 sm:mt-9">
-            <div className="font-sans font-semibold text-sm sm:text-base text-[#0A0D14] tracking-wide">
+            <div className="font-sans font-semibold text-base sm:text-lg text-[#0A0D14] tracking-wide">
               {current.author}
             </div>
-            <div className="font-mono text-[10px] sm:text-[11px] text-slate-500 tracking-[0.16em] uppercase mt-1">
+            <div className="font-mono text-xs sm:text-sm text-slate-500 tracking-[0.2em] uppercase mt-1">
               {current.role},{' '}
               <span className="text-[#008CFF] font-semibold">{current.client}</span>
             </div>
@@ -391,7 +391,7 @@ export const TestimonialsSection3D: React.FC = () => {
         </div>
 
         {/* 4. Subtle, Minimal Number Row (01 - 05) */}
-        <div ref={navRef} className="mt-12 sm:mt-16 flex items-center gap-5 sm:gap-7">
+        <div ref={navRef} className="mt-12 sm:mt-16 flex items-center gap-6 sm:gap-8">
           {TESTIMONIALS.map((_, idx) => {
             const numStr = String(idx + 1).padStart(2, '0');
             const isActive = idx === currentIndex;
@@ -401,7 +401,7 @@ export const TestimonialsSection3D: React.FC = () => {
                 type="button"
                 onClick={() => goTo(idx)}
                 aria-label={`Go to testimonial ${numStr}`}
-                className={`testimonial-nav-btn relative py-1 font-mono text-[11px] sm:text-xs tracking-[0.2em] transition-colors duration-200 cursor-pointer ${
+                className={`testimonial-nav-btn relative py-1 font-mono text-xs sm:text-sm tracking-[0.22em] transition-colors duration-200 cursor-pointer ${
                   isActive
                     ? 'text-[#008CFF] font-semibold'
                     : 'text-slate-400 hover:text-slate-700 font-normal'
