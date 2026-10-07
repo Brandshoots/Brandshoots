@@ -9,6 +9,7 @@ export const ManifestoScrollSection: React.FC = () => {
   const pinWrapperRef = useRef<HTMLDivElement>(null);
 
   // Stage references with 3D transform containers
+  const stageRef = useRef<HTMLDivElement>(null);
   const createWrapRef = useRef<HTMLDivElement>(null);
   const createTextRef = useRef<HTMLHeadingElement>(null);
   const createSubRef = useRef<HTMLDivElement>(null);
@@ -25,6 +26,21 @@ export const ManifestoScrollSection: React.FC = () => {
   const progressBarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Interactive pointer/touch parallax for 3D stage
+    const onMouseMove = (e: MouseEvent) => {
+      if (window.innerWidth < 768 || !stageRef.current) return;
+      const normX = (e.clientX / window.innerWidth) * 2 - 1;
+      const normY = (e.clientY / window.innerHeight) * 2 - 1;
+      gsap.to(stageRef.current, {
+        rotateY: normX * 4,
+        rotateX: -normY * 4,
+        duration: 0.8,
+        ease: 'power2.out',
+      });
+    };
+
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
+
     const ctx = gsap.context(() => {
       if (!sectionRef.current || !pinWrapperRef.current) return;
 
@@ -40,7 +56,7 @@ export const ManifestoScrollSection: React.FC = () => {
         },
       });
 
-      // Initial 3D Spatial Setup
+      // Initial 3D Spatial Setup (Sharp & Dimensional with subtle DOF)
       gsap.set(createWrapRef.current, {
         opacity: 1,
         scale: 1,
@@ -57,28 +73,28 @@ export const ManifestoScrollSection: React.FC = () => {
 
       gsap.set(shootWrapRef.current, {
         opacity: 0,
-        scale: 0.35,
-        z: -650,
-        rotateX: 18,
-        rotateY: -15,
-        filter: 'blur(22px)',
+        scale: 0.45,
+        z: -550,
+        rotateX: 14,
+        rotateY: -10,
+        filter: 'blur(5px)',
         zIndex: 20,
         transformPerspective: 1400,
       });
 
       gsap.set(growWrapRef.current, {
         opacity: 0,
-        scale: 0.3,
-        z: -850,
-        rotateX: -22,
-        rotateY: 15,
-        filter: 'blur(28px)',
+        scale: 0.4,
+        z: -700,
+        rotateX: -16,
+        rotateY: 10,
+        filter: 'blur(6px)',
         zIndex: 30,
         transformPerspective: 1400,
       });
 
       // ====================================================================
-      // THREE-STAGE 3D DEPTH CHOREOGRAPHY
+      // THREE-STAGE 3D DEPTH CHOREOGRAPHY (Crisp Transitions)
       // ====================================================================
 
       // Phase 1 (0.00 -> 0.46): CREATE flies into camera in 3D & SHOOT rushes from deep Z-space
@@ -86,11 +102,11 @@ export const ManifestoScrollSection: React.FC = () => {
         .to(
           createWrapRef.current,
           {
-            scale: 2.6,
-            z: 450,
-            rotateX: -14,
+            scale: 2.2,
+            z: 400,
+            rotateX: -12,
             opacity: 0,
-            filter: 'blur(24px)',
+            filter: 'blur(6px)',
             duration: 0.42,
             ease: 'power2.in',
           },
@@ -98,9 +114,11 @@ export const ManifestoScrollSection: React.FC = () => {
         )
         .to(
           createSubRef.current,
-          { y: -60, opacity: 0, duration: 0.28 },
+          { y: -50, opacity: 0, duration: 0.28 },
           0.05
         )
+        // Interactive tracking expansion on headline
+        .to(createTextRef.current, { letterSpacing: '-0.02em', duration: 0.4 }, 0)
         // SHOOT charges forward into sharp focal plane
         .to(
           shootWrapRef.current,
@@ -127,17 +145,17 @@ export const ManifestoScrollSection: React.FC = () => {
           0.18
         );
 
-      // Phase 2 (0.46 -> 0.92): SHOOT plunges past camera in 3D & GROW charges from background infinity
+      // Phase 2 (0.46 -> 0.92): SHOOT plunges past camera in 3D & GROW charges from background
       tl.to(progressBarRef.current, { width: '66%', duration: 0.35, ease: 'none' }, 0.46)
         .to(
           shootWrapRef.current,
           {
-            scale: 2.8,
-            z: 500,
-            rotateX: 16,
-            rotateY: 12,
+            scale: 2.4,
+            z: 450,
+            rotateX: 14,
+            rotateY: 10,
             opacity: 0,
-            filter: 'blur(26px)',
+            filter: 'blur(6px)',
             duration: 0.42,
             ease: 'power2.in',
           },
@@ -145,9 +163,10 @@ export const ManifestoScrollSection: React.FC = () => {
         )
         .to(
           shootSubRef.current,
-          { y: -60, opacity: 0, duration: 0.28 },
+          { y: -50, opacity: 0, duration: 0.28 },
           0.48
         )
+        .to(shootTextRef.current, { letterSpacing: '-0.02em', duration: 0.4 }, 0.16)
         // GROW bursts into focus with volumetric presence
         .to(
           growWrapRef.current,
@@ -173,10 +192,14 @@ export const ManifestoScrollSection: React.FC = () => {
           },
           0.58
         )
+        .to(growTextRef.current, { letterSpacing: '-0.02em', duration: 0.4 }, 0.56)
         .to(progressBarRef.current, { width: '100%', duration: 0.3, ease: 'none' }, 0.72);
     }, sectionRef);
 
-    return () => ctx.revert();
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      ctx.revert();
+    };
   }, []);
 
   return (
@@ -221,7 +244,8 @@ export const ManifestoScrollSection: React.FC = () => {
         {/* CENTER: 3D VOLUMETRIC TRANSFORMATION STAGE               */}
         {/* ======================================================== */}
         <div
-          className="flex-1 w-full flex items-center justify-center relative"
+          ref={stageRef}
+          className="flex-1 w-full flex items-center justify-center relative will-change-transform"
           style={{ perspective: '1400px', transformStyle: 'preserve-3d' }}
         >
           {/* ------------------------------------------------------ */}

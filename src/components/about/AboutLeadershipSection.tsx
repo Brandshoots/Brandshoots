@@ -13,6 +13,8 @@ export const AboutLeadershipSection: React.FC = () => {
   const designationRef = useRef<HTMLDivElement>(null);
   const statementRef = useRef<HTMLParagraphElement>(null);
 
+  const cardRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
@@ -60,10 +62,47 @@ export const AboutLeadershipSection: React.FC = () => {
           { y: 0, opacity: 1, duration: 0.55, ease: 'power3.out' },
           0.6
         );
+
+      // Subtle Scroll Parallax on Portrait
+      gsap.to(portraitImgRef.current, {
+        yPercent: 8,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 1.2,
+        },
+      });
     }, sectionRef);
 
     return () => ctx.revert();
   }, []);
+
+  const handleCardMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (window.innerWidth < 1024 || !cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    gsap.to(cardRef.current, {
+      rotateY: x * 10,
+      rotateX: -y * 10,
+      scale: 1.02,
+      duration: 0.4,
+      ease: 'power2.out',
+    });
+  };
+
+  const handleCardMouseLeave = () => {
+    if (!cardRef.current) return;
+    gsap.to(cardRef.current, {
+      rotateY: 0,
+      rotateX: 0,
+      scale: 1.0,
+      duration: 0.6,
+      ease: 'power2.out',
+    });
+  };
 
   return (
     <section
@@ -89,7 +128,12 @@ export const AboutLeadershipSection: React.FC = () => {
           
           {/* Left Col: High-Impact Portrait */}
           <div className="lg:col-span-5 flex justify-center lg:justify-end order-1">
-            <div className="relative w-full max-w-[340px] sm:max-w-[400px] lg:max-w-[450px] aspect-[4/5]">
+            <div
+              ref={cardRef}
+              onMouseMove={handleCardMouseMove}
+              onMouseLeave={handleCardMouseLeave}
+              className="relative w-full max-w-[340px] sm:max-w-[400px] lg:max-w-[450px] aspect-[4/5] will-change-transform transition-shadow duration-300 cursor-pointer"
+            >
               {/* Outer Glow Rim */}
               <div className="absolute -inset-1.5 rounded-3xl bg-gradient-to-b from-white/15 via-[#139EF2]/20 to-transparent opacity-40 blur-[2px] pointer-events-none" />
 
