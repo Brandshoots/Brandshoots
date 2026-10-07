@@ -313,38 +313,54 @@ export const TestimonialsSection3D: React.FC = () => {
     <section
       id="testimonials"
       ref={sectionRef}
-      className="relative w-full py-20 sm:py-28 lg:py-32 bg-[#08090C] text-white overflow-hidden select-none border-t border-white/[0.06]"
+      className="relative w-full py-20 sm:py-28 lg:py-32 bg-[#F6F8FC] text-[#0A0D14] overflow-hidden select-none border-t border-slate-200/90 border-b border-slate-200/90"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Subtle Fine Grid Texture */}
+      {/* Top Entrance Blend: Soft feather from dark section above */}
       <div
-        className="absolute inset-0 opacity-[0.02] pointer-events-none"
+        className="absolute inset-x-0 top-0 h-10 sm:h-14 pointer-events-none z-10"
+        style={{
+          background: 'linear-gradient(to bottom, rgba(5,7,11,0.08) 0%, transparent 100%)',
+        }}
+      />
+
+      {/* Bottom Exit Blend: Soft feather into dark section below */}
+      <div
+        className="absolute inset-x-0 bottom-0 h-10 sm:h-14 pointer-events-none z-10"
+        style={{
+          background: 'linear-gradient(to bottom, transparent 0%, rgba(5,7,11,0.1) 100%)',
+        }}
+      />
+
+      {/* Subtle Fine Grid Texture for Crisp Architectural Light Aesthetic */}
+      <div
+        className="absolute inset-0 opacity-[0.045] pointer-events-none"
         style={{
           backgroundImage: `
-            linear-gradient(to right, rgba(255,255,255,0.12) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(255,255,255,0.12) 1px, transparent 1px)
+            linear-gradient(to right, rgba(15, 23, 42, 0.15) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(15, 23, 42, 0.15) 1px, transparent 1px)
           `,
           backgroundSize: '80px 80px',
         }}
       />
 
-      {/* Spacious Open Container */}
+      {/* Spacious Open Editorial Container */}
       <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-14">
         {/* 1. Compact Studio Header */}
         <div className="mb-12 sm:mb-16">
           <div ref={eyebrowRef} className="flex items-center gap-2 mb-2 sm:mb-2.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
-            <span className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#008CFF] font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_6px_#008CFF]" />
+            <span className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#008CFF] font-semibold">
               CLIENT RESONANCE
             </span>
           </div>
 
           <h2
             ref={headingRef}
-            className="font-display font-bold text-lg sm:text-xl md:text-2xl tracking-[-0.02em] uppercase text-white/90"
+            className="font-display font-bold text-lg sm:text-xl md:text-2xl tracking-[-0.02em] uppercase text-[#0A0D14]"
           >
             TRUSTED BY <span className="text-[#008CFF]">VISIONARIES.</span>
           </h2>
@@ -356,7 +372,7 @@ export const TestimonialsSection3D: React.FC = () => {
             <p
               key={`quote-${currentIndex}`}
               ref={quoteTextRef}
-              className="font-sans font-light sm:font-normal text-lg sm:text-2xl lg:text-[27px] leading-[1.42] sm:leading-[1.4] tracking-[-0.015em] text-white/90"
+              className="font-sans font-light sm:font-normal text-lg sm:text-2xl lg:text-[27px] leading-[1.42] sm:leading-[1.4] tracking-[-0.015em] text-[#0F172A]"
             >
               “{current.quote}”
             </p>
@@ -364,12 +380,12 @@ export const TestimonialsSection3D: React.FC = () => {
 
           {/* 3. Small, Refined Client Info */}
           <div ref={authorRef} key={`author-${currentIndex}`} className="mt-7 sm:mt-9">
-            <div className="font-sans font-medium text-sm sm:text-base text-white tracking-wide">
+            <div className="font-sans font-semibold text-sm sm:text-base text-[#0A0D14] tracking-wide">
               {current.author}
             </div>
-            <div className="font-mono text-[10px] sm:text-[11px] text-white/45 tracking-[0.16em] uppercase mt-1">
+            <div className="font-mono text-[10px] sm:text-[11px] text-slate-500 tracking-[0.16em] uppercase mt-1">
               {current.role},{' '}
-              <span className="text-[#008CFF] font-medium">{current.client}</span>
+              <span className="text-[#008CFF] font-semibold">{current.client}</span>
             </div>
           </div>
         </div>
@@ -387,8 +403,8 @@ export const TestimonialsSection3D: React.FC = () => {
                 aria-label={`Go to testimonial ${numStr}`}
                 className={`testimonial-nav-btn relative py-1 font-mono text-[11px] sm:text-xs tracking-[0.2em] transition-colors duration-200 cursor-pointer ${
                   isActive
-                    ? 'text-[#008CFF] font-medium'
-                    : 'text-white/25 hover:text-white/60 font-normal'
+                    ? 'text-[#008CFF] font-semibold'
+                    : 'text-slate-400 hover:text-slate-700 font-normal'
                 }`}
               >
                 <span>{numStr}</span>
