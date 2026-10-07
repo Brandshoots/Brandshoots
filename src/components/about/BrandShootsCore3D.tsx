@@ -109,19 +109,19 @@ export const BrandShootsCore3D: React.FC = () => {
     const initialCameraZ = isMobile ? 9.5 : 8.2;
     camera.position.set(0, 0, initialCameraZ);
 
-    // 3. Cinematic Studio Lighting (Sharp specular highlights across sphere)
-    const ambientLight = new THREE.AmbientLight(0x0a101d, 2.2);
+    // 3. Cinematic Studio Lighting (Sharp specular highlights, high contrast, zero milky blur)
+    const ambientLight = new THREE.AmbientLight(0x080f1e, 0.65);
     scene.add(ambientLight);
 
-    const blueRimLight = new THREE.PointLight(0x008cff, 4.8, 32);
-    blueRimLight.position.set(-3.2, -2.0, -2.5);
+    const blueRimLight = new THREE.PointLight(0x008cff, 4.2, 28);
+    blueRimLight.position.set(-3.6, -1.8, -2.4);
     scene.add(blueRimLight);
 
-    const keyLight = new THREE.DirectionalLight(0xffffff, 2.6);
-    keyLight.position.set(3.5, 4.5, 6.0);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 3.2);
+    keyLight.position.set(4.2, 4.5, 5.5);
     scene.add(keyLight);
 
-    const softFillLight = new THREE.PointLight(0x38bdf8, 1.8, 20);
+    const softFillLight = new THREE.PointLight(0x38bdf8, 1.2, 18);
     softFillLight.position.set(0, -2.5, 3.5);
     scene.add(softFillLight);
 
@@ -133,28 +133,30 @@ export const BrandShootsCore3D: React.FC = () => {
 
     const sphereRadius = isMobile ? 1.05 : 1.35;
 
-    // A. Obsidian Core Sphere with high clearcoat reflection
+    // A. Obsidian Core Sphere with high clearcoat reflection and razor-sharp contrast
     const sphereGeo = new THREE.SphereGeometry(sphereRadius, isMobile ? 48 : 64, isMobile ? 48 : 64);
     const sphereMat = new THREE.MeshPhysicalMaterial({
-      color: 0x060913,
-      emissive: 0x00142b,
-      emissiveIntensity: 0.35,
-      roughness: 0.16,
-      metalness: 0.88,
-      clearcoat: 0.95,
-      clearcoatRoughness: 0.1,
-      reflectivity: 0.88,
+      color: 0x05070e,
+      emissive: 0x001024,
+      emissiveIntensity: 0.12, // controlled low emissive: crisp object, no foggy blur blob
+      roughness: 0.14,
+      metalness: 0.94,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.04,
+      reflectivity: 0.95,
     });
     const coreSphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
     sphereGroup.add(coreSphereMesh);
 
     // B. Geometric Geodesic Outer Lattice (Dimensional Studio Precision)
     const wireGeo = new THREE.IcosahedronGeometry(sphereRadius * 1.025, 2);
-    const wireMat = new THREE.MeshBasicMaterial({
+    const wireMat = new THREE.MeshStandardMaterial({
       color: 0x008cff,
       wireframe: true,
       transparent: true,
-      opacity: 0.25,
+      opacity: 0.32,
+      roughness: 0.25,
+      metalness: 0.85,
     });
     const wireMesh = new THREE.Mesh(wireGeo, wireMat);
     sphereGroup.add(wireMesh);
@@ -164,9 +166,9 @@ export const BrandShootsCore3D: React.FC = () => {
     const ringMat1 = new THREE.MeshStandardMaterial({
       color: 0x008cff,
       emissive: 0x008cff,
-      emissiveIntensity: 0.75,
-      roughness: 0.25,
-      metalness: 0.9,
+      emissiveIntensity: 0.35, // crisp specular ring, not blooming
+      roughness: 0.18,
+      metalness: 0.95,
     });
     const gimbalRing1 = new THREE.Mesh(ringGeo1, ringMat1);
     gimbalRing1.rotation.x = Math.PI / 3.8;
@@ -177,9 +179,9 @@ export const BrandShootsCore3D: React.FC = () => {
     const ringMat2 = new THREE.MeshStandardMaterial({
       color: 0x38bdf8,
       emissive: 0x008cff,
-      emissiveIntensity: 0.5,
-      roughness: 0.3,
-      metalness: 0.9,
+      emissiveIntensity: 0.28,
+      roughness: 0.2,
+      metalness: 0.95,
     });
     const gimbalRing2 = new THREE.Mesh(ringGeo2, ringMat2);
     gimbalRing2.rotation.y = Math.PI / 2.8;
@@ -191,7 +193,7 @@ export const BrandShootsCore3D: React.FC = () => {
     const meridianMat = new THREE.MeshBasicMaterial({
       color: 0x008cff,
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.5,
     });
     const meridianMesh = new THREE.Mesh(meridianGeo, meridianMat);
     meridianMesh.rotation.x = Math.PI / 2;
@@ -348,6 +350,10 @@ export const BrandShootsCore3D: React.FC = () => {
       lightPosY: 4.5,
     };
 
+    // Velocity tracking for scroll-reactive physics
+    let scrollVelocity = 0;
+    let velocityMomentum = 0;
+
     // Pointer & Touch Micro-Interaction Physics
     let pointerX = 0;
     let pointerY = 0;
@@ -384,6 +390,8 @@ export const BrandShootsCore3D: React.FC = () => {
           invalidateOnRefresh: true,
           onUpdate: (self) => {
             scrollState.progress = self.progress;
+            const v = self.getVelocity ? self.getVelocity() : 0;
+            scrollVelocity = Math.max(-2500, Math.min(2500, v));
             if (progressBarRef.current) {
               progressBarRef.current.style.transform = `scaleX(${self.progress})`;
             }
@@ -437,14 +445,14 @@ export const BrandShootsCore3D: React.FC = () => {
       // -------------------------------------------------------------
       // CHAPTER 01: ABOUT BRANDSHOOTS // WHO WE ARE
       // -------------------------------------------------------------
-      // 3D environment responds: Camera moves in slightly, sphere shifts subtly
+      // 3D environment responds: Camera shifts right, giving space to text
       tl.to(
         scrollState,
         {
           cameraZ: isMobile ? 9.2 : 7.6,
-          cameraY: 0.15,
-          cameraX: 0.1,
-          sphereScale: 0.88,
+          cameraY: 0.12,
+          cameraX: isMobile ? 0 : -0.28,
+          sphereScale: 0.9,
           duration: 0.5,
           ease: 'power2.inOut',
         },
@@ -484,14 +492,14 @@ export const BrandShootsCore3D: React.FC = () => {
       // -------------------------------------------------------------
       // CHAPTER 02: PRODUCTION CRAFT // 9:16 SOCIAL VELOCITY
       // -------------------------------------------------------------
-      // 3D environment responds: Camera pans left, sphere scale shifts
+      // 3D environment responds: Camera shifts left, giving space to text on right
       tl.to(
         scrollState,
         {
-          cameraZ: isMobile ? 9.4 : 8.0,
-          cameraY: -0.2,
-          cameraX: -0.15,
-          sphereScale: 0.96,
+          cameraZ: isMobile ? 9.4 : 7.8,
+          cameraY: -0.15,
+          cameraX: isMobile ? 0 : 0.28,
+          sphereScale: 0.95,
           duration: 0.5,
           ease: 'power2.inOut',
         },
@@ -530,13 +538,13 @@ export const BrandShootsCore3D: React.FC = () => {
       // -------------------------------------------------------------
       // CHAPTER 03: ENTERPRISE IMPACT // PROVEN SCALE
       // -------------------------------------------------------------
-      // 3D environment responds: Camera glides forward, lighting shifts
+      // 3D environment responds: Camera glides right and elevates
       tl.to(
         scrollState,
         {
           cameraZ: isMobile ? 9.1 : 7.6,
-          cameraY: 0.15,
-          cameraX: 0.12,
+          cameraY: 0.14,
+          cameraX: isMobile ? 0 : -0.22,
           sphereScale: 0.92,
           duration: 0.5,
           ease: 'power2.inOut',
@@ -583,7 +591,7 @@ export const BrandShootsCore3D: React.FC = () => {
           cameraZ: initialCameraZ,
           cameraY: 0,
           cameraX: 0,
-          sphereScale: 1.18,
+          sphereScale: 1.16,
           duration: 0.6,
           ease: 'power2.out',
         },
@@ -644,6 +652,10 @@ export const BrandShootsCore3D: React.FC = () => {
       animId = requestAnimationFrame(tick);
       const time = performance.now() * 0.001;
 
+      // Scroll velocity momentum decay & interpolation
+      velocityMomentum += (scrollVelocity * 0.00018 - velocityMomentum) * 0.12;
+      scrollVelocity *= 0.88;
+
       // Smooth interpolation of scroll-driven parameters
       currentOrbit += (scrollState.orbitRotation - currentOrbit) * 0.08;
       currentSphereRotY += (scrollState.sphereRotY - currentSphereRotY) * 0.08;
@@ -657,9 +669,11 @@ export const BrandShootsCore3D: React.FC = () => {
       currentPointerX += (pointerX - currentPointerX) * 0.05;
       currentPointerY += (pointerY - currentPointerY) * 0.05;
 
-      // A. Sphere rotation & physical orientation (Driven primarily by scroll)
-      sphereGroup.rotation.y = currentSphereRotY + currentPointerX * 0.24;
-      sphereGroup.rotation.x = currentSphereRotX - currentPointerY * 0.18;
+      // A. Sphere rotation & physical orientation (Driven primarily by scroll + velocity + subtle mouse follow)
+      sphereGroup.rotation.y = currentSphereRotY + currentPointerX * 0.32 + velocityMomentum;
+      sphereGroup.rotation.x = currentSphereRotX - currentPointerY * 0.22;
+      sphereGroup.position.x = currentPointerX * 0.16;
+      sphereGroup.position.y = -currentPointerY * 0.12;
       sphereGroup.scale.setScalar(currentSphereScale);
 
       // Gimbal rings counter-rotate subtly for dimensional mechanical life
@@ -831,14 +845,13 @@ export const BrandShootsCore3D: React.FC = () => {
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center pointer-events-none px-6 text-center will-change-transform"
           style={{ zIndex: 30 }}
         >
-          {/* Volumetric Electric Blue Back-Aura */}
+          {/* Volumetric Electric Blue Back-Aura (clean subtle ambient falloff, no heavy blur) */}
           <div
             ref={logoAuraRef}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[460px] lg:w-[560px] h-[160px] sm:h-[220px] rounded-full pointer-events-none"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] sm:w-[460px] lg:w-[540px] h-[160px] sm:h-[220px] rounded-full pointer-events-none opacity-50"
             style={{
               background:
-                'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.28) 0%, rgba(11, 16, 78, 0.12) 55%, transparent 75%)',
-              filter: 'blur(35px)',
+                'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.22) 0%, rgba(11, 16, 78, 0.1) 50%, transparent 75%)',
             }}
           />
 
@@ -867,16 +880,20 @@ export const BrandShootsCore3D: React.FC = () => {
           className="absolute inset-0 flex items-center justify-center px-4 sm:px-8 lg:px-16 pointer-events-none"
           style={{ zIndex: 50 }}
         >
-          <div className="relative w-full max-w-3xl min-h-[340px] sm:min-h-[400px] flex items-center justify-center">
+          <div className="relative w-full max-w-5xl min-h-[340px] sm:min-h-[400px] flex items-center justify-center">
 
             {/* CHAPTER 01: ABOUT BRANDSHOOTS */}
             <div
               ref={chapter1Ref}
-              className="absolute inset-x-0 mx-auto flex flex-col items-center text-center will-change-transform opacity-0 pointer-events-none"
+              className="absolute inset-x-0 mx-auto flex flex-col items-center lg:items-start text-center lg:text-left will-change-transform opacity-0 pointer-events-none"
               style={{ zIndex: 50 }}
             >
-              <div className="relative max-w-2xl px-5 py-5 sm:px-7 sm:py-7 rounded-2xl bg-[#05070B]/55 backdrop-blur-[6px] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.85)] mx-3">
-                <h2 className="text-xl sm:text-3xl lg:text-5xl font-black uppercase tracking-tight text-white leading-[1.15] mb-3 sm:mb-4 drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-2xl">
+              <div className="relative max-w-xl px-6 py-6 sm:px-8 sm:py-8 rounded-2xl bg-[#05070B]/85 border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.95)] mx-3 lg:mr-auto">
+                <div className="inline-flex items-center gap-2.5 font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold mb-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
+                  <span>CHAPTER 01 // WHO WE ARE</span>
+                </div>
+                <h2 className="font-display font-black uppercase tracking-[-0.035em] text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-5xl leading-[0.95] text-white mb-3 sm:mb-4">
                   <span className="overflow-hidden block py-0.5">
                     <span className="ch1-line inline-block will-change-transform">WE CREATE STORIES.</span>
                   </span>
@@ -884,8 +901,7 @@ export const BrandShootsCore3D: React.FC = () => {
                     <span className="ch1-line inline-block will-change-transform text-[#008CFF]">WE MAKE THEM MOVE.</span>
                   </span>
                 </h2>
-
-                <p className="text-xs sm:text-sm lg:text-base text-white/90 leading-relaxed font-light drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]">
+                <p className="font-sans text-sm sm:text-base md:text-[17px] text-white/80 leading-[1.65] font-normal">
                   BRANDSHOOTS is a creative production studio turning ideas into films,
                   campaigns and visual experiences. We bring together storytelling,
                   cinematography and creative direction to create work that connects
@@ -897,11 +913,15 @@ export const BrandShootsCore3D: React.FC = () => {
             {/* CHAPTER 02: PRODUCTION CRAFT */}
             <div
               ref={chapter2Ref}
-              className="absolute inset-x-0 mx-auto flex flex-col items-center text-center will-change-transform opacity-0 pointer-events-none"
+              className="absolute inset-x-0 mx-auto flex flex-col items-center lg:items-end text-center lg:text-right will-change-transform opacity-0 pointer-events-none"
               style={{ zIndex: 50 }}
             >
-              <div className="relative max-w-2xl px-5 py-5 sm:px-7 sm:py-7 rounded-2xl bg-[#05070B]/55 backdrop-blur-[6px] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.85)] mx-3">
-                <h2 className="text-xl sm:text-3xl lg:text-5xl font-black uppercase tracking-tight text-white leading-[1.15] mb-3 sm:mb-4 drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-2xl">
+              <div className="relative max-w-xl px-6 py-6 sm:px-8 sm:py-8 rounded-2xl bg-[#05070B]/85 border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.95)] mx-3 lg:ml-auto">
+                <div className="inline-flex items-center gap-2.5 font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold mb-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
+                  <span>CHAPTER 02 // PRODUCTION CRAFT</span>
+                </div>
+                <h2 className="font-display font-black uppercase tracking-[-0.035em] text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-5xl leading-[0.95] text-white mb-3 sm:mb-4">
                   <span className="overflow-hidden block py-0.5">
                     <span className="ch2-line inline-block will-change-transform">FROM FIRST FRAME TO</span>
                   </span>
@@ -909,8 +929,7 @@ export const BrandShootsCore3D: React.FC = () => {
                     <span className="ch2-line inline-block will-change-transform text-[#008CFF]">FINAL CUT.</span>
                   </span>
                 </h2>
-
-                <p className="text-xs sm:text-sm lg:text-base text-white/90 leading-relaxed font-light drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]">
+                <p className="font-sans text-sm sm:text-base md:text-[17px] text-white/80 leading-[1.65] font-normal">
                   From concept and pre-production to filming, editing and final delivery,
                   BRANDSHOOTS brings every stage of production together to create films,
                   campaigns and visual content built around the story.
@@ -921,11 +940,15 @@ export const BrandShootsCore3D: React.FC = () => {
             {/* CHAPTER 03: BRAND IMPACT */}
             <div
               ref={chapter3Ref}
-              className="absolute inset-x-0 mx-auto flex flex-col items-center text-center will-change-transform opacity-0 pointer-events-none"
+              className="absolute inset-x-0 mx-auto flex flex-col items-center lg:items-start text-center lg:text-left will-change-transform opacity-0 pointer-events-none"
               style={{ zIndex: 50 }}
             >
-              <div className="relative max-w-2xl px-5 py-5 sm:px-7 sm:py-7 rounded-2xl bg-[#05070B]/55 backdrop-blur-[6px] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.85)] mx-3">
-                <h2 className="text-xl sm:text-3xl lg:text-5xl font-black uppercase tracking-tight text-white leading-[1.15] mb-3 sm:mb-4 drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-2xl">
+              <div className="relative max-w-xl px-6 py-6 sm:px-8 sm:py-8 rounded-2xl bg-[#05070B]/85 border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.95)] mx-3 lg:mr-auto">
+                <div className="inline-flex items-center gap-2.5 font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold mb-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
+                  <span>CHAPTER 03 // ENTERPRISE IMPACT</span>
+                </div>
+                <h2 className="font-display font-black uppercase tracking-[-0.035em] text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-5xl leading-[0.95] text-white mb-3 sm:mb-4">
                   <span className="overflow-hidden block py-0.5">
                     <span className="ch3-line inline-block will-change-transform">DIFFERENT BRANDS.</span>
                   </span>
@@ -933,8 +956,7 @@ export const BrandShootsCore3D: React.FC = () => {
                     <span className="ch3-line inline-block will-change-transform text-[#008CFF]">ONE CREATIVE VISION.</span>
                   </span>
                 </h2>
-
-                <p className="text-xs sm:text-sm lg:text-base text-white/90 leading-relaxed font-light drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]">
+                <p className="font-sans text-sm sm:text-base md:text-[17px] text-white/80 leading-[1.65] font-normal">
                   From industrial and corporate brands to retail, hospitality and lifestyle,
                   BRANDSHOOTS creates visual work shaped around each brand, its audience and
                   its story. Every project begins with understanding what makes the brand
@@ -946,16 +968,20 @@ export const BrandShootsCore3D: React.FC = () => {
             {/* CHAPTER 04: THE BRANDSHOOTS CREED */}
             <div
               ref={chapter4Ref}
-              className="absolute inset-x-0 mx-auto flex flex-col items-center text-center will-change-transform opacity-0 pointer-events-none mt-24 sm:mt-32"
+              className="absolute inset-x-0 mx-auto flex flex-col items-center text-center will-change-transform opacity-0 pointer-events-none mt-20 sm:mt-28"
               style={{ zIndex: 50 }}
             >
-              <div className="relative max-w-2xl px-5 py-5 sm:px-7 sm:py-7 rounded-2xl bg-[#05070B]/55 backdrop-blur-[6px] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.85)] mx-3">
-                <h3 className="text-xl sm:text-3xl lg:text-5xl font-black uppercase tracking-tight text-white leading-tight mb-3 drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-2xl">
+              <div className="relative max-w-2xl px-6 py-6 sm:px-8 sm:py-8 rounded-2xl bg-[#05070B]/85 border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.95)] mx-3">
+                <div className="inline-flex items-center gap-2.5 font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold mb-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
+                  <span>CHAPTER 04 // THE CORE</span>
+                </div>
+                <h3 className="font-display font-black uppercase tracking-[-0.035em] text-2xl xs:text-3xl sm:text-4xl md:text-5xl leading-[0.95] text-white mb-3">
                   WE CREATE STORIES THAT{' '}
                   <span className="text-[#008CFF]">MOVE PEOPLE.</span>
                 </h3>
 
-                <div className="flex items-center justify-center gap-3 font-mono text-[11px] sm:text-xs tracking-[0.35em] uppercase text-[#008CFF] font-bold mt-2">
+                <div className="flex items-center justify-center gap-3 font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#008CFF] font-bold mt-3">
                   <span>CREATE</span>
                   <span className="text-white/40">•</span>
                   <span>SHOOT</span>

@@ -123,8 +123,8 @@ export const AboutLeadershipSection: React.FC = () => {
         <div className="absolute inset-0 opacity-[0.025] bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:5rem_5rem]" />
       </div>
 
-      <div className="relative z-10 max-w-[1720px] mx-auto w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+      <div className="relative z-10 max-w-7xl mx-auto w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
           
           {/* Left Col: High-Impact Portrait */}
           <div className="lg:col-span-5 flex justify-center lg:justify-end order-1">
@@ -132,10 +132,10 @@ export const AboutLeadershipSection: React.FC = () => {
               ref={cardRef}
               onMouseMove={handleCardMouseMove}
               onMouseLeave={handleCardMouseLeave}
-              className="relative w-full max-w-[340px] sm:max-w-[400px] lg:max-w-[450px] aspect-[4/5] will-change-transform transition-shadow duration-300 cursor-pointer"
+              className="relative w-full max-w-[340px] sm:max-w-[380px] lg:max-w-[420px] aspect-[4/5] will-change-transform transition-shadow duration-300 cursor-pointer"
             >
               {/* Outer Glow Rim */}
-              <div className="absolute -inset-1.5 rounded-3xl bg-gradient-to-b from-white/15 via-[#139EF2]/20 to-transparent opacity-40 blur-[2px] pointer-events-none" />
+              <div className="absolute -inset-1.5 rounded-3xl bg-gradient-to-b from-white/15 via-[#008CFF]/20 to-transparent opacity-40 blur-[2px] pointer-events-none" />
 
               <div
                 ref={portraitMaskRef}
@@ -169,46 +169,56 @@ export const AboutLeadershipSection: React.FC = () => {
           {/* Right Col: Editorial Typography & Statement */}
           <div className="lg:col-span-7 flex flex-col justify-center text-left order-2 lg:pl-6">
             
-            {/* Eyebrow */}
-            <div className="flex items-center gap-3 mb-4">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#139EF2] shadow-[0_0_10px_#139EF2]" />
-              <span className="font-mono text-xs sm:text-[13px] tracking-[0.38em] uppercase text-[#139EF2] font-semibold">
-                07 // LEADERSHIP & VISION
-              </span>
+            {/* Unified Eyebrow */}
+            <div className="inline-flex items-center gap-2.5 font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold mb-3 sm:mb-4">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
+              <span>03 // THE LEADERSHIP</span>
             </div>
 
             {/* Founder Name */}
-            <h3 className="font-display font-black uppercase tracking-[-0.035em] text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.88] text-[#F7F9FF] mb-4">
+            <h3 className="font-display font-black uppercase tracking-[-0.035em] text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[0.92] text-white mb-3 sm:mb-4">
               <span className="overflow-hidden block py-0.5">
                 <span ref={nameLine1Ref} className="inline-block">
                   DURGARAO
                 </span>
               </span>
               <span className="overflow-hidden block py-0.5">
-                <span ref={nameLine2Ref} className="inline-block text-[#F7F9FF]">
+                <span ref={nameLine2Ref} className="inline-block text-[#008CFF]">
                   VALLEPU
                 </span>
               </span>
             </h3>
 
             {/* Title */}
-            <div ref={designationRef} className="flex items-center gap-2.5 mb-5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#139EF2]" />
-              <p className="font-mono text-xs sm:text-sm md:text-base tracking-[0.26em] uppercase text-white/80 font-semibold">
-                FOUNDER — <span className="text-[#139EF2]">BRANDSHOOTS</span>
+            <div ref={designationRef} className="flex items-center gap-2.5 mb-4">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
+              <p className="font-mono text-xs sm:text-sm tracking-[0.22em] uppercase text-white/80 font-semibold">
+                FOUNDER — <span className="text-[#008CFF]">BRANDSHOOTS</span>
               </p>
             </div>
 
             {/* Accent Rule */}
-            <div className="w-24 sm:w-32 h-[2px] bg-gradient-to-r from-[#139EF2] to-transparent mb-6" />
+            <div className="w-20 sm:w-28 h-[1.5px] bg-gradient-to-r from-[#008CFF] to-transparent mb-5 sm:mb-6" />
 
             {/* Short Supporting Statement */}
             <p
               ref={statementRef}
-              className="font-editorial text-base sm:text-lg lg:text-xl text-[#B9BEC9] leading-relaxed max-w-xl font-normal"
+              className="font-sans text-sm sm:text-base md:text-[17px] text-white/75 leading-[1.65] max-w-xl font-normal mb-6 sm:mb-8"
             >
               Leading BrandShoots with the conviction that high-production craft and digital brand growth belong together. Every frame is composed to elevate perceived brand equity and ignite audience momentum.
             </p>
+
+            {/* Strategic Pillars Pills */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+              {['CREATE WITH INTENT', 'SHOOT WITH PURPOSE', 'GROW DIGITAL PRESENCE'].map((pill, pIdx) => (
+                <span
+                  key={pIdx}
+                  className="px-3.5 py-1.5 rounded-full font-mono text-[11px] sm:text-xs uppercase tracking-[0.22em] font-semibold border border-white/10 bg-white/[0.03] text-white/80 hover:border-[#008CFF]/50 hover:text-[#008CFF] transition-all cursor-default"
+                >
+                  {pill}
+                </span>
+              ))}
+            </div>
           </div>
 
         </div>

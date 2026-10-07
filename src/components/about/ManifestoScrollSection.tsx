@@ -210,18 +210,18 @@ export const ManifestoScrollSection: React.FC = () => {
     >
       <div
         ref={pinWrapperRef}
-        className="relative w-full h-[100dvh] min-h-[100dvh] flex flex-col justify-between items-center py-8 sm:py-12 px-6 sm:px-12 max-w-[1720px] mx-auto z-10 overflow-hidden"
+        className="relative w-full h-[100dvh] min-h-[100dvh] flex flex-col justify-between items-center py-8 sm:py-12 px-6 sm:px-10 lg:px-12 max-w-7xl mx-auto z-10 overflow-hidden"
       >
         {/* ======================================================== */}
         {/* TOP: EYEBROW & PROGRESS TELEMETRY                        */}
         {/* ======================================================== */}
         <div className="shrink-0 w-full flex flex-col items-center text-center z-20 pt-16 sm:pt-14">
-          <div className="flex items-center gap-3 mb-2.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#008CFF] shadow-[0_0_12px_#008CFF]" />
-
+          <div className="inline-flex items-center gap-2.5 font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold mb-3">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
+            <span>01 // THE MANIFESTO</span>
           </div>
 
-          <div className="w-36 sm:w-48 h-[2px] bg-white/10 rounded-full mt-2 overflow-hidden">
+          <div className="w-36 sm:w-48 h-[2px] bg-white/10 rounded-full mt-1 overflow-hidden">
             <div
               ref={progressBarRef}
               className="h-full bg-gradient-to-r from-[#008CFF] to-[#60B8FF] w-0 transition-all"
@@ -272,7 +272,7 @@ export const ManifestoScrollSection: React.FC = () => {
               className="mt-6 sm:mt-9 max-w-xl px-4 flex flex-col items-center"
             >
 
-              <p className="font-editorial text-sm sm:text-base text-white/70 font-normal leading-relaxed">
+              <p className="font-sans text-sm sm:text-base md:text-[17px] text-white/75 font-normal leading-[1.65]">
                 Before a camera rolls, we architect the vision. Strategy, script, and aesthetic intent crafted to resonate deeply.
               </p>
             </div>
@@ -302,7 +302,7 @@ export const ManifestoScrollSection: React.FC = () => {
               className="mt-6 sm:mt-9 max-w-xl px-4 flex flex-col items-center"
             >
 
-              <p className="font-editorial text-sm sm:text-base text-white/70 font-normal leading-relaxed">
+              <p className="font-sans text-sm sm:text-base md:text-[17px] text-white/75 font-normal leading-[1.65]">
                 Cinematic lighting, high-end lenses, and disciplined on-set execution. We capture frames that command undivided attention.
               </p>
             </div>
@@ -332,7 +332,7 @@ export const ManifestoScrollSection: React.FC = () => {
               className="mt-6 sm:mt-9 max-w-xl px-4 flex flex-col items-center"
             >
 
-              <p className="font-editorial text-sm sm:text-base text-white/70 font-normal leading-relaxed">
+              <p className="font-sans text-sm sm:text-base md:text-[17px] text-white/75 font-normal leading-[1.65]">
                 Crafted content distributed with purpose. Turning impressions into loyal communities and compounding brand value.
               </p>
             </div>
