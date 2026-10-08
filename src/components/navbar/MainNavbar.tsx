@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Instagram, Youtube, Facebook, MessageCircle, X } from 'lucide-react';
+import { Home, Instagram, Youtube, Facebook, MessageCircle, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 
@@ -111,20 +111,6 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
     }
   };
 
-  const handleNavScroll = (sectionId: string) => {
-    setMenuOpen(false);
-    if (location.pathname === '/') {
-      const lenis = (window as any).__lenis;
-      if (lenis) {
-        lenis.scrollTo(`#${sectionId}`, { duration: 0.85 });
-      } else {
-        const el = document.getElementById(sectionId);
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      }
-    } else {
-      navigate(`/#${sectionId}`);
-    }
-  };
 
   const handleGetInTouch = () => {
     setMenuOpen(false);
@@ -145,6 +131,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
     }
   };
 
+  const isHome = location.pathname === '/';
   const isAbout = location.pathname.startsWith('/about');
   const isPortfolio =
     location.pathname.startsWith('/portfolio') || location.pathname.startsWith('/projects');
@@ -152,12 +139,12 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
   return (
     <>
       {/* ========================================================= */}
-      {/* 1. DEDICATED MOBILE NAVBAR (Consistent Across Whole Site) */}
+      {/* 1. DEDICATED MOBILE NAVBAR (Liquid Glass Blur & White Border) */}
       {/* ========================================================= */}
       <header
         className={`md:hidden fixed top-0 inset-x-0 z-[120] w-full px-5 py-3.5 flex items-center justify-between transition-all duration-300 ${
           isScrolled || menuOpen
-            ? 'bg-[#05070A]/95 backdrop-blur-xl border-b border-white/[0.08] shadow-[0_4px_24px_rgba(0,0,0,0.85)]'
+            ? 'bg-[#05070A]/80 backdrop-blur-3xl backdrop-saturate-[190%] border-b border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.85),inset_0_-1px_0_rgba(255,255,255,0.08)]'
             : 'bg-gradient-to-b from-[#05070A]/90 via-[#05070A]/40 to-transparent border-b border-transparent'
         }`}
       >
@@ -200,16 +187,21 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
       </header>
 
       {/* ========================================================= */}
-      {/* 2. DESKTOP UNIFIED MORPHING NAVBAR (Physically Linked)    */}
+      {/* 2. DESKTOP UNIFIED MORPHING NAVBAR (Liquid Glass Blur)    */}
       {/* ========================================================= */}
       <div className="hidden md:flex fixed top-0 inset-x-0 z-50 justify-center pointer-events-none transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
         <header
-          className={`pointer-events-auto flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          className={`relative pointer-events-auto flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
             isScrolled
-              ? 'mt-3.5 w-[92%] max-w-4xl px-6 py-2.5 rounded-full bg-[#05070A]/85 backdrop-blur-2xl backdrop-saturate-150 border border-white/12 shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_24px_rgba(0,140,255,0.18)]'
+              ? 'mt-3.5 w-auto max-w-3xl min-w-[520px] lg:min-w-[580px] px-6 sm:px-8 py-2.5 rounded-full bg-[#05070A]/75 backdrop-blur-3xl backdrop-saturate-[190%] border border-white/25 shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.08),inset_0_1px_2px_0_rgba(255,255,255,0.4),inset_0_-1px_1px_0_rgba(255,255,255,0.06)]'
               : 'mt-0 w-full max-w-7xl px-8 md:px-12 pt-6 lg:pt-7 pb-4 bg-transparent border-transparent shadow-none'
           }`}
         >
+          {/* Liquid glass top specular reflection sheen for scrolled pill */}
+          {isScrolled && (
+            <div className="absolute inset-x-8 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/45 to-transparent pointer-events-none rounded-full" />
+          )}
+
           {/* Left: BrandShoots Official Logo */}
           <div className="flex items-center flex-shrink-0">
             <a
@@ -222,69 +214,76 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                 src="/Logo Official.svg"
                 alt="BrandShoots Official Logo"
                 className={`w-auto object-contain filter drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                  isScrolled ? 'h-7 sm:h-8' : 'h-14 sm:h-16 md:h-[68px]'
+                  isScrolled ? 'h-7 sm:h-7.5' : 'h-14 sm:h-16 md:h-[68px]'
                 }`}
               />
             </a>
           </div>
 
-          {/* Center: Desktop Navigation Links */}
+          {/* Center: Desktop Navigation Links (Home Icon, About, Portfolio Only) */}
           <nav
             className={`flex items-center text-white/85 font-sans text-xs lg:text-[13px] tracking-[0.22em] uppercase font-medium transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
               isScrolled ? 'gap-6 lg:gap-8' : 'gap-8 lg:gap-11'
             }`}
           >
+            {/* 1. Home Icon */}
+            <a
+              href="/"
+              onClick={handleScrollToTop}
+              title="Home"
+              aria-label="BrandShoots Home"
+              className={`p-2 rounded-full transition-all duration-200 cursor-pointer flex items-center justify-center shrink-0 ${
+                isHome
+                  ? 'text-[#008CFF] bg-[#008CFF]/15 drop-shadow-[0_0_10px_rgba(0,140,255,0.8)] border border-[#008CFF]/30'
+                  : 'text-white/80 hover:text-white hover:bg-white/[0.08]'
+              }`}
+            >
+              <Home className="w-4 h-4" />
+            </a>
+
+            {/* 2. ABOUT */}
             <Link
               to="/about"
-              className={`transition-colors duration-200 cursor-pointer uppercase tracking-[0.22em] ${
+              className={`transition-colors duration-200 cursor-pointer uppercase tracking-[0.22em] shrink-0 whitespace-nowrap ${
                 isAbout
                   ? 'text-[#008CFF] font-semibold drop-shadow-[0_0_8px_rgba(0,140,255,0.75)]'
                   : 'text-white/85 hover:text-white'
               }`}
             >
-              ABOUT US
+              ABOUT
             </Link>
 
+            {/* 3. PORTFOLIO */}
             <Link
               to="/portfolio"
-              className={`transition-colors duration-200 cursor-pointer uppercase tracking-[0.22em] ${
+              className={`transition-colors duration-200 cursor-pointer uppercase tracking-[0.22em] shrink-0 whitespace-nowrap ${
                 isPortfolio
                   ? 'text-[#008CFF] font-semibold drop-shadow-[0_0_8px_rgba(0,140,255,0.75)]'
                   : 'text-white/85 hover:text-white'
               }`}
             >
-              PROJECT
+              PORTFOLIO
             </Link>
-
-            <button
-              type="button"
-              onClick={() => handleNavScroll('leadership')}
-              className="text-white/85 hover:text-white transition-colors duration-200 cursor-pointer uppercase tracking-[0.22em]"
-            >
-              TEAM
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleNavScroll('what-we-do')}
-              className="text-white/85 hover:text-white transition-colors duration-200 cursor-pointer uppercase tracking-[0.22em]"
-            >
-              SERVICES
-            </button>
           </nav>
 
-          {/* Right: Desktop CTA Button */}
+          {/* Right: Metallic Blue Contact Button */}
           <div className="flex items-center flex-shrink-0">
             <button
               type="button"
               onClick={handleGetInTouch}
-              className={`font-mono uppercase font-bold tracking-[0.2em] transition-all duration-300 cursor-pointer active:scale-95 ${
-                isScrolled
-                  ? 'px-4.5 py-2 text-[11px] rounded-full bg-[#008CFF] hover:bg-[#209CFF] text-white shadow-[0_0_20px_rgba(0,140,255,0.45)]'
-                  : 'inline-flex items-center text-white hover:text-[#008CFF] font-sans text-xs lg:text-[13px] tracking-[0.22em] font-semibold'
-              }`}
+              className="relative px-5 py-2.5 sm:px-6 sm:py-2.5 rounded-full font-mono uppercase font-black tracking-[0.2em] text-[11px] sm:text-xs text-white cursor-pointer select-none overflow-hidden transition-all duration-300 active:scale-95 group whitespace-nowrap shrink-0 shadow-[0_4px_20px_rgba(0,140,255,0.45),0_0_12px_rgba(0,140,255,0.3)] hover:shadow-[0_6px_28px_rgba(0,140,255,0.65),0_0_16px_rgba(0,140,255,0.45)] hover:brightness-110"
+              style={{
+                background:
+                  'linear-gradient(135deg, #25a4ff 0%, #0080ff 35%, #0056cc 70%, #0094ff 100%)',
+                boxShadow:
+                  'inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.75), inset 0 -1.5px 2px 0 rgba(0, 30, 80, 0.65), 0 4px 20px rgba(0, 140, 255, 0.45), 0 0 12px rgba(0, 140, 255, 0.3)',
+              }}
             >
-              GET IN TOUCH
+              {/* Metallic specular sheen overlay */}
+              <span className="absolute inset-0 rounded-full bg-gradient-to-b from-white/35 via-transparent to-black/25 pointer-events-none" />
+              <span className="relative z-10 flex items-center justify-center gap-1.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
+                CONTACT
+              </span>
             </button>
           </div>
         </header>
@@ -332,7 +331,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
               </button>
             </div>
 
-            {/* Center: Large Readable Navigation Items in Figtree */}
+            {/* Center: Large Readable Navigation Items in Figtree (Strictly Home, About, Portfolio, Contact) */}
             <motion.div
               initial="hidden"
               animate="visible"
@@ -340,12 +339,31 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                 hidden: { opacity: 0 },
                 visible: {
                   opacity: 1,
-                  transition: { staggerChildren: 0.07, delayChildren: 0.08 },
+                  transition: { staggerChildren: 0.08, delayChildren: 0.08 },
                 },
               }}
-              className="relative z-10 flex flex-col items-center justify-center gap-5 sm:gap-7 my-auto pt-16 md:pt-0 py-6 text-center"
+              className="relative z-10 flex flex-col items-center justify-center gap-6 sm:gap-8 my-auto pt-16 md:pt-0 py-6 text-center"
             >
-              {/* 1. ABOUT US */}
+              {/* 1. HOME */}
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 16 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+              >
+                <a
+                  href="/"
+                  onClick={handleScrollToTop}
+                  className={`text-2xl xs:text-3xl sm:text-4xl font-figtree font-black tracking-[0.14em] uppercase transition-colors py-2 flex items-center justify-center gap-3 ${
+                    isHome ? 'text-[#008CFF]' : 'text-white/90 hover:text-[#008CFF]'
+                  }`}
+                >
+                  <Home className="w-5 h-5 sm:w-6 sm:h-6 text-[#008CFF]" />
+                  <span>HOME</span>
+                </a>
+              </motion.div>
+
+              {/* 2. ABOUT */}
               <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 16 },
@@ -359,11 +377,11 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                     isAbout ? 'text-[#008CFF]' : 'text-white/90 hover:text-[#008CFF]'
                   }`}
                 >
-                  ABOUT US
+                  ABOUT
                 </Link>
               </motion.div>
 
-              {/* 2. PROJECT */}
+              {/* 3. PORTFOLIO */}
               <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 16 },
@@ -377,56 +395,33 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                     isPortfolio ? 'text-[#008CFF]' : 'text-white/90 hover:text-[#008CFF]'
                   }`}
                 >
-                  PROJECT
+                  PORTFOLIO
                 </Link>
               </motion.div>
 
-              {/* 3. TEAM */}
+              {/* 4. CONTACT (Metallic Blue Button) */}
               <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 16 },
                   visible: { opacity: 1, y: 0 },
                 }}
-              >
-                <button
-                  type="button"
-                  onClick={() => handleNavScroll('leadership')}
-                  className="text-2xl xs:text-3xl sm:text-4xl font-figtree font-black tracking-[0.14em] uppercase text-white/90 hover:text-[#008CFF] transition-colors py-2 block cursor-pointer"
-                >
-                  TEAM
-                </button>
-              </motion.div>
-
-              {/* 4. SERVICES */}
-              <motion.div
-                variants={{
-                  hidden: { opacity: 0, y: 16 },
-                  visible: { opacity: 1, y: 0 },
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => handleNavScroll('what-we-do')}
-                  className="text-2xl xs:text-3xl sm:text-4xl font-figtree font-black tracking-[0.14em] uppercase text-white/90 hover:text-[#008CFF] transition-colors py-2 block cursor-pointer"
-                >
-                  SERVICES
-                </button>
-              </motion.div>
-
-              {/* 5. GET IN TOUCH */}
-              <motion.div
-                variants={{
-                  hidden: { opacity: 0, y: 16 },
-                  visible: { opacity: 1, y: 0 },
-                }}
-                className="pt-3"
+                className="pt-4"
               >
                 <button
                   type="button"
                   onClick={handleGetInTouch}
-                  className="px-8 py-3.5 sm:px-10 sm:py-4 rounded-full bg-[#008CFF] hover:bg-[#209CFF] text-white text-xs sm:text-sm tracking-[0.24em] font-mono uppercase font-bold shadow-[0_0_24px_rgba(0,140,255,0.5)] transition-all duration-200 active:scale-95 inline-block text-center cursor-pointer min-h-[44px]"
+                  className="relative px-9 py-4 sm:px-12 sm:py-4.5 rounded-full text-white text-xs sm:text-sm tracking-[0.24em] font-mono uppercase font-black transition-all duration-200 active:scale-95 inline-block text-center cursor-pointer min-h-[46px] select-none shadow-[0_4px_24px_rgba(0,140,255,0.5),0_0_14px_rgba(0,140,255,0.3)] overflow-hidden hover:brightness-110"
+                  style={{
+                    background:
+                      'linear-gradient(135deg, #25a4ff 0%, #0080ff 35%, #0056cc 70%, #0094ff 100%)',
+                    boxShadow:
+                      'inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.75), inset 0 -1.5px 2px 0 rgba(0, 30, 80, 0.65), 0 4px 24px rgba(0, 140, 255, 0.5), 0 0 14px rgba(0, 140, 255, 0.3)',
+                  }}
                 >
-                  GET IN TOUCH
+                  <span className="absolute inset-0 rounded-full bg-gradient-to-b from-white/35 via-transparent to-black/25 pointer-events-none" />
+                  <span className="relative z-10 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
+                    CONTACT
+                  </span>
                 </button>
               </motion.div>
             </motion.div>

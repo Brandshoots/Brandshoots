@@ -50,29 +50,12 @@ const BRAND_REELS: ReelData[] = [
 interface CardMeshItem {
   group: THREE.Group;
   screenMesh: THREE.Mesh;
-  rimLine: THREE.LineLoop;
-  filmMat: THREE.MeshStandardMaterial;
+  rimLine: THREE.LineSegments;
+  filmMat: THREE.MeshBasicMaterial;
   rimMat: THREE.LineBasicMaterial;
   video: HTMLVideoElement;
   videoTex: THREE.VideoTexture;
   index: number;
-}
-
-// Helper to create rounded rectangle path for luxury device frames
-function createRoundedRectShape(w: number, h: number, r: number): THREE.Shape {
-  const shape = new THREE.Shape();
-  const x = -w / 2;
-  const y = -h / 2;
-  shape.moveTo(x + r, y);
-  shape.lineTo(x + w - r, y);
-  shape.quadraticCurveTo(x + w, y, x + w, y + r);
-  shape.lineTo(x + w, y + h - r);
-  shape.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  shape.lineTo(x + r, y + h);
-  shape.quadraticCurveTo(x, y + h, x, y + h - r);
-  shape.lineTo(x, y + r);
-  shape.quadraticCurveTo(x, y, x + r, y);
-  return shape;
 }
 
 export const BrandShootsCore3D: React.FC = () => {
@@ -83,11 +66,6 @@ export const BrandShootsCore3D: React.FC = () => {
   const logoAuraRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const introHintRef = useRef<HTMLDivElement>(null);
-
-  // Kinetic typography train refs
-  const trainTrack1Ref = useRef<HTMLDivElement>(null);
-  const trainTrack2Ref = useRef<HTMLDivElement>(null);
-  const ghostWatermarkRef = useRef<HTMLDivElement>(null);
 
   // Chapter dossier cards
   const chapter1Ref = useRef<HTMLDivElement>(null);
@@ -124,10 +102,10 @@ export const BrandShootsCore3D: React.FC = () => {
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.75 : 2.0));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
+    renderer.toneMappingExposure = 1.15;
 
     // ========================================================================
-    // 2. CAMERA SETUP (Expansive panoramic field of view)
+    // 2. CAMERA SETUP (Panoramic field of view)
     // ========================================================================
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
@@ -135,33 +113,25 @@ export const BrandShootsCore3D: React.FC = () => {
     camera.position.set(0, 0.25, baseCameraZ);
 
     // ========================================================================
-    // 3. CINEMATIC STUDIO LIGHTING (Multi-Point Specular Sheen)
+    // 3. CINEMATIC STUDIO LIGHTING
     // ========================================================================
     const ambientLight = new THREE.AmbientLight(0x0e1628, 2.6);
     scene.add(ambientLight);
 
-    const blueRimLight = new THREE.PointLight(0x008cff, 5.0, 36);
+    const blueRimLight = new THREE.PointLight(0x008cff, 4.5, 34);
     blueRimLight.position.set(0, 0.5, -2.8);
     scene.add(blueRimLight);
 
-    const leftRimLight = new THREE.PointLight(0x008cff, 3.2, 24);
-    leftRimLight.position.set(-5.5, 1.2, -1.0);
-    scene.add(leftRimLight);
-
-    const rightRimLight = new THREE.PointLight(0x008cff, 3.2, 24);
-    rightRimLight.position.set(5.5, 1.2, -1.0);
-    scene.add(rightRimLight);
-
-    const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.4);
     keyLight.position.set(3.5, 5.0, 6.0);
     scene.add(keyLight);
 
-    const travelingSpot = new THREE.PointLight(0x38bdf8, 2.2, 20);
+    const travelingSpot = new THREE.PointLight(0x38bdf8, 2.0, 18);
     travelingSpot.position.set(0, 0.6, 3.0);
     scene.add(travelingSpot);
 
     // ========================================================================
-    // 4. SPATIAL 3D CARD INSTALLATION (Luxury Rounded Titanium Devices)
+    // 4. SPATIAL 3D CARD INSTALLATION (Vivid, Perfectly Textured 9:16 Reels)
     // ========================================================================
     const cardsRootGroup = new THREE.Group();
     scene.add(cardsRootGroup);
@@ -171,52 +141,35 @@ export const BrandShootsCore3D: React.FC = () => {
     const videoElements: HTMLVideoElement[] = [];
     const videoTextures: THREE.VideoTexture[] = [];
 
-    // Precise 9:16 Aspect Ratio with Rounded Corners
+    // Precise 9:16 Aspect Ratio
     const frameW = isMobile ? 1.4 : isTablet ? 1.55 : 1.68;
     const frameH = (frameW * 16) / 9;
-    const cornerRadius = 0.16;
     const casingDepth = 0.04;
 
-    // A. Rounded Titanium Chassis (Extruded Geometry with Bevel)
-    const casingShape = createRoundedRectShape(frameW + 0.08, frameH + 0.08, cornerRadius + 0.02);
-    const casingGeo = new THREE.ExtrudeGeometry(casingShape, {
-      depth: casingDepth,
-      bevelEnabled: true,
-      bevelSegments: 3,
-      steps: 1,
-      bevelSize: 0.012,
-      bevelThickness: 0.012,
-    });
-    casingGeo.center();
+    // Rock-solid standard geometries with guaranteed UV mapping
+    const boxCasingGeo = new THREE.BoxGeometry(frameW + 0.06, frameH + 0.06, casingDepth);
+    const screenGeo = new THREE.PlaneGeometry(frameW, frameH);
+    const rimEdgeGeo = new THREE.EdgesGeometry(screenGeo);
 
-    // B. Rounded Screen Geometry with Normalized UVs
-    const screenShape = createRoundedRectShape(frameW, frameH, cornerRadius);
-    const screenGeo = new THREE.ShapeGeometry(screenShape, 24);
-    screenGeo.center();
-
-    // C. Rounded Neon-Blue Edge Border LineLoop
-    const screenPoints = screenShape.getPoints(36);
-    const rimPoints = screenPoints.map((p) => new THREE.Vector3(p.x, p.y, casingDepth / 2 + 0.003));
-    const rimGeo = new THREE.BufferGeometry().setFromPoints(rimPoints);
-
-    // D. Dynamic Island / Speaker Notch Shape
-    const notchShape = createRoundedRectShape(0.36, 0.08, 0.04);
-    const notchGeo = new THREE.ShapeGeometry(notchShape, 16);
-    notchGeo.center();
-    const notchMat = new THREE.MeshBasicMaterial({ color: 0x020408 });
-
-    // Shared obsidian brushed titanium casing material with clearcoat
+    // Obsidian brushed titanium casing
     const casingMat = new THREE.MeshStandardMaterial({
       color: 0x080c14,
-      roughness: 0.25,
-      metalness: 0.9,
+      roughness: 0.32,
+      metalness: 0.88,
+    });
+
+    // Glowing razor-sharp electric blue rim
+    const rimMat = new THREE.LineBasicMaterial({
+      color: 0x008cff,
+      transparent: true,
+      opacity: 0.7,
     });
 
     BRAND_REELS.forEach((reel, i) => {
       const cardGroup = new THREE.Group();
 
-      // Physical rounded titanium device chassis
-      const casingMesh = new THREE.Mesh(casingGeo, casingMat);
+      // Physical titanium chassis
+      const casingMesh = new THREE.Mesh(boxCasingGeo, casingMat);
       cardGroup.add(casingMesh);
 
       // HTML5 video element for reel footage
@@ -243,10 +196,9 @@ export const BrandShootsCore3D: React.FC = () => {
       const posterTex = textureLoader.load(reel.poster);
       posterTex.colorSpace = THREE.SRGBColorSpace;
 
-      const filmMat = new THREE.MeshStandardMaterial({
+      // MeshBasicMaterial guarantees the footage and posters are ALWAYS 100% bright and vivid
+      const filmMat = new THREE.MeshBasicMaterial({
         map: posterTex,
-        roughness: 0.25,
-        metalness: 0.12,
         transparent: true,
         opacity: 1.0,
       });
@@ -256,24 +208,13 @@ export const BrandShootsCore3D: React.FC = () => {
         filmMat.needsUpdate = true;
       });
 
-      // Rounded screen surface
       const screenMesh = new THREE.Mesh(screenGeo, filmMat);
       screenMesh.position.z = casingDepth / 2 + 0.002;
       cardGroup.add(screenMesh);
 
-      // Signature razor-sharp curved electric blue neon border
-      const rimMat = new THREE.LineBasicMaterial({
-        color: 0x008cff,
-        transparent: true,
-        opacity: 0.75,
-      });
-      const rimLine = new THREE.LineLoop(rimGeo, rimMat);
+      const rimLine = new THREE.LineSegments(rimEdgeGeo, rimMat);
+      rimLine.position.z = casingDepth / 2 + 0.003;
       cardGroup.add(rimLine);
-
-      // Dynamic Island notch pill at top of screen
-      const notchMesh = new THREE.Mesh(notchGeo, notchMat);
-      notchMesh.position.set(0, frameH / 2 - 0.09, casingDepth / 2 + 0.004);
-      cardGroup.add(notchMesh);
 
       cardsRootGroup.add(cardGroup);
 
@@ -311,8 +252,6 @@ export const BrandShootsCore3D: React.FC = () => {
       cameraY: 0.25,
       cameraX: 0,
       cardsElevationY: isMobile ? 0.35 : 0.52,
-      trainShift1: 0,
-      trainShift2: 0,
     };
 
     // Pointer & Touch Micro-Parallax Physics
@@ -337,7 +276,7 @@ export const BrandShootsCore3D: React.FC = () => {
     window.addEventListener('touchmove', onTouchMove, { passive: true });
 
     // ========================================================================
-    // 6. GSAP SCROLLTRIGGER TIMELINE (Airtight Sequential Choreography)
+    // 6. GSAP SCROLLTRIGGER TIMELINE (Clean Sequential Progression)
     // ========================================================================
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
@@ -353,14 +292,6 @@ export const BrandShootsCore3D: React.FC = () => {
             scrollState.progress = self.progress;
             if (progressBarRef.current) {
               progressBarRef.current.style.transform = `scaleX(${self.progress})`;
-            }
-
-            // Sync kinetic typography train with scroll velocity scrub
-            scrollState.trainShift1 = -self.progress * 480;
-            scrollState.trainShift2 = self.progress * 420;
-
-            if (ghostWatermarkRef.current) {
-              ghostWatermarkRef.current.style.transform = `scale(${1 + self.progress * 0.12}) translateY(${self.progress * 40}px)`;
             }
           },
         },
@@ -619,9 +550,8 @@ export const BrandShootsCore3D: React.FC = () => {
       // ----------------------------------------------------------------------
       // SPACIOUS 3D CURVED CARDS POSITIONING (Fills Wide Horizontal Span)
       // ----------------------------------------------------------------------
-      // Generous curve radii to eliminate blank left/right voids
-      const curveRx = isMobile ? 3.6 : isTablet ? 5.6 : 7.4;
-      const curveRz = isMobile ? 4.2 : isTablet ? 5.8 : 7.2;
+      const curveRx = isMobile ? 3.6 : isTablet ? 5.4 : 7.0;
+      const curveRz = isMobile ? 4.2 : isTablet ? 5.6 : 6.8;
       const angleStep = isMobile ? 0.54 : 0.44;
 
       cardItems.forEach((card) => {
@@ -640,11 +570,10 @@ export const BrandShootsCore3D: React.FC = () => {
         const carouselOpacity = Math.max(0.24, 1.0 - 0.22 * Math.min(3.5, Math.abs(delta)));
 
         // B. Wings Formation State (Chapter 04 Climax - Expansive Wide Amphitheater)
-        // Spread wide to edges of screen, leaving the center corridor completely open
         const isLeftWing = i < 3;
         const wingRank = isLeftWing ? 2 - i : i - 3; // 0, 1, 2 from inner to outer
         const wingDir = isLeftWing ? -1 : 1;
-        const wingX = wingDir * (isMobile ? 2.2 + wingRank * 1.3 : 3.4 + wingRank * 2.1);
+        const wingX = wingDir * (isMobile ? 2.2 + wingRank * 1.3 : 3.4 + wingRank * 2.0);
         const wingZ = -0.5 - wingRank * 1.2;
         const wingY = scrollState.cardsElevationY + 0.05 - wingRank * 0.12;
         const wingRotY = -wingDir * (0.36 + wingRank * 0.12);
@@ -727,12 +656,10 @@ export const BrandShootsCore3D: React.FC = () => {
       });
       videoTextures.forEach((vt) => vt.dispose());
 
-      casingGeo.dispose();
+      boxCasingGeo.dispose();
       screenGeo.dispose();
-      rimGeo.dispose();
-      notchGeo.dispose();
+      rimEdgeGeo.dispose();
       casingMat.dispose();
-      notchMat.dispose();
 
       cardItems.forEach((c) => {
         c.filmMat.dispose();
@@ -755,114 +682,32 @@ export const BrandShootsCore3D: React.FC = () => {
         className="relative w-full h-[100dvh] min-h-[100dvh] flex items-center justify-center overflow-hidden"
       >
         {/* ======================================================== */}
-        {/* 1. ATMOSPHERIC STUDIO LIGHTING & BACKGROUND MESH         */}
-        {/* Eradicates "plain dark" with deep blue luminous pockets  */}
+        {/* 1. SIMPLE & CLEAN LUXURY BLUE STUDIO ATMOSPHERE          */}
+        {/* Completely removed background text; pure clean lighting */}
         {/* ======================================================== */}
         <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
-          {/* Central Volumetric Studio Aura */}
+          {/* Subtle Central Studio Radial Aura */}
           <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[1200px] h-[75vh] max-h-[750px] rounded-full pointer-events-none"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] max-w-[1100px] h-[65vh] max-h-[650px] rounded-full pointer-events-none"
             style={{
               background:
-                'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.16) 0%, rgba(10, 25, 75, 0.32) 48%, transparent 75%)',
-              filter: 'blur(75px)',
-            }}
-          />
-
-          {/* Left Wing Ambient Light Pocket (Fills Blank Left Area) */}
-          <div
-            className="absolute top-1/2 left-[5%] -translate-y-1/2 w-[45vw] max-w-[650px] h-[60vh] rounded-full pointer-events-none"
-            style={{
-              background: 'radial-gradient(ellipse at 30% 50%, rgba(0, 140, 255, 0.12) 0%, transparent 65%)',
+                'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.12) 0%, rgba(8, 20, 60, 0.25) 50%, transparent 75%)',
               filter: 'blur(80px)',
             }}
           />
 
-          {/* Right Wing Ambient Light Pocket (Fills Blank Right Area) */}
+          {/* Gentle Floor Sheen at Bottom */}
           <div
-            className="absolute top-1/2 right-[5%] -translate-y-1/2 w-[45vw] max-w-[650px] h-[60vh] rounded-full pointer-events-none"
-            style={{
-              background: 'radial-gradient(ellipse at 70% 50%, rgba(0, 140, 255, 0.12) 0%, transparent 65%)',
-              filter: 'blur(80px)',
-            }}
-          />
-
-          {/* Polished Dark Concrete Studio Floor Reflection at Bottom */}
-          <div
-            className="absolute bottom-0 inset-x-0 h-[36vh] pointer-events-none"
+            className="absolute bottom-0 inset-x-0 h-[28vh] pointer-events-none"
             style={{
               background:
-                'linear-gradient(to top, rgba(0, 140, 255, 0.08) 0%, rgba(4, 6, 10, 0.6) 45%, transparent 100%)',
+                'linear-gradient(to top, rgba(0, 140, 255, 0.05) 0%, rgba(4, 6, 10, 0.5) 50%, transparent 100%)',
             }}
           />
-
-          {/* Subtle Studio Geometry Grid */}
-          <div className="absolute inset-0 opacity-[0.025] bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:5rem_5rem]" />
         </div>
 
         {/* ======================================================== */}
-        {/* 2. KINETIC "TRAIN OF LETTERS" BACKGROUND STREAMS         */}
-        {/* Fills negative space with high-velocity editorial typography */}
-        {/* ======================================================== */}
-        <div
-          className="absolute inset-0 overflow-hidden pointer-events-none flex flex-col justify-between py-24 select-none opacity-85"
-          style={{ zIndex: 2 }}
-        >
-          {/* Monumental Hollow Outline Ghost Watermark in Deep Center */}
-          <div
-            ref={ghostWatermarkRef}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center pointer-events-none transition-transform duration-700 ease-out will-change-transform"
-          >
-            <span
-              className="font-display text-[15vw] sm:text-[17vw] font-black uppercase tracking-[-0.04em] block select-none pointer-events-none opacity-[0.04] text-white"
-              style={{
-                WebkitTextStroke: '1.5px rgba(255,255,255,0.4)',
-                color: 'transparent',
-              }}
-            >
-              BRANDSHOOTS
-            </span>
-          </div>
-
-          {/* Upper Kinetic Typographic Train (Flowing Leftward) */}
-          <div
-            ref={trainTrack1Ref}
-            className="relative w-full overflow-hidden mt-6 pointer-events-none"
-            style={{
-              maskImage:
-                'linear-gradient(to right, transparent, black 12%, black 88%, transparent)',
-              WebkitMaskImage:
-                'linear-gradient(to right, transparent, black 12%, black 88%, transparent)',
-            }}
-          >
-            <div className="inline-flex whitespace-nowrap animate-marquee font-mono text-[11px] sm:text-xs tracking-[0.45em] uppercase text-white/20 font-semibold will-change-transform">
-              <span>BRANDSHOOTS STUDIO // CINEMATIC PRODUCTION // CRAFT WITH INTENT // VISUAL STORIES // 9:16 VERTICAL CINEMA // HIGH VELOCITY // ARCHIVE 01-06 //&nbsp;</span>
-              <span>BRANDSHOOTS STUDIO // CINEMATIC PRODUCTION // CRAFT WITH INTENT // VISUAL STORIES // 9:16 VERTICAL CINEMA // HIGH VELOCITY // ARCHIVE 01-06 //&nbsp;</span>
-              <span>BRANDSHOOTS STUDIO // CINEMATIC PRODUCTION // CRAFT WITH INTENT // VISUAL STORIES // 9:16 VERTICAL CINEMA // HIGH VELOCITY // ARCHIVE 01-06 //&nbsp;</span>
-            </div>
-          </div>
-
-          {/* Lower Kinetic Typographic Train (Flowing Rightward) */}
-          <div
-            ref={trainTrack2Ref}
-            className="relative w-full overflow-hidden mb-24 sm:mb-28 pointer-events-none"
-            style={{
-              maskImage:
-                'linear-gradient(to right, transparent, black 12%, black 88%, transparent)',
-              WebkitMaskImage:
-                'linear-gradient(to right, transparent, black 12%, black 88%, transparent)',
-            }}
-          >
-            <div className="inline-flex whitespace-nowrap animate-marquee-reverse font-sans text-[11px] sm:text-xs tracking-[0.4em] uppercase text-[#008CFF]/25 font-bold will-change-transform">
-              <span>CREATE WITH INTENT • SHOOT WITH PURPOSE • GROW DIGITAL PRESENCE • FROM CONCEPT TO FINAL CUT • DIRECTED FOR CULTURE • ENTERPRISE SCALE •&nbsp;</span>
-              <span>CREATE WITH INTENT • SHOOT WITH PURPOSE • GROW DIGITAL PRESENCE • FROM CONCEPT TO FINAL CUT • DIRECTED FOR CULTURE • ENTERPRISE SCALE •&nbsp;</span>
-              <span>CREATE WITH INTENT • SHOOT WITH PURPOSE • GROW DIGITAL PRESENCE • FROM CONCEPT TO FINAL CUT • DIRECTED FOR CULTURE • ENTERPRISE SCALE •&nbsp;</span>
-            </div>
-          </div>
-        </div>
-
-        {/* ======================================================== */}
-        {/* 3. TOP: CHAPTER HUD & PROGRESSION BAR (Z-INDEX: 60)      */}
+        {/* 2. TOP: CHAPTER HUD & PROGRESSION BAR (Z-INDEX: 60)      */}
         {/* ======================================================== */}
         <div
           className="absolute top-20 sm:top-10 inset-x-0 flex items-center justify-between px-5 sm:px-12 pointer-events-none"
@@ -904,7 +749,7 @@ export const BrandShootsCore3D: React.FC = () => {
         </div>
 
         {/* ======================================================== */}
-        {/* 4. THREE.JS WEBGL CANVAS (Hero 3D Cards Installation) (Z: 10) */}
+        {/* 3. THREE.JS WEBGL CANVAS (Hero 3D Cards Installation) (Z: 10) */}
         {/* ======================================================== */}
         <canvas
           ref={canvasRef}
@@ -913,7 +758,7 @@ export const BrandShootsCore3D: React.FC = () => {
         />
 
         {/* ======================================================== */}
-        {/* 5. HERO ANCHOR: OFFICIAL BRANDSHOOTS LOGO (Z-INDEX: 30)  */}
+        {/* 4. HERO ANCHOR: OFFICIAL BRANDSHOOTS LOGO (Z-INDEX: 30)  */}
         {/* Visible in initial intro, hidden in Ch 1-3, climax in Ch 4 */}
         {/* ======================================================== */}
         <div
@@ -951,7 +796,7 @@ export const BrandShootsCore3D: React.FC = () => {
         </div>
 
         {/* ======================================================== */}
-        {/* 6. CHAPTER 04 CLIMAX CREED (Z-INDEX: 40)                 */}
+        {/* 5. CHAPTER 04 CLIMAX CREED (Z-INDEX: 40)                 */}
         {/* Centered below the logo in open corridor between wings   */}
         {/* ======================================================== */}
         <div
@@ -975,7 +820,7 @@ export const BrandShootsCore3D: React.FC = () => {
         </div>
 
         {/* ======================================================== */}
-        {/* 7. LOWER EDITORIAL DOCK: CHAPTERS 01, 02, 03 (Z-INDEX: 50)*/}
+        {/* 6. LOWER EDITORIAL DOCK: CHAPTERS 01, 02, 03 (Z-INDEX: 50)*/}
         {/* Anchored at bottom of screen so 3D cards remain 100% visible */}
         {/* ======================================================== */}
         <div
@@ -1050,24 +895,6 @@ export const BrandShootsCore3D: React.FC = () => {
         </div>
 
       </div>
-
-      {/* Embedded High-Performance Marquee Keyframes */}
-      <style>{`
-        @keyframes marqueeScroll {
-          0% { transform: translate3d(0, 0, 0); }
-          100% { transform: translate3d(-33.333%, 0, 0); }
-        }
-        @keyframes marqueeScrollRev {
-          0% { transform: translate3d(-33.333%, 0, 0); }
-          100% { transform: translate3d(0, 0, 0); }
-        }
-        .animate-marquee {
-          animation: marqueeScroll 28s linear infinite;
-        }
-        .animate-marquee-reverse {
-          animation: marqueeScrollRev 32s linear infinite;
-        }
-      `}</style>
     </section>
   );
 };
