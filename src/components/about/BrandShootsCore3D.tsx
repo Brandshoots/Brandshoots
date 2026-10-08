@@ -47,16 +47,15 @@ const BRAND_REELS: ReelData[] = [
   },
 ];
 
-interface FrameData {
-  mesh: THREE.Group;
-  initialX: number;
-  initialY: number;
-  initialZ: number;
-  orbitRadius: number;
-  orbitAngle: number;
-  speed: number;
-  rotX: number;
-  rotY: number;
+interface CardMeshItem {
+  group: THREE.Group;
+  screenMesh: THREE.Mesh;
+  rimLine: THREE.LineSegments;
+  filmMat: THREE.MeshStandardMaterial;
+  rimMat: THREE.LineBasicMaterial;
+  video: HTMLVideoElement;
+  videoTex: THREE.VideoTexture;
+  index: number;
 }
 
 export const BrandShootsCore3D: React.FC = () => {
@@ -87,11 +86,14 @@ export const BrandShootsCore3D: React.FC = () => {
     const canvas = canvasRef.current;
     if (!pinContainer || !canvas) return;
 
-    const width = pinContainer.clientWidth || window.innerWidth;
-    const height = pinContainer.clientHeight || window.innerHeight;
-    const isMobile = window.innerWidth < 768;
+    let width = pinContainer.clientWidth || window.innerWidth;
+    let height = pinContainer.clientHeight || window.innerHeight;
+    let isMobile = window.innerWidth < 768;
+    let isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
 
-    // 1. WebGL Renderer with High-Precision Tone Mapping
+    // ========================================================================
+    // 1. THREE.JS WEBGL RENDERER
+    // ========================================================================
     const renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: true,
@@ -103,139 +105,68 @@ export const BrandShootsCore3D: React.FC = () => {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.15;
 
-    // 2. Camera Setup (Positioned for depth and spherical clarity)
+    // ========================================================================
+    // 2. CAMERA SETUP (Subtle cinematic perspective)
+    // ========================================================================
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    const initialCameraZ = isMobile ? 9.5 : 8.2;
-    camera.position.set(0, 0, initialCameraZ);
+    const baseCameraZ = isMobile ? 9.2 : isTablet ? 8.4 : 7.8;
+    camera.position.set(0, 0, baseCameraZ);
 
-    // 3. Cinematic Studio Lighting (Sharp specular highlights across sphere)
-    const ambientLight = new THREE.AmbientLight(0x0a101d, 2.2);
+    // ========================================================================
+    // 3. CINEMATIC STUDIO LIGHTING
+    // ========================================================================
+    const ambientLight = new THREE.AmbientLight(0x0c1322, 2.4);
     scene.add(ambientLight);
 
-    const blueRimLight = new THREE.PointLight(0x008cff, 4.8, 32);
-    blueRimLight.position.set(-3.2, -2.0, -2.5);
+    const blueRimLight = new THREE.PointLight(0x008cff, 4.5, 30);
+    blueRimLight.position.set(0, 0, -2.5);
     scene.add(blueRimLight);
 
-    const keyLight = new THREE.DirectionalLight(0xffffff, 2.6);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.4);
     keyLight.position.set(3.5, 4.5, 6.0);
     scene.add(keyLight);
 
-    const softFillLight = new THREE.PointLight(0x38bdf8, 1.8, 20);
-    softFillLight.position.set(0, -2.5, 3.5);
-    scene.add(softFillLight);
+    const travelingSpot = new THREE.PointLight(0x38bdf8, 2.0, 18);
+    travelingSpot.position.set(0, 0.5, 3.0);
+    scene.add(travelingSpot);
 
     // ========================================================================
-    // 4. CENTRAL 3D SPHERE CORE (Sharp, Detailed, Dimensional & Readably Premium)
+    // 4. SPATIAL 3D CARD INSTALLATION (Hero Visual Experience)
     // ========================================================================
-    const sphereGroup = new THREE.Group();
-    scene.add(sphereGroup);
-
-    const sphereRadius = isMobile ? 1.05 : 1.35;
-
-    // A. Obsidian Core Sphere with high clearcoat reflection
-    const sphereGeo = new THREE.SphereGeometry(sphereRadius, isMobile ? 48 : 64, isMobile ? 48 : 64);
-    const sphereMat = new THREE.MeshPhysicalMaterial({
-      color: 0x060913,
-      emissive: 0x00142b,
-      emissiveIntensity: 0.35,
-      roughness: 0.16,
-      metalness: 0.88,
-      clearcoat: 0.95,
-      clearcoatRoughness: 0.1,
-      reflectivity: 0.88,
-    });
-    const coreSphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
-    sphereGroup.add(coreSphereMesh);
-
-    // B. Geometric Geodesic Outer Lattice (Dimensional Studio Precision)
-    const wireGeo = new THREE.IcosahedronGeometry(sphereRadius * 1.025, 2);
-    const wireMat = new THREE.MeshBasicMaterial({
-      color: 0x008cff,
-      wireframe: true,
-      transparent: true,
-      opacity: 0.25,
-    });
-    const wireMesh = new THREE.Mesh(wireGeo, wireMat);
-    sphereGroup.add(wireMesh);
-
-    // C. Razor-Sharp Precision Orbital Gimbal Rings
-    const ringGeo1 = new THREE.TorusGeometry(sphereRadius * 1.22, 0.012, 16, 120);
-    const ringMat1 = new THREE.MeshStandardMaterial({
-      color: 0x008cff,
-      emissive: 0x008cff,
-      emissiveIntensity: 0.75,
-      roughness: 0.25,
-      metalness: 0.9,
-    });
-    const gimbalRing1 = new THREE.Mesh(ringGeo1, ringMat1);
-    gimbalRing1.rotation.x = Math.PI / 3.8;
-    gimbalRing1.rotation.z = Math.PI / 8;
-    sphereGroup.add(gimbalRing1);
-
-    const ringGeo2 = new THREE.TorusGeometry(sphereRadius * 1.35, 0.009, 16, 120);
-    const ringMat2 = new THREE.MeshStandardMaterial({
-      color: 0x38bdf8,
-      emissive: 0x008cff,
-      emissiveIntensity: 0.5,
-      roughness: 0.3,
-      metalness: 0.9,
-    });
-    const gimbalRing2 = new THREE.Mesh(ringGeo2, ringMat2);
-    gimbalRing2.rotation.y = Math.PI / 2.8;
-    gimbalRing2.rotation.z = -Math.PI / 5;
-    sphereGroup.add(gimbalRing2);
-
-    // D. Equatorial Meridian Halo Line
-    const meridianGeo = new THREE.TorusGeometry(sphereRadius * 1.015, 0.006, 16, 120);
-    const meridianMat = new THREE.MeshBasicMaterial({
-      color: 0x008cff,
-      transparent: true,
-      opacity: 0.55,
-    });
-    const meridianMesh = new THREE.Mesh(meridianGeo, meridianMat);
-    meridianMesh.rotation.x = Math.PI / 2;
-    sphereGroup.add(meridianMesh);
-
-    // ========================================================================
-    // 5. PHYSICAL 3D 9:16 VIDEO REEL TILES (Orbiting the Core Sphere)
-    // ========================================================================
-    const framesGroup = new THREE.Group();
-    scene.add(framesGroup);
+    const cardsRootGroup = new THREE.Group();
+    scene.add(cardsRootGroup);
 
     const textureLoader = new THREE.TextureLoader();
-    const activeReels = isMobile ? BRAND_REELS.slice(0, 4) : BRAND_REELS;
-    const frames: FrameData[] = [];
+    const cardItems: CardMeshItem[] = [];
     const videoElements: HTMLVideoElement[] = [];
     const videoTextures: THREE.VideoTexture[] = [];
 
-    // Precise 9:16 Aspect Ratio
-    const frameW = isMobile ? 1.25 : 1.5;
+    // Precise 9:16 Aspect Ratio (Smartphone / Vertical Cinema Reel)
+    const frameW = isMobile ? 1.45 : isTablet ? 1.6 : 1.75;
     const frameH = (frameW * 16) / 9;
-    const casingDepth = 0.035;
+    const casingDepth = 0.04;
 
-    const boxCasingGeo = new THREE.BoxGeometry(frameW + 0.05, frameH + 0.05, casingDepth);
+    // Shared Geometries
+    const boxCasingGeo = new THREE.BoxGeometry(frameW + 0.06, frameH + 0.06, casingDepth);
     const screenGeo = new THREE.PlaneGeometry(frameW, frameH);
     const rimEdgeGeo = new THREE.EdgesGeometry(screenGeo);
 
+    // Shared obsidian brushed titanium casing material
     const casingMat = new THREE.MeshStandardMaterial({
-      color: 0x0a0d14,
-      roughness: 0.35,
-      metalness: 0.85,
+      color: 0x080c14,
+      roughness: 0.32,
+      metalness: 0.88,
     });
 
-    const rimLineMat = new THREE.LineBasicMaterial({
-      color: 0x008cff,
-      transparent: true,
-      opacity: 0.45,
-    });
+    BRAND_REELS.forEach((reel, i) => {
+      const cardGroup = new THREE.Group();
 
-    activeReels.forEach((reel, i) => {
-      const frameContainer = new THREE.Group();
-
+      // Physical 3D chassis
       const casingMesh = new THREE.Mesh(boxCasingGeo, casingMat);
-      frameContainer.add(casingMesh);
+      cardGroup.add(casingMesh);
 
+      // HTML5 video element for reel footage
       const video = document.createElement('video');
       video.src = reel.video;
       video.crossOrigin = 'anonymous';
@@ -261,21 +192,11 @@ export const BrandShootsCore3D: React.FC = () => {
 
       const filmMat = new THREE.MeshStandardMaterial({
         map: posterTex,
-        roughness: 0.35,
+        roughness: 0.3,
         metalness: 0.1,
+        transparent: true,
+        opacity: 1.0,
       });
-
-      filmMat.onBeforeCompile = (shader) => {
-        shader.fragmentShader = shader.fragmentShader.replace(
-          '#include <map_fragment>',
-          `
-          #include <map_fragment>
-          float gray = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
-          gray = pow(gray, 1.15);
-          diffuseColor.rgb = vec3(gray * 0.88, gray * 0.90, gray * 0.95);
-          `
-        );
-      };
 
       video.addEventListener('playing', () => {
         filmMat.map = videoTex;
@@ -284,44 +205,33 @@ export const BrandShootsCore3D: React.FC = () => {
 
       const screenMesh = new THREE.Mesh(screenGeo, filmMat);
       screenMesh.position.z = casingDepth / 2 + 0.002;
-      frameContainer.add(screenMesh);
+      cardGroup.add(screenMesh);
 
-      const rimLine = new THREE.LineSegments(rimEdgeGeo, rimLineMat);
+      // Signature razor-sharp 1px electric blue rim line
+      const rimMat = new THREE.LineBasicMaterial({
+        color: 0x008cff,
+        transparent: true,
+        opacity: 0.6,
+      });
+      const rimLine = new THREE.LineSegments(rimEdgeGeo, rimMat);
       rimLine.position.z = casingDepth / 2 + 0.003;
-      frameContainer.add(rimLine);
+      cardGroup.add(rimLine);
 
-      // 3D Spatial Placement surrounding the core sphere
-      const count = activeReels.length;
-      const angle = (i / count) * Math.PI * 2;
-      const radius = isMobile ? 3.4 : 5.0;
-      const zOffset = ((i % 3) - 1) * (isMobile ? 0.85 : 1.4);
+      cardsRootGroup.add(cardGroup);
 
-      const posX = Math.cos(angle) * radius;
-      const posY = Math.sin(angle) * (radius * 0.42);
-      const posZ = zOffset;
-
-      frameContainer.position.set(posX, posY, posZ);
-
-      const rotY = -angle + Math.PI / 2 + 0.15;
-      const rotX = (posY / radius) * 0.22;
-      frameContainer.rotation.set(rotX, rotY, 0);
-
-      framesGroup.add(frameContainer);
-
-      frames.push({
-        mesh: frameContainer,
-        initialX: posX,
-        initialY: posY,
-        initialZ: posZ,
-        orbitRadius: radius,
-        orbitAngle: angle,
-        speed: 0.8 + (i % 3) * 0.2,
-        rotX,
-        rotY,
+      cardItems.push({
+        group: cardGroup,
+        screenMesh,
+        rimLine,
+        filmMat,
+        rimMat,
+        video,
+        videoTex,
+        index: i,
       });
     });
 
-    // Touch/scroll kick to guarantee autoplay
+    // Touch / scroll kick to guarantee autoplay on mobile browsers
     const wakeVideos = () => {
       videoElements.forEach((v) => {
         if (v.paused) v.play().catch(() => {});
@@ -332,23 +242,20 @@ export const BrandShootsCore3D: React.FC = () => {
     window.addEventListener('click', wakeVideos, { passive: true, once: true });
 
     // ========================================================================
-    // 6. SCROLL STATE TRACKING & GSAP SCROLLTRIGGER BINDING
+    // 5. SCROLL STATE TRACKING & GSAP SCROLLTRIGGER BINDING
     // ========================================================================
     const scrollState = {
       progress: 0,
-      cameraZ: initialCameraZ,
+      cardProgress: 0, // 0 to 5.2
+      entranceZ: -3.8, // Initial entrance from deep space
+      climaxSpread: 0, // 0 = curved carousel, 1 = wings formation
+      cameraZ: baseCameraZ,
       cameraY: 0,
       cameraX: 0,
-      orbitRotation: 0,
-      sphereRotY: 0,
-      sphereRotX: 0,
-      sphereScale: 1.0,
-      lightIntensity: 1.0,
-      lightPosX: 3.5,
-      lightPosY: 4.5,
+      cardsElevationY: isMobile ? 0.25 : 0.45,
     };
 
-    // Pointer & Touch Micro-Interaction Physics
+    // Pointer & Touch Micro-Parallax Physics
     let pointerX = 0;
     let pointerY = 0;
     let currentPointerX = 0;
@@ -370,7 +277,7 @@ export const BrandShootsCore3D: React.FC = () => {
     window.addEventListener('touchmove', onTouchMove, { passive: true });
 
     // ========================================================================
-    // 7. GSAP SCROLLTRIGGER PINNED TIMELINE (Scroll is Primary Driver)
+    // 6. GSAP SCROLLTRIGGER TIMELINE (Scroll Drives Cinematic Journey)
     // ========================================================================
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
@@ -391,62 +298,59 @@ export const BrandShootsCore3D: React.FC = () => {
         },
       });
 
-      // Continuous 3D Core Sphere & Reels Rotation driven strictly by scroll
+      // ----------------------------------------------------------------------
+      // PHASE 0 (0.00 -> 0.15): INITIAL ENTRANCE FROM DEEP Z-SPACE
+      // ----------------------------------------------------------------------
+      // Cards glide forward from the deep background toward camera
       tl.to(
         scrollState,
         {
-          orbitRotation: Math.PI * 1.8,
-          sphereRotY: Math.PI * 2.2,
-          sphereRotX: 0.45,
-          lightIntensity: 1.6,
-          lightPosX: 5.5,
-          lightPosY: 3.5,
-          duration: 4.0,
-          ease: 'none',
+          entranceZ: 0,
+          duration: 0.6,
+          ease: 'power2.out',
         },
         0
       );
 
-      // Intro Hint fades away on initial scroll
+      // Intro hint fades away
       tl.to(
         introHintRef.current,
         { opacity: 0, y: -20, duration: 0.2, ease: 'power2.in' },
         0.05
       );
 
-      // Subtle vignette (NO 28px blur! Sphere remains razor-sharp)
+      // Subtle atmospheric vignette
       tl.to(
         bgVignetteRef.current,
-        { opacity: 0.6, duration: 0.35, ease: 'power2.out' },
-        0.15
+        { opacity: 0.65, duration: 0.4, ease: 'power2.out' },
+        0.1
       );
 
-      // Logo floats to top header anchor (fades out on mobile during chapters 1-3 for unobstructed reading)
+      // Logo glides to top header anchor
       tl.to(
         logoWrapperRef.current,
         {
           y: isMobile ? -230 : -210,
           scale: isMobile ? 0.45 : 0.56,
           opacity: isMobile ? 0 : 0.85,
-          duration: 0.35,
+          duration: 0.4,
           ease: 'power2.out',
         },
-        0.15
+        0.12
       );
 
-      // -------------------------------------------------------------
-      // CHAPTER 01: ABOUT BRANDSHOOTS // WHO WE ARE
-      // -------------------------------------------------------------
-      // 3D environment responds: Camera moves in slightly, sphere shifts subtly
+      // ----------------------------------------------------------------------
+      // PHASE 1 (0.15 -> 0.40): CHAPTER 01 // WE CREATE STORIES. WE MAKE THEM MOVE.
+      // ----------------------------------------------------------------------
+      // Card progression glides to Card 1
       tl.to(
         scrollState,
         {
-          cameraZ: isMobile ? 9.2 : 7.6,
-          cameraY: 0.15,
-          cameraX: 0.1,
-          sphereScale: 0.88,
-          duration: 0.5,
-          ease: 'power2.inOut',
+          cardProgress: 1.0,
+          cameraZ: baseCameraZ - 0.2,
+          cameraX: 0.08,
+          duration: 1.0,
+          ease: 'none',
         },
         0.15
       );
@@ -477,23 +381,21 @@ export const BrandShootsCore3D: React.FC = () => {
       tl.to(
         chapter1Ref.current,
         { autoAlpha: 0, y: -30, scale: 1.02, duration: 0.25, ease: 'power2.in' },
-        1.0
+        1.1
       );
-      tl.to(pill1Ref.current, { color: 'rgba(255,255,255,0.35)', scale: 1.0, duration: 0.15 }, 1.0);
+      tl.to(pill1Ref.current, { color: 'rgba(255,255,255,0.35)', scale: 1.0, duration: 0.15 }, 1.1);
 
-      // -------------------------------------------------------------
-      // CHAPTER 02: PRODUCTION CRAFT // 9:16 SOCIAL VELOCITY
-      // -------------------------------------------------------------
-      // 3D environment responds: Camera pans left, sphere scale shifts
+      // ----------------------------------------------------------------------
+      // PHASE 2 (0.40 -> 0.65): CHAPTER 02 // FROM FIRST FRAME TO FINAL CUT.
+      // ----------------------------------------------------------------------
       tl.to(
         scrollState,
         {
-          cameraZ: isMobile ? 9.4 : 8.0,
-          cameraY: -0.2,
-          cameraX: -0.15,
-          sphereScale: 0.96,
-          duration: 0.5,
-          ease: 'power2.inOut',
+          cardProgress: 2.8,
+          cameraZ: baseCameraZ - 0.1,
+          cameraX: -0.1,
+          duration: 1.0,
+          ease: 'none',
         },
         1.15
       );
@@ -502,44 +404,42 @@ export const BrandShootsCore3D: React.FC = () => {
         chapter2Ref.current,
         { autoAlpha: 0, y: 35, scale: 0.97 },
         { autoAlpha: 1, y: 0, scale: 1.0, duration: 0.35, ease: 'power2.out' },
-        1.15
+        1.18
       );
 
       tl.fromTo(
         '.ch2-line',
         { yPercent: 110, opacity: 0 },
         { yPercent: 0, opacity: 1, duration: 0.35, stagger: 0.08, ease: 'power3.out' },
-        1.18
+        1.2
       );
 
-      tl.to(pill2Ref.current, { color: '#008CFF', scale: 1.25, duration: 0.15 }, 1.15);
+      tl.to(pill2Ref.current, { color: '#008CFF', scale: 1.25, duration: 0.15 }, 1.18);
       if (activeChapterLabelRef.current) {
         tl.call(() => {
           if (activeChapterLabelRef.current) activeChapterLabelRef.current.innerText = '2';
-        }, [], 1.15);
+        }, [], 1.18);
       }
 
       // Exit Chapter 2
       tl.to(
         chapter2Ref.current,
         { autoAlpha: 0, y: -30, scale: 1.02, duration: 0.25, ease: 'power2.in' },
-        2.0
+        2.1
       );
-      tl.to(pill2Ref.current, { color: 'rgba(255,255,255,0.35)', scale: 1.0, duration: 0.15 }, 2.0);
+      tl.to(pill2Ref.current, { color: 'rgba(255,255,255,0.35)', scale: 1.0, duration: 0.15 }, 2.1);
 
-      // -------------------------------------------------------------
-      // CHAPTER 03: ENTERPRISE IMPACT // PROVEN SCALE
-      // -------------------------------------------------------------
-      // 3D environment responds: Camera glides forward, lighting shifts
+      // ----------------------------------------------------------------------
+      // PHASE 3 (0.65 -> 0.85): CHAPTER 03 // DIFFERENT BRANDS. ONE CREATIVE VISION.
+      // ----------------------------------------------------------------------
       tl.to(
         scrollState,
         {
-          cameraZ: isMobile ? 9.1 : 7.6,
-          cameraY: 0.15,
-          cameraX: 0.12,
-          sphereScale: 0.92,
-          duration: 0.5,
-          ease: 'power2.inOut',
+          cardProgress: 4.5,
+          cameraZ: baseCameraZ - 0.15,
+          cameraX: 0.08,
+          duration: 0.95,
+          ease: 'none',
         },
         2.15
       );
@@ -548,21 +448,21 @@ export const BrandShootsCore3D: React.FC = () => {
         chapter3Ref.current,
         { autoAlpha: 0, y: 35, scale: 0.97 },
         { autoAlpha: 1, y: 0, scale: 1.0, duration: 0.35, ease: 'power2.out' },
-        2.15
+        2.18
       );
 
       tl.fromTo(
         '.ch3-line',
         { yPercent: 110, opacity: 0 },
         { yPercent: 0, opacity: 1, duration: 0.35, stagger: 0.08, ease: 'power3.out' },
-        2.18
+        2.2
       );
 
-      tl.to(pill3Ref.current, { color: '#008CFF', scale: 1.25, duration: 0.15 }, 2.15);
+      tl.to(pill3Ref.current, { color: '#008CFF', scale: 1.25, duration: 0.15 }, 2.18);
       if (activeChapterLabelRef.current) {
         tl.call(() => {
           if (activeChapterLabelRef.current) activeChapterLabelRef.current.innerText = '3';
-        }, [], 2.15);
+        }, [], 2.18);
       }
 
       // Exit Chapter 3
@@ -573,30 +473,31 @@ export const BrandShootsCore3D: React.FC = () => {
       );
       tl.to(pill3Ref.current, { color: 'rgba(255,255,255,0.35)', scale: 1.0, duration: 0.15 }, 3.0);
 
-      // -------------------------------------------------------------
-      // CHAPTER 04: THE CORE // LOGO & MANIFESTO CLIMAX
-      // -------------------------------------------------------------
-      // 3D Sphere scales up radiantly as the climactic brand anchor
+      // ----------------------------------------------------------------------
+      // PHASE 4 (0.85 -> 1.00): CHAPTER 04 CLIMAX // THE CREED & WINGS FORMATION
+      // ----------------------------------------------------------------------
+      // Cards part symmetrically to the left and right wings, opening the center stage
       tl.to(
         scrollState,
         {
-          cameraZ: initialCameraZ,
-          cameraY: 0,
+          climaxSpread: 1.0,
+          cameraZ: baseCameraZ + (isMobile ? 0.3 : 0.5),
           cameraX: 0,
-          sphereScale: 1.18,
-          duration: 0.6,
-          ease: 'power2.out',
+          cameraY: -0.1,
+          duration: 0.8,
+          ease: 'power2.inOut',
         },
-        3.15
+        3.1
       );
 
+      // BrandShoots Official Logo returns to center dominance
       tl.to(
         logoWrapperRef.current,
         {
-          y: isMobile ? -60 : -70,
+          y: isMobile ? -75 : -85,
           scale: 1.0,
           opacity: 1,
-          duration: 0.45,
+          duration: 0.5,
           ease: 'power2.out',
         },
         3.15
@@ -605,9 +506,9 @@ export const BrandShootsCore3D: React.FC = () => {
       tl.to(
         logoAuraRef.current,
         {
-          scale: 1.35,
-          opacity: 0.9,
-          duration: 0.45,
+          scale: 1.4,
+          opacity: 0.95,
+          duration: 0.5,
           ease: 'power2.out',
         },
         3.15
@@ -626,73 +527,117 @@ export const BrandShootsCore3D: React.FC = () => {
           if (activeChapterLabelRef.current) activeChapterLabelRef.current.innerText = '4';
         }, [], 3.2);
       }
+
+      // Final gentle hold and dissolution leading smoothly to Leadership section
+      tl.to({}, { duration: 0.3 }, 3.7);
     }, sectionRef);
 
     // ========================================================================
-    // 8. 60FPS SMOOTH THREE.JS RENDER LOOP (Physical Damping & Micro-Parallax)
+    // 7. 60FPS THREE.JS RENDER LOOP (Buttery Inertial Damping & 3D Spatial Arc)
     // ========================================================================
     let animId: number;
-    let currentOrbit = 0;
-    let currentSphereRotY = 0;
-    let currentSphereRotX = 0;
-    let currentCameraZ = initialCameraZ;
+    let currentCardProgress = 0;
+    let currentEntranceZ = -3.8;
+    let currentClimaxSpread = 0;
+    let currentCameraZ = baseCameraZ;
     let currentCameraY = 0;
     let currentCameraX = 0;
-    let currentSphereScale = 1.0;
 
     const tick = () => {
       animId = requestAnimationFrame(tick);
       const time = performance.now() * 0.001;
 
-      // Smooth interpolation of scroll-driven parameters
-      currentOrbit += (scrollState.orbitRotation - currentOrbit) * 0.08;
-      currentSphereRotY += (scrollState.sphereRotY - currentSphereRotY) * 0.08;
-      currentSphereRotX += (scrollState.sphereRotX - currentSphereRotX) * 0.08;
-      currentCameraZ += (scrollState.cameraZ - currentCameraZ) * 0.06;
-      currentCameraY += (scrollState.cameraY - currentCameraY) * 0.06;
-      currentCameraX += (scrollState.cameraX - currentCameraX) * 0.06;
-      currentSphereScale += (scrollState.sphereScale - currentSphereScale) * 0.08;
+      // Inertial damping on scroll parameters (Buttery smooth lerp)
+      currentCardProgress += (scrollState.cardProgress - currentCardProgress) * 0.085;
+      currentEntranceZ += (scrollState.entranceZ - currentEntranceZ) * 0.085;
+      currentClimaxSpread += (scrollState.climaxSpread - currentClimaxSpread) * 0.08;
+      currentCameraZ += (scrollState.cameraZ - currentCameraZ) * 0.07;
+      currentCameraY += (scrollState.cameraY - currentCameraY) * 0.07;
+      currentCameraX += (scrollState.cameraX - currentCameraX) * 0.07;
 
-      // Pointer / touch micro-parallax interpolation
+      // Inertial pointer micro-parallax
       currentPointerX += (pointerX - currentPointerX) * 0.05;
       currentPointerY += (pointerY - currentPointerY) * 0.05;
 
-      // A. Sphere rotation & physical orientation (Driven primarily by scroll)
-      sphereGroup.rotation.y = currentSphereRotY + currentPointerX * 0.24;
-      sphereGroup.rotation.x = currentSphereRotX - currentPointerY * 0.18;
-      sphereGroup.scale.setScalar(currentSphereScale);
-
-      // Gimbal rings counter-rotate subtly for dimensional mechanical life
-      gimbalRing1.rotation.z = currentSphereRotY * 0.45;
-      gimbalRing2.rotation.x = -currentSphereRotY * 0.35;
-
-      // B. Camera positioning (Scroll + micro-parallax)
+      // ----------------------------------------------------------------------
+      // CAMERA POSITION (Cinematic Travel + Micro-Parallax)
+      // ----------------------------------------------------------------------
       camera.position.z = currentCameraZ;
-      camera.position.y = currentCameraY - currentPointerY * 0.15;
-      camera.position.x = currentCameraX + currentPointerX * 0.2;
-      camera.lookAt(0, 0, 0);
+      camera.position.x = currentCameraX + currentPointerX * (isMobile ? 0.08 : 0.22);
+      camera.position.y = currentCameraY - currentPointerY * (isMobile ? 0.06 : 0.16);
+      camera.lookAt(0, scrollState.cardsElevationY * 0.5, 0);
 
-      // C. Lighting shifts dynamically
-      keyLight.position.set(
-        scrollState.lightPosX + currentPointerX * 1.2,
-        scrollState.lightPosY - currentPointerY * 1.2,
-        6.0
-      );
-      blueRimLight.intensity = scrollState.lightIntensity * (1 + Math.abs(currentPointerX) * 0.2);
+      // Lighting tracking
+      travelingSpot.position.x = currentPointerX * 1.5;
+      travelingSpot.position.y = scrollState.cardsElevationY + 0.5;
 
-      // D. Surrounding 9:16 Video Reels orbit group
-      framesGroup.rotation.y = currentOrbit + currentPointerX * 0.12;
-      framesGroup.rotation.x = Math.sin(time * 0.35) * 0.015 - currentPointerY * 0.08;
+      // ----------------------------------------------------------------------
+      // 3D SPATIAL CURVED CARDS POSITIONING
+      // ----------------------------------------------------------------------
+      const curveRx = isMobile ? 3.2 : isTablet ? 4.8 : 5.8;
+      const curveRz = isMobile ? 4.2 : isTablet ? 5.6 : 6.6;
+      const angleStep = isMobile ? 0.52 : 0.44;
 
-      frames.forEach((f, idx) => {
-        const floatY = Math.sin(time * 1.1 + idx * 1.4) * 0.05;
-        f.mesh.position.y = f.initialY + floatY;
-      });
+      cardItems.forEach((card) => {
+        const i = card.index;
+        const delta = i - currentCardProgress;
 
-      // Video textures frame upload
-      videoTextures.forEach((vt) => {
-        if (vt.image && (vt.image as HTMLVideoElement).readyState >= 2) {
-          vt.needsUpdate = true;
+        // A. Carousel State (Curved Spatial Arc)
+        const theta = delta * angleStep;
+        const carouselX = Math.sin(theta) * curveRx;
+        const carouselZ = -(1 - Math.cos(theta)) * curveRz + currentEntranceZ;
+        const carouselY = scrollState.cardsElevationY - Math.min(1.2, delta * delta * 0.04);
+        const carouselRotY = -theta * 0.85;
+        const carouselRotX = currentPointerY * 0.04;
+        const carouselRotZ = -delta * 0.02;
+        const carouselScale = Math.max(0.42, 1.0 - 0.16 * Math.min(3.5, Math.abs(delta)));
+        const carouselOpacity = Math.max(0.2, 1.0 - 0.24 * Math.min(3.5, Math.abs(delta)));
+
+        // B. Wings Formation State (Chapter 04 Climax)
+        // Cards 0,1,2 fan left; Cards 3,4,5 fan right, opening center for BrandShoots logo
+        const isLeftWing = i < 3;
+        const wingRank = isLeftWing ? 2 - i : i - 3; // 0, 1, 2 from inner to outer
+        const wingDir = isLeftWing ? -1 : 1;
+        const wingX = wingDir * (isMobile ? 1.9 + wingRank * 1.1 : 2.5 + wingRank * 1.4);
+        const wingZ = -0.6 - wingRank * 1.1;
+        const wingY = scrollState.cardsElevationY + 0.1 - wingRank * 0.15;
+        const wingRotY = -wingDir * (0.35 + wingRank * 0.12);
+        const wingScale = 0.9 - wingRank * 0.14;
+        const wingOpacity = 0.85 - wingRank * 0.2;
+
+        // Smoothly blend between Carousel and Wings formation
+        const blend = currentClimaxSpread;
+        const targetX = carouselX * (1 - blend) + wingX * blend;
+        const targetY = carouselY * (1 - blend) + wingY * blend;
+        const targetZ = carouselZ * (1 - blend) + wingZ * blend;
+        const targetRotY = carouselRotY * (1 - blend) + wingRotY * blend + currentPointerX * 0.08;
+        const targetRotX = carouselRotX + currentPointerY * 0.06;
+        const targetRotZ = carouselRotZ * (1 - blend);
+        const targetScale = carouselScale * (1 - blend) + wingScale * blend;
+        const targetOpacity = carouselOpacity * (1 - blend) + wingOpacity * blend;
+
+        // Subtle organic float animation per card
+        const floatY = Math.sin(time * 1.2 + i * 1.3) * 0.035;
+
+        card.group.position.set(targetX, targetY + floatY, targetZ);
+        card.group.rotation.set(targetRotX, targetRotY, targetRotZ);
+        card.group.scale.setScalar(targetScale);
+
+        // Apply smooth opacity
+        card.filmMat.opacity = targetOpacity;
+        card.rimMat.opacity = Math.max(0.15, targetOpacity * 0.7);
+
+        // Active video optimization: Play video for cards in focal spotlight
+        const isFocal = Math.abs(delta) < 1.1 || blend > 0.4;
+        if (isFocal && card.video.paused) {
+          card.video.play().catch(() => {});
+        } else if (!isFocal && !card.video.paused && Math.abs(delta) > 2.2) {
+          card.video.pause();
+        }
+
+        // Texture upload
+        if (card.videoTex.image && (card.videoTex.image as HTMLVideoElement).readyState >= 2) {
+          card.videoTex.needsUpdate = true;
         }
       });
 
@@ -701,17 +646,24 @@ export const BrandShootsCore3D: React.FC = () => {
 
     tick();
 
-    // 9. Resize Handler
+    // ========================================================================
+    // 8. RESIZE HANDLER
+    // ========================================================================
     const handleResize = () => {
-      const w = pinContainer.clientWidth || window.innerWidth;
-      const h = pinContainer.clientHeight || window.innerHeight;
-      camera.aspect = w / h;
+      width = pinContainer.clientWidth || window.innerWidth;
+      height = pinContainer.clientHeight || window.innerHeight;
+      isMobile = window.innerWidth < 768;
+      isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
+
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
+      renderer.setSize(width, height);
     };
     window.addEventListener('resize', handleResize);
 
-    // Cleanup
+    // ========================================================================
+    // 9. CLEANUP
+    // ========================================================================
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', handleResize);
@@ -729,22 +681,16 @@ export const BrandShootsCore3D: React.FC = () => {
       });
       videoTextures.forEach((vt) => vt.dispose());
 
-      sphereGeo.dispose();
-      wireGeo.dispose();
-      ringGeo1.dispose();
-      ringGeo2.dispose();
-      meridianGeo.dispose();
-      sphereMat.dispose();
-      wireMat.dispose();
-      ringMat1.dispose();
-      ringMat2.dispose();
-      meridianMat.dispose();
-
       boxCasingGeo.dispose();
       screenGeo.dispose();
       rimEdgeGeo.dispose();
       casingMat.dispose();
-      rimLineMat.dispose();
+
+      cardItems.forEach((c) => {
+        c.filmMat.dispose();
+        c.rimMat.dispose();
+      });
+
       renderer.dispose();
     };
   }, []);
@@ -773,8 +719,8 @@ export const BrandShootsCore3D: React.FC = () => {
               ref={activeChapterLabelRef}
               className="font-mono text-[10px] sm:text-xs tracking-[0.32em] uppercase text-[#008CFF] font-semibold"
             >
-              <span className="hidden sm:inline">THE BRANDSHOOTS CORE // 3D REEL UNIVERSE</span>
-              <span className="sm:hidden">3D CORE // ARCHIVE</span>
+              <span className="hidden sm:inline">THE BRANDSHOOTS CORE // 3D REEL INSTALLATION</span>
+              <span className="sm:hidden">3D REELS // ARCHIVE</span>
             </span>
           </div>
 
@@ -803,7 +749,7 @@ export const BrandShootsCore3D: React.FC = () => {
         </div>
 
         {/* ======================================================== */}
-        {/* THREE.JS WEBGL CANVAS (Sharp 3D Sphere & 9:16 Reels) (Z: 10) */}
+        {/* THREE.JS WEBGL CANVAS (Hero 3D Cards Installation) (Z: 10) */}
         {/* ======================================================== */}
         <canvas
           ref={canvasRef}
@@ -812,14 +758,14 @@ export const BrandShootsCore3D: React.FC = () => {
         />
 
         {/* ======================================================== */}
-        {/* SUBTLE VIGNETTE (Zero 28px Blur -> Sphere stays sharp) (Z: 20) */}
+        {/* SUBTLE VIGNETTE (Atmospheric Studio Depth) (Z: 20)       */}
         {/* ======================================================== */}
         <div
           ref={bgVignetteRef}
           className="absolute inset-0 pointer-events-none opacity-0 transition-opacity duration-300 will-change-opacity"
           style={{
             zIndex: 20,
-            background: 'radial-gradient(circle at 50% 50%, rgba(5,7,11,0.12) 0%, rgba(5,7,11,0.6) 88%)',
+            background: 'radial-gradient(circle at 50% 50%, rgba(5,7,11,0.08) 0%, rgba(5,7,11,0.68) 88%)',
           }}
         />
 
@@ -862,12 +808,13 @@ export const BrandShootsCore3D: React.FC = () => {
 
         {/* ======================================================== */}
         {/* CHAPTER DOSSIER CARDS (Z-INDEX: 50 -> CRISP & LEGIBLE)   */}
+        {/* Positioned in lower center so 3D cards shine in 3D space */}
         {/* ======================================================== */}
         <div
-          className="absolute inset-0 flex items-center justify-center px-4 sm:px-8 lg:px-16 pointer-events-none"
+          className="absolute inset-0 flex items-end sm:items-center justify-center pb-12 sm:pb-0 px-4 sm:px-8 lg:px-16 pointer-events-none"
           style={{ zIndex: 50 }}
         >
-          <div className="relative w-full max-w-3xl min-h-[340px] sm:min-h-[400px] flex items-center justify-center">
+          <div className="relative w-full max-w-3xl min-h-[300px] sm:min-h-[380px] flex items-center justify-center">
 
             {/* CHAPTER 01: ABOUT BRANDSHOOTS */}
             <div
@@ -875,7 +822,7 @@ export const BrandShootsCore3D: React.FC = () => {
               className="absolute inset-x-0 mx-auto flex flex-col items-center text-center will-change-transform opacity-0 pointer-events-none"
               style={{ zIndex: 50 }}
             >
-              <div className="relative max-w-2xl px-5 py-5 sm:px-7 sm:py-7 rounded-2xl bg-[#05070B]/55 backdrop-blur-[6px] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.85)] mx-3">
+              <div className="relative max-w-2xl px-5 py-5 sm:px-7 sm:py-7 rounded-2xl bg-[#05070B]/70 backdrop-blur-[10px] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.85)] mx-3">
                 <h2 className="text-xl sm:text-3xl lg:text-5xl font-black uppercase tracking-tight text-white leading-[1.15] mb-3 sm:mb-4 drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-2xl">
                   <span className="overflow-hidden block py-0.5">
                     <span className="ch1-line inline-block will-change-transform">WE CREATE STORIES.</span>
@@ -900,7 +847,7 @@ export const BrandShootsCore3D: React.FC = () => {
               className="absolute inset-x-0 mx-auto flex flex-col items-center text-center will-change-transform opacity-0 pointer-events-none"
               style={{ zIndex: 50 }}
             >
-              <div className="relative max-w-2xl px-5 py-5 sm:px-7 sm:py-7 rounded-2xl bg-[#05070B]/55 backdrop-blur-[6px] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.85)] mx-3">
+              <div className="relative max-w-2xl px-5 py-5 sm:px-7 sm:py-7 rounded-2xl bg-[#05070B]/70 backdrop-blur-[10px] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.85)] mx-3">
                 <h2 className="text-xl sm:text-3xl lg:text-5xl font-black uppercase tracking-tight text-white leading-[1.15] mb-3 sm:mb-4 drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-2xl">
                   <span className="overflow-hidden block py-0.5">
                     <span className="ch2-line inline-block will-change-transform">FROM FIRST FRAME TO</span>
@@ -924,7 +871,7 @@ export const BrandShootsCore3D: React.FC = () => {
               className="absolute inset-x-0 mx-auto flex flex-col items-center text-center will-change-transform opacity-0 pointer-events-none"
               style={{ zIndex: 50 }}
             >
-              <div className="relative max-w-2xl px-5 py-5 sm:px-7 sm:py-7 rounded-2xl bg-[#05070B]/55 backdrop-blur-[6px] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.85)] mx-3">
+              <div className="relative max-w-2xl px-5 py-5 sm:px-7 sm:py-7 rounded-2xl bg-[#05070B]/70 backdrop-blur-[10px] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.85)] mx-3">
                 <h2 className="text-xl sm:text-3xl lg:text-5xl font-black uppercase tracking-tight text-white leading-[1.15] mb-3 sm:mb-4 drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-2xl">
                   <span className="overflow-hidden block py-0.5">
                     <span className="ch3-line inline-block will-change-transform">DIFFERENT BRANDS.</span>
@@ -946,10 +893,10 @@ export const BrandShootsCore3D: React.FC = () => {
             {/* CHAPTER 04: THE BRANDSHOOTS CREED */}
             <div
               ref={chapter4Ref}
-              className="absolute inset-x-0 mx-auto flex flex-col items-center text-center will-change-transform opacity-0 pointer-events-none mt-24 sm:mt-32"
+              className="absolute inset-x-0 mx-auto flex flex-col items-center text-center will-change-transform opacity-0 pointer-events-none mt-20 sm:mt-28"
               style={{ zIndex: 50 }}
             >
-              <div className="relative max-w-2xl px-5 py-5 sm:px-7 sm:py-7 rounded-2xl bg-[#05070B]/55 backdrop-blur-[6px] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.85)] mx-3">
+              <div className="relative max-w-2xl px-5 py-5 sm:px-7 sm:py-7 rounded-2xl bg-[#05070B]/70 backdrop-blur-[10px] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.85)] mx-3">
                 <h3 className="text-xl sm:text-3xl lg:text-5xl font-black uppercase tracking-tight text-white leading-tight mb-3 drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-2xl">
                   WE CREATE STORIES THAT{' '}
                   <span className="text-[#008CFF]">MOVE PEOPLE.</span>

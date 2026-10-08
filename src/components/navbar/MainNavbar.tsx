@@ -301,8 +301,8 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
             {/* Ambient Electric Blue Glow in Background */}
             <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-80 sm:w-96 h-80 sm:h-96 bg-[#008CFF]/15 rounded-full blur-[130px] pointer-events-none" />
 
-            {/* Top Bar inside Full Menu: Logo & Close Button (X) */}
-            <div className="relative z-10 flex items-center justify-between w-full border-b border-white/10 pb-4 sm:pb-5">
+            {/* Top Bar inside Full Menu (Desktop only, on mobile the fixed header is on top) */}
+            <div className="hidden md:flex relative z-10 items-center justify-between w-full border-b border-white/10 pb-4 sm:pb-5">
               <a
                 href="/"
                 onClick={handleScrollToTop}
@@ -327,7 +327,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
               </button>
             </div>
 
-            {/* Center: Large Readable Navigation Items */}
+            {/* Center: Large Readable Navigation Items in Figtree */}
             <motion.div
               initial="hidden"
               animate="visible"
@@ -338,7 +338,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                   transition: { staggerChildren: 0.07, delayChildren: 0.08 },
                 },
               }}
-              className="relative z-10 flex flex-col items-center justify-center gap-5 sm:gap-7 my-auto py-6 text-center"
+              className="relative z-10 flex flex-col items-center justify-center gap-5 sm:gap-7 my-auto pt-16 md:pt-0 py-6 text-center"
             >
               {/* 1. ABOUT US */}
               <motion.div
@@ -350,7 +350,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                 <Link
                   to="/about"
                   onClick={() => setMenuOpen(false)}
-                  className={`text-2xl xs:text-3xl sm:text-4xl font-display font-black tracking-[0.14em] uppercase transition-colors py-2 block ${
+                  className={`text-2xl xs:text-3xl sm:text-4xl font-figtree font-black tracking-[0.14em] uppercase transition-colors py-2 block ${
                     isAbout ? 'text-[#008CFF]' : 'text-white/90 hover:text-[#008CFF]'
                   }`}
                 >
@@ -368,7 +368,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                 <Link
                   to="/portfolio"
                   onClick={() => setMenuOpen(false)}
-                  className={`text-2xl xs:text-3xl sm:text-4xl font-display font-black tracking-[0.14em] uppercase transition-colors py-2 block ${
+                  className={`text-2xl xs:text-3xl sm:text-4xl font-figtree font-black tracking-[0.14em] uppercase transition-colors py-2 block ${
                     isPortfolio ? 'text-[#008CFF]' : 'text-white/90 hover:text-[#008CFF]'
                   }`}
                 >
@@ -386,7 +386,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                 <button
                   type="button"
                   onClick={() => handleNavScroll('leadership')}
-                  className="text-2xl xs:text-3xl sm:text-4xl font-display font-black tracking-[0.14em] uppercase text-white/90 hover:text-[#008CFF] transition-colors py-2 block cursor-pointer"
+                  className="text-2xl xs:text-3xl sm:text-4xl font-figtree font-black tracking-[0.14em] uppercase text-white/90 hover:text-[#008CFF] transition-colors py-2 block cursor-pointer"
                 >
                   TEAM
                 </button>
@@ -402,7 +402,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                 <button
                   type="button"
                   onClick={() => handleNavScroll('what-we-do')}
-                  className="text-2xl xs:text-3xl sm:text-4xl font-display font-black tracking-[0.14em] uppercase text-white/90 hover:text-[#008CFF] transition-colors py-2 block cursor-pointer"
+                  className="text-2xl xs:text-3xl sm:text-4xl font-figtree font-black tracking-[0.14em] uppercase text-white/90 hover:text-[#008CFF] transition-colors py-2 block cursor-pointer"
                 >
                   SERVICES
                 </button>
@@ -419,7 +419,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                 <button
                   type="button"
                   onClick={handleGetInTouch}
-                  className="px-8 py-3.5 sm:px-10 sm:py-4 rounded-full bg-[#008CFF] hover:bg-[#209CFF] text-white text-xs sm:text-sm tracking-[0.24em] font-mono uppercase font-bold shadow-[0_0_24px_rgba(0,140,255,0.5)] transition-all duration-200 active:scale-95 inline-block text-center cursor-pointer"
+                  className="px-8 py-3.5 sm:px-10 sm:py-4 rounded-full bg-[#008CFF] hover:bg-[#209CFF] text-white text-xs sm:text-sm tracking-[0.24em] font-mono uppercase font-bold shadow-[0_0_24px_rgba(0,140,255,0.5)] transition-all duration-200 active:scale-95 inline-block text-center cursor-pointer min-h-[44px]"
                 >
                   GET IN TOUCH
                 </button>

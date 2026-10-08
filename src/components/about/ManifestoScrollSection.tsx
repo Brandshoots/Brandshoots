@@ -94,32 +94,33 @@ export const ManifestoScrollSection: React.FC = () => {
       });
 
       // ====================================================================
-      // THREE-STAGE 3D DEPTH CHOREOGRAPHY (Crisp Transitions)
+      // THREE CLEAN, SEQUENTIAL 3D SPATIAL MANIFESTO STAGES (Zero Overlap)
       // ====================================================================
 
-      // Phase 1 (0.00 -> 0.46): CREATE flies into camera in 3D & SHOOT rushes from deep Z-space
-      tl.to(progressBarRef.current, { width: '33%', duration: 0.35, ease: 'none' }, 0)
+      // Phase 1 (0.00 -> 0.35): CREATE is centered, sharp, and dominant
+      tl.to(progressBarRef.current, { width: '33%', duration: 0.45, ease: 'none' }, 0)
+        .to(createTextRef.current, { letterSpacing: '-0.02em', duration: 0.4 }, 0)
+
+        // Stage 1 Exit (0.35 -> 0.55): CREATE glides forward and out
         .to(
           createWrapRef.current,
           {
-            scale: 2.2,
-            z: 400,
-            rotateX: -12,
+            scale: 1.6,
+            z: 250,
+            y: -30,
             opacity: 0,
-            filter: 'blur(6px)',
-            duration: 0.42,
+            duration: 0.2,
             ease: 'power2.in',
           },
-          0.04
+          0.35
         )
         .to(
           createSubRef.current,
-          { y: -50, opacity: 0, duration: 0.28 },
-          0.05
+          { y: -40, opacity: 0, duration: 0.16 },
+          0.35
         )
-        // Interactive tracking expansion on headline
-        .to(createTextRef.current, { letterSpacing: '-0.02em', duration: 0.4 }, 0)
-        // SHOOT charges forward into sharp focal plane
+
+        // Stage 2 Entrance (0.55 -> 0.75): SHOOT surges forward from deep Z-space
         .to(
           shootWrapRef.current,
           {
@@ -129,10 +130,15 @@ export const ManifestoScrollSection: React.FC = () => {
             rotateX: 0,
             rotateY: 0,
             filter: 'blur(0px)',
-            duration: 0.45,
+            duration: 0.22,
             ease: 'power2.out',
           },
-          0.16
+          0.55
+        )
+        .to(
+          shootSubRef.current,
+          { y: 0, opacity: 1, duration: 0.18, ease: 'power2.out' },
+          0.6
         )
         .to(
           bgVolumetricRef.current,
@@ -140,34 +146,35 @@ export const ManifestoScrollSection: React.FC = () => {
             background:
               'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.26) 0%, rgba(11, 16, 78, 0.45) 50%, transparent 80%)',
             scale: 1.25,
-            duration: 0.45,
+            duration: 0.35,
           },
-          0.18
-        );
+          0.55
+        )
 
-      // Phase 2 (0.46 -> 0.92): SHOOT plunges past camera in 3D & GROW charges from background
-      tl.to(progressBarRef.current, { width: '66%', duration: 0.35, ease: 'none' }, 0.46)
+        // Phase 2 Hold (0.75 -> 1.10): SHOOT is centered, sharp, and dominant
+        .to(progressBarRef.current, { width: '66%', duration: 0.55, ease: 'none' }, 0.55)
+        .to(shootTextRef.current, { letterSpacing: '-0.02em', duration: 0.35 }, 0.6)
+
+        // Stage 2 Exit (1.10 -> 1.30): SHOOT glides forward and out
         .to(
           shootWrapRef.current,
           {
-            scale: 2.4,
-            z: 450,
-            rotateX: 14,
-            rotateY: 10,
+            scale: 1.6,
+            z: 250,
+            y: -30,
             opacity: 0,
-            filter: 'blur(6px)',
-            duration: 0.42,
+            duration: 0.2,
             ease: 'power2.in',
           },
-          0.48
+          1.1
         )
         .to(
           shootSubRef.current,
-          { y: -50, opacity: 0, duration: 0.28 },
-          0.48
+          { y: -40, opacity: 0, duration: 0.16 },
+          1.1
         )
-        .to(shootTextRef.current, { letterSpacing: '-0.02em', duration: 0.4 }, 0.16)
-        // GROW bursts into focus with volumetric presence
+
+        // Stage 3 Entrance (1.30 -> 1.50): GROW bursts into focus with volumetric presence
         .to(
           growWrapRef.current,
           {
@@ -177,10 +184,15 @@ export const ManifestoScrollSection: React.FC = () => {
             rotateX: 0,
             rotateY: 0,
             filter: 'blur(0px)',
-            duration: 0.46,
+            duration: 0.22,
             ease: 'power2.out',
           },
-          0.56
+          1.3
+        )
+        .to(
+          growSubRef.current,
+          { y: 0, opacity: 1, duration: 0.18, ease: 'power2.out' },
+          1.35
         )
         .to(
           bgVolumetricRef.current,
@@ -188,12 +200,28 @@ export const ManifestoScrollSection: React.FC = () => {
             background:
               'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.32) 0%, rgba(7, 11, 51, 0.55) 50%, transparent 85%)',
             scale: 1.35,
-            duration: 0.45,
+            duration: 0.35,
           },
-          0.58
+          1.3
         )
-        .to(growTextRef.current, { letterSpacing: '-0.02em', duration: 0.4 }, 0.56)
-        .to(progressBarRef.current, { width: '100%', duration: 0.3, ease: 'none' }, 0.72);
+        .to(growTextRef.current, { letterSpacing: '-0.02em', duration: 0.35 }, 1.35)
+
+        // Phase 3 Hold (1.50 -> 1.85): GROW holds dominant
+        .to(progressBarRef.current, { width: '100%', duration: 0.55, ease: 'none' }, 1.3)
+
+        // Stage 3 Dissolution into BrandShootsCore3D (1.85 -> 2.10)
+        .to(
+          growWrapRef.current,
+          {
+            scale: 0.94,
+            opacity: 0.4,
+            filter: 'blur(3px)',
+            duration: 0.25,
+            ease: 'power2.out',
+          },
+          1.85
+        )
+        .to({}, { duration: 0.15 }, 2.05);
     }, sectionRef);
 
     return () => {

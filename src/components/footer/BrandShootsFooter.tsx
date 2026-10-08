@@ -146,15 +146,15 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = ({ onOpenCont
           {/* ========================================================= */}
           {/* 3. SOCIAL MEDIA CHANNELS                                  */}
           {/* ========================================================= */}
-          <div className="mt-8 sm:mt-10 flex items-center gap-4">
+          <div className="mt-8 sm:mt-10 flex items-center gap-3.5 sm:gap-4">
             <a
               href="https://instagram.com/wearebrandshoots"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram"
-              className="w-10 h-10 rounded-full bg-white/[0.06] hover:bg-[#008CFF] border border-white/12 flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 shadow-sm active:scale-95"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/[0.06] hover:bg-[#008CFF] border border-white/12 flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 shadow-sm active:scale-95"
             >
-              <Instagram className="w-4 h-4" />
+              <Instagram className="w-4.5 h-4.5" />
             </a>
 
             <a
@@ -162,9 +162,9 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = ({ onOpenCont
               target="_blank"
               rel="noopener noreferrer"
               aria-label="YouTube"
-              className="w-10 h-10 rounded-full bg-white/[0.06] hover:bg-[#008CFF] border border-white/12 flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 shadow-sm active:scale-95"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/[0.06] hover:bg-[#008CFF] border border-white/12 flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 shadow-sm active:scale-95"
             >
-              <Youtube className="w-4 h-4" />
+              <Youtube className="w-4.5 h-4.5" />
             </a>
 
             <a
@@ -172,9 +172,9 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = ({ onOpenCont
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Facebook"
-              className="w-10 h-10 rounded-full bg-white/[0.06] hover:bg-[#008CFF] border border-white/12 flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 shadow-sm active:scale-95"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/[0.06] hover:bg-[#008CFF] border border-white/12 flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 shadow-sm active:scale-95"
             >
-              <Facebook className="w-4 h-4" />
+              <Facebook className="w-4.5 h-4.5" />
             </a>
 
             <a
@@ -182,9 +182,9 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = ({ onOpenCont
               target="_blank"
               rel="noopener noreferrer"
               aria-label="WhatsApp"
-              className="w-10 h-10 rounded-full bg-white/[0.06] hover:bg-[#008CFF] border border-white/12 flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 shadow-sm active:scale-95"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/[0.06] hover:bg-[#008CFF] border border-white/12 flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 shadow-sm active:scale-95"
             >
-              <MessageCircle className="w-4 h-4" />
+              <MessageCircle className="w-4.5 h-4.5" />
             </a>
           </div>
 

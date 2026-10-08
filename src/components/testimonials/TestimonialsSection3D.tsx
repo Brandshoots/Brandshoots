@@ -208,20 +208,20 @@ export const TestimonialsSection3D: React.FC = () => {
         {/* Large Cinematic Quote Frame */}
         <div
           ref={quoteWrapperRef}
-          className="relative w-full flex flex-col items-center bg-[#070B13]/70 backdrop-blur-2xl rounded-3xl p-8 sm:p-14 lg:p-16 border border-white/12 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_35px_rgba(0,140,255,0.12)]"
+          className="relative w-full flex flex-col items-center bg-[#070B13]/70 backdrop-blur-2xl rounded-3xl p-6 xs:p-8 sm:p-14 lg:p-16 border border-white/12 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_35px_rgba(0,140,255,0.12)]"
         >
           {/* Glowing Top Edge */}
-          <div className="absolute inset-x-12 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#008CFF]/60 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-8 sm:inset-x-12 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#008CFF]/60 to-transparent pointer-events-none" />
 
           {/* Luminous Quote Icon */}
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/30 flex items-center justify-center text-[#008CFF] mb-6 sm:mb-8 shadow-[0_0_20px_rgba(0,140,255,0.3)]">
-            <Quote className="w-6 h-6 sm:w-7 sm:h-7" />
+          <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/30 flex items-center justify-center text-[#008CFF] mb-5 sm:mb-8 shadow-[0_0_20px_rgba(0,140,255,0.3)]">
+            <Quote className="w-5 h-5 sm:w-7 sm:h-7" />
           </div>
 
-          {/* Monumental Quote Typography */}
+          {/* Monumental Quote Typography in Figtree */}
           <p
             ref={quoteTextRef}
-            className="font-display font-medium text-2xl xs:text-3xl sm:text-4xl md:text-5xl leading-[1.24] tracking-[-0.025em] text-white/95 max-w-4xl"
+            className="font-figtree font-medium text-xl xs:text-2xl sm:text-4xl md:text-5xl leading-[1.3] sm:leading-[1.24] tracking-[-0.02em] text-white/95 max-w-4xl"
           >
             "{activeTestimonial.quote}"
           </p>
@@ -229,7 +229,7 @@ export const TestimonialsSection3D: React.FC = () => {
           {/* Author & Client Credentials */}
           <div
             ref={authorInfoRef}
-            className="mt-8 sm:mt-12 flex flex-col items-center gap-1.5"
+            className="mt-6 sm:mt-12 flex flex-col items-center gap-1.5"
           >
             <span className="text-base sm:text-lg font-bold text-white tracking-wide">
               {activeTestimonial.author}
@@ -242,12 +242,12 @@ export const TestimonialsSection3D: React.FC = () => {
           </div>
 
           {/* Interactive Navigation Controls */}
-          <div className="mt-10 sm:mt-12 flex items-center justify-between w-full max-w-xs pt-6 border-t border-white/10">
+          <div className="mt-8 sm:mt-12 flex items-center justify-between w-full max-w-xs pt-5 sm:pt-6 border-t border-white/10">
             <button
               type="button"
               onClick={prev}
               aria-label="Previous Testimonial"
-              className="w-10 h-10 rounded-full bg-white/[0.06] hover:bg-[#008CFF] border border-white/15 flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 cursor-pointer active:scale-95 shadow-sm"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/[0.06] hover:bg-[#008CFF] border border-white/15 flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 cursor-pointer active:scale-95 shadow-sm"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -273,7 +273,7 @@ export const TestimonialsSection3D: React.FC = () => {
               type="button"
               onClick={next}
               aria-label="Next Testimonial"
-              className="w-10 h-10 rounded-full bg-white/[0.06] hover:bg-[#008CFF] border border-white/15 flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 cursor-pointer active:scale-95 shadow-sm"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/[0.06] hover:bg-[#008CFF] border border-white/15 flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 cursor-pointer active:scale-95 shadow-sm"
             >
               <ChevronRight className="w-5 h-5" />
             </button>

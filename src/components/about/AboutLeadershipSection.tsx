@@ -12,8 +12,8 @@ export const AboutLeadershipSection: React.FC = () => {
   const nameLine2Ref = useRef<HTMLSpanElement>(null);
   const designationRef = useRef<HTMLDivElement>(null);
   const statementRef = useRef<HTMLParagraphElement>(null);
-
   const cardRef = useRef<HTMLDivElement>(null);
+  const auraRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -74,6 +74,18 @@ export const AboutLeadershipSection: React.FC = () => {
           scrub: 1.2,
         },
       });
+
+      // Subtle Background Aura Parallax (Smooth visual transition between sections)
+      gsap.to(auraRef.current, {
+        yPercent: -15,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 1.4,
+        },
+      });
     }, sectionRef);
 
     return () => ctx.revert();
@@ -113,7 +125,8 @@ export const AboutLeadershipSection: React.FC = () => {
       {/* Background Aura */}
       <div className="absolute inset-0 pointer-events-none">
         <div
-          className="absolute top-1/2 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[85vw] max-w-[950px] h-[550px]"
+          ref={auraRef}
+          className="absolute top-1/2 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[85vw] max-w-[950px] h-[550px] will-change-transform"
           style={{
             background:
               'radial-gradient(ellipse at 50% 50%, rgba(19, 158, 242, 0.12) 0%, rgba(11, 16, 78, 0.25) 50%, transparent 75%)',
