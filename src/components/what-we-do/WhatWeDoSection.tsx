@@ -113,8 +113,8 @@ export const WhatWeDoSection: React.FC = () => {
     if (window.innerWidth < 1024) return;
     const rect = stageRef.current?.getBoundingClientRect();
     if (!rect) return;
-    const nx = (e.clientX - rect.left) / rect.width - 0.5; // -0.5 to 0.5
-    const ny = (e.clientY - rect.top) / rect.height - 0.5; // -0.5 to 0.5
+    const nx = (e.clientX - rect.left) / rect.width - 0.5;
+    const ny = (e.clientY - rect.top) / rect.height - 0.5;
 
     if (activeChapterIndex >= 1 && activeChapterIndex <= 6) {
       const activeImage = imageRefs.current[activeChapterIndex - 1];
@@ -156,341 +156,180 @@ export const WhatWeDoSection: React.FC = () => {
     }
   };
 
-  // MASTER GSAP TIMELINE & SCROLLTRIGGER PINNING
+  // GSAP SCROLLTRIGGER PINNING (DESKTOP ONLY via matchMedia)
   useEffect(() => {
     const isReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const ctx = gsap.context(() => {
-      if (!sectionRef.current || !stageRef.current) return;
+      const mm = gsap.matchMedia();
 
-      const masterTl = gsap.timeline({ defaults: { ease: 'none' } });
+      // DESKTOP: Full 3D Pinning & Scrubbing
+      mm.add('(min-width: 1024px)', () => {
+        if (!sectionRef.current || !stageRef.current) return;
 
-      // Initial State: Intro is visible; all missions & final are hidden
-      if (introLayerRef.current) {
-        gsap.set(introLayerRef.current, { autoAlpha: 1, y: 0, scale: 1 });
-      }
+        const masterTl = gsap.timeline({ defaults: { ease: 'none' } });
 
-      missionRefs.current.forEach((mission) => {
-        if (!mission) return;
-        gsap.set(mission, { autoAlpha: 0, pointerEvents: 'none', y: 0, scale: 1 });
+        if (introLayerRef.current) {
+          gsap.set(introLayerRef.current, { autoAlpha: 1, y: 0, scale: 1 });
+        }
+
+        missionRefs.current.forEach((mission) => {
+          if (!mission) return;
+          gsap.set(mission, { autoAlpha: 0, pointerEvents: 'none', y: 0, scale: 1 });
+        });
+
+        if (finalLayerRef.current) {
+          gsap.set(finalLayerRef.current, { autoAlpha: 0, y: 40, scale: 0.97 });
+        }
+
+        if (topBlendRef.current) {
+          gsap.set(topBlendRef.current, { opacity: 0.5 });
+          masterTl.fromTo(
+            topBlendRef.current,
+            { opacity: 0.5 },
+            { opacity: 0, duration: 0.40, ease: 'power2.out' },
+            0.05
+          );
+        }
+
+        if (bottomBlendRef.current) {
+          gsap.set(bottomBlendRef.current, { opacity: 0 });
+          masterTl.fromTo(
+            bottomBlendRef.current,
+            { opacity: 0 },
+            { opacity: 0.60, duration: 0.90, ease: 'power2.in' },
+            13.60
+          );
+        }
+
+        // Scene 0: Opening
+        if (introLayerRef.current) {
+          if (introLine1Ref.current) {
+            masterTl.to(introLine1Ref.current, { y: isReduced ? 0 : -45, opacity: 0.2, duration: 0.60 }, 0.70);
+          }
+          if (introLine2Ref.current) {
+            masterTl.to(introLine2Ref.current, { letterSpacing: '0.04em', scale: isReduced ? 1 : 1.05, duration: 0.60 }, 0.70);
+          }
+          if (introLine3Ref.current) {
+            masterTl.to(introLine3Ref.current, { scale: isReduced ? 1 : 1.14, y: isReduced ? 0 : 25, duration: 0.60 }, 0.70);
+          }
+          if (introSubcopyRef.current) {
+            masterTl.to(introSubcopyRef.current, { opacity: 0, y: isReduced ? 0 : -20, duration: 0.50 }, 0.70);
+          }
+
+          masterTl.to(
+            introLayerRef.current,
+            { autoAlpha: 0, y: isReduced ? 0 : -40, scale: isReduced ? 1 : 0.95, duration: 0.60, ease: 'power2.inOut' },
+            0.70
+          );
+          masterTl.set(introLayerRef.current, { autoAlpha: 0, pointerEvents: 'none' }, 1.30);
+        }
+
+        // Scenes 1..6
+        MISSIONS.forEach((_, idx) => {
+          const m = missionRefs.current[idx];
+          const t = typoRefs.current[idx];
+          const img = imageRefs.current[idx];
+          const l = accentLineRefs.current[idx];
+          const startTime = 1.20 + idx * 1.65;
+
+          if (m) {
+            masterTl.fromTo(
+              m,
+              { autoAlpha: 0, y: isReduced ? 0 : 45, scale: isReduced ? 1 : 0.96 },
+              { autoAlpha: 1, y: 0, scale: 1, duration: 0.50, ease: 'power2.out' },
+              startTime
+            );
+
+            if (img) {
+              masterTl.fromTo(img, { scale: 1.08 }, { scale: 1.0, duration: 0.70, ease: 'none' }, startTime);
+            }
+
+            masterTl.to(t, { x: isReduced ? 0 : (idx % 2 === 0 ? -75 : 75), autoAlpha: 0, duration: 0.50, ease: 'power2.inOut' }, startTime + 1.25);
+            masterTl.to(img, { x: isReduced ? 0 : (idx % 2 === 0 ? -45 : -50), scale: 0.95, autoAlpha: 0, duration: 0.50, ease: 'power2.inOut' }, startTime + 1.25);
+
+            if (l) {
+              masterTl.fromTo(
+                l,
+                { scaleX: 0, opacity: 0 },
+                { scaleX: 1, opacity: 1, duration: 0.45, ease: 'power2.inOut' },
+                startTime + 1.20
+              );
+            }
+
+            masterTl.set(m, { autoAlpha: 0, pointerEvents: 'none' }, startTime + 1.75);
+          }
+        });
+
+        // Scene 7: Final Manifesto
+        if (finalLayerRef.current) {
+          masterTl.fromTo(
+            finalLayerRef.current,
+            { autoAlpha: 0, y: isReduced ? 0 : 45, scale: isReduced ? 1 : 0.97 },
+            { autoAlpha: 1, y: 0, scale: 1, duration: 0.55, ease: 'power2.out' },
+            11.35
+          );
+
+          if (finalHeadingRef.current) {
+            masterTl.fromTo(
+              finalHeadingRef.current,
+              { letterSpacing: '0.04em', scale: 0.97 },
+              { letterSpacing: '-0.04em', scale: 1, duration: 0.65, ease: 'power2.out' },
+              11.45
+            );
+          }
+
+          masterTl.to(finalLayerRef.current, { duration: 2.60 }, 11.90);
+        }
+
+        ScrollTrigger.create({
+          id: 'what-we-do-trigger',
+          trigger: sectionRef.current,
+          start: 'top top',
+          end: '+=4200',
+          pin: true,
+          anticipatePin: 1,
+          scrub: 1,
+          animation: masterTl,
+          onUpdate: (self) => {
+            const p = self.progress;
+            setScrollProgress(p);
+
+            let chapter = 0;
+            if (p < 0.086) chapter = 0;
+            else if (p < 0.200) chapter = 1;
+            else if (p < 0.314) chapter = 2;
+            else if (p < 0.428) chapter = 3;
+            else if (p < 0.541) chapter = 4;
+            else if (p < 0.655) chapter = 5;
+            else if (p < 0.772) chapter = 6;
+            else chapter = 7;
+
+            setActiveChapterIndex(chapter);
+          },
+        });
       });
 
-      if (finalLayerRef.current) {
-        gsap.set(finalLayerRef.current, { autoAlpha: 0, y: 40, scale: 0.97 });
-      }
-
-      if (topBlendRef.current) {
-        gsap.set(topBlendRef.current, { opacity: 0.5 });
-      }
-      if (bottomBlendRef.current) {
-        gsap.set(bottomBlendRef.current, { opacity: 0 });
-      }
-
-      // -------------------------------------------------------------
-      // TOP & BOTTOM BLEND AUTOMATION (SUBTLE SOFT FEATHERING)
-      // Top blend fades out quickly on entry; bottom blend only appears at unpin
-      // -------------------------------------------------------------
-      if (topBlendRef.current) {
-        masterTl.fromTo(
-          topBlendRef.current,
-          { opacity: 0.5 },
-          { opacity: 0, duration: 0.40, ease: 'power2.out' },
-          0.05
-        );
-      }
-
-      if (bottomBlendRef.current) {
-        masterTl.fromTo(
-          bottomBlendRef.current,
-          { opacity: 0 },
-          { opacity: 0.60, duration: 0.90, ease: 'power2.in' },
-          13.60
-        );
-      }
-
-      // -------------------------------------------------------------
-      // SCENE 0: OPENING STATEMENT (0.00 -> 1.30)
-      // "WE CREATE STORIES THAT MOVE PEOPLE."
-      // -------------------------------------------------------------
-      if (introLayerRef.current) {
-        if (introLine1Ref.current) {
-          masterTl.to(introLine1Ref.current, { y: isReduced ? 0 : -45, opacity: 0.2, duration: 0.60 }, 0.70);
-        }
-        if (introLine2Ref.current) {
-          masterTl.to(introLine2Ref.current, { letterSpacing: '0.04em', scale: isReduced ? 1 : 1.05, duration: 0.60 }, 0.70);
-        }
-        if (introLine3Ref.current) {
-          masterTl.to(introLine3Ref.current, { scale: isReduced ? 1 : 1.14, y: isReduced ? 0 : 25, duration: 0.60 }, 0.70);
-        }
-        if (introSubcopyRef.current) {
-          masterTl.to(introSubcopyRef.current, { opacity: 0, y: isReduced ? 0 : -20, duration: 0.50 }, 0.70);
-        }
-
-        masterTl.to(
-          introLayerRef.current,
-          { autoAlpha: 0, y: isReduced ? 0 : -40, scale: isReduced ? 1 : 0.95, duration: 0.60, ease: 'power2.inOut' },
-          0.70
-        );
-        masterTl.set(introLayerRef.current, { autoAlpha: 0, pointerEvents: 'none' }, 1.30);
-      }
-
-      // -------------------------------------------------------------
-      // SCENE 1: 01 — BRAND & CREATIVE (1.20 -> 2.95)
-      // -------------------------------------------------------------
-      const m1 = missionRefs.current[0];
-      const t1 = typoRefs.current[0];
-      const img1 = imageRefs.current[0];
-      const l1 = accentLineRefs.current[0];
-
-      if (m1) {
-        masterTl.fromTo(
-          m1,
-          { autoAlpha: 0, y: isReduced ? 0 : 45, scale: isReduced ? 1 : 0.96 },
-          { autoAlpha: 1, y: 0, scale: 1, duration: 0.50, ease: 'power2.out' },
-          1.20
-        );
-
-        if (img1) {
-          masterTl.fromTo(img1, { scale: 1.08 }, { scale: 1.0, duration: 0.70, ease: 'none' }, 1.20);
-        }
-
-        masterTl.to(t1, { x: isReduced ? 0 : -75, autoAlpha: 0, duration: 0.50, ease: 'power2.inOut' }, 2.45);
-        masterTl.to(img1, { x: isReduced ? 0 : -45, scale: 0.95, autoAlpha: 0, duration: 0.50, ease: 'power2.inOut' }, 2.45);
-
-        if (l1) {
-          masterTl.fromTo(
-            l1,
-            { scaleX: 0, transformOrigin: 'left center', opacity: 0 },
-            { scaleX: 1, opacity: 1, duration: 0.45, ease: 'power2.inOut' },
-            2.40
+      // MOBILE: Native natural fluid scroll with ScrollTrigger reveals
+      mm.add('(max-width: 1023px)', () => {
+        const mobileCards = document.querySelectorAll('.mobile-mission-card');
+        mobileCards.forEach((card) => {
+          gsap.fromTo(
+            card,
+            { opacity: 0, y: 24 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.55,
+              ease: 'power3.out',
+              scrollTrigger: {
+                trigger: card,
+                start: 'top 85%',
+                toggleActions: 'play none none none',
+              },
+            }
           );
-        }
-
-        masterTl.set(m1, { autoAlpha: 0, pointerEvents: 'none' }, 2.95);
-      }
-
-      // -------------------------------------------------------------
-      // SCENE 2: 02 — VIDEO PRODUCTION (2.85 -> 4.60)
-      // -------------------------------------------------------------
-      const m2 = missionRefs.current[1];
-      const t2 = typoRefs.current[1];
-      const img2 = imageRefs.current[1];
-      const l2 = accentLineRefs.current[1];
-
-      if (m2) {
-        masterTl.fromTo(
-          m2,
-          { autoAlpha: 0, x: isReduced ? 0 : 65, scale: isReduced ? 1 : 0.96 },
-          { autoAlpha: 1, x: 0, scale: 1, duration: 0.50, ease: 'power2.out' },
-          2.85
-        );
-
-        if (img2) {
-          masterTl.fromTo(img2, { scale: 1.08 }, { scale: 1.0, duration: 0.70, ease: 'none' }, 2.85);
-        }
-
-        masterTl.to(t2, { x: isReduced ? 0 : 75, autoAlpha: 0, duration: 0.50, ease: 'power2.inOut' }, 4.10);
-        masterTl.to(img2, { x: isReduced ? 0 : -50, scale: 0.95, autoAlpha: 0, duration: 0.50, ease: 'power2.inOut' }, 4.10);
-
-        if (l2) {
-          masterTl.fromTo(
-            l2,
-            { scaleX: 0, transformOrigin: 'right center', opacity: 0 },
-            { scaleX: 1, opacity: 1, duration: 0.45, ease: 'power2.inOut' },
-            4.05
-          );
-        }
-
-        masterTl.set(m2, { autoAlpha: 0, pointerEvents: 'none' }, 4.60);
-      }
-
-      // -------------------------------------------------------------
-      // SCENE 3: 03 — SHORT-FORM CONTENT (4.50 -> 6.25)
-      // -------------------------------------------------------------
-      const m3 = missionRefs.current[2];
-      const t3 = typoRefs.current[2];
-      const img3 = imageRefs.current[2];
-      const l3 = accentLineRefs.current[2];
-
-      if (m3) {
-        masterTl.fromTo(
-          m3,
-          { autoAlpha: 0, x: isReduced ? 0 : -65, scale: isReduced ? 1 : 0.96 },
-          { autoAlpha: 1, x: 0, scale: 1, duration: 0.50, ease: 'power2.out' },
-          4.50
-        );
-
-        if (img3) {
-          masterTl.fromTo(img3, { scale: 1.08 }, { scale: 1.0, duration: 0.70, ease: 'none' }, 4.50);
-        }
-
-        masterTl.to(t3, { x: isReduced ? 0 : -75, autoAlpha: 0, duration: 0.50, ease: 'power2.inOut' }, 5.75);
-        masterTl.to(img3, { x: isReduced ? 0 : 50, scale: 0.95, autoAlpha: 0, duration: 0.50, ease: 'power2.inOut' }, 5.75);
-
-        if (l3) {
-          masterTl.fromTo(
-            l3,
-            { scaleX: 0, transformOrigin: 'left center', opacity: 0 },
-            { scaleX: 1, opacity: 1, duration: 0.45, ease: 'power2.inOut' },
-            5.70
-          );
-        }
-
-        masterTl.set(m3, { autoAlpha: 0, pointerEvents: 'none' }, 6.25);
-      }
-
-      // -------------------------------------------------------------
-      // SCENE 4: 04 — EDITING & POST (6.15 -> 7.90)
-      // -------------------------------------------------------------
-      const m4 = missionRefs.current[3];
-      const t4 = typoRefs.current[3];
-      const img4 = imageRefs.current[3];
-      const l4 = accentLineRefs.current[3];
-
-      if (m4) {
-        masterTl.fromTo(
-          m4,
-          { autoAlpha: 0, x: isReduced ? 0 : 65, scale: isReduced ? 1 : 0.96 },
-          { autoAlpha: 1, x: 0, scale: 1, duration: 0.50, ease: 'power2.out' },
-          6.15
-        );
-
-        if (img4) {
-          masterTl.fromTo(img4, { scale: 1.08 }, { scale: 1.0, duration: 0.70, ease: 'none' }, 6.15);
-        }
-
-        masterTl.to(t4, { x: isReduced ? 0 : 75, autoAlpha: 0, duration: 0.50, ease: 'power2.inOut' }, 7.40);
-        masterTl.to(img4, { x: isReduced ? 0 : -50, scale: 0.95, autoAlpha: 0, duration: 0.50, ease: 'power2.inOut' }, 7.40);
-
-        if (l4) {
-          masterTl.fromTo(
-            l4,
-            { scaleX: 0, transformOrigin: 'right center', opacity: 0 },
-            { scaleX: 1, opacity: 1, duration: 0.45, ease: 'power2.inOut' },
-            7.35
-          );
-        }
-
-        masterTl.set(m4, { autoAlpha: 0, pointerEvents: 'none' }, 7.90);
-      }
-
-      // -------------------------------------------------------------
-      // SCENE 5: 05 — SOCIAL CONTENT (7.80 -> 9.55)
-      // -------------------------------------------------------------
-      const m5 = missionRefs.current[4];
-      const t5 = typoRefs.current[4];
-      const img5 = imageRefs.current[4];
-      const l5 = accentLineRefs.current[4];
-
-      if (m5) {
-        masterTl.fromTo(
-          m5,
-          { autoAlpha: 0, x: isReduced ? 0 : -65, scale: isReduced ? 1 : 0.96 },
-          { autoAlpha: 1, x: 0, scale: 1, duration: 0.50, ease: 'power2.out' },
-          7.80
-        );
-
-        if (img5) {
-          masterTl.fromTo(img5, { scale: 1.08 }, { scale: 1.0, duration: 0.70, ease: 'none' }, 7.80);
-        }
-
-        masterTl.to(t5, { x: isReduced ? 0 : -75, autoAlpha: 0, duration: 0.50, ease: 'power2.inOut' }, 9.05);
-        masterTl.to(img5, { x: isReduced ? 0 : 50, scale: 0.95, autoAlpha: 0, duration: 0.50, ease: 'power2.inOut' }, 9.05);
-
-        if (l5) {
-          masterTl.fromTo(
-            l5,
-            { scaleX: 0, transformOrigin: 'left center', opacity: 0 },
-            { scaleX: 1, opacity: 1, duration: 0.45, ease: 'power2.inOut' },
-            9.00
-          );
-        }
-
-        masterTl.set(m5, { autoAlpha: 0, pointerEvents: 'none' }, 9.55);
-      }
-
-      // -------------------------------------------------------------
-      // SCENE 6: 06 — DIGITAL GROWTH (9.45 -> 11.20)
-      // -------------------------------------------------------------
-      const m6 = missionRefs.current[5];
-      const t6 = typoRefs.current[5];
-      const img6 = imageRefs.current[5];
-
-      if (m6) {
-        masterTl.fromTo(
-          m6,
-          { autoAlpha: 0, x: isReduced ? 0 : 65, scale: isReduced ? 1 : 0.96 },
-          { autoAlpha: 1, x: 0, scale: 1, duration: 0.50, ease: 'power2.out' },
-          9.45
-        );
-
-        if (img6) {
-          masterTl.fromTo(img6, { scale: 1.08 }, { scale: 1.0, duration: 0.70, ease: 'none' }, 9.45);
-        }
-
-        // Clean departure before final manifesto
-        masterTl.to(t6, { y: isReduced ? 0 : -45, autoAlpha: 0, duration: 0.50, ease: 'power2.inOut' }, 10.70);
-        masterTl.to(img6, { y: isReduced ? 0 : -45, scale: 0.94, autoAlpha: 0, duration: 0.50, ease: 'power2.inOut' }, 10.70);
-
-        masterTl.set(m6, { autoAlpha: 0, pointerEvents: 'none' }, 11.20);
-      }
-
-      // -------------------------------------------------------------
-      // SCENE 7: FINAL MANIFESTO CLOSER (11.35 -> 14.50)
-      // "WE DON'T JUST MAKE CONTENT. WE MAKE IT MOVE."
-      // REMAINS 100% VISIBLE ALL THE WAY TO THE PIN RELEASE!
-      // -------------------------------------------------------------
-      if (finalLayerRef.current) {
-        masterTl.fromTo(
-          finalLayerRef.current,
-          { autoAlpha: 0, y: isReduced ? 0 : 45, scale: isReduced ? 1 : 0.97 },
-          { autoAlpha: 1, y: 0, scale: 1, duration: 0.55, ease: 'power2.out' },
-          11.35
-        );
-
-        if (finalHeadingRef.current) {
-          masterTl.fromTo(
-            finalHeadingRef.current,
-            { letterSpacing: '0.04em', scale: 0.97 },
-            { letterSpacing: '-0.04em', scale: 1, duration: 0.65, ease: 'power2.out' },
-            11.45
-          );
-        }
-
-        // Final hold: locked solidly through 14.50s
-        masterTl.to(finalLayerRef.current, { duration: 2.60 }, 11.90);
-      }
-
-      // -------------------------------------------------------------
-      // GSAP SCROLLTRIGGER PINNED ENGINE
-      // scrub: 1 gives heavy, cinematic, controlled scroll physics
-      // -------------------------------------------------------------
-      ScrollTrigger.create({
-        id: 'what-we-do-trigger',
-        trigger: sectionRef.current,
-        start: 'top top',
-        end: '+=4200',
-        pin: true,
-        anticipatePin: 1,
-        scrub: 1,
-        animation: masterTl,
-        onUpdate: (self) => {
-          const p = self.progress;
-          setScrollProgress(p);
-
-          // Map progress directly to active scene (0 = Intro, 1..6 = Missions, 7 = Final)
-          let chapter = 0;
-          if (p < 0.086) chapter = 0;
-          else if (p < 0.200) chapter = 1;
-          else if (p < 0.314) chapter = 2;
-          else if (p < 0.428) chapter = 3;
-          else if (p < 0.541) chapter = 4;
-          else if (p < 0.655) chapter = 5;
-          else if (p < 0.772) chapter = 6;
-          else chapter = 7;
-
-          setActiveChapterIndex(chapter);
-        },
+        });
       });
     }, sectionRef);
 
@@ -510,275 +349,289 @@ export const WhatWeDoSection: React.FC = () => {
       {/* ========================================================= */}
       {/* 1. SEAMLESS ENTRANCE & EXIT BLEND OVERLAYS                */}
       {/* ========================================================= */}
-
-      {/* Top Entrance Blend: Subtle soft edge that vanishes immediately */}
       <div
         ref={topBlendRef}
         className="absolute inset-x-0 top-0 h-12 sm:h-16 pointer-events-none z-30"
         style={{
-          background: 'linear-gradient(to bottom, rgba(5,7,11,0.3) 0%, rgba(5,7,11,0.08) 60%, transparent 100%)',
+          background: 'linear-gradient(to bottom, rgba(5,7,11,0.2) 0%, rgba(5,7,11,0.05) 60%, transparent 100%)',
         }}
       />
-
-      {/* Bottom Exit Blend: Subtle soft feather only at the unpin seam */}
       <div
         ref={bottomBlendRef}
         className="absolute inset-x-0 bottom-0 h-14 sm:h-20 pointer-events-none z-30"
         style={{
-          background: 'linear-gradient(to bottom, transparent 0%, rgba(5,7,11,0.2) 50%, rgba(5,7,11,0.65) 100%)',
+          background: 'linear-gradient(to bottom, transparent 0%, rgba(5,7,11,0.15) 50%, rgba(5,7,11,0.6) 100%)',
         }}
       />
 
-      {/* ========================================================= */}
-      {/* 2. DYNAMIC FULL 3D SPACE MESH CANVAS & ARCHITECTURAL GRID  */}
-      {/* ========================================================= */}
-      {/* Base architectural precision grid spanning 100% full background */}
+      {/* Subtle Grid Background */}
       <div
-        className="absolute inset-0 pointer-events-none z-0 opacity-[0.05]"
+        className="absolute inset-0 pointer-events-none z-0 opacity-[0.035]"
         style={{
           backgroundImage: `
             linear-gradient(to right, #0A0D14 1px, transparent 1px),
             linear-gradient(to bottom, #0A0D14 1px, transparent 1px)
           `,
-          backgroundSize: '4rem 4rem',
-        }}
-      />
-
-      {/* Dynamic 3D undulating space mesh canvas (100% edge-to-edge coverage) */}
-      <SpaceMeshCanvas theme="light" scrollProgress={scrollProgress} className="opacity-95 z-0" />
-
-      {/* Subtle radial center ambient glow */}
-      <div
-        className="absolute inset-0 pointer-events-none z-0 opacity-30"
-        style={{
-          background:
-            'radial-gradient(circle at 50% 45%, rgba(20, 151, 245, 0.12) 0%, rgba(246, 248, 252, 0) 70%)',
+          backgroundSize: '3.5rem 3.5rem',
         }}
       />
 
       {/* ========================================================= */}
-      {/* 3. THE 100dvh PINNED CINEMATIC STAGE                      */}
+      {/* 2. DEDICATED MOBILE COMPOSITION (Visible on < 1024px)     */}
+      {/* Layout per directive:                                     */}
+      {/* SECTION LABEL -> STRONG HEADING -> SHORT DESCRIPTION      */}
+      {/* -> LARGE MEDIA (80-90% width) -> CATEGORY / CTA           */}
       {/* ========================================================= */}
-      <div
-        ref={stageRef}
-        onPointerMove={handlePointerMove}
-        onPointerLeave={handlePointerLeave}
-        className="relative w-full h-[100dvh] max-h-[100dvh] overflow-hidden flex items-center justify-center z-20"
-        style={{ perspective: '1200px' }}
-      >
-        <div className="relative w-full h-full max-w-[1600px] mx-auto flex items-center justify-center">
-          {/* ----------------------------------------------------- */}
-          {/* SCENE 0: OPENING STATEMENT                            */}
-          {/* "WE CREATE STORIES THAT MOVE PEOPLE."                 */}
-          {/* ----------------------------------------------------- */}
-          <div
-            ref={introLayerRef}
-            className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-30"
-          >
-            {/* Unified Eyebrow */}
-            <div className="inline-flex items-center gap-2.5 font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold mb-4 sm:mb-6">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
-              <span>01 // WHAT WE DO</span>
-            </div>
-
-            {/* Monumental Headline */}
-            <h2 className="font-editorial font-black uppercase text-center tracking-[-0.04em] text-[#0A0D14]">
-              <span
-                ref={introLine1Ref}
-                className="block text-[12vw] xs:text-[11vw] sm:text-[9vw] md:text-[8vw] lg:text-[88px] xl:text-[104px] leading-[0.9] text-slate-800"
-              >
-                WE CREATE
-              </span>
-              <span
-                ref={introLine2Ref}
-                className="block text-[14vw] xs:text-[13vw] sm:text-[10.5vw] md:text-[9.5vw] lg:text-[108px] xl:text-[128px] leading-[0.88] text-[#0A0D14] font-black"
-              >
-                STORIES THAT
-              </span>
-              <span
-                ref={introLine3Ref}
-                className="block text-[14vw] xs:text-[13vw] sm:text-[10.5vw] md:text-[9.5vw] lg:text-[108px] xl:text-[128px] leading-[0.88] text-[#0A0D14]"
-              >
-                MOVE PEOPLE<span className="text-[#1497F5]">.</span>
-              </span>
-            </h2>
-
-            {/* Studio Subcopy */}
-            <p
-              ref={introSubcopyRef}
-              className="mt-8 sm:mt-10 max-w-2xl font-mono text-xs sm:text-sm md:text-base tracking-[0.16em] uppercase text-slate-700 font-semibold px-4"
-            >
-              STRATEGY. PRODUCTION. EDITING. CONTENT BUILT TO MOVE PEOPLE.
-            </p>
-
-            {/* Scroll Cue */}
-            <div className="mt-8 sm:mt-12 flex items-center gap-2 text-slate-400 font-mono text-[10px] tracking-[0.25em] uppercase">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#1497F5] animate-pulse" />
-              <span>SCROLL TO EXPLORE</span>
-            </div>
+      <div className="block lg:hidden relative z-10 w-full px-5 py-16 sm:py-20 max-w-xl mx-auto">
+        {/* Mobile Section Intro Header */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 font-mono text-[10px] xs:text-[11px] tracking-[0.26em] uppercase text-[#008CFF] font-semibold mb-3">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
+            <span>01 // WHAT WE DO</span>
           </div>
+          <h2 className="font-sans font-black uppercase text-3xl xs:text-4xl leading-[0.92] text-[#0A0D14] tracking-[-0.03em]">
+            WE CREATE STORIES THAT <span className="text-[#008CFF]">MOVE PEOPLE.</span>
+          </h2>
+          <p className="mt-3.5 font-sans text-xs xs:text-sm text-slate-600 font-medium tracking-wide max-w-sm mx-auto leading-relaxed">
+            STRATEGY. PRODUCTION. EDITING. CONTENT BUILT TO MOVE PEOPLE.
+          </p>
+        </div>
 
-          {/* ----------------------------------------------------- */}
-          {/* SCENES 1 TO 6: THE SIX CREATIVE CHAPTERS              */}
-          {/* (IMAGE ONLY - NO REELS)                               */}
-          {/* ----------------------------------------------------- */}
-          {MISSIONS.map((mission, idx) => {
-            const isEven = idx % 2 === 1;
-            const isCurrentActive = activeChapterIndex === idx + 1;
+        {/* The 6 Capabilities: High-impact mobile sequence */}
+        <div className="flex flex-col gap-10">
+          {MISSIONS.map((mission) => (
+            <div
+              key={`mobile-${mission.id}`}
+              className="mobile-mission-card flex flex-col bg-white rounded-2xl p-5 border border-slate-200/80 shadow-[0_12px_32px_rgba(15,23,42,0.06)]"
+            >
+              {/* 1. SECTION LABEL */}
+              <div className="flex items-center gap-2 mb-2">
+                <span className="font-mono text-xs font-bold tracking-[0.24em] text-[#008CFF]">
+                  {mission.number}
+                </span>
+                <span className="w-1 h-1 rounded-full bg-[#008CFF]" />
+                <span className="font-mono text-[10px] tracking-[0.24em] uppercase text-slate-500 font-semibold">
+                  {mission.category}
+                </span>
+              </div>
 
-            return (
-              <div
-                key={mission.id}
-                ref={(el) => (missionRefs.current[idx] = el)}
-                className={`absolute inset-0 flex flex-col justify-center items-center w-full h-full transition-opacity duration-300 ${
-                  isCurrentActive ? 'pointer-events-auto' : 'pointer-events-none'
-                }`}
-              >
-                {/* Thin electric blue accent line traveling across */}
-                <div
-                  ref={(el) => (accentLineRefs.current[idx] = el)}
-                  className="absolute inset-x-8 sm:inset-x-16 top-1/2 -translate-y-1/2 h-[1px] bg-gradient-to-r from-transparent via-[#1497F5]/50 to-transparent pointer-events-none z-0 opacity-0"
+              {/* 2. STRONG HEADING */}
+              <h3 className="font-sans font-black uppercase text-2xl xs:text-3xl leading-[0.95] tracking-[-0.03em] text-[#0A0D14]">
+                {mission.titleLines.join(' ')}
+              </h3>
+
+              {/* 3. SHORT DESCRIPTION */}
+              <p className="mt-2 text-xs xs:text-sm text-slate-600 leading-[1.55] font-normal">
+                {mission.description}
+              </p>
+
+              {/* 4. LARGE MEDIA (80–90% of viewport width, immersive) */}
+              <div className="relative w-full aspect-[16/10] rounded-xl overflow-hidden bg-slate-900 border border-slate-200/80 my-3.5 shadow-sm">
+                <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#008CFF] to-transparent z-10" />
+                <img
+                  src={mission.imageUrl}
+                  alt={`${mission.number} - ${mission.category}`}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
                 />
+                <div className="absolute bottom-2.5 left-2.5 z-10 flex items-center gap-1.5 px-2 py-0.5 rounded bg-black/60 backdrop-blur-md text-white font-mono text-[8px] tracking-wider uppercase">
+                  <span className="w-1 h-1 rounded-full bg-[#008CFF]" />
+                  <span>BRANDSHOOTS STILL</span>
+                </div>
+                <div className="absolute top-2.5 right-2.5 z-10 font-mono text-[8px] tracking-widest text-white/90 bg-black/50 backdrop-blur-md px-1.5 py-0.5 rounded uppercase">
+                  CH {mission.number}
+                </div>
+              </div>
 
-                <div className="w-full h-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 pt-16 pb-14 sm:py-0 flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-5 sm:gap-8 lg:gap-16 z-10">
-                  {/* Monumental Editorial Typography */}
+              {/* 5. CATEGORY / CTA */}
+              <div className="self-start">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#008CFF]/10 text-[#008CFF] border border-[#008CFF]/20 font-mono text-[10px] tracking-[0.2em] uppercase font-semibold">
+                  <span className="w-1 h-1 rounded-full bg-[#008CFF]" />
+                  <span>{mission.tag}</span>
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Mobile Closing Statement */}
+        <div className="text-center mt-14 pt-10 border-t border-slate-200/60">
+          <div className="font-mono text-[10px] tracking-[0.24em] uppercase text-[#008CFF] font-semibold mb-2">
+            THE BRANDSHOOTS STANDARD
+          </div>
+          <h3 className="font-sans font-black uppercase text-2xl xs:text-3xl leading-[0.95] text-[#0A0D14]">
+            WE DON'T JUST MAKE CONTENT.<br />
+            <span className="text-[#008CFF]">WE MAKE IT MOVE.</span>
+          </h3>
+        </div>
+      </div>
+
+      {/* ========================================================= */}
+      {/* 3. DESKTOP 3D PINNED STAGE (Visible on >= 1024px)          */}
+      {/* ========================================================= */}
+      <div className="hidden lg:block relative w-full">
+        <SpaceMeshCanvas theme="light" scrollProgress={scrollProgress} className="opacity-95 z-0" />
+        <div
+          ref={stageRef}
+          onPointerMove={handlePointerMove}
+          onPointerLeave={handlePointerLeave}
+          className="relative w-full h-[100dvh] max-h-[100dvh] overflow-hidden flex items-center justify-center z-20"
+          style={{ perspective: '1200px' }}
+        >
+          <div className="relative w-full h-full max-w-[1600px] mx-auto flex items-center justify-center">
+            {/* Scene 0: Desktop Intro */}
+            <div
+              ref={introLayerRef}
+              className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-30"
+            >
+              <div className="inline-flex items-center gap-2.5 font-mono text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold mb-6">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
+                <span>01 // WHAT WE DO</span>
+              </div>
+              <h2 className="font-sans font-black uppercase text-center tracking-[-0.04em] text-[#0A0D14]">
+                <span ref={introLine1Ref} className="block text-[88px] xl:text-[104px] leading-[0.9] text-slate-800">
+                  WE CREATE
+                </span>
+                <span ref={introLine2Ref} className="block text-[108px] xl:text-[128px] leading-[0.88] text-[#0A0D14] font-black">
+                  STORIES THAT
+                </span>
+                <span ref={introLine3Ref} className="block text-[108px] xl:text-[128px] leading-[0.88] text-[#0A0D14]">
+                  MOVE PEOPLE<span className="text-[#1497F5]">.</span>
+                </span>
+              </h2>
+              <p ref={introSubcopyRef} className="mt-10 max-w-2xl font-mono text-base tracking-[0.16em] uppercase text-slate-700 font-semibold px-4">
+                STRATEGY. PRODUCTION. EDITING. CONTENT BUILT TO MOVE PEOPLE.
+              </p>
+            </div>
+
+            {/* Scenes 1..6: Desktop Chapters */}
+            {MISSIONS.map((mission, idx) => {
+              const isEven = idx % 2 === 1;
+              const isCurrentActive = activeChapterIndex === idx + 1;
+
+              return (
+                <div
+                  key={mission.id}
+                  ref={(el) => (missionRefs.current[idx] = el)}
+                  className={`absolute inset-0 flex flex-col justify-center items-center w-full h-full transition-opacity duration-300 ${
+                    isCurrentActive ? 'pointer-events-auto' : 'pointer-events-none'
+                  }`}
+                >
                   <div
-                    ref={(el) => (typoRefs.current[idx] = el)}
-                    className={`w-full lg:w-[50%] flex flex-col justify-center text-left ${
-                      isEven ? 'lg:order-2 lg:pl-10 xl:pl-16' : 'lg:order-1 lg:pr-10 xl:pr-16'
-                    }`}
-                  >
-                    {/* Chapter Number & Category */}
-                    <div className="flex items-center gap-2.5 sm:gap-3 mb-2 sm:mb-3">
-                      <span className="font-mono text-xs sm:text-sm md:text-base font-bold tracking-[0.28em] text-[#008CFF]">
-                        {mission.number}
-                      </span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
-                      <span className="font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-slate-500 font-semibold">
-                        {mission.category}
-                      </span>
-                    </div>
+                    ref={(el) => (accentLineRefs.current[idx] = el)}
+                    className="absolute inset-x-16 top-1/2 -translate-y-1/2 h-[1px] bg-gradient-to-r from-transparent via-[#1497F5]/50 to-transparent pointer-events-none z-0 opacity-0"
+                  />
 
-                    {/* Massive Editorial Title */}
-                    <h3 className="font-display font-black uppercase text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-7xl xl:text-8xl leading-[0.9] tracking-[-0.035em] text-[#0A0D14]">
-                      {mission.titleLines.map((line, lIdx) => (
-                        <span key={lIdx} className="block">
-                          {line}
-                        </span>
-                      ))}
-                    </h3>
-
-                    {/* Concise Editorial Description */}
-                    <p className="mt-3 sm:mt-5 max-w-lg font-sans text-sm sm:text-base md:text-[17px] leading-[1.65] text-slate-600 font-normal">
-                      {mission.description}
-                    </p>
-
-                    {/* Editorial Tag */}
-                    <div className="mt-3 sm:mt-5 inline-flex items-center gap-2 self-start px-3.5 py-1.5 rounded-full bg-[#008CFF]/10 text-[#008CFF] border border-[#008CFF]/25 font-mono text-[11px] sm:text-xs tracking-[0.22em] uppercase font-semibold">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
-                      <span>{mission.tag}</span>
-                    </div>
-                  </div>
-
-                  {/* Editorial Image Frame (IMAGE ONLY - NO REEL) */}
-                  <div
-                    ref={(el) => (imageRefs.current[idx] = el)}
-                    className={`w-full lg:w-[48%] flex items-center justify-center ${
-                      isEven ? 'lg:order-1' : 'lg:order-2'
-                    }`}
-                  >
+                  <div className="w-full h-full max-w-7xl mx-auto px-12 flex flex-row items-center justify-between gap-16 z-10">
                     <div
-                      className={`relative rounded-2xl overflow-hidden border border-slate-200/90 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.18),0_0_25px_rgba(20,151,245,0.06)] group bg-white ${
-                        mission.aspectRatio === 'portrait'
-                          ? 'w-48 xs:w-56 sm:w-64 md:w-72 lg:w-84 aspect-[9/15] max-h-[44dvh] sm:max-h-[52dvh] lg:max-h-[64dvh]'
-                          : 'w-full max-w-[300px] xs:max-w-[360px] sm:max-w-md lg:max-w-lg aspect-video max-h-[30dvh] sm:max-h-[40dvh] lg:max-h-[50dvh]'
+                      ref={(el) => (typoRefs.current[idx] = el)}
+                      className={`w-[50%] flex flex-col justify-center text-left ${
+                        isEven ? 'order-2 pl-16' : 'order-1 pr-16'
                       }`}
                     >
-                      {/* Top electric blue highlight */}
-                      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#1497F5] to-transparent pointer-events-none z-20" />
-
-                      {/* Real High-Resolution Photography Still */}
-                      <img
-                        src={mission.imageUrl}
-                        alt={`${mission.number} - ${mission.category}`}
-                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                      />
-
-                      {/* Corner BrandShoots attribution pill */}
-                      <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2 px-2.5 py-1 rounded-md bg-black/60 backdrop-blur-md text-white border border-white/10">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#1497F5]" />
-                        <span className="font-mono text-[9px] tracking-widest uppercase font-semibold">
-                          BRANDSHOOTS STILL
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="font-mono text-base font-bold tracking-[0.28em] text-[#008CFF]">
+                          {mission.number}
+                        </span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
+                        <span className="font-mono text-xs tracking-[0.28em] uppercase text-slate-500 font-semibold">
+                          {mission.category}
                         </span>
                       </div>
 
-                      {/* Top-right chapter badge */}
-                      <div className="absolute top-3 right-3 z-20 font-mono text-[8px] tracking-[0.2em] text-white/90 bg-black/50 backdrop-blur-md px-2 py-0.5 rounded border border-white/10 uppercase">
-                        CHAPTER {mission.number}
+                      <h3 className="font-sans font-black uppercase text-7xl xl:text-8xl leading-[0.9] tracking-[-0.035em] text-[#0A0D14]">
+                        {mission.titleLines.map((line, lIdx) => (
+                          <span key={lIdx} className="block">
+                            {line}
+                          </span>
+                        ))}
+                      </h3>
+
+                      <p className="mt-5 max-w-lg font-sans text-[17px] leading-[1.65] text-slate-600 font-normal">
+                        {mission.description}
+                      </p>
+
+                      <div className="mt-5 inline-flex items-center gap-2 self-start px-3.5 py-1.5 rounded-full bg-[#008CFF]/10 text-[#008CFF] border border-[#008CFF]/25 font-mono text-xs tracking-[0.22em] uppercase font-semibold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
+                        <span>{mission.tag}</span>
+                      </div>
+                    </div>
+
+                    <div
+                      ref={(el) => (imageRefs.current[idx] = el)}
+                      className={`w-[48%] flex items-center justify-center ${
+                        isEven ? 'order-1' : 'order-2'
+                      }`}
+                    >
+                      <div
+                        className={`relative rounded-2xl overflow-hidden border border-slate-200/90 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.18)] bg-white ${
+                          mission.aspectRatio === 'portrait'
+                            ? 'w-84 aspect-[9/15] max-h-[64dvh]'
+                            : 'w-full max-w-lg aspect-video max-h-[50dvh]'
+                        }`}
+                      >
+                        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#1497F5] to-transparent pointer-events-none z-20" />
+                        <img
+                          src={mission.imageUrl}
+                          alt={`${mission.number} - ${mission.category}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2 px-2.5 py-1 rounded-md bg-black/60 backdrop-blur-md text-white border border-white/10">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#1497F5]" />
+                          <span className="font-mono text-[9px] tracking-widest uppercase font-semibold">
+                            BRANDSHOOTS STILL
+                          </span>
+                        </div>
+                        <div className="absolute top-3 right-3 z-20 font-mono text-[8px] tracking-[0.2em] text-white/90 bg-black/50 backdrop-blur-md px-2 py-0.5 rounded border border-white/10 uppercase">
+                          CHAPTER {mission.number}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
 
-          {/* ----------------------------------------------------- */}
-          {/* SCENE 7: THE FINAL STATEMENT                          */}
-          {/* "WE DON'T JUST MAKE CONTENT. WE MAKE IT MOVE."        */}
-          {/* REMAINS 100% VISIBLE TO THE VERY END OF THE PIN!      */}
-          {/* ----------------------------------------------------- */}
-          <div
-            ref={finalLayerRef}
-            className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-30 pointer-events-none"
-          >
-            {/* Unified Eyebrow */}
-            <div className="inline-flex items-center gap-2.5 font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold mb-4 sm:mb-6">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
-              <span>THE BRANDSHOOTS STANDARD</span>
-            </div>
-
-            <h2
-              ref={finalHeadingRef}
-              className="font-editorial font-black uppercase text-center tracking-[-0.04em] text-[#0A0D14]"
+            {/* Scene 7: Desktop Final */}
+            <div
+              ref={finalLayerRef}
+              className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-30 pointer-events-none"
             >
-              <span className="block text-[11vw] xs:text-[10vw] sm:text-[8vw] md:text-[6.5vw] lg:text-[76px] xl:text-[90px] leading-[0.92] text-slate-800">
-                WE DON'T JUST
-              </span>
-              <span className="block text-[11vw] xs:text-[10vw] sm:text-[8vw] md:text-[6.5vw] lg:text-[76px] xl:text-[90px] leading-[0.92] text-slate-800">
-                MAKE CONTENT.
-              </span>
-              <span className="block mt-4 sm:mt-6 text-[13vw] xs:text-[12vw] sm:text-[9.5vw] md:text-[8vw] lg:text-[96px] xl:text-[116px] leading-[0.9] text-[#0A0D14] font-black">
-                WE MAKE IT
-              </span>
-              <span className="block text-[13vw] xs:text-[12vw] sm:text-[9.5vw] md:text-[8vw] lg:text-[96px] xl:text-[116px] leading-[0.9] text-[#0A0D14] font-black">
-                MOVE<span className="text-[#1497F5]">.</span>
-              </span>
-            </h2>
-
-            {/* Downward indicator leading into Clients */}
-            <div className="mt-8 sm:mt-12 flex flex-col items-center gap-2.5 text-slate-500 font-mono text-[10px] tracking-[0.25em] uppercase font-bold">
-              <div className="w-[1.5px] h-8 sm:h-12 bg-gradient-to-b from-[#1497F5] to-transparent animate-pulse" />
-              <span>OUR CLIENTS & PARTNERS</span>
+              <div className="inline-flex items-center gap-2.5 font-mono text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold mb-6">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
+                <span>THE BRANDSHOOTS STANDARD</span>
+              </div>
+              <h2
+                ref={finalHeadingRef}
+                className="font-sans font-black uppercase text-center tracking-[-0.04em] text-[#0A0D14]"
+              >
+                <span className="block text-[76px] xl:text-[90px] leading-[0.92] text-slate-800">
+                  WE DON'T JUST
+                </span>
+                <span className="block text-[76px] xl:text-[90px] leading-[0.92] text-slate-800">
+                  MAKE CONTENT.
+                </span>
+                <span className="block mt-6 text-[96px] xl:text-[116px] leading-[0.9] text-[#0A0D14] font-black">
+                  WE MAKE IT MOVE<span className="text-[#1497F5]">.</span>
+                </span>
+              </h2>
             </div>
           </div>
-        </div>
 
-        {/* ======================================================= */}
-        {/* 4. FLOATING EXHIBITION METADATA PILL (BOTTOM-LEFT)      */}
-        {/* ======================================================= */}
-        <div className="absolute bottom-6 left-6 sm:bottom-8 sm:left-8 z-40 hidden sm:flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-[0_10px_30px_rgba(15,23,42,0.08)] text-[#0A0D14] font-mono text-[11px] pointer-events-none">
-          <span className="font-bold tracking-[0.2em] text-[#1497F5]">
-            {activeChapterIndex >= 1 && activeChapterIndex <= 6
-              ? `0${activeChapterIndex} / 06`
-              : activeChapterIndex === 0
-              ? 'CAPABILITIES'
-              : 'FINAL'}
-          </span>
-          <span className="w-1 h-1 rounded-full bg-slate-300" />
-          <span className="tracking-[0.15em] uppercase text-slate-600 font-medium">
-            {currentMission ? currentMission.category : 'WHAT WE DO'}
-          </span>
+          {/* Desktop Floating Pill */}
+          <div className="absolute bottom-8 left-8 z-40 flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-[0_10px_30px_rgba(15,23,42,0.08)] text-[#0A0D14] font-mono text-[11px] pointer-events-none">
+            <span className="font-bold tracking-[0.2em] text-[#1497F5]">
+              {activeChapterIndex >= 1 && activeChapterIndex <= 6
+                ? `0${activeChapterIndex} / 06`
+                : activeChapterIndex === 0
+                ? 'CAPABILITIES'
+                : 'FINAL'}
+            </span>
+            <span className="w-1 h-1 rounded-full bg-slate-300" />
+            <span className="tracking-[0.15em] uppercase text-slate-600 font-medium">
+              {currentMission ? currentMission.category : 'WHAT WE DO'}
+            </span>
+          </div>
         </div>
       </div>
     </section>

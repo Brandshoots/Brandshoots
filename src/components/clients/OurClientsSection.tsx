@@ -30,16 +30,22 @@ const CLIENTS_LIST: ClientItem[] = [
 export const OurClientsSection: React.FC = () => {
   const navigate = useNavigate();
 
-  const renderClientCard = (item: ClientItem, key: string) => (
+  const renderClientCard = (item: ClientItem, key: string, isMobile = false) => (
     <div
       key={key}
       onClick={() => navigate(`/portfolio/${item.slug}`)}
-      className="group flex flex-col items-center gap-3 cursor-pointer shrink-0 select-none"
+      className="group flex flex-col items-center gap-2.5 cursor-pointer shrink-0 select-none active:scale-95 transition-transform"
     >
-      {/* 1:1 Crisp White Card with perfectly calibrated optical fit */}
-      <div className="w-36 h-36 xs:w-44 xs:h-44 sm:w-48 sm:h-48 md:w-56 md:h-56 aspect-square rounded-2xl bg-white p-3.5 sm:p-4 md:p-5 flex items-center justify-center shadow-[0_10px_28px_rgba(0,0,0,0.35)] border border-white/20 transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_16px_40px_rgba(0,140,255,0.3)] group-hover:border-[#008CFF]/60 overflow-hidden">
+      {/* 1:1 Crisp White Card with optical fit */}
+      <div
+        className={`${
+          isMobile
+            ? 'w-40 h-40 p-4'
+            : 'w-48 h-48 md:w-56 md:h-56 p-4 md:p-5'
+        } aspect-square rounded-2xl bg-white flex items-center justify-center shadow-[0_12px_28px_rgba(0,0,0,0.4)] border border-white/20 transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_16px_40px_rgba(0,140,255,0.3)] group-hover:border-[#008CFF]/60 overflow-hidden`}
+      >
         <img
-          src={item.logo}
+          src={encodeURI(item.logo)}
           alt={item.name}
           className={`w-full h-full object-contain select-none transition-transform duration-300 group-hover:scale-110 ${item.scale || 'scale-100'}`}
           draggable={false}
@@ -47,7 +53,7 @@ export const OurClientsSection: React.FC = () => {
       </div>
 
       {/* Discrete Client Name Label */}
-      <span className="text-xs sm:text-sm font-medium text-neutral-300 group-hover:text-[#008CFF] transition-colors duration-200 truncate max-w-[140px] sm:max-w-[190px] text-center tracking-wide">
+      <span className="text-xs font-semibold text-neutral-300 group-hover:text-[#008CFF] transition-colors duration-200 truncate max-w-[150px] text-center tracking-wide">
         {item.name}
       </span>
     </div>
@@ -56,9 +62,9 @@ export const OurClientsSection: React.FC = () => {
   return (
     <section
       id="clients"
-      className="relative w-full py-20 sm:py-28 lg:py-32 bg-[#05070B] text-white overflow-hidden select-none"
+      className="relative w-full py-16 sm:py-24 lg:py-28 bg-[#05070B] text-white overflow-hidden select-none"
     >
-      {/* Background Architectural Atmosphere & Radial Subtle Aura */}
+      {/* Background Architectural Atmosphere */}
       <div className="absolute inset-0 pointer-events-none">
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[1200px] h-[500px]"
@@ -74,17 +80,17 @@ export const OurClientsSection: React.FC = () => {
       {/* ======================================================== */}
       {/* TOP: EDITORIAL HEADING + DEDICATED PORTFOLIO CTA BUTTON  */}
       {/* ======================================================== */}
-      <div className="relative w-full max-w-7xl mx-auto flex flex-col items-center text-center px-6 sm:px-10 lg:px-12 mb-12 sm:mb-16 z-20">
-        <div className="flex items-center gap-2 mb-3 sm:mb-4">
+      <div className="relative w-full max-w-7xl mx-auto flex flex-col items-center text-center px-5 sm:px-10 lg:px-12 mb-10 sm:mb-14 z-20">
+        <div className="flex items-center gap-2 mb-2.5 sm:mb-3">
           <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_6px_#008CFF]" />
-          <span className="font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold">
+          <span className="font-mono text-[10px] xs:text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold">
             02 // CLIENTS & PARTNERS
           </span>
         </div>
-        <h2 className="font-display font-black uppercase tracking-[-0.035em] text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[0.92] text-white">
+        <h2 className="font-sans font-black uppercase tracking-[-0.035em] text-3xl xs:text-4xl sm:text-5xl md:text-6xl leading-[0.92] text-white">
           OUR CLIENTS<span className="text-[#008CFF]">.</span>
         </h2>
-        <p className="mt-4 sm:mt-5 text-sm sm:text-base md:text-lg text-white/60 max-w-xl font-normal leading-relaxed">
+        <p className="mt-3 sm:mt-4 text-xs xs:text-sm sm:text-base text-white/60 max-w-md font-normal leading-relaxed">
           Trusted by industry pioneers and category-defining brands.
         </p>
 
@@ -92,7 +98,7 @@ export const OurClientsSection: React.FC = () => {
         <button
           type="button"
           onClick={() => navigate('/portfolio')}
-          className="mt-6 sm:mt-8 inline-flex items-center gap-2 px-6 py-2.5 sm:px-7 sm:py-3 rounded-full bg-white/[0.06] hover:bg-[#008CFF]/20 border border-white/15 hover:border-[#008CFF]/50 text-white font-mono text-xs sm:text-sm uppercase tracking-[0.22em] font-semibold transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.5)] group/cta cursor-pointer"
+          className="mt-5 sm:mt-7 inline-flex items-center gap-2 px-6 py-2.5 sm:px-7 sm:py-3 rounded-full bg-white/[0.06] hover:bg-[#008CFF]/20 border border-white/15 hover:border-[#008CFF]/50 text-white font-mono text-xs sm:text-sm uppercase tracking-[0.22em] font-semibold transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.5)] group/cta cursor-pointer active:scale-95"
         >
           <span>OUR PORTFOLIO</span>
           <svg
@@ -108,22 +114,34 @@ export const OurClientsSection: React.FC = () => {
       </div>
 
       {/* ======================================================== */}
-      {/* CENTER: INFINITE AUTO-SCROLLING 1:1 WHITE LOGO CARDS     */}
+      {/* MOBILE: SMOOTH TOUCH-SWIPEABLE CLIENT STRIP              */}
+      {/* Visible on mobile (< 768px), large readable 1:1 cards    */}
       {/* ======================================================== */}
-      <div className="relative w-full overflow-hidden py-4 z-10">
-        {/* Soft Left & Right Edge Vignette Fades */}
-        <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-16 sm:w-32 md:w-48 bg-gradient-to-r from-[#05070B] via-[#05070B]/85 to-transparent z-20" />
-        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 sm:w-32 md:w-48 bg-gradient-to-l from-[#05070B] via-[#05070B]/85 to-transparent z-20" />
+      <div className="block md:hidden relative w-full z-10">
+        <div className="flex overflow-x-auto touch-pan-x gap-3.5 px-5 py-2 snap-x snap-mandatory scrollbar-none">
+          {CLIENTS_LIST.map((item, index) => (
+            <div key={`mob-${item.id}-${index}`} className="snap-start shrink-0">
+              {renderClientCard(item, `mob-${item.id}-${index}`, true)}
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center justify-center gap-1.5 mt-4 text-white/40 font-mono text-[9px] tracking-[0.2em] uppercase">
+          <span>← SWIPE TO VIEW CLIENTS →</span>
+        </div>
+      </div>
 
-        {/* Auto-scrolling Track (Seamless Duplicated Track for 100% infinite loop) */}
+      {/* ======================================================== */}
+      {/* DESKTOP: INFINITE AUTO-SCROLLING MARQUEE (>= 768px)      */}
+      {/* ======================================================== */}
+      <div className="hidden md:block relative w-full overflow-hidden py-4 z-10">
+        <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-32 md:w-48 bg-gradient-to-r from-[#05070B] via-[#05070B]/85 to-transparent z-20" />
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-32 md:w-48 bg-gradient-to-l from-[#05070B] via-[#05070B]/85 to-transparent z-20" />
+
         <div className="flex animate-client-marquee hover:[animation-play-state:paused] active:[animation-play-state:paused]">
-          {/* Primary Track */}
-          <div className="flex items-center gap-5 sm:gap-7 shrink-0 pr-5 sm:pr-7">
+          <div className="flex items-center gap-6 shrink-0 pr-6">
             {CLIENTS_LIST.map((item, index) => renderClientCard(item, `t1-${item.id}-${index}`))}
           </div>
-
-          {/* Seamless Duplicate Track */}
-          <div className="flex items-center gap-5 sm:gap-7 shrink-0 pr-5 sm:pr-7" aria-hidden="true">
+          <div className="flex items-center gap-6 shrink-0 pr-6" aria-hidden="true">
             {CLIENTS_LIST.map((item, index) => renderClientCard(item, `t2-${item.id}-${index}`))}
           </div>
         </div>

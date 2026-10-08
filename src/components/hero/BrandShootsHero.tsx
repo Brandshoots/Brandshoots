@@ -116,13 +116,13 @@ export const BrandShootsHero: React.FC = () => {
     <section
       id="hero"
       ref={heroRef}
-      className="relative w-screen h-[100dvh] max-h-[100dvh] bg-[#05070A] text-white overflow-hidden select-none"
+      className="relative w-full h-[100svh] min-h-[100svh] max-h-[100svh] md:h-[100dvh] md:max-h-[100dvh] bg-[#05070A] text-white overflow-hidden select-none"
     >
       {/* ========================================================= */}
       {/* 1. CINEMATIC BACKGROUND ENVIRONMENTS                      */}
       {/* ========================================================= */}
-      {/* Mobile: Full-Screen 9:16 Video Hero with Top/Bottom Blue Gradients */}
-      <div className="block md:hidden">
+      {/* Mobile: Dedicated Responsive Composition */}
+      <div className="block md:hidden w-full h-full">
         <MobileCinematicHero />
       </div>
 

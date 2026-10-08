@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import gsap from 'gsap';
-import { Play, Pause, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { Play, Pause } from 'lucide-react';
 
 const REEL_VIDEOS = [
   {
@@ -39,79 +39,81 @@ export const MobileCinematicHero: React.FC = () => {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [showPlayIcon, setShowPlayIcon] = useState(false);
-  const [doubleTapFlash, setDoubleTapFlash] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const titleBlockRef = useRef<HTMLDivElement>(null);
-  const progressRef = useRef<HTMLDivElement>(null);
+  const mediaFrameRef = useRef<HTMLDivElement>(null);
+  const brandingRef = useRef<HTMLDivElement>(null);
+  const progressBarsRef = useRef<(HTMLDivElement | null)[]>([]);
 
   // Touch Swipe Gesture State
   const touchStartXRef = useRef<number>(0);
   const touchStartYRef = useRef<number>(0);
   const touchDeltaXRef = useRef<number>(0);
-  const lastTapTimeRef = useRef<number>(0);
 
-  // Auto-advance reels every 7.5 seconds when playing
+  // Auto-advance reels every 7 seconds when playing
   useEffect(() => {
     if (!isPlaying) return;
 
     const timer = setInterval(() => {
       setCurrentIdx((prev) => (prev + 1) % REEL_VIDEOS.length);
-    }, 7500);
+    }, 7000);
 
     return () => clearInterval(timer);
   }, [isPlaying]);
 
-  // Entrance animations for typography
+  // Entrance animations for media card and branding
   useEffect(() => {
-    if (titleBlockRef.current) {
-      gsap.fromTo(
-        titleBlockRef.current,
-        { opacity: 0, y: 22 },
-        { opacity: 1, y: 0, duration: 0.65, delay: 0.1, ease: 'power3.out' }
-      );
-    }
+    const ctx = gsap.context(() => {
+      if (mediaFrameRef.current) {
+        gsap.fromTo(
+          mediaFrameRef.current,
+          { opacity: 0, scale: 0.94, y: 16 },
+          { opacity: 1, scale: 1, y: 0, duration: 0.7, delay: 0.1, ease: 'power3.out' }
+        );
+      }
+      if (brandingRef.current) {
+        gsap.fromTo(
+          brandingRef.current,
+          { opacity: 0, y: 14 },
+          { opacity: 1, y: 0, duration: 0.65, delay: 0.25, ease: 'power3.out' }
+        );
+      }
+    }, containerRef);
+
+    return () => ctx.revert();
   }, []);
 
-  // Reset video playback and animate progress on reel change
+  // Update video and animate progress bar on reel change
   useEffect(() => {
     const vid = videoRef.current;
     if (vid) {
       vid.defaultMuted = true;
       vid.muted = true;
       vid.playsInline = true;
-      vid.setAttribute('muted', '');
-      vid.setAttribute('playsinline', '');
-      vid.setAttribute('webkit-playsinline', '');
       vid.currentTime = 0;
       if (isPlaying) {
         vid.play().catch(() => {});
       }
     }
 
-    if (progressRef.current) {
-      gsap.killTweensOf(progressRef.current);
-      gsap.fromTo(
-        progressRef.current,
-        { scaleX: 0 },
-        { scaleX: 1, duration: 7.5, ease: 'none' }
-      );
-    }
+    // Animate the active progress indicator
+    progressBarsRef.current.forEach((bar, idx) => {
+      if (!bar) return;
+      gsap.killTweensOf(bar);
+      if (idx < currentIdx) {
+        gsap.set(bar, { scaleX: 1 });
+      } else if (idx > currentIdx) {
+        gsap.set(bar, { scaleX: 0 });
+      } else {
+        gsap.fromTo(bar, { scaleX: 0 }, { scaleX: 1, duration: 7.0, ease: 'none' });
+      }
+    });
   }, [currentIdx, isPlaying]);
 
-  // Toggle Video Playback on Single Tap
-  const handleTap = useCallback(() => {
-    const now = Date.now();
-    // Double tap detector (within 280ms)
-    if (now - lastTapTimeRef.current < 280) {
-      setDoubleTapFlash(true);
-      setTimeout(() => setDoubleTapFlash(false), 450);
-      lastTapTimeRef.current = 0;
-      return;
-    }
-    lastTapTimeRef.current = now;
-
+  // Toggle Video Playback on Single Tap of Media Card
+  const handleTogglePlay = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
     const vid = videoRef.current;
     if (!vid) return;
 
@@ -124,7 +126,7 @@ export const MobileCinematicHero: React.FC = () => {
     }
 
     setShowPlayIcon(true);
-    setTimeout(() => setShowPlayIcon(false), 700);
+    setTimeout(() => setShowPlayIcon(false), 650);
   }, []);
 
   // Touch Swipe Handling for Instant Reel Switching
@@ -142,40 +144,93 @@ export const MobileCinematicHero: React.FC = () => {
     const deltaX = touchDeltaXRef.current;
     const deltaY = Math.abs(e.changedTouches[0].clientY - touchStartYRef.current);
 
-    // If horizontal swipe is dominant (over 45px and not a vertical scroll)
-    if (Math.abs(deltaX) > 45 && deltaY < 60) {
+    if (Math.abs(deltaX) > 40 && deltaY < 60) {
       if (deltaX < 0) {
-        // Swipe Left -> Next
         setCurrentIdx((prev) => (prev + 1) % REEL_VIDEOS.length);
       } else {
-        // Swipe Right -> Prev
         setCurrentIdx((prev) => (prev - 1 + REEL_VIDEOS.length) % REEL_VIDEOS.length);
       }
     }
   };
 
-  const activeReel = REEL_VIDEOS[currentIdx];
-
   const scrollToAbout = () => {
-    const el = document.getElementById('what-we-do');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+    const lenis = (window as any).__lenis;
+    if (lenis) {
+      lenis.scrollTo('#what-we-do', { duration: 0.85 });
+    } else {
+      const el = document.getElementById('what-we-do');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  const activeReel = REEL_VIDEOS[currentIdx];
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[100dvh] overflow-hidden bg-[#05070A] select-none touch-pan-y"
+      className="relative w-full h-[100svh] min-h-[100svh] max-h-[100svh] bg-[#05070A] text-white flex flex-col justify-between pt-[62px] pb-3 px-5 overflow-hidden select-none"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      onClick={handleTap}
     >
+      {/* Background Atmosphere & Ambient Horizon Lights */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div
+          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] h-[360px]"
+          style={{
+            background:
+              'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.16) 0%, rgba(0, 70, 190, 0.04) 50%, transparent 75%)',
+            filter: 'blur(60px)',
+          }}
+        />
+        <div className="absolute inset-0 cinema-grain opacity-20 pointer-events-none" />
+      </div>
+
       {/* ======================================================== */}
-      {/* 1. FULL-SCREEN 9:16 VERTICAL CINEMATIC VIDEO BACKGROUND  */}
+      {/* 1. TOP METADATA ROW & REEL PROGRESS INDICATORS           */}
       {/* ======================================================== */}
-      <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
+      <div className="relative z-10 w-full max-w-[340px] mx-auto pt-1 flex flex-col gap-2">
+        <div className="flex items-center justify-between font-mono text-[10px] tracking-[0.24em] uppercase text-white/60">
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_6px_#008CFF]" />
+            <span className="text-[#008CFF] font-bold">CINEMATIC MEDIA</span>
+          </div>
+          <div className="flex items-center gap-1 text-white/80 font-semibold">
+            <span>{activeReel.client}</span>
+            <span className="text-white/30">•</span>
+            <span className="text-[#008CFF]">4K</span>
+          </div>
+        </div>
+
+        {/* 5 Reel Segmented Progress Bars */}
+        <div className="grid grid-cols-5 gap-1.5 w-full">
+          {REEL_VIDEOS.map((_, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => setCurrentIdx(idx)}
+              aria-label={`Jump to reel ${idx + 1}`}
+              className="h-[2.5px] bg-white/15 rounded-full overflow-hidden cursor-pointer"
+            >
+              <div
+                ref={(el) => (progressBarsRef.current[idx] = el)}
+                className="w-full h-full bg-[#008CFF] origin-left rounded-full shadow-[0_0_6px_#008CFF]"
+              />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ======================================================== */}
+      {/* 2. MIDDLE: DOMINANT CINEMATIC MEDIA CONTAINER             */}
+      {/* Frame proportions calibrated for 360-412px viewports     */}
+      {/* ======================================================== */}
+      <div
+        ref={mediaFrameRef}
+        onClick={handleTogglePlay}
+        className="relative z-10 w-full max-w-[325px] xs:max-w-[340px] mx-auto flex-1 my-2 max-h-[46svh] min-h-[250px] aspect-[9/13] rounded-2xl overflow-hidden bg-[#0A0E17] border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_28px_rgba(0,140,255,0.14)] cursor-pointer group flex items-center justify-center"
+      >
+        {/* Active Reel Video with Protected Focal Point */}
         <video
           ref={videoRef}
           key={activeReel.src}
@@ -185,222 +240,95 @@ export const MobileCinematicHero: React.FC = () => {
           muted
           loop
           playsInline
-          className="w-full h-full object-cover animate-fadeIn"
+          className="w-full h-full object-cover object-[center_20%] transition-opacity duration-300"
         />
 
-        {/* Cinematic Film Vignette & Dark Tint */}
-        <div className="absolute inset-0 bg-[#05070A]/30 pointer-events-none" />
-        <div className="absolute inset-0 cinema-grain opacity-20 pointer-events-none" />
-      </div>
+        {/* Subtle Top & Bottom Edge Vignettes for Atmosphere */}
+        <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-black/50 to-transparent pointer-events-none" />
+        <div className="absolute bottom-0 inset-x-0 h-20 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" />
 
-      {/* Camera Shutter Flash Reaction on Double Tap */}
-      {doubleTapFlash && (
-        <div className="absolute inset-0 bg-white/70 pointer-events-none z-40 animate-cameraFlash" />
-      )}
-
-      {/* Play / Pause Interactive Pulsing Feedback Badge */}
-      {showPlayIcon && (
-        <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
-          <div className="w-16 h-16 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white flex items-center justify-center animate-scaleFade">
-            {isPlaying ? (
-              <Play className="w-7 h-7 fill-current text-[#008CFF] ml-0.5" />
-            ) : (
-              <Pause className="w-7 h-7 fill-current text-white/90" />
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* 2. TOP LIGHT BLUE GRADIENT & FLOATING REEL BADGE         */}
-      {/* ======================================================== */}
-      <div
-        className="absolute top-0 inset-x-0 h-44 z-20 pointer-events-none"
-        style={{
-          background:
-            'linear-gradient(180deg, rgba(5,7,10,0.96) 0%, rgba(3,10,24,0.85) 45%, rgba(0,140,255,0.14) 75%, transparent 100%)',
-        }}
-      />
-      {/* Delicate Light Blue Ambient Halo */}
-      <div
-        className="absolute -top-10 left-1/2 -translate-x-1/2 w-[90vw] h-28 z-20 pointer-events-none"
-        style={{
-          background:
-            'radial-gradient(ellipse at 50% 30%, rgba(0, 140, 255, 0.28) 0%, rgba(0, 90, 210, 0.08) 55%, transparent 80%)',
-          filter: 'blur(25px)',
-        }}
-      />
-      <div className="absolute top-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#008CFF]/70 to-transparent z-25 pointer-events-none" />
-
-      {/* Floating Client & Reel Badge (Top Right beneath Header) */}
-      <div className="absolute top-[82px] right-5 z-25 pointer-events-auto">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/55 backdrop-blur-md border border-white/15 text-white/90 shadow-lg">
-          <span className="w-2 h-2 rounded-full bg-[#008CFF] animate-pulse" />
-          <span className="font-mono text-[10px] tracking-wider uppercase font-semibold text-white/90">
-            {activeReel.client}
-          </span>
-          <span className="text-white/30 text-[9px]">•</span>
-          <span className="font-mono text-[9px] tracking-wider text-[#008CFF] font-bold">
-            4K
-          </span>
-        </div>
-      </div>
-
-      {/* Quick Swipe Chevrons (Subtle Left/Right hints) */}
-      <div className="absolute inset-y-0 left-2 z-20 flex items-center pointer-events-none opacity-40">
-        <ChevronLeft className="w-6 h-6 text-white/70 animate-pulse" />
-      </div>
-      <div className="absolute inset-y-0 right-2 z-20 flex items-center pointer-events-none opacity-40">
-        <ChevronRight className="w-6 h-6 text-white/70 animate-pulse" />
-      </div>
-
-      {/* ======================================================== */}
-      {/* 3. BOTTOM BLUE GRADIENT & BRANDING BLOCK                 */}
-      {/* ======================================================== */}
-      <div
-        className="absolute bottom-0 inset-x-0 h-[58vh] z-20 pointer-events-none"
-        style={{
-          background:
-            'linear-gradient(0deg, rgba(5,7,10,0.98) 0%, rgba(5,7,10,0.85) 45%, rgba(0,140,255,0.18) 75%, transparent 100%)',
-        }}
-      />
-
-      {/* Electric Blue Atmosphere Ambient Glow in Bottom-Left */}
-      <div
-        className="absolute -bottom-10 -left-10 w-[100vw] h-[380px] pointer-events-none z-20"
-        style={{
-          background:
-            'radial-gradient(circle at 18% 85%, rgba(0, 140, 255, 0.42) 0%, rgba(0, 100, 240, 0.18) 42%, transparent 75%)',
-          filter: 'blur(45px)',
-        }}
-      />
-
-      {/* Bottom-Left Branding Block */}
-      <div
-        ref={titleBlockRef}
-        className="absolute bottom-[84px] sm:bottom-[92px] left-0 right-0 z-30 px-6 sm:px-8 flex flex-col items-start pointer-events-none"
-      >
-        {/* Active Reel Indicator & Pagination Dots (Interactive Tap) */}
-        <div
-          className="flex items-center gap-2 mb-2.5 pointer-events-auto"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {REEL_VIDEOS.map((reel, idx) => (
-            <button
-              key={reel.src}
-              type="button"
-              onClick={() => setCurrentIdx(idx)}
-              aria-label={`Jump to reel ${idx + 1}`}
-              className={`h-2 transition-all duration-300 rounded-full cursor-pointer ${
-                currentIdx === idx
-                  ? 'w-8 bg-[#008CFF] shadow-[0_0_12px_#008CFF]'
-                  : 'w-2.5 bg-white/30 hover:bg-white/60'
-              }`}
-            />
-          ))}
+        {/* Top-Right Chapter/Reel Pill */}
+        <div className="absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/12 text-white font-mono text-[9px] tracking-wider uppercase">
+          REEL {String(currentIdx + 1).padStart(2, '0')} / 05
         </div>
 
-        {/* Reel Progress Bar */}
-        <div className="w-36 h-[2px] bg-white/15 rounded-full overflow-hidden mb-3.5">
-          <div
-            ref={progressRef}
-            className="w-full h-full bg-[#008CFF] origin-left rounded-full shadow-[0_0_8px_#008CFF]"
-          />
-        </div>
-
-        {/* Category Pill Tag */}
-        <div className="mb-1.5 flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-[#008CFF]" />
-          <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-[#008CFF] font-bold">
+        {/* Bottom-Left Category Pill */}
+        <div className="absolute bottom-3 left-3 z-20 flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/65 backdrop-blur-md border border-white/15">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] animate-pulse" />
+          <span className="font-mono text-[10px] tracking-[0.2em] uppercase font-bold text-white/90">
             {activeReel.category}
           </span>
         </div>
 
-        {/* Prominent 3D Extruded BRANDSHOOTS Logo */}
-        <h1 className="font-display font-black tracking-[-0.038em] uppercase text-[12.5vw] xs:text-[46px] leading-[0.88] text-left">
-          {/* BRAND — blue */}
-          <span
-            className="inline-block text-[#008CFF]"
-            style={{
-              textShadow:
-                '0 1px 0 #60B8FF, 0 2px 0 #28A0FF, 0 3px 0 #007EE6, 0 4px 0 #005096, 0 6px 18px rgba(0,0,0,0.95), 0 0 28px rgba(0,140,255,0.6)',
-            }}
-          >
+        {/* Play / Pause Feedback Pulse Badge */}
+        {showPlayIcon && (
+          <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+            <div className="w-14 h-14 rounded-full bg-black/70 backdrop-blur-md border border-white/25 text-white flex items-center justify-center animate-scaleFade">
+              {isPlaying ? (
+                <Play className="w-6 h-6 fill-current text-[#008CFF] ml-0.5" />
+              ) : (
+                <Pause className="w-6 h-6 fill-current text-white/90" />
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ======================================================== */}
+      {/* 3. BOTTOM: BRANDSHOOTS + CREATE. SHOOT. GROW. + SCROLL    */}
+      {/* Protected text zone — zero collision with video faces     */}
+      {/* ======================================================== */}
+      <div
+        ref={brandingRef}
+        className="relative z-10 w-full max-w-[360px] mx-auto flex flex-col items-center text-center pb-1"
+      >
+        {/* BRANDSHOOTS Title in Figtree font */}
+        <h1 className="font-sans font-black tracking-[-0.035em] uppercase text-[36px] xs:text-[42px] leading-none flex items-center justify-center filter drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
+          <span className="text-[#008CFF] drop-shadow-[0_2px_14px_rgba(0,140,255,0.45)]">
             BRAND
           </span>
-
-          {/* SHOOTS — white */}
-          <span
-            className="inline-block text-white ml-[0.015em]"
-            style={{
-              textShadow:
-                '0 1px 0 #F8FAFC, 0 2px 0 #E2E8F0, 0 3px 0 #CBD5E1, 0 4px 0 #94A3B8, 0 5px 0 #64748B, 0 7px 18px rgba(0,0,0,0.95)',
-            }}
-          >
+          <span className="text-white ml-[0.02em]">
             SHOOTS
           </span>
         </h1>
 
-        {/* Tagline: CREATE. SHOOT. GROW. */}
-        <div className="mt-2.5 font-mono text-xs xs:text-[13px] tracking-[0.42em] uppercase font-bold text-left">
-          <span className="text-white">CREATE. </span>
-          <span className="text-[#008CFF] drop-shadow-[0_0_12px_rgba(0,140,255,0.85)]">
+        {/* CREATE. SHOOT. GROW. Tagline */}
+        <div className="mt-1.5 font-mono text-[11px] xs:text-xs tracking-[0.42em] uppercase font-bold text-center">
+          <span className="text-white/85">CREATE. </span>
+          <span className="text-[#008CFF] drop-shadow-[0_0_10px_rgba(0,140,255,0.8)]">
             SHOOT.
           </span>
-          <span className="text-white"> GROW.</span>
+          <span className="text-white/85"> GROW.</span>
         </div>
-      </div>
 
-      {/* ======================================================== */}
-      {/* 4. SCROLL DOWN INDICATOR (BOTTOM CENTER)                 */}
-      {/* ======================================================== */}
-      <div
-        className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-1 cursor-pointer pointer-events-auto"
-        onClick={(e) => {
-          e.stopPropagation();
-          scrollToAbout();
-        }}
-      >
-        <div className="px-3 py-1 rounded-full bg-black/45 backdrop-blur-md border border-white/10 flex items-center gap-1.5 shadow-md">
+        {/* Subtle SCROLL DOWN indicator */}
+        <div
+          onClick={scrollToAbout}
+          className="mt-2.5 flex items-center gap-1.5 text-white/50 hover:text-white/80 active:text-white transition-colors duration-200 cursor-pointer py-1"
+        >
           <svg
-            className="w-3.5 h-3.5 text-[#008CFF] drop-shadow-[0_0_8px_#008CFF] animate-bounce"
+            className="w-3.5 h-3.5 text-[#008CFF] animate-bounce"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
-            strokeWidth="2.4"
+            strokeWidth="2.5"
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
-          <span className="font-mono text-[9px] tracking-[0.28em] uppercase font-bold text-white/70">
-            Scroll Down
+          <span className="font-mono text-[9px] tracking-[0.28em] uppercase font-semibold text-white/60">
+            SCROLL DOWN
           </span>
         </div>
       </div>
 
       <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0.5; }
-          to { opacity: 1; }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.6s ease-out forwards;
-        }
-
         @keyframes scaleFade {
           0% { transform: scale(0.7); opacity: 0; }
           40% { transform: scale(1.1); opacity: 1; }
           100% { transform: scale(1); opacity: 0; }
         }
         .animate-scaleFade {
-          animation: scaleFade 0.65s ease-out forwards;
-        }
-
-        @keyframes cameraFlash {
-          0% { opacity: 0.85; }
-          100% { opacity: 0; }
-        }
-        .animate-cameraFlash {
-          animation: cameraFlash 0.4s ease-out forwards;
+          animation: scaleFade 0.6s ease-out forwards;
         }
       `}</style>
     </div>
