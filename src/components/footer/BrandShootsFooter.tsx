@@ -1,24 +1,14 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Instagram, Youtube, Facebook, MessageCircle, ArrowUp } from 'lucide-react';
-import { ContactModal } from '../hero/ContactModal';
 import { BRAND_PATHS, SHOOTS_PATHS, BRANDSHOOTS_LOGO_VIEWBOX } from './brandshootsLogoPaths';
 
 interface BrandShootsFooterProps {
   onOpenContact?: () => void;
 }
 
-export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = ({ onOpenContact }) => {
-  const [internalModalOpen, setInternalModalOpen] = useState(false);
+export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = () => {
   const footerRef = useRef<HTMLElement>(null);
-
-  const handleOpenContact = () => {
-    if (onOpenContact) {
-      onOpenContact();
-    } else {
-      setInternalModalOpen(true);
-    }
-  };
 
   const scrollToTop = () => {
     const lenis = (window as any).__lenis;
@@ -115,13 +105,12 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = ({ onOpenCont
               SERVICES
             </Link>
 
-            <button
-              type="button"
-              onClick={handleOpenContact}
+            <Link
+              to="/contact"
               className="text-[#008CFF] hover:text-[#52B2FF] transition-colors duration-200 cursor-pointer uppercase tracking-[0.24em]"
             >
               CONTACT
-            </button>
+            </Link>
           </nav>
 
           {/* ========================================================= */}
@@ -191,12 +180,6 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = ({ onOpenCont
           </div>
         </div>
       </footer>
-
-      {/* Internal fallback contact modal */}
-      <ContactModal
-        isOpen={internalModalOpen}
-        onClose={() => setInternalModalOpen(false)}
-      />
     </>
   );
 };

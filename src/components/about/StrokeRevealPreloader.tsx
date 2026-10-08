@@ -1,6 +1,5 @@
 import React, { useRef, useLayoutEffect } from 'react';
 import gsap from 'gsap';
-import { LOGO_PATHS } from './logoPaths';
 
 interface StrokeRevealPreloaderProps {
   onComplete: () => void;
@@ -9,140 +8,101 @@ interface StrokeRevealPreloaderProps {
 export const StrokeRevealPreloader: React.FC<StrokeRevealPreloaderProps> = ({ onComplete }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
-  const pathsRef = useRef<(SVGPathElement | null)[]>([]);
-  const taglineRef = useRef<HTMLDivElement>(null);
+  const logoRef = useRef<HTMLImageElement>(null);
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
-      // 1. Initial State: Screen is pitch black, paths hidden, glow dim
-      gsap.set(glowRef.current, { scale: 0.5, opacity: 0 });
-      gsap.set(taglineRef.current, { y: 15, opacity: 0 });
+      // 1. Initial State: clean, deep cinematic black canvas
+      gsap.set(containerRef.current, { opacity: 1 });
+      gsap.set(glowRef.current, { scale: 0.6, opacity: 0 });
+      gsap.set(logoRef.current, { scale: 0.94, opacity: 0 });
 
-      pathsRef.current.forEach((path) => {
-        if (!path) return;
-        const len = (typeof path.getTotalLength === 'function' ? path.getTotalLength() : 800) || 800;
-        gsap.set(path, {
-          strokeDasharray: len,
-          strokeDashoffset: len,
-          stroke: '#008CFF',
-          strokeWidth: 2.2,
-          fill: 'transparent',
-          filter: 'drop-shadow(0 0 6px rgba(0,140,255,0.7))',
-        });
-      });
-
-      // 2. Master Cinematic Page-to-Page Preloader Timeline (Refined, Graceful Pacing)
+      // 2. Master Page-to-Page Preloader Timeline
       const tl = gsap.timeline({
         onComplete: () => {
           gsap.to(containerRef.current, {
             opacity: 0,
-            scale: 1.03,
-            duration: 0.55,
+            scale: 1.02,
+            duration: 0.4,
             ease: 'power3.inOut',
             onComplete,
           });
         },
       });
 
-      // Sequence:
-      // A. Electric blue ambient glow emerges
+      // A. Electric blue ambient aura blooms in center
       tl.to(
         glowRef.current,
         {
-          scale: 1.2,
-          opacity: 0.5,
-          duration: 0.6,
+          scale: 1.25,
+          opacity: 0.6,
+          duration: 0.5,
           ease: 'power2.out',
         },
         0.05
       )
-        // B. Logo strokes draw smoothly and deliberately
+        // B. Official Logo reveals with smooth scale and crystal-clear opacity
         .to(
-          pathsRef.current,
+          logoRef.current,
           {
-            strokeDashoffset: 0,
-            duration: 1.1,
-            stagger: 0.022,
-            ease: 'power2.inOut',
-          },
-          0.15
-        )
-        // C. Logo transitions smoothly to full brand fill
-        .to(
-          pathsRef.current,
-          {
-            fill: (i) => LOGO_PATHS[i].fill,
-            stroke: 'transparent',
-            filter: 'drop-shadow(0 0 20px rgba(0,140,255,0.5))',
-            duration: 0.45,
-            ease: 'power2.out',
-          },
-          1.15
-        )
-        // D. Tagline reveals with elegant spacing
-        .to(
-          taglineRef.current,
-          {
-            y: 0,
             opacity: 1,
-            duration: 0.4,
+            scale: 1,
+            duration: 0.55,
             ease: 'power2.out',
           },
-          1.35
+          0.1
         )
-        // E. Intentional cinematic hold so user can register the brand logo
+        // C. Subtle cinematic hold for brand presence
         .to(
-          svgRef.current,
+          logoRef.current,
           {
-            scale: 1.015,
-            duration: 0.65,
+            scale: 1.02,
+            duration: 0.5,
             ease: 'sine.inOut',
           },
-          1.5
+          0.65
+        )
+        // D. Gentle fade as container dissolves into the page
+        .to(
+          logoRef.current,
+          {
+            opacity: 0.92,
+            duration: 0.25,
+          },
+          1.15
         );
     }, containerRef);
 
-    return () => ctx.revert();
+    // Fallback safety timeout so page transition NEVER gets blocked
+    const safetyTimeout = setTimeout(() => {
+      onComplete();
+    }, 2000);
+
+    return () => {
+      clearTimeout(safetyTimeout);
+      ctx.revert();
+    };
   }, [onComplete]);
 
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-[100] bg-[#04060A] flex flex-col items-center justify-center select-none overflow-hidden"
+      className="fixed inset-0 z-[100] bg-[#04060A] flex items-center justify-center select-none overflow-hidden"
     >
-      {/* Subtle Central Electric Blue Ambient Core */}
+      {/* Central Volumetric Electric Blue Ambient Aura */}
       <div
         ref={glowRef}
-        className="absolute w-[500px] h-[300px] rounded-full bg-[#008CFF]/20 blur-[110px] pointer-events-none"
+        className="absolute w-[520px] h-[320px] rounded-full bg-[#008CFF]/25 blur-[120px] pointer-events-none"
       />
 
-      {/* SVG Container: Official BRANDSHOOTS Vector Mark */}
-      <div className="relative z-10 w-[88vw] max-w-[760px] flex flex-col items-center">
-        <svg
-          ref={svgRef}
-          viewBox="175 360 1600 365"
-          className="w-full h-auto max-h-[38vh] filter drop-shadow-[0_10px_30px_rgba(0,0,0,0.9)]"
-        >
-          {LOGO_PATHS.map((path, index) => (
-            <path
-              key={index}
-              ref={(el) => {
-                pathsRef.current[index] = el;
-              }}
-              d={path.d}
-            />
-          ))}
-        </svg>
-
-        {/* Small Tagline: CREATE. SHOOT. GROW. */}
-        <div ref={taglineRef} className="mt-6 sm:mt-8 flex items-center gap-3">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
-          <span className="font-mono text-xs sm:text-[13px] tracking-[0.35em] uppercase text-white/80 font-medium">
-            CREATE. SHOOT. GROW.
-          </span>
-          <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
-        </div>
+      {/* Official BRANDSHOOTS Vector Logo Only */}
+      <div className="relative z-10 w-[84vw] max-w-[620px] flex items-center justify-center px-6">
+        <img
+          ref={logoRef}
+          src="/Logo Official.svg"
+          alt="BrandShoots Official Logo"
+          className="w-full h-auto max-h-[35vh] object-contain filter drop-shadow-[0_12px_45px_rgba(0,140,255,0.45)]"
+        />
       </div>
     </div>
   );

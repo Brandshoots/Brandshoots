@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowUpRight, MessageCircle, Phone, MapPin } from 'lucide-react';
@@ -9,7 +10,7 @@ interface FinalCtaSectionProps {
   onOpenContact?: () => void;
 }
 
-export const FinalCtaSection: React.FC<FinalCtaSectionProps> = ({ onOpenContact }) => {
+export const FinalCtaSection: React.FC<FinalCtaSectionProps> = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const backdropAuraRef = useRef<HTMLDivElement>(null);
   const headlineWrapperRef = useRef<HTMLDivElement>(null);
@@ -132,14 +133,13 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = ({ onOpenContact 
           {/* Primary High-Impact Button */}
           <div className="relative inline-block group">
             <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#008CFF] via-[#52B2FF] to-[#008CFF] opacity-75 blur-md group-hover:opacity-100 transition-opacity duration-300" />
-            <button
-              type="button"
-              onClick={onOpenContact}
+            <Link
+              to="/contact"
               className="relative px-9 py-4 sm:px-12 sm:py-5 rounded-full bg-white text-[#04060A] font-mono font-black text-xs xs:text-sm tracking-[0.24em] uppercase shadow-[0_12px_40px_rgba(0,140,255,0.4)] group-hover:bg-[#008CFF] group-hover:text-white transition-all duration-300 flex items-center gap-3 cursor-pointer active:scale-95"
             >
               <span>START YOUR PROJECT</span>
               <ArrowUpRight className="w-5 h-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </button>
+            </Link>
           </div>
 
           {/* Quick Communication Channels */}

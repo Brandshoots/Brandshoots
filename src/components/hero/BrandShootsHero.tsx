@@ -1,10 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ReelWall3D } from './ReelWall3D';
 import { HeroCinematicBackground } from './HeroCinematicBackground';
 import { MobileCinematicHero } from './MobileCinematicHero';
-import { ContactModal } from './ContactModal';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -15,9 +14,6 @@ export const BrandShootsHero: React.FC = () => {
   const reelWallContainerRef = useRef<HTMLDivElement>(null);
   const taglineRef = useRef<HTMLDivElement>(null);
   const scrollIndicatorRef = useRef<HTMLDivElement>(null);
-
-  // Modals state
-  const [contactModalOpen, setContactModalOpen] = useState(false);
 
   // GSAP Entrance Timeline for the Hero
   useEffect(() => {
@@ -227,12 +223,6 @@ export const BrandShootsHero: React.FC = () => {
           Scroll Down
         </span>
       </div>
-
-      {/* Interactive Contact & Inquiry Modal */}
-      <ContactModal
-        isOpen={contactModalOpen}
-        onClose={() => setContactModalOpen(false)}
-      />
     </section>
   );
 };

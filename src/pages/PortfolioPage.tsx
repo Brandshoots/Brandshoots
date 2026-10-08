@@ -8,26 +8,21 @@ import { PortfolioNavbar } from '../components/portfolio/PortfolioNavbar';
 import { PortfolioWormhole3D } from '../components/portfolio/PortfolioWormhole3D';
 import { PortfolioClienteleSection } from '../components/portfolio/PortfolioClienteleSection';
 import { BrandShootsFooter } from '../components/footer/BrandShootsFooter';
-import { ContactModal } from '../components/hero/ContactModal';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export const PortfolioPage: React.FC = () => {
   const [preloaderActive, setPreloaderActive] = useState(() => {
-    if (typeof window !== 'undefined') {
-      if (window.location.search.includes('nopreload')) return false;
-      // If user has already loaded the site, don't interrupt internal route navigation
-      if (sessionStorage.getItem('bs_intro_seen')) return false;
+    if (typeof window !== 'undefined' && window.location.search.includes('nopreload')) {
+      return false;
     }
     return true;
   });
-  const [contactModalOpen, setContactModalOpen] = useState(false);
 
   // Set document title and scroll to top on mount
   useEffect(() => {
     document.title = 'Portfolio | BRANDSHOOTS — Cinematic Showcase';
     window.scrollTo(0, 0);
-    sessionStorage.setItem('bs_intro_seen', 'true');
   }, []);
 
   // Butter-Smooth Lenis Inertial Scrolling synced with GSAP ScrollTrigger
@@ -68,14 +63,14 @@ export const PortfolioPage: React.FC = () => {
   }, [preloaderActive]);
 
   return (
-    <main className="relative w-full min-h-screen bg-[#020306] text-white select-none overflow-x-hidden">
+    <main className="relative w-full min-h-screen bg-[#020306] text-white select-none">
       {/* Page Preloader */}
       {preloaderActive && (
         <StrokeRevealPreloader onComplete={() => setPreloaderActive(false)} />
       )}
 
       {/* 1. HOMEPAGE-MATCHED NAVIGATION BAR */}
-      <PortfolioNavbar onOpenContact={() => setContactModalOpen(true)} />
+      <PortfolioNavbar />
 
       {/* 2. 100vw × 100vh 3D CINEMATIC CORRIDOR (PROJECTS 01-08) */}
       <PortfolioWormhole3D />
@@ -84,13 +79,7 @@ export const PortfolioPage: React.FC = () => {
       <PortfolioClienteleSection />
 
       {/* 4. FINAL BRANDSHOOTS CINEMATIC FOOTER */}
-      <BrandShootsFooter onOpenContact={() => setContactModalOpen(true)} />
-
-      {/* 5. CONTACT MODAL */}
-      <ContactModal
-        isOpen={contactModalOpen}
-        onClose={() => setContactModalOpen(false)}
-      />
+      <BrandShootsFooter />
     </main>
   );
 };

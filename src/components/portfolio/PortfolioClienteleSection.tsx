@@ -1,8 +1,4 @@
-import React, { useEffect, useRef } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
+import React from 'react';
 
 interface ClientLogoItem {
   name: string;
@@ -10,7 +6,7 @@ interface ClientLogoItem {
   logo: string;
 }
 
-const CLIENTS_LIST: ClientLogoItem[] = [
+const ALL_CLIENTS: ClientLogoItem[] = [
   { name: 'Santhi Pipes', category: 'Industrial & Infrastructure', logo: '/clients/trimmed/Shanti Pipes.png' },
   { name: 'Viswatuff Glass', category: 'Architectural Glass', logo: '/clients/trimmed/IMG_4537.PNG' },
   { name: 'Bags World', category: 'Retail & Fashion', logo: '/clients/trimmed/Bags World Logo.PNG' },
@@ -30,61 +26,16 @@ const CLIENTS_LIST: ClientLogoItem[] = [
 ];
 
 export const PortfolioClienteleSection: React.FC = () => {
-  const sectionRef = useRef<HTMLElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
-  const gridRef = useRef<HTMLDivElement>(null);
+  // Split clients into two rows for dual opposing continuous loop animation
+  const row1 = ALL_CLIENTS.slice(0, 8);
+  const row2 = ALL_CLIENTS.slice(8);
 
-  useEffect(() => {
-    if (!sectionRef.current) return;
-
-    const ctx = gsap.context(() => {
-      // Header smooth reveal
-      if (headerRef.current) {
-        gsap.fromTo(
-          headerRef.current,
-          { opacity: 0, y: 35 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.9,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: 'top 80%',
-            },
-          }
-        );
-      }
-
-      // Editorial logo items subtle stagger reveal
-      if (gridRef.current) {
-        const items = gridRef.current.querySelectorAll('.client-item');
-        gsap.fromTo(
-          items,
-          { opacity: 0, y: 25 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.7,
-            stagger: 0.04,
-            ease: 'power2.out',
-            scrollTrigger: {
-              trigger: gridRef.current,
-              start: 'top 85%',
-            },
-          }
-        );
-      }
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
+  // Duplicate each list for seamless infinite marquee loop (50% translate)
+  const marqueeRow1 = [...row1, ...row1];
+  const marqueeRow2 = [...row2, ...row2];
 
   return (
-    <section
-      ref={sectionRef}
-      className="relative w-full bg-[#020306] text-white py-28 sm:py-36 md:py-44 px-6 sm:px-12 md:px-16 border-t border-white/[0.08] select-none overflow-hidden"
-    >
+    <section className="relative w-full bg-[#020306] text-white py-28 sm:py-36 border-t border-white/[0.08] select-none overflow-hidden">
       {/* Subtle Electric Blue Horizon Ambient Glow */}
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2 w-[85vw] max-w-[1000px] h-[340px] pointer-events-none"
@@ -95,60 +46,114 @@ export const PortfolioClienteleSection: React.FC = () => {
         }}
       />
 
-      <div className="relative z-10 max-w-7xl mx-auto flex flex-col items-center">
+      <div className="relative z-10 max-w-7xl mx-auto flex flex-col items-center mb-16 sm:mb-20 px-6 sm:px-12 text-center">
         {/* ========================================================= */}
         {/* 1. EDITORIAL SECTION HEADER                                */}
         {/* ========================================================= */}
-        <div ref={headerRef} className="text-center max-w-2xl mb-20 sm:mb-24 md:mb-28">
-          <div className="inline-flex items-center gap-2 font-mono text-[11px] sm:text-xs tracking-[0.3em] uppercase text-[#008CFF] font-semibold mb-4">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
-            <span>OUR CLIENTS</span>
-          </div>
-
-          <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-black uppercase tracking-[-0.035em] text-white leading-[0.96]">
-            CLIENTELE
-          </h2>
-
-          <p className="mt-5 text-sm sm:text-base text-white/55 font-sans font-normal leading-relaxed max-w-lg mx-auto">
-            From industrial manufacturing leaders and architectural visionaries to luxury retail houses and high-growth consumer brands.
-          </p>
+        <div className="inline-flex items-center gap-2 font-mono text-[11px] sm:text-xs tracking-[0.3em] uppercase text-[#008CFF] font-semibold mb-4">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
+          <span>OUR CLIENTS</span>
         </div>
 
-        {/* ========================================================= */}
-        {/* 2. CLEAN EDITORIAL LOGO GRID (No SaaS Cards, Pure Space)   */}
-        {/* ========================================================= */}
-        <div
-          ref={gridRef}
-          className="w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-8 sm:gap-x-12 md:gap-x-16 gap-y-12 sm:gap-y-16 md:gap-y-20 items-center justify-items-center"
-        >
-          {CLIENTS_LIST.map((client, idx) => (
-            <div
-              key={idx}
-              className="client-item group flex flex-col items-center text-center cursor-default transition-all duration-300 w-full max-w-[200px]"
-            >
-              {/* Logo Stage */}
-              <div className="h-14 sm:h-16 md:h-18 w-full flex items-center justify-center">
-                <img
-                  src={client.logo}
-                  alt={client.name}
-                  loading="lazy"
-                  className="max-h-11 sm:max-h-13 md:max-h-14 max-w-[130px] sm:max-w-[150px] object-contain filter grayscale contrast-125 opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300 pointer-events-auto"
-                />
-              </div>
+        <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-black uppercase tracking-[-0.035em] text-white leading-[0.96]">
+          CLIENTELE
+        </h2>
 
-              {/* Minimal Client Info */}
-              <div className="mt-3.5 flex flex-col items-center">
-                <span className="font-sans text-xs sm:text-[13px] font-semibold uppercase tracking-[0.14em] text-white/75 group-hover:text-white transition-colors">
+        <p className="mt-5 text-sm sm:text-base text-white/55 font-sans font-normal leading-relaxed max-w-lg mx-auto">
+          From industrial manufacturing leaders and architectural visionaries to luxury retail houses and high-growth consumer brands.
+        </p>
+      </div>
+
+      {/* ========================================================= */}
+      {/* 2. DUAL-TRACK CONTINUOUS LOOPED MARQUEE STREAMS            */}
+      {/* ========================================================= */}
+      <div
+        className="relative w-full flex flex-col gap-5 sm:gap-6 pointer-events-auto"
+        style={{
+          maskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
+        }}
+      >
+        {/* Stream 1: Continuous Flow Left */}
+        <div className="group/row1 w-full overflow-hidden flex select-none">
+          <div className="flex shrink-0 items-center gap-5 sm:gap-6 animate-marquee-left group-hover/row1:[animation-play-state:paused] will-change-transform">
+            {marqueeRow1.map((client, idx) => (
+              <div
+                key={`r1-${idx}`}
+                className="group/card w-52 sm:w-60 md:w-68 h-38 sm:h-42 p-5 sm:p-6 rounded-2xl bg-white/[0.025] hover:bg-white/[0.06] border border-white/[0.08] hover:border-[#008CFF]/50 transition-all duration-300 flex flex-col items-center justify-center shrink-0 cursor-default shadow-sm"
+              >
+                <div className="h-12 sm:h-14 w-full flex items-center justify-center">
+                  <img
+                    src={client.logo}
+                    alt={client.name}
+                    loading="lazy"
+                    className="max-h-11 sm:max-h-12 max-w-[130px] sm:max-w-[150px] object-contain filter grayscale contrast-125 opacity-70 group-hover/card:grayscale-0 group-hover/card:opacity-100 group-hover/card:scale-105 transition-all duration-300"
+                  />
+                </div>
+                <span className="font-sans text-xs font-semibold uppercase tracking-[0.14em] text-white/75 group-hover/card:text-white transition-colors mt-3">
                   {client.name}
                 </span>
                 <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.2em] uppercase text-white/35 mt-0.5">
                   {client.category}
                 </span>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+        </div>
+
+        {/* Stream 2: Continuous Flow Right */}
+        <div className="group/row2 w-full overflow-hidden flex select-none">
+          <div className="flex shrink-0 items-center gap-5 sm:gap-6 animate-marquee-right group-hover/row2:[animation-play-state:paused] will-change-transform">
+            {marqueeRow2.map((client, idx) => (
+              <div
+                key={`r2-${idx}`}
+                className="group/card w-52 sm:w-60 md:w-68 h-38 sm:h-42 p-5 sm:p-6 rounded-2xl bg-white/[0.025] hover:bg-white/[0.06] border border-white/[0.08] hover:border-[#008CFF]/50 transition-all duration-300 flex flex-col items-center justify-center shrink-0 cursor-default shadow-sm"
+              >
+                <div className="h-12 sm:h-14 w-full flex items-center justify-center">
+                  <img
+                    src={client.logo}
+                    alt={client.name}
+                    loading="lazy"
+                    className="max-h-11 sm:max-h-12 max-w-[130px] sm:max-w-[150px] object-contain filter grayscale contrast-125 opacity-70 group-hover/card:grayscale-0 group-hover/card:opacity-100 group-hover/card:scale-105 transition-all duration-300"
+                  />
+                </div>
+                <span className="font-sans text-xs font-semibold uppercase tracking-[0.14em] text-white/75 group-hover/card:text-white transition-colors mt-3">
+                  {client.name}
+                </span>
+                <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.2em] uppercase text-white/35 mt-0.5">
+                  {client.category}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+
+      {/* Embedded High-Performance Infinite Marquee Keyframes */}
+      <style>{`
+        @keyframes marqueeScrollLeft {
+          0% {
+            transform: translate3d(0, 0, 0);
+          }
+          100% {
+            transform: translate3d(-50%, 0, 0);
+          }
+        }
+        @keyframes marqueeScrollRight {
+          0% {
+            transform: translate3d(-50%, 0, 0);
+          }
+          100% {
+            transform: translate3d(0, 0, 0);
+          }
+        }
+        .animate-marquee-left {
+          animation: marqueeScrollLeft 32s linear infinite;
+        }
+        .animate-marquee-right {
+          animation: marqueeScrollRight 34s linear infinite;
+        }
+      `}</style>
     </section>
   );
 };

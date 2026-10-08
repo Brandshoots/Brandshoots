@@ -87,11 +87,11 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
     }
   }, [menuOpen]);
 
-  // Smooth scroll to top helper
+  // Navigation & smooth scrolling helpers
   const handleScrollToTop = (e?: React.MouseEvent) => {
-    if (e) e.preventDefault();
     setMenuOpen(false);
     if (location.pathname === '/') {
+      if (e) e.preventDefault();
       const lenis = (window as any).__lenis;
       if (lenis) {
         lenis.scrollTo(0, { duration: 0.85 });
@@ -100,15 +100,45 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
       }
     } else {
       navigate('/');
+      window.scrollTo(0, 0);
     }
   };
 
+  const handleAboutClick = (e?: React.MouseEvent) => {
+    setMenuOpen(false);
+    if (location.pathname.startsWith('/about')) {
+      if (e) e.preventDefault();
+      const lenis = (window as any).__lenis;
+      if (lenis) {
+        lenis.scrollTo(0, { duration: 0.85 });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  };
 
-  const handleGetInTouch = () => {
+  const handlePortfolioClick = (e?: React.MouseEvent) => {
+    setMenuOpen(false);
+    if (location.pathname.startsWith('/portfolio')) {
+      if (e) e.preventDefault();
+      const lenis = (window as any).__lenis;
+      if (lenis) {
+        lenis.scrollTo(0, { duration: 0.85 });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  };
+
+  const handleContactClick = (e?: React.MouseEvent) => {
     setMenuOpen(false);
     if (onOpenContact) {
+      if (e) e.preventDefault();
       onOpenContact();
-    } else if (location.pathname === '/contact') {
+      return;
+    }
+    if (location.pathname.startsWith('/contact')) {
+      if (e) e.preventDefault();
       const el = document.getElementById('contact-form');
       if (el) {
         const lenis = (window as any).__lenis;
@@ -117,9 +147,9 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
         } else {
           el.scrollIntoView({ behavior: 'smooth' });
         }
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
-    } else {
-      navigate('/contact');
     }
   };
 
@@ -127,6 +157,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
   const isAbout = location.pathname.startsWith('/about');
   const isPortfolio =
     location.pathname.startsWith('/portfolio') || location.pathname.startsWith('/projects');
+  const isContact = location.pathname.startsWith('/contact');
 
   return (
     <>
@@ -141,8 +172,8 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
         }`}
       >
         {/* BrandShoots Official Logo (Enlarged, crisp, proportional, always readable) */}
-        <a
-          href="/"
+        <Link
+          to="/"
           onClick={handleScrollToTop}
           className="flex items-center active:scale-95 transition-transform duration-200"
           aria-label="BrandShoots Official Logo"
@@ -152,7 +183,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
             alt="BrandShoots Official Logo"
             className="h-11 sm:h-12 w-auto object-contain filter drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]"
           />
-        </a>
+        </Link>
 
         {/* Clean, luxury agency hamburger icon (44x44px touch target, tactile frosted circular pill) */}
         <button
@@ -217,8 +248,8 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
 
           {/* Left: BrandShoots Official Logo */}
           <div className="flex items-center flex-shrink-0">
-            <a
-              href="/"
+            <Link
+              to="/"
               onClick={handleScrollToTop}
               className="inline-block transition-transform duration-200 hover:scale-[1.03] active:scale-95 cursor-pointer"
               aria-label="BrandShoots Official Logo"
@@ -236,7 +267,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                 }}
                 className="w-auto object-contain filter drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]"
               />
-            </a>
+            </Link>
           </div>
 
           {/* Center: Desktop Navigation Links (Metallic Home Icon, About, Portfolio) */}
@@ -252,8 +283,8 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
             className="flex items-center text-white/85 font-sans text-xs lg:text-[13px] tracking-[0.22em] uppercase font-medium"
           >
             {/* 1. Metallic Home Icon (Clean, No Circle) */}
-            <a
-              href="/"
+            <Link
+              to="/"
               onClick={handleScrollToTop}
               title="Home"
               aria-label="BrandShoots Home"
@@ -292,11 +323,12 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                   fill={isHome ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255, 255, 255, 0.05)'}
                 />
               </svg>
-            </a>
+            </Link>
 
             {/* 2. ABOUT */}
             <Link
               to="/about"
+              onClick={handleAboutClick}
               className={`transition-colors duration-200 cursor-pointer uppercase tracking-[0.22em] shrink-0 whitespace-nowrap ${
                 isAbout
                   ? 'text-[#008CFF] font-semibold drop-shadow-[0_0_8px_rgba(0,140,255,0.75)]'
@@ -309,6 +341,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
             {/* 3. PORTFOLIO */}
             <Link
               to="/portfolio"
+              onClick={handlePortfolioClick}
               className={`transition-colors duration-200 cursor-pointer uppercase tracking-[0.22em] shrink-0 whitespace-nowrap ${
                 isPortfolio
                   ? 'text-[#008CFF] font-semibold drop-shadow-[0_0_8px_rgba(0,140,255,0.75)]'
@@ -321,13 +354,15 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
 
           {/* Right: Clean, Simple Contact Button */}
           <div className="flex items-center flex-shrink-0">
-            <button
-              type="button"
-              onClick={handleGetInTouch}
-              className="px-5 py-2 sm:px-6 sm:py-2 rounded-full font-sans font-semibold uppercase tracking-[0.16em] text-[11px] sm:text-xs text-white bg-[#008CFF] hover:bg-[#007fe6] active:scale-95 transition-all duration-200 cursor-pointer select-none whitespace-nowrap shrink-0 border border-white/20 shadow-sm hover:shadow-[0_2px_12px_rgba(0,140,255,0.35)]"
+            <Link
+              to="/contact"
+              onClick={handleContactClick}
+              className={`px-5 py-2 sm:px-6 sm:py-2 rounded-full font-sans font-semibold uppercase tracking-[0.16em] text-[11px] sm:text-xs text-white bg-[#008CFF] hover:bg-[#007fe6] active:scale-95 transition-all duration-200 cursor-pointer select-none whitespace-nowrap shrink-0 border border-white/20 shadow-sm hover:shadow-[0_2px_12px_rgba(0,140,255,0.35)] ${
+                isContact ? 'ring-2 ring-white/50 shadow-[0_0_15px_rgba(0,140,255,0.7)]' : ''
+              }`}
             >
               CONTACT
-            </button>
+            </Link>
           </div>
         </motion.header>
       </div>
@@ -350,8 +385,8 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
 
             {/* Top Bar inside Full Menu (Desktop only, on mobile the fixed header is on top) */}
             <div className="hidden md:flex relative z-10 items-center justify-between w-full border-b border-white/10 pb-4 sm:pb-5">
-              <a
-                href="/"
+              <Link
+                to="/"
                 onClick={handleScrollToTop}
                 className="inline-block transition-transform duration-200 hover:scale-[1.03]"
                 aria-label="BrandShoots Official Logo"
@@ -361,7 +396,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                   alt="BrandShoots Official Logo"
                   className="h-10 sm:h-12 w-auto object-contain filter drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]"
                 />
-              </a>
+              </Link>
 
               {/* Close Button (X) */}
               <button
@@ -394,8 +429,8 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                   visible: { opacity: 1, y: 0 },
                 }}
               >
-                <a
-                  href="/"
+                <Link
+                  to="/"
                   onClick={handleScrollToTop}
                   className={`text-2xl xs:text-3xl sm:text-4xl font-figtree font-black tracking-[0.14em] uppercase transition-colors py-2 flex items-center justify-center gap-3 ${
                     isHome ? 'text-[#008CFF]' : 'text-white/90 hover:text-[#008CFF]'
@@ -416,7 +451,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                     />
                   </svg>
                   <span>HOME</span>
-                </a>
+                </Link>
               </motion.div>
 
               {/* 2. ABOUT */}
@@ -428,7 +463,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
               >
                 <Link
                   to="/about"
-                  onClick={() => setMenuOpen(false)}
+                  onClick={handleAboutClick}
                   className={`text-2xl xs:text-3xl sm:text-4xl font-figtree font-black tracking-[0.14em] uppercase transition-colors py-2 block ${
                     isAbout ? 'text-[#008CFF]' : 'text-white/90 hover:text-[#008CFF]'
                   }`}
@@ -446,7 +481,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
               >
                 <Link
                   to="/portfolio"
-                  onClick={() => setMenuOpen(false)}
+                  onClick={handlePortfolioClick}
                   className={`text-2xl xs:text-3xl sm:text-4xl font-figtree font-black tracking-[0.14em] uppercase transition-colors py-2 block ${
                     isPortfolio ? 'text-[#008CFF]' : 'text-white/90 hover:text-[#008CFF]'
                   }`}
@@ -463,13 +498,15 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                 }}
                 className="pt-4"
               >
-                <button
-                  type="button"
-                  onClick={handleGetInTouch}
-                  className="px-9 py-3.5 sm:px-11 sm:py-4 rounded-full text-white text-xs sm:text-sm tracking-[0.2em] font-sans font-semibold uppercase bg-[#008CFF] hover:bg-[#007fe6] active:scale-95 transition-all duration-200 inline-block text-center cursor-pointer min-h-[44px] select-none border border-white/20 shadow-[0_2px_14px_rgba(0,140,255,0.3)]"
+                <Link
+                  to="/contact"
+                  onClick={handleContactClick}
+                  className={`px-9 py-3.5 sm:px-11 sm:py-4 rounded-full text-white text-xs sm:text-sm tracking-[0.2em] font-sans font-semibold uppercase bg-[#008CFF] hover:bg-[#007fe6] active:scale-95 transition-all duration-200 inline-block text-center cursor-pointer min-h-[44px] select-none border border-white/20 shadow-[0_2px_14px_rgba(0,140,255,0.3)] ${
+                    isContact ? 'ring-2 ring-white/50 shadow-[0_0_20px_rgba(0,140,255,0.7)]' : ''
+                  }`}
                 >
                   CONTACT
-                </button>
+                </Link>
               </motion.div>
             </motion.div>
 

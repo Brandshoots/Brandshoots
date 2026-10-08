@@ -10,7 +10,6 @@ import { ManifestoScrollSection } from '../components/about/ManifestoScrollSecti
 import { BrandShootsCore3D } from '../components/about/BrandShootsCore3D';
 import { AboutLeadershipSection } from '../components/about/AboutLeadershipSection';
 import { AboutFooter } from '../components/about/AboutFooter';
-import { ContactModal } from '../components/hero/ContactModal';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -21,7 +20,6 @@ export const AboutPage: React.FC = () => {
     }
     return true;
   });
-  const [contactModalOpen, setContactModalOpen] = useState(false);
 
   // Set document title
   useEffect(() => {
@@ -52,12 +50,15 @@ export const AboutPage: React.FC = () => {
     gsap.ticker.add(ticker);
     gsap.ticker.lagSmoothing(0);
 
+    (window as any).__lenis = lenis;
+
     const timer = setTimeout(() => {
       ScrollTrigger.refresh();
     }, 250);
 
     return () => {
       clearTimeout(timer);
+      delete (window as any).__lenis;
       gsap.ticker.remove(ticker);
       lenis.destroy();
     };
@@ -65,13 +66,13 @@ export const AboutPage: React.FC = () => {
 
   return (
     <main className="relative w-full min-h-screen bg-[#04060A] text-white overflow-x-hidden">
-      {/* 1. FAST SVG STROKE-DRAWING PRELOADER OVERLAY */}
+      {/* 1. FAST SVG PRELOADER OVERLAY WITH OFFICIAL LOGO ONLY */}
       {preloaderActive && (
         <StrokeRevealPreloader onComplete={() => setPreloaderActive(false)} />
       )}
 
       {/* 2. CINEMATIC ABOUT PAGE CHAPTERS (Rendered seamlessly underneath preloader overlay) */}
-      <AboutNavbar onOpenContact={() => setContactModalOpen(true)} />
+      <AboutNavbar />
 
       {/* 3D Brand Manifesto: CREATE -> SHOOT -> GROW with Amplified 3D Depth */}
       <ManifestoScrollSection />
@@ -83,13 +84,7 @@ export const AboutPage: React.FC = () => {
       <AboutLeadershipSection />
 
       {/* Ready to Collaborate (Heavy GSAP) & Footer */}
-      <AboutFooter onOpenContact={() => setContactModalOpen(true)} />
-
-      {/* Contact Modal */}
-      <ContactModal
-        isOpen={contactModalOpen}
-        onClose={() => setContactModalOpen(false)}
-      />
+      <AboutFooter />
     </main>
   );
 };

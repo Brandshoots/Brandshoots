@@ -13,7 +13,6 @@ import { TheLeadershipSection } from './components/leadership/TheLeadershipSecti
 import { TestimonialsSection3D } from './components/testimonials/TestimonialsSection3D';
 import { FinalCtaSection } from './components/cta/FinalCtaSection';
 import { BrandShootsFooter } from './components/footer/BrandShootsFooter';
-import { ContactModal } from './components/hero/ContactModal';
 import { ClientProjectView } from './components/portfolio/ClientProjectView';
 import { AboutPage } from './pages/AboutPage';
 import { PortfolioPage } from './pages/PortfolioPage';
@@ -38,7 +37,6 @@ export function App() {
     }
     return true;
   });
-  const [contactModalOpen, setContactModalOpen] = useState(false);
 
   // Always reset scroll to top on page navigation
   useEffect(() => {
@@ -103,18 +101,14 @@ export function App() {
               {/* 2. BrandShoots Cinematic Homepage Sections */}
               {!preloaderActive && (
                 <div id="homepage-experience" className="w-full">
-                  <MainNavbar onOpenContact={() => setContactModalOpen(true)} />
+                  <MainNavbar />
                   <BrandShootsHero />
                   <WhatWeDoSection />
                   <OurClientsSection />
                   <TheLeadershipSection />
                   <TestimonialsSection3D />
-                  <FinalCtaSection onOpenContact={() => setContactModalOpen(true)} />
-                  <BrandShootsFooter onOpenContact={() => setContactModalOpen(true)} />
-                  <ContactModal
-                    isOpen={contactModalOpen}
-                    onClose={() => setContactModalOpen(false)}
-                  />
+                  <FinalCtaSection />
+                  <BrandShootsFooter />
                 </div>
               )}
             </>

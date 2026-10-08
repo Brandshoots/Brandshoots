@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { CLIENT_PROJECTS, ClientProject } from '../../data/clientsData';
-import { ArrowUpRight, Play, X, List, ChevronRight } from 'lucide-react';
+import { ArrowUpRight, Play, X, ChevronRight } from 'lucide-react';
 import { FullScreenReelModal } from './FullScreenReelModal';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -234,6 +233,7 @@ interface PanelData {
 
 export const PortfolioWormhole3D: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const editorialContentRef = useRef<HTMLDivElement>(null);
 
@@ -811,15 +811,18 @@ export const PortfolioWormhole3D: React.FC = () => {
   // GSAP ScrollTrigger with Precision Snap
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    const stage = stageRef.current;
+    if (!container || !stage) return;
 
     const snapPoints = 1 / (totalProjects - 1);
 
     const st = ScrollTrigger.create({
       trigger: container,
+      pin: stage,
       start: 'top top',
       end: 'bottom bottom',
       scrub: 0.35,
+      anticipatePin: 1,
       snap: {
         snapTo: snapPoints,
         duration: { min: 0.25, max: 0.55 },
@@ -884,9 +887,12 @@ export const PortfolioWormhole3D: React.FC = () => {
         }}
       >
         {/* ================================================================== */}
-        {/* STICKY 100vw × 100vh CINEMATIC VIEWPORT PINNED FOR SCROLL PROGRESS */}
+        {/* PINNED 100vw × 100vh CINEMATIC VIEWPORT PINNED FOR SCROLL PROGRESS */}
         {/* ================================================================== */}
-        <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-between pointer-events-none">
+        <div
+          ref={stageRef}
+          className="relative w-full h-screen overflow-hidden flex flex-col justify-between pointer-events-none"
+        >
           {/* ========================================================= */}
           {/* 1. THREE.JS 3D WEBGL CANVAS (REAL 3D CORRIDOR ENGINE)     */}
           {/* ========================================================= */}
@@ -896,15 +902,9 @@ export const PortfolioWormhole3D: React.FC = () => {
           />
 
           {/* ========================================================= */}
-          {/* 2. TOP HUD: MINIMAL ARCHIVE & PROJECT COUNTER             */}
+          {/* 2. TOP HUD: PROJECT COUNTER ONLY                          */}
           {/* ========================================================= */}
-          <div className="relative z-20 w-full px-5 sm:px-10 md:px-14 pt-20 sm:pt-24 md:pt-28 flex items-center justify-between pointer-events-none">
-            {/* Minimal Editorial Kicker */}
-            <div className="flex items-center gap-2.5 font-sans text-xs tracking-[0.24em] uppercase text-white/60 font-semibold">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
-              <span>SELECTED ARCHIVE</span>
-            </div>
-
+          <div className="relative z-20 w-full px-5 sm:px-10 md:px-14 pt-20 sm:pt-24 md:pt-28 flex items-center justify-end pointer-events-none">
             {/* Clean Project Counter */}
             <div className="font-mono text-xs sm:text-sm tracking-[0.22em] text-white/50">
               <span className="text-white font-bold">{String(activeIndex + 1).padStart(2, '0')}</span>
@@ -931,11 +931,11 @@ export const PortfolioWormhole3D: React.FC = () => {
           {/* 4. INTEGRATED EDITORIAL LAYOUT (JOSEPH BERRY INSPIRED)     */}
           {/*    (Positioned cleanly on opposite side of active reel)   */}
           {/* ========================================================= */}
-          <div className="relative z-10 w-full flex-1 flex items-center px-5 sm:px-10 md:px-14 lg:px-20 xl:px-28 pointer-events-none">
+          <div className="relative z-10 w-full flex-1 flex items-center px-5 sm:px-10 md:px-14 lg:px-20 xl:px-28 pointer-events-none pb-12 sm:pb-16">
             <div
               className={`relative w-full flex pointer-events-auto ${
                 isMobile
-                  ? 'justify-center items-end text-center mt-auto mb-20 pb-4'
+                  ? 'justify-center items-end text-center mt-auto mb-12 pb-4'
                   : isLeft
                   ? 'justify-end items-center text-left'
                   : 'justify-start items-center text-left'
@@ -947,18 +947,6 @@ export const PortfolioWormhole3D: React.FC = () => {
               }}
             >
               <div className="relative max-w-md lg:max-w-lg xl:max-w-xl flex flex-col">
-                {/* Large Background Watermark Number (Faint & Editorial) */}
-                <div
-                  className={`absolute z-0 font-display font-black tracking-tighter text-white/[0.025] select-none pointer-events-none leading-none ${
-                    isMobile
-                      ? 'top-[-2.5rem] left-1/2 -translate-x-1/2 text-[32vw]'
-                      : '-top-14 sm:-top-20 -left-6 sm:-left-10 text-[18vw] lg:text-[19vw]'
-                  }`}
-                  aria-hidden="true"
-                >
-                  {String(activeIndex + 1).padStart(2, '0')}
-                </div>
-
                 {/* Animated Editorial Content Block — Minimal, Focused, Clean */}
                 <div ref={editorialContentRef} className="relative z-10 flex flex-col">
                   {/* PROJECT NUMBER */}
@@ -976,7 +964,7 @@ export const PortfolioWormhole3D: React.FC = () => {
                     {currentProject.headline}
                   </p>
 
-                  {/* ACTION BUTTONS (WATCH REEL / VIEW PROJECT) */}
+                  {/* ACTION BUTTONS (WATCH REEL / VIEW PROJECT REVEALS MORE REELS) */}
                   <div className={`mt-6 sm:mt-7 flex items-center gap-3.5 ${isMobile ? 'justify-center' : ''}`}>
                     <button
                       type="button"
@@ -987,61 +975,18 @@ export const PortfolioWormhole3D: React.FC = () => {
                       <span>WATCH REEL</span>
                     </button>
 
-                    <Link
-                      to={`/portfolio/${currentProject.slug}`}
-                      className="inline-flex items-center gap-1.5 px-5 py-3 rounded-full bg-white/[0.04] hover:bg-white/[0.09] border border-white/20 hover:border-white/50 text-white/80 hover:text-white font-sans text-xs tracking-[0.16em] uppercase font-medium transition-all duration-200 active:scale-95 group"
+                    <button
+                      type="button"
+                      onClick={() => setIsIndexDrawerOpen(true)}
+                      className="inline-flex items-center gap-1.5 px-5.5 py-3 rounded-full bg-white/[0.04] hover:bg-white/[0.09] border border-white/20 hover:border-white/50 text-white/80 hover:text-white font-sans text-xs tracking-[0.16em] uppercase font-medium transition-all duration-200 active:scale-95 cursor-pointer group"
                     >
                       <span>VIEW PROJECT</span>
                       <ArrowUpRight className="w-3.5 h-3.5 text-white/60 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-                    </Link>
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* ========================================================= */}
-          {/* 5. BOTTOM NAVIGATION HUD (NUMBERED STEPPER & INDEX DRAWER) */}
-          {/* ========================================================= */}
-          <div className="relative z-20 w-full px-5 sm:px-10 md:px-14 pb-5 sm:pb-7 flex items-center justify-between text-[11px] font-mono uppercase tracking-[0.22em] pointer-events-auto">
-            {/* Scroll Cue */}
-            <div className="flex items-center gap-2 text-white/40">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
-              <span className="hidden sm:inline">SCROLL TO NAVIGATE</span>
-              <span className="sm:hidden">SCROLL</span>
-            </div>
-
-            {/* Center: Numbered Stepper Pills (Joseph Berry Numbered Progression) */}
-            <div className="flex items-center gap-1 sm:gap-1.5 bg-[#04060A]/80 backdrop-blur-2xl border border-white/10 px-2 sm:px-3 py-1 rounded-full shadow-[0_4px_24px_rgba(0,0,0,0.8)]">
-              {CLIENT_PROJECTS.map((_, pIdx) => {
-                const isActive = activeIndex === pIdx;
-                return (
-                  <button
-                    key={pIdx}
-                    type="button"
-                    onClick={() => scrollToProject(pIdx)}
-                    aria-label={`Jump to project ${pIdx + 1}`}
-                    className={`px-1.5 sm:px-2.5 py-0.5 rounded-full font-mono text-[10px] sm:text-xs tracking-wider transition-all duration-200 cursor-pointer ${
-                      isActive
-                        ? 'bg-[#008CFF] text-white font-bold shadow-[0_0_12px_rgba(0,140,255,0.7)]'
-                        : 'text-white/40 hover:text-white hover:bg-white/[0.08]'
-                    }`}
-                  >
-                    {String(pIdx + 1).padStart(2, '0')}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Right: Quick "ALL PROJECTS [08]" Index Trigger */}
-            <button
-              type="button"
-              onClick={() => setIsIndexDrawerOpen(true)}
-              className="flex items-center gap-2 font-mono text-[10px] sm:text-xs uppercase tracking-[0.2em] text-white/70 hover:text-white bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 hover:border-white/30 px-3 sm:px-4 py-1.5 rounded-full backdrop-blur-md transition-all duration-200 cursor-pointer shadow-sm active:scale-95"
-            >
-              <List className="w-3.5 h-3.5 text-[#008CFF]" />
-              <span>INDEX [{String(totalProjects).padStart(2, '0')}]</span>
-            </button>
           </div>
         </div>
       </div>
@@ -1065,16 +1010,16 @@ export const PortfolioWormhole3D: React.FC = () => {
 
             {/* Drawer Header */}
             <div className="flex items-center justify-between pb-5 border-b border-white/10 relative z-10">
-              <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.26em] text-white/50">
+              <div className="flex items-center gap-2.5 font-sans text-xs uppercase tracking-[0.22em] text-white/60 font-semibold">
                 <span className="w-2 h-2 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
-                <span className="text-white font-bold">PROJECT INDEX</span>
-                <span className="text-white/25">//</span>
-                <span>[{String(totalProjects).padStart(2, '0')} ARCHIVED REELS]</span>
+                <span className="text-white font-bold">ALL REELS ARCHIVE</span>
+                <span className="text-white/30">•</span>
+                <span className="text-white/50">{totalProjects} PROJECTS</span>
               </div>
 
               <button
                 type="button"
-                aria-label="Close project index"
+                aria-label="Close project list"
                 onClick={() => setIsIndexDrawerOpen(false)}
                 className="w-9 h-9 rounded-full bg-white/[0.08] hover:bg-white/[0.16] border border-white/15 text-white/80 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-95"
               >
