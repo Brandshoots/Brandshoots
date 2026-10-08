@@ -3,7 +3,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { StrokeRevealPreloader } from '../components/about/StrokeRevealPreloader';
 import { PortfolioNavbar } from '../components/portfolio/PortfolioNavbar';
-import { JosephBerryPortfolio } from '../components/portfolio/JosephBerryPortfolio';
+import { PortfolioWormhole3D } from '../components/portfolio/PortfolioWormhole3D';
 import { ContactModal } from '../components/hero/ContactModal';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -19,7 +19,7 @@ export const PortfolioPage: React.FC = () => {
 
   // Set document title and scroll to top on mount
   useEffect(() => {
-    document.title = 'Portfolio | BRANDSHOOTS — Interactive Cinematic Showcase';
+    document.title = 'Portfolio | BRANDSHOOTS — 3D Cinematic Archive';
     window.scrollTo(0, 0);
 
     const timer = setTimeout(() => {
@@ -30,7 +30,7 @@ export const PortfolioPage: React.FC = () => {
   }, []);
 
   return (
-    <main className="relative w-full min-h-screen bg-[#020306] text-white select-none">
+    <main className="relative w-full min-h-screen bg-[#030508] text-white select-none">
       {/* Page Preloader */}
       {preloaderActive && (
         <StrokeRevealPreloader onComplete={() => setPreloaderActive(false)} />
@@ -39,8 +39,8 @@ export const PortfolioPage: React.FC = () => {
       {/* 1. HOMEPAGE-MATCHED NAVIGATION BAR */}
       <PortfolioNavbar onOpenContact={() => setContactModalOpen(true)} />
 
-      {/* 2. FULLSCREEN PROJECT-DRIVEN INTERACTIVE PORTFOLIO SHOWCASE */}
-      <JosephBerryPortfolio />
+      {/* 2. 100vw × 100vh 3D TIME MACHINE / WORMHOLE CINEMATIC CORRIDOR */}
+      <PortfolioWormhole3D />
 
       {/* 3. CONTACT MODAL */}
       <ContactModal
