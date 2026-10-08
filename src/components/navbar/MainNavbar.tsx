@@ -131,16 +131,16 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
   return (
     <>
       {/* ========================================================= */}
-      {/* 1. DEDICATED MOBILE NAVBAR (Liquid Glass Blur & White Border) */}
+      {/* 1. DEDICATED MOBILE NAVBAR (Liquid Glass Blur & Polished Composition) */}
       {/* ========================================================= */}
       <header
-        className={`md:hidden fixed top-0 inset-x-0 z-[120] w-full px-5 py-3.5 flex items-center justify-between transition-all duration-300 ${
+        className={`md:hidden fixed top-0 inset-x-0 z-[120] w-full px-5 sm:px-6 py-3.5 flex items-center justify-between transition-all duration-300 ${
           isScrolled || menuOpen
-            ? 'bg-[#05070A]/80 backdrop-blur-3xl backdrop-saturate-[190%] border-b border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.85),inset_0_-1px_0_rgba(255,255,255,0.08)]'
-            : 'bg-gradient-to-b from-[#05070A]/90 via-[#05070A]/40 to-transparent border-b border-transparent'
+            ? 'bg-[#04060A]/85 backdrop-blur-2xl backdrop-saturate-[180%] border-b border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.85)]'
+            : 'bg-gradient-to-b from-[#04060A]/95 via-[#04060A]/50 to-transparent border-b border-transparent'
         }`}
       >
-        {/* BrandShoots Official Logo (Crisp, proportional, always readable) */}
+        {/* BrandShoots Official Logo (Enlarged, crisp, proportional, always readable) */}
         <a
           href="/"
           onClick={handleScrollToTop}
@@ -150,29 +150,29 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
           <img
             src="/Logo Official.svg"
             alt="BrandShoots Official Logo"
-            className="h-9 xs:h-10 w-auto object-contain filter drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]"
+            className="h-11 sm:h-12 w-auto object-contain filter drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]"
           />
         </a>
 
-        {/* Clean, luxury agency hamburger icon (44x44px touch target, perfectly centered 3 identical thin lines morphing to X) */}
+        {/* Clean, luxury agency hamburger icon (44x44px touch target, tactile frosted circular pill) */}
         <button
           type="button"
           aria-label={menuOpen ? 'Close Navigation Menu' : 'Open Navigation Menu'}
           onClick={() => setMenuOpen(!menuOpen)}
-          className="w-11 h-11 min-w-[44px] min-h-[44px] p-0 flex items-center justify-center bg-transparent border-0 outline-none focus:outline-none cursor-pointer transition-opacity active:opacity-70 select-none"
+          className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.12] backdrop-blur-md flex items-center justify-center cursor-pointer transition-all duration-200 active:scale-95 select-none shadow-[0_2px_10px_rgba(0,0,0,0.4)]"
         >
-          <div className="w-[20px] h-[13px] relative flex flex-col justify-between items-center pointer-events-none">
+          <div className="w-[18px] h-[12px] relative flex flex-col justify-between items-center pointer-events-none">
             <span
               ref={line1Ref}
-              className="w-[20px] h-[1.5px] bg-white rounded-full origin-center block"
+              className="w-[18px] h-[1.5px] bg-white rounded-full origin-center block"
             />
             <span
               ref={line2Ref}
-              className="w-[20px] h-[1.5px] bg-white rounded-full origin-center block"
+              className="w-[18px] h-[1.5px] bg-white rounded-full origin-center block"
             />
             <span
               ref={line3Ref}
-              className="w-[20px] h-[1.5px] bg-white rounded-full origin-center block"
+              className="w-[18px] h-[1.5px] bg-white rounded-full origin-center block"
             />
           </div>
         </button>
@@ -251,32 +251,18 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
             }}
             className="flex items-center text-white/85 font-sans text-xs lg:text-[13px] tracking-[0.22em] uppercase font-medium"
           >
-            {/* 1. Metallic Home Icon */}
+            {/* 1. Metallic Home Icon (Clean, No Circle) */}
             <a
               href="/"
               onClick={handleScrollToTop}
               title="Home"
               aria-label="BrandShoots Home"
-              className={`relative group flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300 cursor-pointer shrink-0 active:scale-95 ${
-                isHome
-                  ? 'ring-1 ring-sky-400/50 shadow-[0_0_12px_rgba(0,140,255,0.25)]'
-                  : 'hover:scale-105'
-              }`}
-              style={{
-                background:
-                  'linear-gradient(145deg, #2b313d 0%, #161922 45%, #0e1117 80%, #1b1f29 100%)',
-                boxShadow:
-                  'inset 0 1px 1px 0 rgba(255, 255, 255, 0.45), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.75), 0 2px 6px rgba(0, 0, 0, 0.5)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-              }}
+              className="p-1.5 transition-transform duration-200 cursor-pointer shrink-0 hover:scale-110 active:scale-95 flex items-center justify-center"
             >
-              {/* Metallic specular sheen overlay */}
-              <span className="absolute inset-0 rounded-full bg-gradient-to-b from-white/20 via-transparent to-transparent pointer-events-none" />
-
               {/* High-Precision Metallic Home Icon */}
               <svg
                 viewBox="0 0 24 24"
-                className="w-4 h-4 relative z-10 transition-transform duration-200 group-hover:scale-105"
+                className="w-5 h-5 transition-transform duration-200 filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]"
                 fill="none"
                 strokeWidth="1.8"
                 strokeLinecap="round"
@@ -286,22 +272,24 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                   {/* Brushed Chrome / Titanium Gradient */}
                   <linearGradient id="navMetallicChrome" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="#FFFFFF" />
-                    <stop offset="35%" stopColor="#CBD5E1" />
-                    <stop offset="65%" stopColor="#94A3B8" />
-                    <stop offset="100%" stopColor="#E2E8F0" />
+                    <stop offset="25%" stopColor="#E2E8F0" />
+                    <stop offset="50%" stopColor="#94A3B8" />
+                    <stop offset="75%" stopColor="#CBD5E1" />
+                    <stop offset="100%" stopColor="#FFFFFF" />
                   </linearGradient>
                   {/* Active Sky Blue Metallic Accent Gradient */}
                   <linearGradient id="navMetallicActiveBlue" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="#FFFFFF" />
-                    <stop offset="30%" stopColor="#7DD3FC" />
-                    <stop offset="70%" stopColor="#008CFF" />
-                    <stop offset="100%" stopColor="#38BDF8" />
+                    <stop offset="25%" stopColor="#7DD3FC" />
+                    <stop offset="60%" stopColor="#008CFF" />
+                    <stop offset="85%" stopColor="#38BDF8" />
+                    <stop offset="100%" stopColor="#BAE6FD" />
                   </linearGradient>
                 </defs>
                 <path
                   d="M3 10.25L12 3l9 7.25V20a1 1 0 0 1-1 1h-4.5a1 1 0 0 1-1-1v-4.5h-5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10.25z"
                   stroke={isHome ? 'url(#navMetallicActiveBlue)' : 'url(#navMetallicChrome)'}
-                  fill={isHome ? 'rgba(56, 189, 248, 0.12)' : 'rgba(255, 255, 255, 0.04)'}
+                  fill={isHome ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255, 255, 255, 0.05)'}
                 />
               </svg>
             </a>
@@ -409,35 +397,24 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                 <a
                   href="/"
                   onClick={handleScrollToTop}
-                  className={`text-2xl xs:text-3xl sm:text-4xl font-figtree font-black tracking-[0.14em] uppercase transition-colors py-2 flex items-center justify-center gap-3.5 ${
+                  className={`text-2xl xs:text-3xl sm:text-4xl font-figtree font-black tracking-[0.14em] uppercase transition-colors py-2 flex items-center justify-center gap-3 ${
                     isHome ? 'text-[#008CFF]' : 'text-white/90 hover:text-[#008CFF]'
                   }`}
                 >
-                  <span
-                    className="relative flex items-center justify-center w-8 h-8 rounded-full shrink-0"
-                    style={{
-                      background:
-                        'linear-gradient(145deg, #2b313d 0%, #161922 45%, #0e1117 80%, #1b1f29 100%)',
-                      boxShadow:
-                        'inset 0 1px 1px 0 rgba(255, 255, 255, 0.45), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.75), 0 2px 6px rgba(0, 0, 0, 0.5)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                    }}
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="w-7 h-7 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]"
+                    fill="none"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   >
-                    <svg
-                      viewBox="0 0 24 24"
-                      className="w-4 h-4 relative z-10"
-                      fill="none"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path
-                        d="M3 10.25L12 3l9 7.25V20a1 1 0 0 1-1 1h-4.5a1 1 0 0 1-1-1v-4.5h-5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10.25z"
-                        stroke={isHome ? 'url(#navMetallicActiveBlue)' : 'url(#navMetallicChrome)'}
-                        fill={isHome ? 'rgba(56, 189, 248, 0.12)' : 'rgba(255, 255, 255, 0.04)'}
-                      />
-                    </svg>
-                  </span>
+                    <path
+                      d="M3 10.25L12 3l9 7.25V20a1 1 0 0 1-1 1h-4.5a1 1 0 0 1-1-1v-4.5h-5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10.25z"
+                      stroke={isHome ? 'url(#navMetallicActiveBlue)' : 'url(#navMetallicChrome)'}
+                      fill={isHome ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255, 255, 255, 0.05)'}
+                    />
+                  </svg>
                   <span>HOME</span>
                 </a>
               </motion.div>
