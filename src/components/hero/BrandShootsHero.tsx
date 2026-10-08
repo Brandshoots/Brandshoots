@@ -69,32 +69,42 @@ export const BrandShootsHero: React.FC = () => {
 
       // CINEMATIC EXIT SCRUB (HERO -> SECTION 02):
       // As user scrolls down leaving the hero:
-      // - Reel wall subtly moves upward/backward with depth
-      // - Hero title and tagline slightly scale away
-      // - Scroll indicator dissolves
-      if (heroRef.current && reelWallContainerRef.current) {
+      // - Reel wall scales forward and curves outward as camera glides through
+      // - Hero title moves upward and recedes with depth blur
+      // - Tagline and scroll indicator dissolve gracefully
+      if (heroRef.current) {
         const exitTl = gsap.timeline({
           scrollTrigger: {
             trigger: heroRef.current,
             start: 'top top',
             end: 'bottom top',
-            scrub: true,
+            scrub: 1.2,
           },
         });
 
-        exitTl
-          .to(
+        if (reelWallContainerRef.current) {
+          exitTl.to(
             reelWallContainerRef.current,
-            { y: -90, scale: 0.92, opacity: 0.35, ease: 'none' },
+            { y: -140, scale: 1.18, opacity: 0.15, filter: 'blur(6px)', ease: 'power1.out' },
             0
-          )
-          .to(
+          );
+        }
+
+        if (titleBrandRef.current && titleShootsRef.current) {
+          exitTl.to(
             [titleBrandRef.current, titleShootsRef.current],
-            { y: -45, scale: 0.94, opacity: 0.25, ease: 'none' },
+            { y: -90, scale: 0.88, opacity: 0, filter: 'blur(10px)', ease: 'power1.out' },
             0
-          )
-          .to(taglineRef.current, { y: -30, opacity: 0, ease: 'none' }, 0)
-          .to(scrollIndicatorRef.current, { y: -20, opacity: 0, ease: 'none' }, 0);
+          );
+        }
+
+        if (taglineRef.current) {
+          exitTl.to(taglineRef.current, { y: -50, opacity: 0, ease: 'power1.out' }, 0);
+        }
+
+        if (scrollIndicatorRef.current) {
+          exitTl.to(scrollIndicatorRef.current, { y: -30, opacity: 0, ease: 'power1.out' }, 0);
+        }
       }
     }, heroRef);
 

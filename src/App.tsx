@@ -52,13 +52,13 @@ export function App() {
     if (location.pathname !== '/') return;
 
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: 1.35,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,
-      wheelMultiplier: 1.0,
-      touchMultiplier: 1.2,
+      wheelMultiplier: 0.95,
+      touchMultiplier: 1.35,
     });
 
     lenis.on('scroll', ScrollTrigger.update);
@@ -70,99 +70,16 @@ export function App() {
     gsap.ticker.add(ticker);
     gsap.ticker.lagSmoothing(0);
 
-    // Expose lenis globally for interactive triggers
+    // Expose lenis globally for interactive triggers and smooth navigation
     (window as any).__lenis = lenis;
-
-    // Section positions for keyboard navigation
-    const getTargets = () => {
-      const hero = document.getElementById('hero');
-      const whatWeDo = document.getElementById('what-we-do');
-      const clients = document.getElementById('clients');
-      const leadership = document.getElementById('leadership');
-      const testimonials = document.getElementById('testimonials');
-      const cta = document.getElementById('cta');
-
-      if (!hero || !whatWeDo || !clients || !leadership || !cta) return null;
-
-      const vh = window.innerHeight;
-      const heroTop = 0;
-      const whatWeDoTop = whatWeDo.offsetTop;
-      const clientsTop = clients.offsetTop;
-      const leadershipTop = leadership.offsetTop;
-      const testimonialsTop = testimonials ? testimonials.offsetTop : leadershipTop + 600;
-      const ctaTop = cta.offsetTop;
-      const maxScroll = Math.max(0, document.documentElement.scrollHeight - vh);
-
-      return {
-        heroTop,
-        whatWeDoTop,
-        clientsTop,
-        leadershipTop,
-        testimonialsTop,
-        ctaTop,
-        maxScroll,
-      };
-    };
-
-    // Keyboard Section Navigation (ArrowDown, ArrowUp, PageDown, PageUp)
-    let isProgrammaticScrolling = false;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (location.pathname !== '/' || isProgrammaticScrolling) return;
-      if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp'].includes(e.key)) {
-        const targets = getTargets();
-        if (!targets) return;
-
-        const currentScroll = window.scrollY;
-        const sectionPoints = [
-          targets.heroTop,
-          targets.whatWeDoTop,
-          targets.clientsTop,
-          targets.leadershipTop,
-          targets.testimonialsTop,
-          targets.ctaTop,
-          targets.maxScroll,
-        ];
-
-        if (e.key === 'ArrowDown' || e.key === 'PageDown') {
-          const next = sectionPoints.find((pt) => pt > currentScroll + 20);
-          if (next !== undefined) {
-            e.preventDefault();
-            isProgrammaticScrolling = true;
-            lenis.scrollTo(next, {
-              duration: 0.75,
-              easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-              onComplete: () => {
-                isProgrammaticScrolling = false;
-              },
-            });
-          }
-        } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
-          const prev = [...sectionPoints].reverse().find((pt) => pt < currentScroll - 20);
-          if (prev !== undefined) {
-            e.preventDefault();
-            isProgrammaticScrolling = true;
-            lenis.scrollTo(prev, {
-              duration: 0.75,
-              easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-              onComplete: () => {
-                isProgrammaticScrolling = false;
-              },
-            });
-          }
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
 
     // Refresh ScrollTrigger once DOM layout finishes settling
     const timer = setTimeout(() => {
       ScrollTrigger.refresh();
-    }, 250);
+    }, 300);
 
     return () => {
       clearTimeout(timer);
-      window.removeEventListener('keydown', handleKeyDown);
       delete (window as any).__lenis;
       gsap.ticker.remove(ticker);
       lenis.destroy();

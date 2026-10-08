@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Instagram, Youtube, Facebook, ArrowUp } from 'lucide-react';
+import { Instagram, Youtube, Facebook, MessageCircle, ArrowUp } from 'lucide-react';
 import { ContactModal } from '../hero/ContactModal';
 import { BRAND_PATHS, SHOOTS_PATHS, BRANDSHOOTS_LOGO_VIEWBOX } from './brandshootsLogoPaths';
 
@@ -44,175 +44,174 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = ({ onOpenCont
       <footer
         id="footer"
         ref={footerRef}
-        className="relative w-full bg-[#020408] text-white border-t border-white/[0.08] select-none overflow-hidden"
+        className="relative w-full bg-[#030508] text-white border-t border-white/[0.08] select-none overflow-hidden"
       >
-        {/* Faint blue horizon glow at top border */}
-        <div className="absolute top-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#008CFF]/40 to-transparent pointer-events-none" />
+        {/* Subtle horizon glow at top border */}
+        <div className="absolute top-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#008CFF]/50 to-transparent pointer-events-none" />
 
         {/* Atmospheric lighting */}
         <div
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[85vw] max-w-[1100px] h-[350px] pointer-events-none"
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[90vw] max-w-[1200px] h-[380px] pointer-events-none"
           style={{
             background:
-              'radial-gradient(ellipse at 50% 20%, rgba(0, 140, 255, 0.12) 0%, rgba(2, 10, 28, 0.4) 50%, transparent 80%)',
-            filter: 'blur(75px)',
+              'radial-gradient(ellipse at 50% 20%, rgba(0, 140, 255, 0.12) 0%, rgba(3, 8, 20, 0.4) 50%, transparent 80%)',
+            filter: 'blur(80px)',
           }}
         />
 
-        <div className="relative z-10 max-w-6xl mx-auto px-5 sm:px-10 lg:px-12 pt-12 sm:pt-16 pb-8 flex flex-col items-center text-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 pt-16 sm:pt-20 pb-12 flex flex-col items-center text-center">
           
           {/* ========================================================= */}
-          {/* 1. BRANDSHOOTS VECTOR LOGO                                */}
+          {/* 1. MONUMENTAL BRANDSHOOTS VECTOR LOGO (Final Frame Anchor) */}
           {/* ========================================================= */}
           <div
             onClick={scrollToTop}
-            className="cursor-pointer group select-none py-1 inline-flex flex-col items-center w-full max-w-[280px] xs:max-w-[320px] sm:max-w-xl md:max-w-2xl"
+            className="cursor-pointer group select-none py-2 inline-flex flex-col items-center w-full max-w-[280px] xs:max-w-[340px] sm:max-w-xl md:max-w-2xl lg:max-w-3xl"
           >
             <svg
               viewBox={BRANDSHOOTS_LOGO_VIEWBOX}
-              className="w-full h-auto overflow-hidden filter drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)] transition-transform duration-300 group-hover:scale-[1.02]"
+              className="w-full h-auto overflow-hidden filter drop-shadow-[0_4px_30px_rgba(0,0,0,0.9)] transition-transform duration-300 group-hover:scale-[1.01]"
               xmlns="http://www.w3.org/2000/svg"
             >
               <g>
                 <g className="logo-blue-layer">
                   {BRAND_PATHS.map((d, i) => (
-                    <path key={`brand-path-${i}`} d={d} fill="#018CFB" />
+                    <path key={`brand-path-${i}`} d={d} fill="#008CFF" />
                   ))}
                 </g>
                 <g className="logo-white-layer">
                   {SHOOTS_PATHS.map((d, i) => (
-                    <path key={`shoots-path-${i}`} d={d} fill="#FEFEFE" />
+                    <path key={`shoots-path-${i}`} d={d} fill="#FFFFFF" />
                   ))}
                 </g>
               </g>
             </svg>
           </div>
 
-          {/* CREATE. SHOOT. GROW. Tagline */}
-          <div className="mt-3 sm:mt-4 font-mono text-[10px] xs:text-[11px] sm:text-xs tracking-[0.38em] uppercase font-bold text-center">
+          {/* CREATE. SHOOT. GROW. Signature Creed */}
+          <div className="mt-4 sm:mt-5 font-mono text-[10px] xs:text-[11px] sm:text-xs tracking-[0.42em] uppercase font-bold text-center">
             <span className="text-white/80">CREATE. </span>
-            <span className="text-[#008CFF] drop-shadow-[0_0_8px_rgba(0,140,255,0.75)]">SHOOT. </span>
+            <span className="text-[#008CFF] drop-shadow-[0_0_10px_rgba(0,140,255,0.85)]">SHOOT. </span>
             <span className="text-white/80">GROW.</span>
           </div>
 
-          {/* Closing Statement */}
-          <div className="mt-5 sm:mt-7 max-w-xl px-4">
-            <h3 className="font-sans font-black tracking-[-0.03em] uppercase text-lg xs:text-xl sm:text-2xl md:text-3xl text-white leading-tight">
-              LET'S CREATE SOMETHING{' '}
-              <span className="text-[#008CFF] drop-shadow-[0_0_16px_rgba(0,140,255,0.5)]">
-                WORTH REMEMBERING.
-              </span>
-            </h3>
-          </div>
+          {/* Statement */}
+          <p className="mt-6 max-w-lg text-xs sm:text-sm text-white/50 leading-relaxed font-normal">
+            A high-end creative agency engineering commercial films, visual architecture, and high-retention content systems for ambitious brands.
+          </p>
 
           {/* ========================================================= */}
-          {/* 2. NAVIGATION & SOCIALS                                    */}
+          {/* 2. ARCHITECTURAL EDITORIAL NAVIGATION ROW                 */}
           {/* ========================================================= */}
-          <div className="w-full mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-white/[0.08] flex flex-col items-center gap-6">
-            
-            {/* Navigation Links */}
-            <nav aria-label="Footer Navigation" className="w-full">
-              <ul className="flex flex-wrap items-center justify-center gap-5 sm:gap-8 md:gap-12">
-                <li>
-                  <Link
-                    to="/about"
-                    className="font-mono text-xs sm:text-[13px] tracking-[0.22em] uppercase text-white/70 hover:text-white transition-colors py-1.5"
-                  >
-                    ABOUT
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/portfolio"
-                    className="font-mono text-xs sm:text-[13px] tracking-[0.22em] uppercase text-white/70 hover:text-white transition-colors py-1.5"
-                  >
-                    PORTFOLIO
-                  </Link>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => scrollToSection('what-we-do')}
-                    className="font-mono text-xs sm:text-[13px] tracking-[0.22em] uppercase text-white/70 hover:text-white transition-colors py-1.5 cursor-pointer"
-                  >
-                    SERVICES
-                  </button>
-                </li>
-                <li>
-                  <Link
-                    to="/contact"
-                    onClick={() => {
-                      if (onOpenContact && window.location.pathname === '/contact') {
-                        handleOpenContact();
-                      }
-                    }}
-                    className="font-mono text-xs sm:text-[13px] tracking-[0.22em] uppercase text-[#008CFF] hover:text-[#52B2FF] font-semibold transition-colors py-1.5 cursor-pointer"
-                  >
-                    CONTACT
-                  </Link>
-                </li>
-              </ul>
-            </nav>
+          <nav className="mt-10 sm:mt-12 flex flex-wrap justify-center items-center gap-6 sm:gap-10 text-white/70 font-sans text-xs sm:text-[13px] tracking-[0.24em] uppercase font-semibold">
+            <Link
+              to="/about"
+              className="hover:text-[#008CFF] transition-colors duration-200 cursor-pointer"
+            >
+              ABOUT US
+            </Link>
 
-            {/* Social Media Links */}
-            <div className="flex items-center justify-center gap-3.5">
-              <a
-                href="https://instagram.com/wearebrandshoots"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Instagram @wearebrandshoots"
-                className="w-10 h-10 rounded-full border border-white/15 bg-white/[0.03] hover:bg-[#008CFF]/20 hover:border-[#008CFF] flex items-center justify-center text-white/70 hover:text-white transition-all active:scale-95"
-              >
-                <Instagram className="w-4.5 h-4.5" />
-              </a>
-
-              <a
-                href="https://youtube.com/@wearebrandshoots"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="YouTube @wearebrandshoots"
-                className="w-10 h-10 rounded-full border border-white/15 bg-white/[0.03] hover:bg-[#008CFF]/20 hover:border-[#008CFF] flex items-center justify-center text-white/70 hover:text-white transition-all active:scale-95"
-              >
-                <Youtube className="w-4.5 h-4.5" />
-              </a>
-
-              <a
-                href="https://facebook.com/wearebrandshoots"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Facebook @wearebrandshoots"
-                className="w-10 h-10 rounded-full border border-white/15 bg-white/[0.03] hover:bg-[#008CFF]/20 hover:border-[#008CFF] flex items-center justify-center text-white/70 hover:text-white transition-all active:scale-95"
-              >
-                <Facebook className="w-4.5 h-4.5" />
-              </a>
-            </div>
-          </div>
-
-          {/* ========================================================= */}
-          {/* 3. COPYRIGHT & BACK TO TOP                                */}
-          {/* ========================================================= */}
-          <div className="w-full mt-7 pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-            <p className="font-mono text-[10px] sm:text-[11px] tracking-[0.24em] text-white/40 uppercase order-2 sm:order-1">
-              © BRANDSHOOTS. ALL RIGHTS RESERVED.
-            </p>
+            <Link
+              to="/portfolio"
+              className="hover:text-[#008CFF] transition-colors duration-200 cursor-pointer"
+            >
+              PROJECT
+            </Link>
 
             <button
               type="button"
-              onClick={scrollToTop}
-              aria-label="Return to Top"
-              className="group inline-flex items-center gap-2 font-mono text-xs tracking-[0.24em] uppercase text-white/60 hover:text-white transition-colors cursor-pointer order-1 sm:order-2"
+              onClick={() => scrollToSection('leadership')}
+              className="hover:text-[#008CFF] transition-colors duration-200 cursor-pointer uppercase tracking-[0.24em]"
             >
-              <span>BACK TO TOP</span>
-              <div className="w-6 h-6 rounded-full border border-white/15 group-hover:border-[#008CFF] bg-white/[0.04] group-hover:bg-[#008CFF]/20 flex items-center justify-center transition-all">
-                <ArrowUp className="w-3 h-3 text-white/70 group-hover:text-[#008CFF]" />
-              </div>
+              TEAM
             </button>
+
+            <button
+              type="button"
+              onClick={() => scrollToSection('what-we-do')}
+              className="hover:text-[#008CFF] transition-colors duration-200 cursor-pointer uppercase tracking-[0.24em]"
+            >
+              SERVICES
+            </button>
+
+            <button
+              type="button"
+              onClick={handleOpenContact}
+              className="text-[#008CFF] hover:text-[#52B2FF] transition-colors duration-200 cursor-pointer uppercase tracking-[0.24em]"
+            >
+              GET IN TOUCH
+            </button>
+          </nav>
+
+          {/* ========================================================= */}
+          {/* 3. SOCIAL MEDIA CHANNELS                                  */}
+          {/* ========================================================= */}
+          <div className="mt-8 sm:mt-10 flex items-center gap-4">
+            <a
+              href="https://instagram.com/wearebrandshoots"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              className="w-10 h-10 rounded-full bg-white/[0.06] hover:bg-[#008CFF] border border-white/12 flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 shadow-sm active:scale-95"
+            >
+              <Instagram className="w-4 h-4" />
+            </a>
+
+            <a
+              href="https://youtube.com/@wearebrandshoots"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="YouTube"
+              className="w-10 h-10 rounded-full bg-white/[0.06] hover:bg-[#008CFF] border border-white/12 flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 shadow-sm active:scale-95"
+            >
+              <Youtube className="w-4 h-4" />
+            </a>
+
+            <a
+              href="https://facebook.com/wearebrandshoots"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook"
+              className="w-10 h-10 rounded-full bg-white/[0.06] hover:bg-[#008CFF] border border-white/12 flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 shadow-sm active:scale-95"
+            >
+              <Facebook className="w-4 h-4" />
+            </a>
+
+            <a
+              href="https://wa.me/919177656444"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="WhatsApp"
+              className="w-10 h-10 rounded-full bg-white/[0.06] hover:bg-[#008CFF] border border-white/12 flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 shadow-sm active:scale-95"
+            >
+              <MessageCircle className="w-4 h-4" />
+            </a>
           </div>
 
+          {/* ========================================================= */}
+          {/* 4. FINAL CLOSING BAR: LOCATIONS, COPYRIGHT, BACK TO TOP   */}
+          {/* ========================================================= */}
+          <div className="w-full mt-12 sm:mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-[11px] font-mono tracking-widest text-white/40 uppercase">
+              <span>Rajahmundry & Hyderabad, India</span>
+              <span className="hidden sm:inline">•</span>
+              <span>© {new Date().getFullYear()} BRANDSHOOTS. ALL RIGHTS RESERVED.</span>
+            </div>
+
+            {/* Back to Top */}
+            <button
+              type="button"
+              onClick={scrollToTop}
+              className="inline-flex items-center gap-2 text-[11px] font-mono tracking-widest uppercase text-white/50 hover:text-[#008CFF] transition-colors cursor-pointer"
+            >
+              <span>Back to Top</span>
+              <ArrowUp className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </footer>
 
-      {/* Integrated Contact Modal */}
+      {/* Internal fallback contact modal */}
       <ContactModal
         isOpen={internalModalOpen}
         onClose={() => setInternalModalOpen(false)}

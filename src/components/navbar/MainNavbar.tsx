@@ -19,11 +19,11 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
   const line2Ref = useRef<HTMLSpanElement>(null);
   const line3Ref = useRef<HTMLSpanElement>(null);
 
-  // Scroll detection with hysteresis for ultra-smooth, flicker-free transitions
+  // Scroll detection linked directly with Lenis and native window scroll
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY || document.documentElement.scrollTop;
-      if (scrollY > 50) {
+      if (scrollY > 55) {
         setIsScrolled(true);
       } else if (scrollY < 20) {
         setIsScrolled(false);
@@ -37,7 +37,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
       const lenis = (window as any).__lenis;
       if (lenis) {
         lenis.on('scroll', (e: { scroll: number }) => {
-          if (e.scroll > 50) {
+          if (e.scroll > 55) {
             setIsScrolled(true);
           } else if (e.scroll < 20) {
             setIsScrolled(false);
@@ -54,7 +54,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
     };
   }, []);
 
-  // GSAP 3-line to X morph animation
+  // GSAP 3-line to X morph animation for mobile hamburger
   useEffect(() => {
     const l1 = line1Ref.current;
     const l2 = line2Ref.current;
@@ -142,11 +142,9 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
     }
   };
 
-  const isHome = location.pathname === '/';
   const isAbout = location.pathname.startsWith('/about');
   const isPortfolio =
     location.pathname.startsWith('/portfolio') || location.pathname.startsWith('/projects');
-  const isContact = location.pathname.startsWith('/contact');
 
   return (
     <>
@@ -197,138 +195,98 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
       </header>
 
       {/* ========================================================= */}
-      {/* 2. DESKTOP EXPANDED NAVBAR (Visible on md: and larger)     */}
+      {/* 2. DESKTOP UNIFIED MORPHING NAVBAR (Physically Linked)    */}
       {/* ========================================================= */}
-      <header
-        className={`hidden md:flex fixed top-0 inset-x-0 z-50 w-full px-8 md:px-12 lg:px-16 pt-6 lg:pt-7 items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          isScrolled
-            ? 'opacity-0 -translate-y-5 scale-[0.98] pointer-events-none'
-            : 'opacity-100 translate-y-0 scale-100 pointer-events-auto'
-        }`}
-      >
-        {/* Left: BrandShoots Official Logo */}
-        <div className="flex items-center">
-          <a
-            href="/"
-            onClick={handleScrollToTop}
-            className="inline-block transition-transform duration-200 hover:scale-[1.03] active:scale-95 cursor-pointer"
-            aria-label="BrandShoots Official Logo"
-          >
-            <img
-              src="/Logo Official.svg"
-              alt="BrandShoots Official Logo"
-              className="h-14 sm:h-16 md:h-[68px] lg:h-[78px] w-auto object-contain filter drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]"
-            />
-          </a>
-        </div>
+      <div className="hidden md:flex fixed top-0 inset-x-0 z-50 justify-center pointer-events-none transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
+        <header
+          className={`pointer-events-auto flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            isScrolled
+              ? 'mt-3.5 w-[92%] max-w-4xl px-6 py-2.5 rounded-full bg-[#05070A]/85 backdrop-blur-2xl backdrop-saturate-150 border border-white/12 shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_24px_rgba(0,140,255,0.18)]'
+              : 'mt-0 w-full max-w-7xl px-8 md:px-12 pt-6 lg:pt-7 pb-4 bg-transparent border-transparent shadow-none'
+          }`}
+        >
+          {/* Left: BrandShoots Official Logo */}
+          <div className="flex items-center flex-shrink-0">
+            <a
+              href="/"
+              onClick={handleScrollToTop}
+              className="inline-block transition-transform duration-200 hover:scale-[1.03] active:scale-95 cursor-pointer"
+              aria-label="BrandShoots Official Logo"
+            >
+              <img
+                src="/Logo Official.svg"
+                alt="BrandShoots Official Logo"
+                className={`w-auto object-contain filter drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                  isScrolled ? 'h-7 sm:h-8' : 'h-14 sm:h-16 md:h-[68px]'
+                }`}
+              />
+            </a>
+          </div>
 
-        {/* Center: Desktop Navigation Links */}
-        <nav className="flex items-center gap-8 lg:gap-11 text-white/85 font-sans text-xs lg:text-[13px] tracking-[0.22em] uppercase font-medium">
-          <a
-            href="/"
-            onClick={handleScrollToTop}
-            aria-label="Home"
-            className={`transition-colors duration-200 flex items-center justify-center p-1 ${
-              isHome
-                ? 'text-[#008CFF] drop-shadow-[0_0_8px_rgba(0,140,255,0.75)]'
-                : 'text-white/80 hover:text-[#008CFF]'
+          {/* Center: Desktop Navigation Links */}
+          <nav
+            className={`flex items-center text-white/85 font-sans text-xs lg:text-[13px] tracking-[0.22em] uppercase font-medium transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              isScrolled ? 'gap-6 lg:gap-8' : 'gap-8 lg:gap-11'
             }`}
           >
-            <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-              <path d="M12 3L2 12h3v8h6v-5h2v5h6v-8h3L12 3z" />
-            </svg>
-          </a>
+            <Link
+              to="/about"
+              className={`transition-colors duration-200 cursor-pointer uppercase tracking-[0.22em] ${
+                isAbout
+                  ? 'text-[#008CFF] font-semibold drop-shadow-[0_0_8px_rgba(0,140,255,0.75)]'
+                  : 'text-white/85 hover:text-white'
+              }`}
+            >
+              ABOUT US
+            </Link>
 
-          <Link
-            to="/about"
-            className={`transition-colors duration-200 cursor-pointer uppercase tracking-[0.22em] ${
-              isAbout
-                ? 'text-[#008CFF] font-semibold drop-shadow-[0_0_8px_rgba(0,140,255,0.75)]'
-                : 'text-white/85 hover:text-white'
-            }`}
-          >
-            About
-          </Link>
+            <Link
+              to="/portfolio"
+              className={`transition-colors duration-200 cursor-pointer uppercase tracking-[0.22em] ${
+                isPortfolio
+                  ? 'text-[#008CFF] font-semibold drop-shadow-[0_0_8px_rgba(0,140,255,0.75)]'
+                  : 'text-white/85 hover:text-white'
+              }`}
+            >
+              PROJECT
+            </Link>
 
-          <Link
-            to="/portfolio"
-            className={`transition-colors duration-200 cursor-pointer uppercase tracking-[0.22em] ${
-              isPortfolio
-                ? 'text-[#008CFF] font-semibold drop-shadow-[0_0_8px_rgba(0,140,255,0.75)]'
-                : 'text-white/85 hover:text-white'
-            }`}
-          >
-            Portfolio
-          </Link>
+            <button
+              type="button"
+              onClick={() => handleNavScroll('leadership')}
+              className="text-white/85 hover:text-white transition-colors duration-200 cursor-pointer uppercase tracking-[0.22em]"
+            >
+              TEAM
+            </button>
 
-          <Link
-            to="/contact"
-            className={`transition-colors duration-200 cursor-pointer uppercase tracking-[0.22em] ${
-              isContact
-                ? 'text-[#008CFF] font-semibold drop-shadow-[0_0_8px_rgba(0,140,255,0.75)]'
-                : 'text-white/85 hover:text-white'
-            }`}
-          >
-            Contact
-          </Link>
-        </nav>
+            <button
+              type="button"
+              onClick={() => handleNavScroll('what-we-do')}
+              className="text-white/85 hover:text-white transition-colors duration-200 cursor-pointer uppercase tracking-[0.22em]"
+            >
+              SERVICES
+            </button>
+          </nav>
 
-        {/* Right: Desktop CTA */}
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleGetInTouch}
-            className="inline-flex items-center text-white hover:text-[#008CFF] font-sans text-xs lg:text-[13px] tracking-[0.22em] uppercase font-semibold transition-colors duration-200 cursor-pointer"
-          >
-            Get in Touch
-          </button>
-        </div>
-      </header>
-
-      {/* ========================================================= */}
-      {/* 3. DESKTOP SCROLLED DYNAMIC ISLAND (Only md: and larger)  */}
-      {/* ========================================================= */}
-      <div
-        className={`hidden md:block fixed top-4 sm:top-5 right-5 sm:right-8 md:right-12 z-50 pointer-events-none transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          isScrolled
-            ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto'
-            : 'opacity-0 -translate-y-6 scale-[0.90] pointer-events-none'
-        }`}
-      >
-        <div className="relative flex items-center gap-3 sm:gap-3.5 pl-3.5 pr-1.5 py-1.5 sm:pl-4 sm:pr-2 sm:py-2 rounded-full bg-[#05070A]/85 backdrop-blur-2xl backdrop-saturate-150 border border-white/15 shadow-[0_16px_40px_rgba(0,0,0,0.85),0_0_24px_rgba(0,140,255,0.18)] hover:border-white/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_32px_rgba(0,140,255,0.25)] transition-all duration-300">
-          <div className="absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none" />
-
-          <a
-            href="/"
-            onClick={handleScrollToTop}
-            className="flex items-center transition-transform duration-200 hover:scale-105 active:scale-95 cursor-pointer pr-1 flex-shrink-0"
-            aria-label="BrandShoots — Back to Top"
-          >
-            <img
-              src="/Logo Official.svg"
-              alt="BrandShoots Official Logo"
-              className="h-5 sm:h-6 max-h-5 sm:max-h-6 w-auto object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]"
-            />
-          </a>
-
-          <div className="w-[1px] h-3.5 sm:h-4 bg-white/15" />
-
-          <button
-            type="button"
-            onClick={() => setMenuOpen(true)}
-            aria-label="Open Full Navigation Menu"
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/[0.08] hover:bg-[#008CFF]/20 border border-white/15 hover:border-[#008CFF]/60 flex flex-col justify-center items-center gap-[3px] text-white transition-all duration-200 cursor-pointer active:scale-95 group shadow-sm"
-          >
-            <span className="w-3.5 sm:w-4 h-[2px] bg-white rounded-full transition-all duration-200 group-hover:w-4.5" />
-            <span className="w-3.5 sm:w-4 h-[2px] bg-white rounded-full transition-all duration-200 group-hover:w-4.5" />
-            <span className="w-2 sm:w-2.5 h-[2px] bg-[#008CFF] rounded-full transition-all duration-200 group-hover:w-3.5 group-hover:bg-[#52B2FF]" />
-          </button>
-        </div>
+          {/* Right: Desktop CTA Button */}
+          <div className="flex items-center flex-shrink-0">
+            <button
+              type="button"
+              onClick={handleGetInTouch}
+              className={`font-mono uppercase font-bold tracking-[0.2em] transition-all duration-300 cursor-pointer active:scale-95 ${
+                isScrolled
+                  ? 'px-4.5 py-2 text-[11px] rounded-full bg-[#008CFF] hover:bg-[#209CFF] text-white shadow-[0_0_20px_rgba(0,140,255,0.45)]'
+                  : 'inline-flex items-center text-white hover:text-[#008CFF] font-sans text-xs lg:text-[13px] tracking-[0.22em] font-semibold'
+              }`}
+            >
+              GET IN TOUCH
+            </button>
+          </div>
+        </header>
       </div>
 
       {/* ========================================================= */}
-      {/* 4. FULLSCREEN OVERLAY MENU (Mobile & Desktop)             */}
-      {/* Menu links: ABOUT US, PROJECT, TEAM, SERVICES, GET IN TOUCH */}
+      {/* 3. FULLSCREEN OVERLAY MENU (Mobile & Desktop Drawer)       */}
       {/* ========================================================= */}
       <AnimatePresence>
         {menuOpen && (
@@ -511,7 +469,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                 </a>
 
                 <a
-                  href="https://wa.me/919999999999"
+                  href="https://wa.me/919177656444"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="WhatsApp /wearebrandshoots"
