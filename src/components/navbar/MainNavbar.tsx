@@ -54,7 +54,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
     };
   }, []);
 
-  // GSAP 3-line to X morph animation for mobile hamburger (power3.inOut, balanced and symmetrical)
+  // GSAP 3-line to X morph animation for mobile hamburger (power3.inOut, 350ms, balanced and symmetrical)
   useEffect(() => {
     const l1 = line1Ref.current;
     const l2 = line2Ref.current;
@@ -62,13 +62,13 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
     if (!l1 || !l2 || !l3) return;
 
     if (menuOpen) {
-      gsap.to(l1, { y: 6.25, rotate: 45, duration: 0.28, ease: 'power3.inOut' });
-      gsap.to(l2, { opacity: 0, scaleX: 0, duration: 0.2, ease: 'power3.inOut' });
-      gsap.to(l3, { y: -6.25, rotate: -45, duration: 0.28, ease: 'power3.inOut' });
+      gsap.to(l1, { y: 5.75, rotate: 45, duration: 0.35, ease: 'power3.inOut' });
+      gsap.to(l2, { opacity: 0, scaleX: 0, duration: 0.25, ease: 'power3.inOut' });
+      gsap.to(l3, { y: -5.75, rotate: -45, duration: 0.35, ease: 'power3.inOut' });
     } else {
-      gsap.to(l1, { y: 0, rotate: 0, duration: 0.28, ease: 'power3.inOut' });
-      gsap.to(l2, { opacity: 1, scaleX: 1, duration: 0.25, ease: 'power3.inOut' });
-      gsap.to(l3, { y: 0, rotate: 0, duration: 0.28, ease: 'power3.inOut' });
+      gsap.to(l1, { y: 0, rotate: 0, duration: 0.35, ease: 'power3.inOut' });
+      gsap.to(l2, { opacity: 1, scaleX: 1, duration: 0.28, ease: 'power3.inOut' });
+      gsap.to(l3, { y: 0, rotate: 0, duration: 0.35, ease: 'power3.inOut' });
     }
   }, [menuOpen]);
 
@@ -171,7 +171,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
           <img
             src="/Logo Official.svg"
             alt="BrandShoots Official Logo"
-            className="h-8.5 xs:h-9 w-auto object-contain filter drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]"
+            className="h-9 xs:h-10 w-auto object-contain filter drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]"
           />
         </a>
 
@@ -182,18 +182,18 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
           onClick={() => setMenuOpen(!menuOpen)}
           className="w-11 h-11 min-w-[44px] min-h-[44px] p-0 flex items-center justify-center bg-transparent border-0 outline-none focus:outline-none cursor-pointer transition-opacity active:opacity-70 select-none"
         >
-          <div className="w-[22px] h-[14px] relative flex flex-col justify-between items-center pointer-events-none">
+          <div className="w-[20px] h-[13px] relative flex flex-col justify-between items-center pointer-events-none">
             <span
               ref={line1Ref}
-              className="w-[22px] h-[1.5px] bg-white rounded-full origin-center block"
+              className="w-[20px] h-[1.5px] bg-white rounded-full origin-center block"
             />
             <span
               ref={line2Ref}
-              className="w-[22px] h-[1.5px] bg-white rounded-full origin-center block"
+              className="w-[20px] h-[1.5px] bg-white rounded-full origin-center block"
             />
             <span
               ref={line3Ref}
-              className="w-[22px] h-[1.5px] bg-white rounded-full origin-center block"
+              className="w-[20px] h-[1.5px] bg-white rounded-full origin-center block"
             />
           </div>
         </button>
