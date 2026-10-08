@@ -54,9 +54,9 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
     if (!l1 || !l2 || !l3) return;
 
     if (menuOpen) {
-      gsap.to(l1, { y: 5.75, rotate: 45, duration: 0.35, ease: 'power3.inOut' });
+      gsap.to(l1, { y: 5.25, rotate: 45, duration: 0.35, ease: 'power3.inOut' });
       gsap.to(l2, { opacity: 0, scaleX: 0, duration: 0.25, ease: 'power3.inOut' });
-      gsap.to(l3, { y: -5.75, rotate: -45, duration: 0.35, ease: 'power3.inOut' });
+      gsap.to(l3, { y: -5.25, rotate: -45, duration: 0.35, ease: 'power3.inOut' });
     } else {
       gsap.to(l1, { y: 0, rotate: 0, duration: 0.35, ease: 'power3.inOut' });
       gsap.to(l2, { opacity: 1, scaleX: 1, duration: 0.28, ease: 'power3.inOut' });

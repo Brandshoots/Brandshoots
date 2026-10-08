@@ -127,14 +127,6 @@ export const MobileCinematicHero: React.FC = () => {
         }}
       />
 
-      {/* Subtle Production Viewfinder Frame Metadata (Authentic Filmmaking Mood) */}
-      <div className="absolute top-[70px] inset-x-5 z-10 flex items-center justify-between text-white/40 font-mono text-[8px] tracking-[0.24em] uppercase pointer-events-none">
-        <span className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] animate-pulse" />
-          <span>CINEMA REEL</span>
-        </span>
-        <span className="text-white/35">4K // 24FPS</span>
-      </div>
 
       {/* ========================================================= */}
       {/* 3. BOTTOM EDITORIAL HIERARCHY: BRANDSHOOTS + CREED + CUE */}
