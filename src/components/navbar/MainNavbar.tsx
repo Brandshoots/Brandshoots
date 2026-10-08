@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Instagram, Youtube, Facebook, MessageCircle, X } from 'lucide-react';
+import { Instagram, Youtube, Facebook, MessageCircle, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 
@@ -23,11 +23,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY || document.documentElement.scrollTop;
-      if (scrollY > 55) {
-        setIsScrolled(true);
-      } else if (scrollY < 20) {
-        setIsScrolled(false);
-      }
+      setIsScrolled(scrollY > 40);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -37,11 +33,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
       const lenis = (window as any).__lenis;
       if (lenis) {
         lenis.on('scroll', (e: { scroll: number }) => {
-          if (e.scroll > 55) {
-            setIsScrolled(true);
-          } else if (e.scroll < 20) {
-            setIsScrolled(false);
-          }
+          setIsScrolled(e.scroll > 40);
         });
       }
     };
@@ -187,20 +179,41 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
       </header>
 
       {/* ========================================================= */}
-      {/* 2. DESKTOP UNIFIED MORPHING NAVBAR (Liquid Glass Blur)    */}
+      {/* 2. DESKTOP UNIFIED MORPHING NAVBAR (Framer Motion Smooth)  */}
       {/* ========================================================= */}
-      <div className="hidden md:flex fixed top-0 inset-x-0 z-50 justify-center pointer-events-none transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
-        <header
-          className={`relative pointer-events-auto flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-            isScrolled
-              ? 'mt-3.5 w-auto max-w-3xl min-w-[520px] lg:min-w-[580px] px-6 sm:px-8 py-2.5 rounded-full bg-[#05070A]/75 backdrop-blur-3xl backdrop-saturate-[190%] border border-white/25 shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.08),inset_0_1px_2px_0_rgba(255,255,255,0.4),inset_0_-1px_1px_0_rgba(255,255,255,0.06)]'
-              : 'mt-0 w-full max-w-7xl px-8 md:px-12 pt-6 lg:pt-7 pb-4 bg-transparent border-transparent shadow-none'
-          }`}
+      <div className="hidden md:flex fixed top-0 inset-x-0 z-50 justify-center pointer-events-none">
+        <motion.header
+          initial={false}
+          animate={{
+            maxWidth: isScrolled ? 580 : 1220,
+            y: isScrolled ? 10 : 20,
+            paddingTop: isScrolled ? 8 : 14,
+            paddingBottom: isScrolled ? 8 : 14,
+            paddingLeft: isScrolled ? 22 : 36,
+            paddingRight: isScrolled ? 22 : 36,
+            backgroundColor: isScrolled ? 'rgba(5, 7, 10, 0.82)' : 'rgba(5, 7, 10, 0)',
+            borderColor: isScrolled ? 'rgba(255, 255, 255, 0.22)' : 'rgba(255, 255, 255, 0)',
+            boxShadow: isScrolled
+              ? '0 16px 40px rgba(0, 0, 0, 0.85), inset 0 1px 1px 0 rgba(255, 255, 255, 0.2)'
+              : '0 0 0 rgba(0, 0, 0, 0), inset 0 0 0 0 rgba(255, 255, 255, 0)',
+          }}
+          transition={{
+            duration: 0.45,
+            ease: [0.16, 1, 0.3, 1],
+          }}
+          style={{
+            backdropFilter: isScrolled ? 'blur(28px) saturate(190%)' : 'blur(0px)',
+            WebkitBackdropFilter: isScrolled ? 'blur(28px) saturate(190%)' : 'blur(0px)',
+          }}
+          className="relative pointer-events-auto flex items-center justify-between rounded-full border w-[92%] transition-[backdrop-filter]"
         >
           {/* Liquid glass top specular reflection sheen for scrolled pill */}
-          {isScrolled && (
-            <div className="absolute inset-x-8 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/45 to-transparent pointer-events-none rounded-full" />
-          )}
+          <motion.div
+            initial={false}
+            animate={{ opacity: isScrolled ? 1 : 0 }}
+            transition={{ duration: 0.35 }}
+            className="absolute inset-x-8 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none rounded-full"
+          />
 
           {/* Left: BrandShoots Official Logo */}
           <div className="flex items-center flex-shrink-0">
@@ -210,35 +223,87 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
               className="inline-block transition-transform duration-200 hover:scale-[1.03] active:scale-95 cursor-pointer"
               aria-label="BrandShoots Official Logo"
             >
-              <img
+              <motion.img
                 src="/Logo Official.svg"
                 alt="BrandShoots Official Logo"
-                className={`w-auto object-contain filter drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                  isScrolled ? 'h-7 sm:h-7.5' : 'h-14 sm:h-16 md:h-[68px]'
-                }`}
+                initial={false}
+                animate={{
+                  height: isScrolled ? 26 : 38,
+                }}
+                transition={{
+                  duration: 0.45,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
+                className="w-auto object-contain filter drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]"
               />
             </a>
           </div>
 
-          {/* Center: Desktop Navigation Links (Home Icon, About, Portfolio Only) */}
-          <nav
-            className={`flex items-center text-white/85 font-sans text-xs lg:text-[13px] tracking-[0.22em] uppercase font-medium transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-              isScrolled ? 'gap-6 lg:gap-8' : 'gap-8 lg:gap-11'
-            }`}
+          {/* Center: Desktop Navigation Links (Metallic Home Icon, About, Portfolio) */}
+          <motion.nav
+            initial={false}
+            animate={{
+              gap: isScrolled ? 24 : 38,
+            }}
+            transition={{
+              duration: 0.45,
+              ease: [0.16, 1, 0.3, 1],
+            }}
+            className="flex items-center text-white/85 font-sans text-xs lg:text-[13px] tracking-[0.22em] uppercase font-medium"
           >
-            {/* 1. Home Icon */}
+            {/* 1. Metallic Home Icon */}
             <a
               href="/"
               onClick={handleScrollToTop}
               title="Home"
               aria-label="BrandShoots Home"
-              className={`p-2 rounded-full transition-all duration-200 cursor-pointer flex items-center justify-center shrink-0 ${
+              className={`relative group flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300 cursor-pointer shrink-0 active:scale-95 ${
                 isHome
-                  ? 'text-[#008CFF] bg-[#008CFF]/15 drop-shadow-[0_0_10px_rgba(0,140,255,0.8)] border border-[#008CFF]/30'
-                  : 'text-white/80 hover:text-white hover:bg-white/[0.08]'
+                  ? 'ring-1 ring-sky-400/50 shadow-[0_0_12px_rgba(0,140,255,0.25)]'
+                  : 'hover:scale-105'
               }`}
+              style={{
+                background:
+                  'linear-gradient(145deg, #2b313d 0%, #161922 45%, #0e1117 80%, #1b1f29 100%)',
+                boxShadow:
+                  'inset 0 1px 1px 0 rgba(255, 255, 255, 0.45), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.75), 0 2px 6px rgba(0, 0, 0, 0.5)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+              }}
             >
-              <Home className="w-4 h-4" />
+              {/* Metallic specular sheen overlay */}
+              <span className="absolute inset-0 rounded-full bg-gradient-to-b from-white/20 via-transparent to-transparent pointer-events-none" />
+
+              {/* High-Precision Metallic Home Icon */}
+              <svg
+                viewBox="0 0 24 24"
+                className="w-4 h-4 relative z-10 transition-transform duration-200 group-hover:scale-105"
+                fill="none"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <defs>
+                  {/* Brushed Chrome / Titanium Gradient */}
+                  <linearGradient id="navMetallicChrome" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#FFFFFF" />
+                    <stop offset="35%" stopColor="#CBD5E1" />
+                    <stop offset="65%" stopColor="#94A3B8" />
+                    <stop offset="100%" stopColor="#E2E8F0" />
+                  </linearGradient>
+                  {/* Active Sky Blue Metallic Accent Gradient */}
+                  <linearGradient id="navMetallicActiveBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#FFFFFF" />
+                    <stop offset="30%" stopColor="#7DD3FC" />
+                    <stop offset="70%" stopColor="#008CFF" />
+                    <stop offset="100%" stopColor="#38BDF8" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M3 10.25L12 3l9 7.25V20a1 1 0 0 1-1 1h-4.5a1 1 0 0 1-1-1v-4.5h-5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10.25z"
+                  stroke={isHome ? 'url(#navMetallicActiveBlue)' : 'url(#navMetallicChrome)'}
+                  fill={isHome ? 'rgba(56, 189, 248, 0.12)' : 'rgba(255, 255, 255, 0.04)'}
+                />
+              </svg>
             </a>
 
             {/* 2. ABOUT */}
@@ -264,29 +329,19 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
             >
               PORTFOLIO
             </Link>
-          </nav>
+          </motion.nav>
 
-          {/* Right: Metallic Blue Contact Button */}
+          {/* Right: Clean, Simple Contact Button */}
           <div className="flex items-center flex-shrink-0">
             <button
               type="button"
               onClick={handleGetInTouch}
-              className="relative px-5 py-2.5 sm:px-6 sm:py-2.5 rounded-full font-mono uppercase font-black tracking-[0.2em] text-[11px] sm:text-xs text-white cursor-pointer select-none overflow-hidden transition-all duration-300 active:scale-95 group whitespace-nowrap shrink-0 shadow-[0_4px_20px_rgba(0,140,255,0.45),0_0_12px_rgba(0,140,255,0.3)] hover:shadow-[0_6px_28px_rgba(0,140,255,0.65),0_0_16px_rgba(0,140,255,0.45)] hover:brightness-110"
-              style={{
-                background:
-                  'linear-gradient(135deg, #25a4ff 0%, #0080ff 35%, #0056cc 70%, #0094ff 100%)',
-                boxShadow:
-                  'inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.75), inset 0 -1.5px 2px 0 rgba(0, 30, 80, 0.65), 0 4px 20px rgba(0, 140, 255, 0.45), 0 0 12px rgba(0, 140, 255, 0.3)',
-              }}
+              className="px-5 py-2 sm:px-6 sm:py-2 rounded-full font-sans font-semibold uppercase tracking-[0.16em] text-[11px] sm:text-xs text-white bg-[#008CFF] hover:bg-[#007fe6] active:scale-95 transition-all duration-200 cursor-pointer select-none whitespace-nowrap shrink-0 border border-white/20 shadow-sm hover:shadow-[0_2px_12px_rgba(0,140,255,0.35)]"
             >
-              {/* Metallic specular sheen overlay */}
-              <span className="absolute inset-0 rounded-full bg-gradient-to-b from-white/35 via-transparent to-black/25 pointer-events-none" />
-              <span className="relative z-10 flex items-center justify-center gap-1.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
-                CONTACT
-              </span>
+              CONTACT
             </button>
           </div>
-        </header>
+        </motion.header>
       </div>
 
       {/* ========================================================= */}
@@ -354,11 +409,35 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                 <a
                   href="/"
                   onClick={handleScrollToTop}
-                  className={`text-2xl xs:text-3xl sm:text-4xl font-figtree font-black tracking-[0.14em] uppercase transition-colors py-2 flex items-center justify-center gap-3 ${
+                  className={`text-2xl xs:text-3xl sm:text-4xl font-figtree font-black tracking-[0.14em] uppercase transition-colors py-2 flex items-center justify-center gap-3.5 ${
                     isHome ? 'text-[#008CFF]' : 'text-white/90 hover:text-[#008CFF]'
                   }`}
                 >
-                  <Home className="w-5 h-5 sm:w-6 sm:h-6 text-[#008CFF]" />
+                  <span
+                    className="relative flex items-center justify-center w-8 h-8 rounded-full shrink-0"
+                    style={{
+                      background:
+                        'linear-gradient(145deg, #2b313d 0%, #161922 45%, #0e1117 80%, #1b1f29 100%)',
+                      boxShadow:
+                        'inset 0 1px 1px 0 rgba(255, 255, 255, 0.45), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.75), 0 2px 6px rgba(0, 0, 0, 0.5)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                    }}
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="w-4 h-4 relative z-10"
+                      fill="none"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path
+                        d="M3 10.25L12 3l9 7.25V20a1 1 0 0 1-1 1h-4.5a1 1 0 0 1-1-1v-4.5h-5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10.25z"
+                        stroke={isHome ? 'url(#navMetallicActiveBlue)' : 'url(#navMetallicChrome)'}
+                        fill={isHome ? 'rgba(56, 189, 248, 0.12)' : 'rgba(255, 255, 255, 0.04)'}
+                      />
+                    </svg>
+                  </span>
                   <span>HOME</span>
                 </a>
               </motion.div>
@@ -399,7 +478,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                 </Link>
               </motion.div>
 
-              {/* 4. CONTACT (Metallic Blue Button) */}
+              {/* 4. CONTACT (Clean, Simple) */}
               <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 16 },
@@ -410,18 +489,9 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                 <button
                   type="button"
                   onClick={handleGetInTouch}
-                  className="relative px-9 py-4 sm:px-12 sm:py-4.5 rounded-full text-white text-xs sm:text-sm tracking-[0.24em] font-mono uppercase font-black transition-all duration-200 active:scale-95 inline-block text-center cursor-pointer min-h-[46px] select-none shadow-[0_4px_24px_rgba(0,140,255,0.5),0_0_14px_rgba(0,140,255,0.3)] overflow-hidden hover:brightness-110"
-                  style={{
-                    background:
-                      'linear-gradient(135deg, #25a4ff 0%, #0080ff 35%, #0056cc 70%, #0094ff 100%)',
-                    boxShadow:
-                      'inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.75), inset 0 -1.5px 2px 0 rgba(0, 30, 80, 0.65), 0 4px 24px rgba(0, 140, 255, 0.5), 0 0 14px rgba(0, 140, 255, 0.3)',
-                  }}
+                  className="px-9 py-3.5 sm:px-11 sm:py-4 rounded-full text-white text-xs sm:text-sm tracking-[0.2em] font-sans font-semibold uppercase bg-[#008CFF] hover:bg-[#007fe6] active:scale-95 transition-all duration-200 inline-block text-center cursor-pointer min-h-[44px] select-none border border-white/20 shadow-[0_2px_14px_rgba(0,140,255,0.3)]"
                 >
-                  <span className="absolute inset-0 rounded-full bg-gradient-to-b from-white/35 via-transparent to-black/25 pointer-events-none" />
-                  <span className="relative z-10 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
-                    CONTACT
-                  </span>
+                  CONTACT
                 </button>
               </motion.div>
             </motion.div>
