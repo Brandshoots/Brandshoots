@@ -458,206 +458,64 @@ export const MobileCinematicHero: React.FC = () => {
       {/* 3D WebGL Sphere Canvas */}
       <canvas ref={canvasRef} className="block w-full h-full" />
 
-      {/* Centered Minimal Content per User Directive */}
-      <div className="content">
-        <h1>
-          <span>BRAND</span>
-          <span className="text-[#008CFF]">SHOOTS</span>
-        </h1>
-        <p className="tagline">CREATE. SHOOT. GROW.</p>
-        <div className="buttons">
-          <button
-            type="button"
-            className="glass-button"
-            onClick={() => scrollToSection('what-we-do')}
-          >
-            <span className="shimmer" />
-            <span>Discover</span>
-          </button>
-          <button
-            type="button"
-            className="glass-button"
-            onClick={() => scrollToSection('cta')}
-          >
-            <span className="shimmer" />
-            <span>Join Now</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Bottom Scroll Cue */}
+      {/* Subtle Bottom Ambient Gradient for Editorial Typography Legibility */}
       <div
-        onClick={() => scrollToSection('what-we-do')}
-        className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1 text-white/50 hover:text-white transition-colors cursor-pointer"
-      >
-        <svg
-          className="w-3.5 h-3.5 text-[#008CFF] animate-bounce"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth="2.5"
+        className="absolute inset-x-0 bottom-0 h-64 pointer-events-none z-10"
+        style={{
+          background:
+            'linear-gradient(to top, rgba(4,6,10,0.98) 0%, rgba(4,6,10,0.82) 45%, rgba(4,6,10,0.25) 75%, transparent 100%)',
+        }}
+      />
+
+      {/* Deliberate Mobile Composition Bottom Anchor: BRANDSHOOTS + Tagline + Scroll Down */}
+      <div className="absolute inset-x-0 bottom-0 z-20 flex flex-col items-center text-center px-5 pb-[calc(env(safe-area-inset-bottom,0px)+18px)] pointer-events-none">
+        {/* BRANDSHOOTS Title in Figtree */}
+        <h1 className="font-figtree font-black uppercase tracking-[-0.038em] text-[clamp(2.4rem,11.5vw,3.9rem)] leading-[0.92] select-none flex items-center justify-center">
+          <span
+            className="text-[#008CFF] drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]"
+            style={{ textShadow: '0 4px 24px rgba(0,0,0,0.9), 0 0 30px rgba(0,140,255,0.45)' }}
+          >
+            BRAND
+          </span>
+          <span
+            className="text-white ml-[0.02em] drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]"
+            style={{ textShadow: '0 4px 24px rgba(0,0,0,0.9)' }}
+          >
+            SHOOTS
+          </span>
+        </h1>
+
+        {/* CREATE. SHOOT. GROW. Tagline */}
+        <p className="mt-3 font-figtree font-bold text-[clamp(0.72rem,2.9vw,0.86rem)] tracking-[0.38em] uppercase text-white/85 select-none">
+          <span className="text-white">CREATE. </span>
+          <span className="text-[#008CFF] drop-shadow-[0_0_12px_rgba(0,140,255,0.85)]">
+            SHOOT.
+          </span>
+          <span className="text-white"> GROW.</span>
+        </p>
+
+        {/* Scroll Down Indicator */}
+        <button
+          type="button"
+          onClick={() => scrollToSection('what-we-do')}
+          className="mt-5 flex flex-col items-center gap-1 cursor-pointer pointer-events-auto text-white/55 hover:text-white transition-colors duration-200 outline-none focus:outline-none min-h-[44px] justify-center px-4"
+          aria-label="Scroll down to Video Production & Capabilities"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-        </svg>
-        <span className="font-mono text-[9px] tracking-[0.28em] uppercase font-semibold text-white/60">
-          SCROLL DOWN
-        </span>
+          <svg
+            className="w-3.5 h-3.5 text-[#008CFF] animate-bounce drop-shadow-[0_0_8px_#008CFF]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2.5"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+          <span className="font-mono text-[9px] tracking-[0.34em] uppercase font-semibold text-white/60">
+            SCROLL DOWN
+          </span>
+        </button>
       </div>
 
-      <style>{`
-        .content {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          z-index: 10;
-          text-align: center;
-          color: white;
-          pointer-events: none;
-          width: 100%;
-          padding: 0 16px;
-        }
-        .content h1 {
-          font-size: clamp(2.6rem, 11.5vw, 4.4rem);
-          font-weight: 900;
-          margin-bottom: 0.5rem;
-          letter-spacing: -0.05em;
-          background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 50%, #ffffff 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.4)) drop-shadow(0 0 80px rgba(0, 140, 255, 0.35));
-          animation: glowPulse 3s ease-in-out infinite alternate;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 2px;
-        }
-        @keyframes glowPulse {
-          from {
-            filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.4)) drop-shadow(0 0 80px rgba(0, 140, 255, 0.35));
-          }
-          to {
-            filter: drop-shadow(0 0 60px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 120px rgba(0, 191, 255, 0.5));
-          }
-        }
-        .tagline {
-          font-size: clamp(0.75rem, 3.2vw, 1.05rem);
-          font-weight: 400;
-          color: rgba(255, 255, 255, 0.9);
-          letter-spacing: 0.32em;
-          text-transform: uppercase;
-          text-shadow: 0 0 30px rgba(255, 255, 255, 0.5), 0 0 60px rgba(0, 140, 255, 0.4);
-        }
-        .buttons {
-          display: flex;
-          justify-content: center;
-          gap: 16px;
-          margin-top: 32px;
-          pointer-events: auto;
-        }
-        .glass-button {
-          position: relative;
-          padding: 13px 28px;
-          font-size: 0.9rem;
-          font-weight: 600;
-          letter-spacing: 0.08em;
-          color: #fff;
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
-          border: 1.5px solid transparent;
-          border-radius: 40px;
-          backdrop-filter: blur(30px);
-          -webkit-backdrop-filter: blur(30px);
-          box-shadow:
-            0 8px 32px rgba(0, 0, 0, 0.2),
-            inset 0 1px 0 rgba(255, 255, 255, 0.2),
-            inset 0 -1px 0 rgba(255, 255, 255, 0.05);
-          overflow: hidden;
-          cursor: pointer;
-          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-          pointer-events: auto;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .glass-button::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          border-radius: 40px;
-          padding: 1.5px;
-          background: linear-gradient(135deg,
-            rgba(255, 255, 255, 0.4) 0%,
-            rgba(0, 140, 255, 0.6) 25%,
-            rgba(0, 191, 255, 0.5) 50%,
-            rgba(255, 255, 255, 0.3) 75%,
-            rgba(0, 140, 255, 0.6) 100%);
-          background-size: 200% 200%;
-          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-          -webkit-mask-composite: xor;
-          mask-composite: exclude;
-          animation: borderFlow 3s linear infinite;
-          opacity: 0.7;
-          transition: opacity 0.5s ease;
-        }
-        @keyframes borderFlow {
-          0% { background-position: 0% 50%; }
-          100% { background-position: 200% 50%; }
-        }
-        .glass-button::after {
-          content: '';
-          position: absolute;
-          inset: 0;
-          border-radius: 40px;
-          background: radial-gradient(circle at var(--x, 50%) var(--y, 50%),
-            rgba(255, 255, 255, 0.25) 0%,
-            transparent 50%);
-          opacity: 0;
-          transition: opacity 0.4s ease;
-        }
-        .glass-button:hover, .glass-button:active {
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.06) 100%);
-          box-shadow:
-            0 12px 48px rgba(0, 140, 255, 0.35),
-            0 0 80px rgba(0, 191, 255, 0.25),
-            inset 0 1px 0 rgba(255, 255, 255, 0.3),
-            inset 0 -1px 0 rgba(255, 255, 255, 0.1);
-          transform: translateY(-2px) scale(1.02);
-        }
-        .glass-button:hover::before, .glass-button:active::before {
-          opacity: 1;
-          animation-duration: 2s;
-        }
-        .glass-button:hover::after, .glass-button:active::after {
-          opacity: 1;
-        }
-        .glass-button .shimmer {
-          position: absolute;
-          top: -50%;
-          left: -50%;
-          width: 200%;
-          height: 200%;
-          background: linear-gradient(
-            90deg,
-            transparent 0%,
-            rgba(255, 255, 255, 0.1) 45%,
-            rgba(255, 255, 255, 0.35) 50%,
-            rgba(255, 255, 255, 0.1) 55%,
-            transparent 100%
-          );
-          transform: rotate(30deg);
-          animation: shimmer 3s infinite;
-          pointer-events: none;
-        }
-        @keyframes shimmer {
-          0% { transform: translateX(-100%) rotate(30deg); }
-          100% { transform: translateX(100%) rotate(30deg); }
-        }
-        .glass-button span {
-          position: relative;
-          z-index: 1;
-        }
-      `}</style>
     </div>
   );
 };

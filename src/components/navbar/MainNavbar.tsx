@@ -54,7 +54,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
     };
   }, []);
 
-  // GSAP 3-line to X morph animation for mobile hamburger
+  // GSAP 3-line to X morph animation for mobile hamburger (power3.inOut, balanced and symmetrical)
   useEffect(() => {
     const l1 = line1Ref.current;
     const l2 = line2Ref.current;
@@ -62,21 +62,23 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
     if (!l1 || !l2 || !l3) return;
 
     if (menuOpen) {
-      gsap.to(l1, { y: 7, rotate: 45, duration: 0.25, ease: 'power2.out' });
-      gsap.to(l2, { opacity: 0, x: -6, duration: 0.2, ease: 'power2.out' });
-      gsap.to(l3, { y: -7, rotate: -45, width: '22px', backgroundColor: '#FFFFFF', duration: 0.25, ease: 'power2.out' });
+      gsap.to(l1, { y: 6.25, rotate: 45, duration: 0.28, ease: 'power3.inOut' });
+      gsap.to(l2, { opacity: 0, scaleX: 0, duration: 0.2, ease: 'power3.inOut' });
+      gsap.to(l3, { y: -6.25, rotate: -45, duration: 0.28, ease: 'power3.inOut' });
     } else {
-      gsap.to(l1, { y: 0, rotate: 0, duration: 0.25, ease: 'power2.out' });
-      gsap.to(l2, { opacity: 1, x: 0, duration: 0.2, ease: 'power2.out' });
-      gsap.to(l3, { y: 0, rotate: 0, width: '14px', backgroundColor: '#008CFF', duration: 0.25, ease: 'power2.out' });
+      gsap.to(l1, { y: 0, rotate: 0, duration: 0.28, ease: 'power3.inOut' });
+      gsap.to(l2, { opacity: 1, scaleX: 1, duration: 0.25, ease: 'power3.inOut' });
+      gsap.to(l3, { y: 0, rotate: 0, duration: 0.28, ease: 'power3.inOut' });
     }
   }, [menuOpen]);
 
   // Prevent background scroll when the full overlay menu is open
   useEffect(() => {
     if (menuOpen) {
-      const prevOverflow = document.body.style.overflow;
+      const prevBodyOverflow = document.body.style.overflow;
+      const prevHtmlOverflow = document.documentElement.style.overflow;
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
 
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
@@ -86,7 +88,8 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
 
       window.addEventListener('keydown', handleKeyDown);
       return () => {
-        document.body.style.overflow = prevOverflow;
+        document.body.style.overflow = prevBodyOverflow;
+        document.documentElement.style.overflow = prevHtmlOverflow;
         window.removeEventListener('keydown', handleKeyDown);
       };
     }
@@ -152,9 +155,9 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
       {/* 1. DEDICATED MOBILE NAVBAR (Consistent Across Whole Site) */}
       {/* ========================================================= */}
       <header
-        className={`md:hidden fixed top-0 inset-x-0 z-50 w-full px-5 py-3.5 flex items-center justify-between transition-all duration-300 ${
-          isScrolled
-            ? 'bg-[#05070A]/92 backdrop-blur-xl border-b border-white/[0.08] shadow-[0_4px_24px_rgba(0,0,0,0.7)]'
+        className={`md:hidden fixed top-0 inset-x-0 z-[120] w-full px-5 py-3.5 flex items-center justify-between transition-all duration-300 ${
+          isScrolled || menuOpen
+            ? 'bg-[#05070A]/95 backdrop-blur-xl border-b border-white/[0.08] shadow-[0_4px_24px_rgba(0,0,0,0.85)]'
             : 'bg-gradient-to-b from-[#05070A]/90 via-[#05070A]/40 to-transparent border-b border-transparent'
         }`}
       >
@@ -168,29 +171,31 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
           <img
             src="/Logo Official.svg"
             alt="BrandShoots Official Logo"
-            className="h-9 w-auto object-contain filter drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]"
+            className="h-8.5 xs:h-9 w-auto object-contain filter drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]"
           />
         </a>
 
-        {/* Clean 3-Line Hamburger Button (3 Lines -> X with GSAP) */}
+        {/* Clean, luxury agency hamburger icon (44x44px touch target, perfectly centered 3 identical thin lines morphing to X) */}
         <button
           type="button"
           aria-label={menuOpen ? 'Close Navigation Menu' : 'Open Navigation Menu'}
           onClick={() => setMenuOpen(!menuOpen)}
-          className="w-11 h-11 rounded-xl bg-white/[0.06] active:bg-white/[0.14] border border-white/12 flex flex-col justify-center items-center gap-[5px] text-white focus:outline-none transition-all duration-200 cursor-pointer shadow-sm active:scale-95"
+          className="w-11 h-11 min-w-[44px] min-h-[44px] p-0 flex items-center justify-center bg-transparent border-0 outline-none focus:outline-none cursor-pointer transition-opacity active:opacity-70 select-none"
         >
-          <span
-            ref={line1Ref}
-            className="w-[22px] h-[2px] bg-white rounded-full transition-colors origin-center"
-          />
-          <span
-            ref={line2Ref}
-            className="w-[22px] h-[2px] bg-white rounded-full transition-colors origin-center"
-          />
-          <span
-            ref={line3Ref}
-            className="w-[14px] h-[2px] bg-[#008CFF] rounded-full self-end mr-1 transition-colors origin-center"
-          />
+          <div className="w-[22px] h-[14px] relative flex flex-col justify-between items-center pointer-events-none">
+            <span
+              ref={line1Ref}
+              className="w-[22px] h-[1.5px] bg-white rounded-full origin-center block"
+            />
+            <span
+              ref={line2Ref}
+              className="w-[22px] h-[1.5px] bg-white rounded-full origin-center block"
+            />
+            <span
+              ref={line3Ref}
+              className="w-[22px] h-[1.5px] bg-white rounded-full origin-center block"
+            />
+          </div>
         </button>
       </header>
 
