@@ -6,6 +6,8 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { StrokeRevealPreloader } from '../components/about/StrokeRevealPreloader';
 import { PortfolioNavbar } from '../components/portfolio/PortfolioNavbar';
 import { PortfolioWormhole3D } from '../components/portfolio/PortfolioWormhole3D';
+import { PortfolioClienteleSection } from '../components/portfolio/PortfolioClienteleSection';
+import { BrandShootsFooter } from '../components/footer/BrandShootsFooter';
 import { ContactModal } from '../components/hero/ContactModal';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -23,7 +25,7 @@ export const PortfolioPage: React.FC = () => {
 
   // Set document title and scroll to top on mount
   useEffect(() => {
-    document.title = 'Portfolio | BRANDSHOOTS — 3D Cinematic Archive';
+    document.title = 'Portfolio | BRANDSHOOTS — Cinematic Showcase';
     window.scrollTo(0, 0);
     sessionStorage.setItem('bs_intro_seen', 'true');
   }, []);
@@ -75,10 +77,16 @@ export const PortfolioPage: React.FC = () => {
       {/* 1. HOMEPAGE-MATCHED NAVIGATION BAR */}
       <PortfolioNavbar onOpenContact={() => setContactModalOpen(true)} />
 
-      {/* 2. 100vw × 100vh 3D TIME MACHINE / WORMHOLE CINEMATIC CORRIDOR */}
+      {/* 2. 100vw × 100vh 3D CINEMATIC CORRIDOR (PROJECTS 01-08) */}
       <PortfolioWormhole3D />
 
-      {/* 3. CONTACT MODAL */}
+      {/* 3. EDITORIAL CLIENTELE SECTION */}
+      <PortfolioClienteleSection />
+
+      {/* 4. FINAL BRANDSHOOTS CINEMATIC FOOTER */}
+      <BrandShootsFooter onOpenContact={() => setContactModalOpen(true)} />
+
+      {/* 5. CONTACT MODAL */}
       <ContactModal
         isOpen={contactModalOpen}
         onClose={() => setContactModalOpen(false)}

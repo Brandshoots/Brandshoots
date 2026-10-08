@@ -29,16 +29,6 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = ({ onOpenCont
     }
   };
 
-  const scrollToSection = (id: string) => {
-    const lenis = (window as any).__lenis;
-    if (lenis) {
-      lenis.scrollTo(`#${id}`, { duration: 0.85 });
-    } else {
-      const el = document.getElementById(id);
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
     <>
       <footer
@@ -103,43 +93,34 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = ({ onOpenCont
           {/* ========================================================= */}
           {/* 2. ARCHITECTURAL EDITORIAL NAVIGATION ROW                 */}
           {/* ========================================================= */}
-          <nav className="mt-10 sm:mt-12 flex flex-wrap justify-center items-center gap-6 sm:gap-10 text-white/70 font-sans text-xs sm:text-[13px] tracking-[0.24em] uppercase font-semibold">
+          <nav className="mt-10 sm:mt-12 flex flex-wrap justify-center items-center gap-7 sm:gap-11 text-white/75 font-sans text-xs sm:text-[13px] tracking-[0.24em] uppercase font-semibold">
             <Link
               to="/about"
               className="hover:text-[#008CFF] transition-colors duration-200 cursor-pointer"
             >
-              ABOUT US
+              ABOUT
             </Link>
 
             <Link
               to="/portfolio"
               className="hover:text-[#008CFF] transition-colors duration-200 cursor-pointer"
             >
-              PROJECT
+              PORTFOLIO
             </Link>
 
-            <button
-              type="button"
-              onClick={() => scrollToSection('leadership')}
-              className="hover:text-[#008CFF] transition-colors duration-200 cursor-pointer uppercase tracking-[0.24em]"
-            >
-              TEAM
-            </button>
-
-            <button
-              type="button"
-              onClick={() => scrollToSection('what-we-do')}
-              className="hover:text-[#008CFF] transition-colors duration-200 cursor-pointer uppercase tracking-[0.24em]"
+            <Link
+              to="/#what-we-do"
+              className="hover:text-[#008CFF] transition-colors duration-200 cursor-pointer"
             >
               SERVICES
-            </button>
+            </Link>
 
             <button
               type="button"
               onClick={handleOpenContact}
               className="text-[#008CFF] hover:text-[#52B2FF] transition-colors duration-200 cursor-pointer uppercase tracking-[0.24em]"
             >
-              GET IN TOUCH
+              CONTACT
             </button>
           </nav>
 

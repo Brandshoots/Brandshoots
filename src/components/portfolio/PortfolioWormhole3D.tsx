@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { CLIENT_PROJECTS, ClientProject } from '../../data/clientsData';
-import { ArrowUpRight, Play, Maximize2, X, List, ChevronRight } from 'lucide-react';
+import { ArrowUpRight, Play, X, List, ChevronRight } from 'lucide-react';
 import { FullScreenReelModal } from './FullScreenReelModal';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -884,9 +884,9 @@ export const PortfolioWormhole3D: React.FC = () => {
         }}
       >
         {/* ================================================================== */}
-        {/* FIXED 100vw × 100vh CINEMATIC VIEWPORT PINNED FOR SCROLL PROGRESS */}
+        {/* STICKY 100vw × 100vh CINEMATIC VIEWPORT PINNED FOR SCROLL PROGRESS */}
         {/* ================================================================== */}
-        <div className="fixed inset-0 w-full h-full overflow-hidden flex flex-col justify-between pointer-events-none">
+        <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-between pointer-events-none">
           {/* ========================================================= */}
           {/* 1. THREE.JS 3D WEBGL CANVAS (REAL 3D CORRIDOR ENGINE)     */}
           {/* ========================================================= */}
@@ -896,25 +896,20 @@ export const PortfolioWormhole3D: React.FC = () => {
           />
 
           {/* ========================================================= */}
-          {/* 2. TOP HUD: CHAPTER KICKER & PROJECT COUNTER              */}
+          {/* 2. TOP HUD: MINIMAL ARCHIVE & PROJECT COUNTER             */}
           {/* ========================================================= */}
           <div className="relative z-20 w-full px-5 sm:px-10 md:px-14 pt-20 sm:pt-24 md:pt-28 flex items-center justify-between pointer-events-none">
-            {/* Subtle Category Kicker */}
-            <div className="flex items-center gap-2 font-mono text-[10px] sm:text-xs tracking-[0.26em] uppercase text-white/50">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF] animate-pulse" />
-              <span className="text-white/80 font-semibold">BRANDSHOOTS ARCHIVE</span>
-              <span className="hidden sm:inline text-white/20">//</span>
-              <span className="hidden sm:inline text-white/45">3D TIME CORRIDOR</span>
+            {/* Minimal Editorial Kicker */}
+            <div className="flex items-center gap-2.5 font-sans text-xs tracking-[0.24em] uppercase text-white/60 font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
+              <span>SELECTED ARCHIVE</span>
             </div>
 
-            {/* Minimal Project Counter with Electric Blue Highlight */}
-            <div className="flex items-center gap-2 font-mono text-xs sm:text-sm tracking-[0.2em] text-white/60">
-              <span className="hidden sm:inline text-white/30 uppercase text-[10px] tracking-[0.24em]">PROJECT</span>
-              <span className="text-[#008CFF] font-extrabold text-sm sm:text-base drop-shadow-[0_0_10px_rgba(0,140,255,0.7)]">
-                {String(activeIndex + 1).padStart(2, '0')}
-              </span>
-              <span className="text-white/25 font-light">/</span>
-              <span className="text-white/40">{String(totalProjects).padStart(2, '0')}</span>
+            {/* Clean Project Counter */}
+            <div className="font-mono text-xs sm:text-sm tracking-[0.22em] text-white/50">
+              <span className="text-white font-bold">{String(activeIndex + 1).padStart(2, '0')}</span>
+              <span className="text-white/30 mx-1.5">/</span>
+              <span>{String(totalProjects).padStart(2, '0')}</span>
             </div>
           </div>
 
@@ -923,14 +918,12 @@ export const PortfolioWormhole3D: React.FC = () => {
           {/* ========================================================= */}
           {isHoveringReel && (
             <div
-              className={`fixed z-30 pointer-events-none transition-all duration-300 hidden md:flex items-center gap-2.5 px-4.5 py-2.5 rounded-full bg-[#04060A]/90 text-white border border-[#008CFF]/60 font-mono text-xs tracking-[0.2em] uppercase font-bold shadow-[0_0_30px_rgba(0,140,255,0.5),inset_0_1px_1px_rgba(255,255,255,0.3)] backdrop-blur-xl animate-pulse ${
+              className={`fixed z-30 pointer-events-none transition-all duration-300 hidden md:flex items-center gap-2.5 px-4.5 py-2.5 rounded-full bg-[#04060A]/85 text-white border border-white/20 font-sans text-xs tracking-[0.16em] uppercase font-semibold shadow-[0_8px_32px_rgba(0,0,0,0.85)] backdrop-blur-xl ${
                 isLeft ? 'left-[22%] top-[50%]' : 'right-[22%] top-[50%]'
               } -translate-y-1/2`}
             >
-              <span className="w-6 h-6 rounded-full bg-[#008CFF] flex items-center justify-center text-white shadow-sm">
-                <Play className="w-3 h-3 fill-current ml-0.5" />
-              </span>
-              <span className="text-white/95">WATCH FULLSCREEN REEL</span>
+              <Play className="w-3.5 h-3.5 fill-[#008CFF] text-[#008CFF]" />
+              <span className="text-white/90">WATCH REEL</span>
             </div>
           )}
 
@@ -954,9 +947,9 @@ export const PortfolioWormhole3D: React.FC = () => {
               }}
             >
               <div className="relative max-w-md lg:max-w-lg xl:max-w-xl flex flex-col">
-                {/* Large Background Watermark Number (Joseph Berry Art Direction) */}
+                {/* Large Background Watermark Number (Faint & Editorial) */}
                 <div
-                  className={`absolute z-0 font-display font-black tracking-tighter text-white/[0.035] select-none pointer-events-none leading-none ${
+                  className={`absolute z-0 font-display font-black tracking-tighter text-white/[0.025] select-none pointer-events-none leading-none ${
                     isMobile
                       ? 'top-[-2.5rem] left-1/2 -translate-x-1/2 text-[32vw]'
                       : '-top-14 sm:-top-20 -left-6 sm:-left-10 text-[18vw] lg:text-[19vw]'
@@ -966,64 +959,40 @@ export const PortfolioWormhole3D: React.FC = () => {
                   {String(activeIndex + 1).padStart(2, '0')}
                 </div>
 
-                {/* Animated Editorial Content Block */}
+                {/* Animated Editorial Content Block — Minimal, Focused, Clean */}
                 <div ref={editorialContentRef} className="relative z-10 flex flex-col">
-                  {/* Category / Year Kicker with Pulsing Electric Blue Beacon */}
-                  <div className={`flex items-center gap-2 text-[10px] sm:text-xs font-mono uppercase tracking-[0.28em] text-[#008CFF] font-semibold mb-2 sm:mb-2.5 ${isMobile ? 'justify-center' : ''}`}>
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
-                    <span>{String(activeIndex + 1).padStart(2, '0')} // {currentProject.category} • {currentProject.year}</span>
+                  {/* PROJECT NUMBER */}
+                  <div className={`font-mono text-xs sm:text-[13px] tracking-[0.3em] uppercase text-[#008CFF] font-semibold mb-3 ${isMobile ? 'text-center' : ''}`}>
+                    PROJECT — {String(activeIndex + 1).padStart(2, '0')}
                   </div>
 
-                  {/* Client Name Display Title */}
-                  <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-black tracking-[-0.035em] text-white uppercase drop-shadow-[0_4px_28px_rgba(0,0,0,0.95)] leading-[0.96]">
+                  {/* PROJECT NAME (Dominant & Monumental) */}
+                  <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-black tracking-[-0.035em] text-white uppercase drop-shadow-[0_4px_30px_rgba(0,0,0,0.95)] leading-[0.95]">
                     {currentProject.name}
                   </h2>
 
-                  {/* Headline Hook */}
-                  <p className="mt-2.5 sm:mt-3 text-sm sm:text-base md:text-lg font-bold text-white/95 tracking-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]">
+                  {/* SHORT ONE-LINE DESCRIPTION */}
+                  <p className="mt-3.5 sm:mt-4 text-sm sm:text-base md:text-lg font-sans font-normal text-white/70 leading-relaxed line-clamp-2">
                     {currentProject.headline}
                   </p>
 
-                  {/* Editorial Story Summary */}
-                  <p className="mt-2 text-xs sm:text-sm md:text-[15px] text-white/65 leading-relaxed font-sans line-clamp-3">
-                    {currentProject.story}
-                  </p>
-
-                  {/* Deliverable Tags & Key Metric Pill */}
-                  <div className={`mt-3.5 sm:mt-4 flex flex-wrap gap-2 ${isMobile ? 'justify-center' : ''}`}>
-                    {currentProject.deliverables.slice(0, 3).map((item, dIdx) => (
-                      <span
-                        key={dIdx}
-                        className="px-2.5 py-1 rounded-full font-mono text-[9px] sm:text-[10px] tracking-widest uppercase bg-white/[0.04] border border-white/[0.08] text-white/70"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                    {currentProject.metrics && currentProject.metrics[0] && (
-                      <span className="px-2.5 py-1 rounded-full font-mono text-[9px] sm:text-[10px] tracking-widest uppercase bg-[#008CFF]/15 border border-[#008CFF]/30 text-[#008CFF] font-semibold">
-                        {currentProject.metrics[0].value} {currentProject.metrics[0].label}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Primary Action Buttons */}
-                  <div className={`mt-5 sm:mt-6 flex items-center gap-3.5 ${isMobile ? 'justify-center' : ''}`}>
+                  {/* ACTION BUTTONS (WATCH REEL / VIEW PROJECT) */}
+                  <div className={`mt-6 sm:mt-7 flex items-center gap-3.5 ${isMobile ? 'justify-center' : ''}`}>
                     <button
                       type="button"
                       onClick={() => setFullScreenProject(currentProject)}
-                      className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-[#008CFF] hover:bg-[#007fe6] text-white font-sans text-xs tracking-[0.14em] uppercase font-bold transition-all duration-200 cursor-pointer shadow-[0_4px_20px_rgba(0,140,255,0.4)] active:scale-95 group"
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#008CFF] hover:bg-[#007fe6] text-white font-sans text-xs tracking-[0.16em] uppercase font-semibold transition-all duration-200 cursor-pointer shadow-[0_4px_16px_rgba(0,140,255,0.35)] active:scale-95 group"
                     >
                       <Play className="w-3.5 h-3.5 fill-current text-white" />
                       <span>WATCH REEL</span>
-                      <Maximize2 className="w-3.5 h-3.5 opacity-70 group-hover:opacity-100 ml-0.5" />
                     </button>
 
                     <Link
                       to={`/portfolio/${currentProject.slug}`}
-                      className="inline-flex items-center gap-1.5 px-4.5 py-2.5 rounded-full bg-white/[0.04] hover:bg-white/[0.1] border border-white/20 hover:border-white text-white/80 hover:text-white font-sans text-xs tracking-[0.14em] uppercase font-semibold transition-all duration-200 active:scale-95 group"
+                      className="inline-flex items-center gap-1.5 px-5 py-3 rounded-full bg-white/[0.04] hover:bg-white/[0.09] border border-white/20 hover:border-white/50 text-white/80 hover:text-white font-sans text-xs tracking-[0.16em] uppercase font-medium transition-all duration-200 active:scale-95 group"
                     >
-                      <span>CASE STUDY</span>
-                      <ArrowUpRight className="w-3.5 h-3.5 text-[#008CFF] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                      <span>VIEW PROJECT</span>
+                      <ArrowUpRight className="w-3.5 h-3.5 text-white/60 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
                     </Link>
                   </div>
                 </div>
@@ -1037,8 +1006,8 @@ export const PortfolioWormhole3D: React.FC = () => {
           <div className="relative z-20 w-full px-5 sm:px-10 md:px-14 pb-5 sm:pb-7 flex items-center justify-between text-[11px] font-mono uppercase tracking-[0.22em] pointer-events-auto">
             {/* Scroll Cue */}
             <div className="flex items-center gap-2 text-white/40">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] animate-pulse" />
-              <span className="hidden sm:inline">SCROLL TO TRAVEL</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
+              <span className="hidden sm:inline">SCROLL TO NAVIGATE</span>
               <span className="sm:hidden">SCROLL</span>
             </div>
 
