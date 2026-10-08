@@ -4,22 +4,23 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { CLIENT_PROJECTS, ClientProject } from '../../data/clientsData';
-import { ArrowUpRight, Play, Maximize2 } from 'lucide-react';
+import { ArrowUpRight, Play, Maximize2, X, List, ChevronRight } from 'lucide-react';
 import { FullScreenReelModal } from './FullScreenReelModal';
 
 gsap.registerPlugin(ScrollTrigger);
 
 /**
- * PHASE 3 PORTFOLIO — 3D TIME MACHINE WORMHOLE CORRIDOR
+ * BRANDSHOOTS PORTFOLIO — 3D TIME MACHINE CORRIDOR & EDITORIAL ARCHIVE
  *
- * Core Concept & User Approvals:
- * - Environment: Near-black (#020306) with subtle dark light graphics & BrandShoots signature Electric Blue (#008CFF).
- * - Light Graphics in Background: Faint architectural coordinate grid lines, subtle curved horizon arc, and soft stardust motes.
- * - Reel Frame: Premium titanium curved smartphone/cinema display chassis with smooth rounded corners, beveled chamfer,
- *   flush rounded video screen, razor-thin electric blue perimeter contour line, and subtle gorilla glass specular sheen.
- * - Interactive: Hovering over active reel shows pointer + "WATCH FULLSCREEN" badge.
- *   Clicking the reel or "WATCH FULLSCREEN REEL" button immediately launches the FullScreenReelModal with unmuted audio.
- * - Geometry & Spacing: Approved 9:16 vertical ratio (1.76 × 3.12), alternating Left (-2.35) and Right (+2.35) inward walls (±22°).
+ * Art-direction & interaction inspired by Joseph Berry:
+ * - Direct numbered progression (01-08) & dynamic project tracking
+ * - Smooth scroll-driven directional text transitions with inertia drift
+ * - Giant typographic watermark numbers behind editorial copy
+ * - Interactive cursor-driven 3D parallax depth on cinema chassis
+ * - "ALL PROJECTS [08]" Quick Index Drawer for immediate project jumping
+ * - Consistent BrandShoots Homepage visual identity:
+ *   Electric blue (#008CFF), deep obsidian (#020306), Figtree & Display typography,
+ *   refined deliverable tags, metallic buttons, and buttery Lenis scroll sync.
  */
 
 const PANEL_WIDTH = 1.76;
@@ -75,7 +76,7 @@ function createRoundedRimLineGeometry(w: number, h: number, r: number, z: number
   return new THREE.BufferGeometry().setFromPoints(pts3D);
 }
 
-// Procedural dark cinematic backdrop texture with subtle light graphics (near-black with BrandShoots Electric Blue #008CFF)
+// Procedural dark cinematic backdrop texture with subtle light graphics
 function createDarkCinematicBackdropTexture(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
@@ -95,7 +96,7 @@ function createDarkCinematicBackdropTexture(): THREE.CanvasTexture {
   ctx.fillStyle = centerGlow;
   ctx.fillRect(0, 0, 1024, 1024);
 
-  // 3. Light Graphics: Minimal architectural coordinate grid lines (very dark, not too bright)
+  // 3. Light Graphics: Minimal architectural coordinate grid lines
   ctx.strokeStyle = 'rgba(0, 140, 255, 0.035)';
   ctx.lineWidth = 1;
   const gridSize = 72;
@@ -119,7 +120,7 @@ function createDarkCinematicBackdropTexture(): THREE.CanvasTexture {
   ctx.arc(512, 980, 680, Math.PI * 1.18, Math.PI * 1.82);
   ctx.stroke();
 
-  // 5. Light Graphics: Delicate coordinate crosshairs at key grid intersections
+  // 5. Light Graphics: Delicate coordinate crosshairs
   ctx.strokeStyle = 'rgba(0, 140, 255, 0.12)';
   ctx.lineWidth = 1.5;
   const crosshairPoints = [
@@ -151,148 +152,179 @@ function createDarkCinematicBackdropTexture(): THREE.CanvasTexture {
   }
 
   const texture = new THREE.CanvasTexture(canvas);
-  texture.needsUpdate = true;
+  texture.wrapS = THREE.ClampToEdgeWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
   return texture;
 }
 
-// Procedural soft circular particle texture for 3D dust
+// Procedural volumetric glow texture for the traveling light pocket
+function createLightPocketTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d')!;
+
+  const grad = ctx.createRadialGradient(256, 256, 10, 256, 256, 250);
+  grad.addColorStop(0, 'rgba(0, 140, 255, 0.40)');
+  grad.addColorStop(0.25, 'rgba(0, 120, 240, 0.22)');
+  grad.addColorStop(0.55, 'rgba(0, 70, 180, 0.08)');
+  grad.addColorStop(0.85, 'rgba(0, 30, 90, 0.02)');
+  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 512, 512);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  return texture;
+}
+
+// Procedural soft stardust circle sprite
 function createDustParticleTexture(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 64;
   canvas.height = 64;
   const ctx = canvas.getContext('2d')!;
-  const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+
+  const grad = ctx.createRadialGradient(32, 32, 2, 32, 32, 30);
   grad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
-  grad.addColorStop(0.25, 'rgba(120, 195, 255, 0.50)');
-  grad.addColorStop(0.65, 'rgba(0, 140, 255, 0.14)');
+  grad.addColorStop(0.3, 'rgba(0, 140, 255, 0.6)');
+  grad.addColorStop(0.7, 'rgba(0, 100, 220, 0.2)');
   grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 64, 64);
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.needsUpdate = true;
-  return texture;
+
+  return new THREE.CanvasTexture(canvas);
 }
 
-// Subtle gorilla glass specular sheen texture
+// Procedural subtle diagonal gorilla glass reflection sheen
 function createGlassGlareTexture(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 256;
   canvas.height = 512;
   const ctx = canvas.getContext('2d')!;
+
   const grad = ctx.createLinearGradient(0, 0, 256, 512);
-  grad.addColorStop(0, 'rgba(255, 255, 255, 0.16)');
-  grad.addColorStop(0.20, 'rgba(0, 140, 255, 0.06)');
-  grad.addColorStop(0.50, 'rgba(255, 255, 255, 0.015)');
-  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  grad.addColorStop(0, 'rgba(255, 255, 255, 0.0)');
+  grad.addColorStop(0.35, 'rgba(255, 255, 255, 0.035)');
+  grad.addColorStop(0.48, 'rgba(255, 255, 255, 0.12)');
+  grad.addColorStop(0.52, 'rgba(255, 255, 255, 0.14)');
+  grad.addColorStop(0.65, 'rgba(255, 255, 255, 0.035)');
+  grad.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 256, 512);
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.needsUpdate = true;
-  return texture;
+
+  return new THREE.CanvasTexture(canvas);
 }
 
-// Soft traveling backlight pocket texture (strictly BrandShoots #008CFF)
-function createSoftLightTexture(): THREE.CanvasTexture {
-  const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 512;
-  const ctx = canvas.getContext('2d')!;
-  const grad = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
-  grad.addColorStop(0, 'rgba(0, 140, 255, 0.22)');
-  grad.addColorStop(0.35, 'rgba(0, 90, 200, 0.08)');
-  grad.addColorStop(0.65, 'rgba(2, 6, 20, 0.01)');
-  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 512, 512);
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.needsUpdate = true;
-  return texture;
+interface PanelData {
+  group: THREE.Group;
+  screenMesh: THREE.Mesh;
+  chassisMesh: THREE.Mesh;
+  rimLine: THREE.LineSegments;
+  baseX: number;
+  baseY: number;
+  baseRotY: number;
+  video: HTMLVideoElement;
+  videoTexture: THREE.VideoTexture | null;
+  posterTexture: THREE.Texture;
+  isPlaying: boolean;
 }
 
 export const PortfolioWormhole3D: React.FC = () => {
-  const totalProjects = CLIENT_PROJECTS.length; // 10 projects
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const editorialContentRef = useRef<HTMLDivElement>(null);
 
-  // Fractional scroll progress across all chapters: 0.0 to 9.0
   const [scrollUnit, setScrollUnit] = useState<number>(0);
   const [activeIndex, setActiveIndex] = useState<number>(0);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
-
-  // Full screen reel player state
   const [fullScreenProject, setFullScreenProject] = useState<ClientProject | null>(null);
   const [isHoveringReel, setIsHoveringReel] = useState<boolean>(false);
-
-  // Three.js instances
-  const sceneRef = useRef<THREE.Scene | null>(null);
-  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
-
-  // Backdrop & dust refs
-  const backdropMeshRef = useRef<THREE.Mesh | null>(null);
-  const dustGeoRef = useRef<THREE.BufferGeometry | null>(null);
-  const dustBaseYRef = useRef<Float32Array | null>(null);
-  const dustSpeedsRef = useRef<Float32Array | null>(null);
-
-  // Soft traveling light pocket refs
-  const lightPocketMeshRef = useRef<THREE.Mesh | null>(null);
-  const lightPocketMatRef = useRef<THREE.MeshBasicMaterial | null>(null);
-  const pocketPointLightRef = useRef<THREE.PointLight | null>(null);
+  const [isIndexDrawerOpen, setIsIndexDrawerOpen] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth < 1024);
 
   const activeIndexRef = useRef<number>(0);
   activeIndexRef.current = activeIndex;
 
-  const panelsRef = useRef<{
-    group: THREE.Group;
-    screenMesh: THREE.Mesh;
-    chassisMesh: THREE.Mesh;
-    rimLine: THREE.LineSegments | THREE.LineLoop;
-    baseX: number;
-    baseY: number;
-    baseRotY: number;
-    video: HTMLVideoElement;
-    videoTexture: THREE.VideoTexture | null;
-    posterTexture: THREE.Texture;
-    isPlaying: boolean;
-  }[]>([]);
+  const totalProjects = CLIENT_PROJECTS.length;
 
-  // Track responsive screen size
+  // Interactive Cursor Parallax Refs
+  const targetMouseRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const currentMouseRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  // Three.js Scene References
+  const sceneRef = useRef<THREE.Scene | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const panelsRef = useRef<PanelData[]>([]);
+  const backdropMeshRef = useRef<THREE.Mesh | null>(null);
+  const lightPocketMeshRef = useRef<THREE.Mesh | null>(null);
+  const lightPocketMatRef = useRef<THREE.MeshBasicMaterial | null>(null);
+  const pocketPointLightRef = useRef<THREE.PointLight | null>(null);
+  const dustGeoRef = useRef<THREE.BufferGeometry | null>(null);
+  const dustBaseYRef = useRef<Float32Array | null>(null);
+  const dustSpeedsRef = useRef<Float32Array | null>(null);
+
+  // Resize handler
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
     };
-    checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Initialize Three.js Scene, Camera, Light Dust, Dark Backdrop, and 3D Panels
+  // Keyboard navigation & ESC handler for drawer
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (isIndexDrawerOpen) setIsIndexDrawerOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isIndexDrawerOpen]);
+
+  // GSAP Editorial Stagger Reveal on Project Change
+  useEffect(() => {
+    const el = editorialContentRef.current;
+    if (el) {
+      gsap.killTweensOf(el.children);
+      gsap.fromTo(
+        el.children,
+        { opacity: 0, y: 18 },
+        { opacity: 1, y: 0, duration: 0.42, stagger: 0.05, ease: 'power2.out' }
+      );
+    }
+  }, [activeIndex]);
+
+  // Setup Three.js Wormhole Corridor Engine
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // 1. Scene with Pure Dark Cinematic Space
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x020306);
-    scene.fog = new THREE.FogExp2(0x020306, 0.024);
-    sceneRef.current = scene;
-
-    // 2. Perspective Camera looking straight down center (0, 0, 0)
     const width = window.innerWidth;
     const height = window.innerHeight;
-    const mobile = width < 1024;
-    const camera = new THREE.PerspectiveCamera(mobile ? 52 : 44, width / height, 0.1, 85);
-    camera.position.set(0, mobile ? 0.35 : 0.0, CAM_Z);
-    camera.lookAt(0, mobile ? 0.35 : 0.0, 0);
+    const mob = width < 1024;
+
+    // 1. Scene
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#020306');
+    scene.fog = new THREE.FogExp2('#020306', 0.04);
+    sceneRef.current = scene;
+
+    // 2. Camera
+    const camera = new THREE.PerspectiveCamera(mob ? 52 : 44, width / height, 0.1, 100);
+    camera.position.set(0, mob ? 0.35 : 0.0, CAM_Z);
     cameraRef.current = camera;
 
-    // 3. High-Performance WebGL Renderer
+    // 3. WebGL Renderer
     const renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: true,
       powerPreference: 'high-performance',
-      stencil: false,
-      depth: true,
+      alpha: false,
     });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -300,182 +332,158 @@ export const PortfolioWormhole3D: React.FC = () => {
     renderer.toneMappingExposure = 1.15;
     rendererRef.current = renderer;
 
-    // 4. Subtle Dark Cinematic Backdrop with Light Graphics
+    // 4. Lighting System
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
+    scene.add(ambientLight);
+
+    const keyDirectionalLight = new THREE.DirectionalLight(0xffffff, 1.4);
+    keyDirectionalLight.position.set(4, 6, 8);
+    scene.add(keyDirectionalLight);
+
+    const studioFillLight = new THREE.DirectionalLight(0x008cff, 0.85);
+    studioFillLight.position.set(-6, -2, 4);
+    scene.add(studioFillLight);
+
+    const pocketPointLight = new THREE.PointLight(0x008cff, 1.8, 14, 1.4);
+    pocketPointLight.position.set(mob ? 0 : -2.35, 0.2, -1.6);
+    scene.add(pocketPointLight);
+    pocketPointLightRef.current = pocketPointLight;
+
+    // 5. Cinematic Backdrop with subtle Light Graphics
     const backdropTexture = createDarkCinematicBackdropTexture();
-    const backdropGeo = new THREE.PlaneGeometry(54, 34);
+    const backdropGeo = new THREE.PlaneGeometry(38, 26);
     const backdropMat = new THREE.MeshBasicMaterial({
       map: backdropTexture,
-      transparent: true,
-      opacity: 0.85,
       depthWrite: false,
     });
     const backdropMesh = new THREE.Mesh(backdropGeo, backdropMat);
-    backdropMesh.position.set(0, 0, -19.0);
+    backdropMesh.position.set(0, 0, -18);
     scene.add(backdropMesh);
     backdropMeshRef.current = backdropMesh;
 
-    // 5. Floating Dust Particle System (Simple, delicate stardust motes)
-    const dustParticleTexture = createDustParticleTexture();
+    // 6. Traveling Volumetric Light Pocket Plane
+    const lightPocketTexture = createLightPocketTexture();
+    const lightPocketGeo = new THREE.PlaneGeometry(9.5, 9.5);
+    const lightPocketMat = new THREE.MeshBasicMaterial({
+      map: lightPocketTexture,
+      transparent: true,
+      opacity: 0.16,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const lightPocketMesh = new THREE.Mesh(lightPocketGeo, lightPocketMat);
+    lightPocketMesh.position.set(mob ? 0 : -2.35, 0.0, -2.5);
+    scene.add(lightPocketMesh);
+    lightPocketMeshRef.current = lightPocketMesh;
+    lightPocketMatRef.current = lightPocketMat;
+
+    // 7. Ambient Stardust Motes
     const dustGeo = new THREE.BufferGeometry();
     const dustPositions = new Float32Array(DUST_COUNT * 3);
     const dustBaseY = new Float32Array(DUST_COUNT);
     const dustSpeeds = new Float32Array(DUST_COUNT);
 
     for (let i = 0; i < DUST_COUNT; i++) {
-      dustPositions[i * 3 + 0] = (Math.random() - 0.5) * 24; // X: -12 to +12
-      const y = (Math.random() - 0.5) * 15;
-      dustPositions[i * 3 + 1] = y; // Y: -7.5 to +7.5
+      dustPositions[i * 3 + 0] = (Math.random() - 0.5) * 16;
+      const y = (Math.random() - 0.5) * 12;
+      dustPositions[i * 3 + 1] = y;
       dustBaseY[i] = y;
-      dustPositions[i * 3 + 2] = (Math.random() - 0.5) * 28 - 2; // Z: -16 to +12
-      dustSpeeds[i] = Math.random() * 0.7 + 0.3;
+      dustPositions[i * 3 + 2] = -Math.random() * 20;
+      dustSpeeds[i] = 0.5 + Math.random() * 0.9;
     }
-    dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
-    dustGeoRef.current = dustGeo;
-    dustBaseYRef.current = dustBaseY;
-    dustSpeedsRef.current = dustSpeeds;
 
+    dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
+    const dustParticleTexture = createDustParticleTexture();
     const dustMat = new THREE.PointsMaterial({
-      size: 0.08,
+      size: 0.18,
       map: dustParticleTexture,
       transparent: true,
-      opacity: 0.24,
+      opacity: 0.45,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
     const dustPoints = new THREE.Points(dustGeo, dustMat);
     scene.add(dustPoints);
+    dustGeoRef.current = dustGeo;
+    dustBaseYRef.current = dustBaseY;
+    dustSpeedsRef.current = dustSpeeds;
 
-    // 6. Atmospheric Lighting
-    const ambientLight = new THREE.AmbientLight(0x060c18, 1.8);
-    scene.add(ambientLight);
-
-    const dirLight = new THREE.DirectionalLight(0xffffff, 2.2);
-    dirLight.position.set(4, 12, 8);
-    scene.add(dirLight);
-
-    // Camera accent point light (BrandShoots Electric Blue #008CFF)
-    const camPointLight = new THREE.PointLight(0x008cff, 1.5, 22);
-    camPointLight.position.set(0, 0, 1.5);
-    camera.add(camPointLight);
-    scene.add(camera);
-
-    // 7. Soft Traveling Volumetric Light Pocket behind Active Project
-    const lightPocketTexture = createSoftLightTexture();
-    const lightPocketGeo = new THREE.PlaneGeometry(12, 12);
-    const lightPocketMat = new THREE.MeshBasicMaterial({
-      map: lightPocketTexture,
-      transparent: true,
-      opacity: 0.16,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    });
-    const lightPocketMesh = new THREE.Mesh(lightPocketGeo, lightPocketMat);
-    lightPocketMesh.position.set(mobile ? 0 : -2.35, mobile ? 0.65 : 0.0, -2.4);
-    scene.add(lightPocketMesh);
-    lightPocketMeshRef.current = lightPocketMesh;
-    lightPocketMatRef.current = lightPocketMat;
-
-    // Traveling studio PointLight behind active project
-    const pocketPointLight = new THREE.PointLight(0x008cff, 1.4, 14, 1.8);
-    pocketPointLight.position.set(mobile ? 0 : -2.35, mobile ? 0.8 : 0.3, -1.4);
-    scene.add(pocketPointLight);
-    pocketPointLightRef.current = pocketPointLight;
-
-    // 8. Construct 10 Physical 3D Reel Panels (Masterpiece Curved Chassis & Rounded Screen)
-    const textureLoader = new THREE.TextureLoader();
-    const glareTexture = createGlassGlareTexture();
-    const panels: typeof panelsRef.current = [];
-
-    // Shared Geometries for Ultra-Sleek Curved Titanium Cinema Display
-    // A. Extruded Obsidian Titanium Chassis with smooth rounded corners and beveled chamfer
-    const chassisShape = createRoundedRectShape(PANEL_WIDTH + 0.05, PANEL_HEIGHT + 0.05, CORNER_RADIUS + 0.02);
-    const chassisGeo = new THREE.ExtrudeGeometry(chassisShape, {
-      depth: 0.05,
-      bevelEnabled: true,
-      bevelSegments: 4,
-      steps: 1,
-      bevelSize: 0.022,
-      bevelThickness: 0.022,
-    });
-    chassisGeo.center();
-
-    // B. Inner Rounded Screen Geometry with normalized UVs
+    // 8. Construct Titanium Curved Chassis & Rounded Video Screens
+    const chassisThickness = 0.055;
+    const chassisGeo = new THREE.BoxGeometry(
+      PANEL_WIDTH + 0.08,
+      PANEL_HEIGHT + 0.08,
+      chassisThickness
+    );
     const screenGeo = createRoundedScreenGeometry(PANEL_WIDTH, PANEL_HEIGHT, CORNER_RADIUS);
+    const rimLineGeo = createRoundedRimLineGeometry(PANEL_WIDTH + 0.005, PANEL_HEIGHT + 0.005, CORNER_RADIUS, 0.029);
 
-    // C. Razor-thin Electric Blue (#008CFF) Rounded Contour Rim Line
-    const rimLineGeo = createRoundedRimLineGeometry(PANEL_WIDTH + 0.01, PANEL_HEIGHT + 0.01, CORNER_RADIUS + 0.005, 0.028);
+    const glareTexture = createGlassGlareTexture();
+    const glareGeo = new THREE.PlaneGeometry(PANEL_WIDTH, PANEL_HEIGHT);
 
-    // D. Rounded Glass Reflection Glare Plane
-    const glareGeo = createRoundedScreenGeometry(PANEL_WIDTH, PANEL_HEIGHT, CORNER_RADIUS);
+    const textureLoader = new THREE.TextureLoader();
+    const panels: PanelData[] = [];
 
     CLIENT_PROJECTS.forEach((project, i) => {
       const panelGroup = new THREE.Group();
 
-      // Alternating LEFT / RIGHT spatial placement
-      // Even i (0, 2, 4, 6, 8): LEFT wall (X = -2.35)
-      // Odd i (1, 3, 5, 7, 9): RIGHT wall (X = +2.35)
       const isLeft = i % 2 === 0;
-      const baseX = mobile ? 0 : (isLeft ? -2.35 : 2.35);
-      const baseY = mobile ? 0.65 : 0.0;
-      const baseRotY = mobile ? (isLeft ? 0.14 : -0.14) : (isLeft ? 0.38 : -0.38); // ~22° angle
+      const baseX = mob ? 0 : (isLeft ? -2.35 : 2.35);
+      const baseY = mob ? 0.65 : 0.0;
+      const baseRotY = mob ? (isLeft ? 0.14 : -0.14) : (isLeft ? 0.38 : -0.38);
 
       panelGroup.position.set(baseX, baseY, 0);
       panelGroup.rotation.y = baseRotY;
-      if (mobile) {
-        panelGroup.scale.setScalar(0.78);
-      }
 
-      // 1. Obsidian Titanium Backplate Chassis (Curved, metallic, luxury)
+      // Chassis Body: Brushed Titanium Bezel
       const chassisMat = new THREE.MeshStandardMaterial({
-        color: 0x090e18,
-        roughness: 0.22,
+        color: 0x181a20,
         metalness: 0.92,
-        transparent: true,
-        opacity: i === 0 ? 1.0 : 0.0,
+        roughness: 0.32,
+        envMapIntensity: 1.2,
       });
       const chassisMesh = new THREE.Mesh(chassisGeo, chassisMat);
-      chassisMesh.position.set(0, 0, -0.015);
+      chassisMesh.position.set(0, 0, 0);
       panelGroup.add(chassisMesh);
 
-      // 2. Razor-thin BrandShoots Electric Blue (#008CFF) Contour Edge Loop
-      const rimLineMat = new THREE.LineBasicMaterial({
-        color: 0x008cff,
-        transparent: true,
-        opacity: i === 0 ? 0.55 : 0.0,
-      });
-      const rimLine = new THREE.LineLoop(rimLineGeo, rimLineMat);
-      panelGroup.add(rimLine);
+      // Poster Texture (Initial crisp display)
+      const posterTexture = textureLoader.load(project.posterUrl);
+      posterTexture.colorSpace = THREE.SRGBColorSpace;
 
-      // 3. Video element setup
+      // Hidden Video Element for active playback
       const video = document.createElement('video');
       video.src = project.videoUrl;
-      video.poster = project.posterUrl;
       video.crossOrigin = 'anonymous';
       video.loop = true;
       video.muted = true;
       video.playsInline = true;
       video.preload = 'metadata';
 
-      // 4. High-res poster fallback texture
-      const posterTexture = textureLoader.load(project.posterUrl);
-      posterTexture.colorSpace = THREE.SRGBColorSpace;
-
-      // 5. Rounded Screen Plane Mesh
+      // Screen Mesh: Rounded corners with flush titanium seating
       const screenMat = new THREE.MeshBasicMaterial({
         map: posterTexture,
-        side: THREE.FrontSide,
         transparent: true,
-        opacity: i === 0 ? 1.0 : 0.0,
+        opacity: 1.0,
       });
       const screenMesh = new THREE.Mesh(screenGeo, screenMat);
-      screenMesh.position.set(0, 0, 0.024); // sit flush in front of chassis
+      screenMesh.position.set(0, 0, 0.028);
       panelGroup.add(screenMesh);
 
-      // 6. Delicate Gorilla Glass Glare Sheen Overlay
+      // Razor-thin Electric Blue Rim Contour Line
+      const rimMat = new THREE.LineBasicMaterial({
+        color: 0x008cff,
+        transparent: true,
+        opacity: 0.55,
+        linewidth: 1.5,
+      });
+      const rimLine = new THREE.LineSegments(rimLineGeo, rimMat);
+      panelGroup.add(rimLine);
+
+      // Gorilla Glass Reflection Glare
       const glareMat = new THREE.MeshBasicMaterial({
         map: glareTexture,
         transparent: true,
-        opacity: i === 0 ? 0.08 : 0.0,
+        opacity: 0.28,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
       });
@@ -505,11 +513,15 @@ export const PortfolioWormhole3D: React.FC = () => {
 
     panelsRef.current = panels;
 
-    // Handle Raycaster Pointer Interaction (Click to Play Full Screen & Hover Pointer)
+    // Raycaster Pointer Interaction
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
     const handlePointerMove = (e: MouseEvent) => {
+      // Track normalized mouse for 3D cursor parallax
+      targetMouseRef.current.x = (e.clientX / window.innerWidth) * 2 - 1;
+      targetMouseRef.current.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
       const rect = canvas.getBoundingClientRect();
       mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -531,7 +543,6 @@ export const PortfolioWormhole3D: React.FC = () => {
     };
 
     const handlePointerDown = (e: MouseEvent) => {
-      // Ignore if clicking on UI buttons or links
       const target = e.target as HTMLElement;
       if (target.tagName === 'BUTTON' || target.tagName === 'A' || target.closest('button') || target.closest('a')) {
         return;
@@ -548,13 +559,12 @@ export const PortfolioWormhole3D: React.FC = () => {
       if (activePanel && activePanel.group.visible) {
         const intersects = raycaster.intersectObjects([activePanel.screenMesh, activePanel.chassisMesh], true);
         if (intersects.length > 0) {
-          // Launch Full Screen Reel Video!
           setFullScreenProject(CLIENT_PROJECTS[activeIndexRef.current]);
         }
       }
     };
 
-    window.addEventListener('mousemove', handlePointerMove);
+    window.addEventListener('mousemove', handlePointerMove, { passive: true });
     window.addEventListener('click', handlePointerDown);
 
     // Handle Window Resize
@@ -581,12 +591,27 @@ export const PortfolioWormhole3D: React.FC = () => {
     };
     window.addEventListener('resize', handleResize);
 
-    // Continuous Animation Loop with Organic Dust Drift
+    // Animation Loop with Organic Dust Drift and Interactive Cursor Parallax
     let animId: number;
     const animate = () => {
       animId = requestAnimationFrame(animate);
 
-      // Subtle organic floating motion for dust motes
+      // Smooth cursor parallax lerp
+      currentMouseRef.current.x += (targetMouseRef.current.x - currentMouseRef.current.x) * 0.04;
+      currentMouseRef.current.y += (targetMouseRef.current.y - currentMouseRef.current.y) * 0.04;
+
+      // Gentle interactive tilt on camera & active panel
+      if (cameraRef.current) {
+        cameraRef.current.rotation.y = -currentMouseRef.current.x * 0.022;
+        cameraRef.current.rotation.x = currentMouseRef.current.y * 0.018;
+      }
+
+      const activePanel = panelsRef.current[activeIndexRef.current];
+      if (activePanel && activePanel.group.visible) {
+        activePanel.group.rotation.x = currentMouseRef.current.y * 0.04;
+      }
+
+      // Organic floating motion for dust motes
       if (dustGeoRef.current && dustBaseYRef.current && dustSpeedsRef.current) {
         const posAttr = dustGeoRef.current.getAttribute('position') as THREE.BufferAttribute;
         const time = Date.now() * 0.0006;
@@ -626,7 +651,7 @@ export const PortfolioWormhole3D: React.FC = () => {
     };
   }, []);
 
-  // Update Dynamic Three.js Wormhole Motion & Dark Space based on Scroll Unit
+  // Update Three.js Wormhole Motion & Dark Space based on Scroll Unit
   const updateThreeScene = useCallback((u: number) => {
     const panels = panelsRef.current;
     const camera = cameraRef.current;
@@ -689,7 +714,7 @@ export const PortfolioWormhole3D: React.FC = () => {
     panels.forEach((p, idx) => {
       const delta = u - idx; // 0 = active hero, < 0 = upcoming (entering), > 0 = exiting
 
-      // Far upcoming panels: hidden ("dont keep them before only")
+      // Far upcoming panels: hidden
       if (delta <= -1.0) {
         p.group.visible = false;
         if (p.isPlaying) {
@@ -758,7 +783,7 @@ export const PortfolioWormhole3D: React.FC = () => {
       // Rim light glint peaks slightly when snapped in focus
       const dist = Math.abs(delta);
       const activeEmphasis = dist < 0.35 ? (1.0 - dist * 2.8) : 0;
-      (p.rimLine.material as THREE.LineBasicMaterial).opacity = (0.45 + activeEmphasis * 0.25) * opacity;
+      (p.rimLine.material as THREE.LineBasicMaterial).opacity = (0.45 + activeEmphasis * 0.35) * opacity;
 
       // Video playback: play only when in close hero focus
       if (dist < 0.65 && opacity > 0.6) {
@@ -818,17 +843,23 @@ export const PortfolioWormhole3D: React.FC = () => {
     };
   }, [totalProjects, updateThreeScene]);
 
-  // Jump to project chapter
+  // Jump smoothly to project chapter (supports Lenis smooth glide)
   const scrollToProject = useCallback(
     (index: number) => {
       if (!containerRef.current) return;
       const container = containerRef.current;
       const totalScrollable = container.offsetHeight - window.innerHeight;
       const targetTop = container.offsetTop + (index / (totalProjects - 1)) * totalScrollable;
-      window.scrollTo({
-        top: targetTop,
-        behavior: 'smooth',
-      });
+
+      const lenis = (window as any).__lenis;
+      if (lenis) {
+        lenis.scrollTo(targetTop, { duration: 1.15 });
+      } else {
+        window.scrollTo({
+          top: targetTop,
+          behavior: 'smooth',
+        });
+      }
     },
     [totalProjects]
   );
@@ -837,9 +868,10 @@ export const PortfolioWormhole3D: React.FC = () => {
   const currentProject: ClientProject = CLIENT_PROJECTS[activeIndex] || CLIENT_PROJECTS[0];
   const isLeft = activeIndex % 2 === 0;
 
-  // Text reveal opacity based on snap precision (fades out while travelling between projects)
-  const snapDistance = Math.abs(scrollUnit - activeIndex);
-  const textOpacity = Math.max(0, 1 - snapDistance * 2.8);
+  // Editorial directional drift & smooth opacity during scroll
+  const scrollDelta = scrollUnit - activeIndex;
+  const editorialDriftY = scrollDelta * -24; // gentle inertia glide in direction of scroll
+  const editorialOpacity = Math.max(0.18, 1 - Math.abs(scrollDelta) * 1.5);
 
   return (
     <>
@@ -864,118 +896,154 @@ export const PortfolioWormhole3D: React.FC = () => {
           />
 
           {/* ========================================================= */}
-          {/* 2. MINIMAL TOP STATUS // PROJECT COUNTER (SUBTLE & CLEAN) */}
+          {/* 2. TOP HUD: CHAPTER KICKER & PROJECT COUNTER              */}
           {/* ========================================================= */}
-          <div className="relative z-20 w-full px-6 sm:px-10 md:px-16 pt-24 md:pt-28 flex items-center justify-between pointer-events-none">
+          <div className="relative z-20 w-full px-5 sm:px-10 md:px-14 pt-20 sm:pt-24 md:pt-28 flex items-center justify-between pointer-events-none">
             {/* Subtle Category Kicker */}
-            <div className="flex items-center gap-2 font-mono text-[11px] sm:text-xs tracking-[0.24em] uppercase text-white/40">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
-              <span className="text-white/60">BRANDSHOOTS ARCHIVE</span>
+            <div className="flex items-center gap-2 font-mono text-[10px] sm:text-xs tracking-[0.26em] uppercase text-white/50">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF] animate-pulse" />
+              <span className="text-white/80 font-semibold">BRANDSHOOTS ARCHIVE</span>
               <span className="hidden sm:inline text-white/20">//</span>
-              <span className="hidden sm:inline text-white/40">3D CORRIDOR</span>
+              <span className="hidden sm:inline text-white/45">3D TIME CORRIDOR</span>
             </div>
 
-            {/* Minimal Project Counter */}
-            <div className="flex items-center gap-2 font-mono text-xs sm:text-sm tracking-[0.2em] text-white/50">
-              <span className="text-[#008CFF] font-semibold">
+            {/* Minimal Project Counter with Electric Blue Highlight */}
+            <div className="flex items-center gap-2 font-mono text-xs sm:text-sm tracking-[0.2em] text-white/60">
+              <span className="hidden sm:inline text-white/30 uppercase text-[10px] tracking-[0.24em]">PROJECT</span>
+              <span className="text-[#008CFF] font-extrabold text-sm sm:text-base drop-shadow-[0_0_10px_rgba(0,140,255,0.7)]">
                 {String(activeIndex + 1).padStart(2, '0')}
               </span>
-              <span className="text-white/20">/</span>
-              <span>{String(totalProjects).padStart(2, '0')}</span>
+              <span className="text-white/25 font-light">/</span>
+              <span className="text-white/40">{String(totalProjects).padStart(2, '0')}</span>
             </div>
           </div>
 
           {/* ========================================================= */}
-          {/* 3. HOVER BADGE OVER ACTIVE REEL: CLICK TO PLAY FULLSCREEN */}
+          {/* 3. HOVER BADGE OVER ACTIVE REEL: CLICK TO WATCH FULLSCREEN */}
           {/* ========================================================= */}
-          {isHoveringReel && textOpacity > 0.5 && (
+          {isHoveringReel && (
             <div
-              className={`fixed z-30 pointer-events-none transition-all duration-200 hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-[#008CFF]/90 text-white font-mono text-xs tracking-wider uppercase font-bold shadow-[0_0_24px_rgba(0,140,255,0.7)] backdrop-blur-md animate-pulse ${
+              className={`fixed z-30 pointer-events-none transition-all duration-300 hidden md:flex items-center gap-2.5 px-4.5 py-2.5 rounded-full bg-[#04060A]/90 text-white border border-[#008CFF]/60 font-mono text-xs tracking-[0.2em] uppercase font-bold shadow-[0_0_30px_rgba(0,140,255,0.5),inset_0_1px_1px_rgba(255,255,255,0.3)] backdrop-blur-xl animate-pulse ${
                 isLeft ? 'left-[22%] top-[50%]' : 'right-[22%] top-[50%]'
-              }`}
+              } -translate-y-1/2`}
             >
-              <Play className="w-3.5 h-3.5 fill-current" />
-              <span>CLICK TO PLAY FULLSCREEN</span>
+              <span className="w-6 h-6 rounded-full bg-[#008CFF] flex items-center justify-center text-white shadow-sm">
+                <Play className="w-3 h-3 fill-current ml-0.5" />
+              </span>
+              <span className="text-white/95">WATCH FULLSCREEN REEL</span>
             </div>
           )}
 
           {/* ========================================================= */}
-          {/* 4. INTEGRATED MINIMAL PROJECT EDITORIAL INFORMATION       */}
+          {/* 4. INTEGRATED EDITORIAL LAYOUT (JOSEPH BERRY INSPIRED)     */}
           {/*    (Positioned cleanly on opposite side of active reel)   */}
           {/* ========================================================= */}
-          <div className="relative z-10 w-full flex-1 flex items-center px-6 sm:px-12 md:px-16 lg:px-24 xl:px-32 pointer-events-none">
+          <div className="relative z-10 w-full flex-1 flex items-center px-5 sm:px-10 md:px-14 lg:px-20 xl:px-28 pointer-events-none">
             <div
-              className={`w-full flex pointer-events-auto transition-all duration-200 ${
+              className={`relative w-full flex pointer-events-auto ${
                 isMobile
-                  ? 'justify-center items-end text-center mt-auto mb-16'
+                  ? 'justify-center items-end text-center mt-auto mb-20 pb-4'
                   : isLeft
                   ? 'justify-end items-center text-left'
                   : 'justify-start items-center text-left'
               }`}
               style={{
-                opacity: textOpacity,
-                transform: `translateY(${(1 - textOpacity) * 16}px)`,
+                opacity: editorialOpacity,
+                transform: `translate3d(0, ${editorialDriftY}px, 0)`,
+                transition: 'opacity 0.12s ease-out, transform 0.12s ease-out',
               }}
             >
-              <div className="max-w-md lg:max-w-lg xl:max-w-xl flex flex-col">
-                {/* Category / Type Kicker */}
-                <div className="text-[11px] sm:text-xs font-mono uppercase tracking-[0.26em] text-[#008CFF] font-semibold mb-1.5 sm:mb-2.5">
-                  // {String(activeIndex + 1).padStart(2, '0')} • {currentProject.category} • {currentProject.year}
+              <div className="relative max-w-md lg:max-w-lg xl:max-w-xl flex flex-col">
+                {/* Large Background Watermark Number (Joseph Berry Art Direction) */}
+                <div
+                  className={`absolute z-0 font-display font-black tracking-tighter text-white/[0.035] select-none pointer-events-none leading-none ${
+                    isMobile
+                      ? 'top-[-2.5rem] left-1/2 -translate-x-1/2 text-[32vw]'
+                      : '-top-14 sm:-top-20 -left-6 sm:-left-10 text-[18vw] lg:text-[19vw]'
+                  }`}
+                  aria-hidden="true"
+                >
+                  {String(activeIndex + 1).padStart(2, '0')}
                 </div>
 
-                {/* Big Client Display Title */}
-                <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-extrabold tracking-tight text-white uppercase drop-shadow-md leading-[1.05]">
-                  {currentProject.name}
-                </h2>
+                {/* Animated Editorial Content Block */}
+                <div ref={editorialContentRef} className="relative z-10 flex flex-col">
+                  {/* Category / Year Kicker with Pulsing Electric Blue Beacon */}
+                  <div className={`flex items-center gap-2 text-[10px] sm:text-xs font-mono uppercase tracking-[0.28em] text-[#008CFF] font-semibold mb-2 sm:mb-2.5 ${isMobile ? 'justify-center' : ''}`}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
+                    <span>{String(activeIndex + 1).padStart(2, '0')} // {currentProject.category} • {currentProject.year}</span>
+                  </div>
 
-                {/* Headline Hook */}
-                <p className="mt-2.5 sm:mt-3 text-sm sm:text-base md:text-lg font-medium text-white/90 tracking-wide">
-                  {currentProject.headline}
-                </p>
+                  {/* Client Name Display Title */}
+                  <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-black tracking-[-0.035em] text-white uppercase drop-shadow-[0_4px_28px_rgba(0,0,0,0.95)] leading-[0.96]">
+                    {currentProject.name}
+                  </h2>
 
-                {/* One Clean Editorial Story Sentence */}
-                <p className="mt-2 text-xs sm:text-sm md:text-base text-white/60 leading-relaxed font-sans line-clamp-3">
-                  {currentProject.story}
-                </p>
+                  {/* Headline Hook */}
+                  <p className="mt-2.5 sm:mt-3 text-sm sm:text-base md:text-lg font-bold text-white/95 tracking-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]">
+                    {currentProject.headline}
+                  </p>
 
-                {/* Discrete Watch Fullscreen Reel Action Button */}
-                <div className="mt-5 sm:mt-6 flex items-center gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setFullScreenProject(currentProject)}
-                    className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#008CFF]/15 hover:bg-[#008CFF] border border-[#008CFF]/60 hover:border-[#008CFF] text-[#008CFF] hover:text-white font-mono text-xs tracking-[0.20em] uppercase font-bold transition-all duration-200 cursor-pointer shadow-[0_0_15px_rgba(0,140,255,0.2)] active:scale-95 group"
-                  >
-                    <Play className="w-3.5 h-3.5 fill-current text-[#008CFF] group-hover:text-white" />
-                    <span>WATCH FULLSCREEN REEL</span>
-                    <Maximize2 className="w-3 h-3 text-[#008CFF] group-hover:text-white ml-0.5" />
-                  </button>
+                  {/* Editorial Story Summary */}
+                  <p className="mt-2 text-xs sm:text-sm md:text-[15px] text-white/65 leading-relaxed font-sans line-clamp-3">
+                    {currentProject.story}
+                  </p>
 
-                  <Link
-                    to={`/portfolio/${currentProject.slug}`}
-                    className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-[0.18em] text-white/60 hover:text-white transition-colors duration-200 group"
-                  >
-                    <span className="border-b border-white/20 group-hover:border-white pb-0.5">
-                      DETAILS
-                    </span>
-                    <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                  </Link>
+                  {/* Deliverable Tags & Key Metric Pill */}
+                  <div className={`mt-3.5 sm:mt-4 flex flex-wrap gap-2 ${isMobile ? 'justify-center' : ''}`}>
+                    {currentProject.deliverables.slice(0, 3).map((item, dIdx) => (
+                      <span
+                        key={dIdx}
+                        className="px-2.5 py-1 rounded-full font-mono text-[9px] sm:text-[10px] tracking-widest uppercase bg-white/[0.04] border border-white/[0.08] text-white/70"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                    {currentProject.metrics && currentProject.metrics[0] && (
+                      <span className="px-2.5 py-1 rounded-full font-mono text-[9px] sm:text-[10px] tracking-widest uppercase bg-[#008CFF]/15 border border-[#008CFF]/30 text-[#008CFF] font-semibold">
+                        {currentProject.metrics[0].value} {currentProject.metrics[0].label}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Primary Action Buttons */}
+                  <div className={`mt-5 sm:mt-6 flex items-center gap-3.5 ${isMobile ? 'justify-center' : ''}`}>
+                    <button
+                      type="button"
+                      onClick={() => setFullScreenProject(currentProject)}
+                      className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-[#008CFF] hover:bg-[#007fe6] text-white font-sans text-xs tracking-[0.14em] uppercase font-bold transition-all duration-200 cursor-pointer shadow-[0_4px_20px_rgba(0,140,255,0.4)] active:scale-95 group"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-current text-white" />
+                      <span>WATCH REEL</span>
+                      <Maximize2 className="w-3.5 h-3.5 opacity-70 group-hover:opacity-100 ml-0.5" />
+                    </button>
+
+                    <Link
+                      to={`/portfolio/${currentProject.slug}`}
+                      className="inline-flex items-center gap-1.5 px-4.5 py-2.5 rounded-full bg-white/[0.04] hover:bg-white/[0.1] border border-white/20 hover:border-white text-white/80 hover:text-white font-sans text-xs tracking-[0.14em] uppercase font-semibold transition-all duration-200 active:scale-95 group"
+                    >
+                      <span>CASE STUDY</span>
+                      <ArrowUpRight className="w-3.5 h-3.5 text-[#008CFF] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           {/* ========================================================= */}
-          {/* 5. SUBTLE BOTTOM STATUS & NAVIGATION                      */}
+          {/* 5. BOTTOM NAVIGATION HUD (NUMBERED STEPPER & INDEX DRAWER) */}
           {/* ========================================================= */}
-          <div className="relative z-20 w-full px-6 sm:px-10 md:px-16 pb-6 sm:pb-8 flex items-center justify-between text-[11px] font-mono text-white/35 uppercase tracking-[0.22em] pointer-events-auto">
-            {/* Scroll Prompt */}
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-white/30 animate-pulse" />
-              <span>SCROLL TO TRAVEL CORRIDOR</span>
+          <div className="relative z-20 w-full px-5 sm:px-10 md:px-14 pb-5 sm:pb-7 flex items-center justify-between text-[11px] font-mono uppercase tracking-[0.22em] pointer-events-auto">
+            {/* Scroll Cue */}
+            <div className="flex items-center gap-2 text-white/40">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] animate-pulse" />
+              <span className="hidden sm:inline">SCROLL TO TRAVEL</span>
+              <span className="sm:hidden">SCROLL</span>
             </div>
 
-            {/* Quick Stepper Index */}
-            <div className="flex items-center gap-2">
+            {/* Center: Numbered Stepper Pills (Joseph Berry Numbered Progression) */}
+            <div className="flex items-center gap-1 sm:gap-1.5 bg-[#04060A]/80 backdrop-blur-2xl border border-white/10 px-2 sm:px-3 py-1 rounded-full shadow-[0_4px_24px_rgba(0,0,0,0.8)]">
               {CLIENT_PROJECTS.map((_, pIdx) => {
                 const isActive = activeIndex === pIdx;
                 return (
@@ -984,25 +1052,129 @@ export const PortfolioWormhole3D: React.FC = () => {
                     type="button"
                     onClick={() => scrollToProject(pIdx)}
                     aria-label={`Jump to project ${pIdx + 1}`}
-                    className="py-1 px-0.5 focus:outline-none cursor-pointer"
+                    className={`px-1.5 sm:px-2.5 py-0.5 rounded-full font-mono text-[10px] sm:text-xs tracking-wider transition-all duration-200 cursor-pointer ${
+                      isActive
+                        ? 'bg-[#008CFF] text-white font-bold shadow-[0_0_12px_rgba(0,140,255,0.7)]'
+                        : 'text-white/40 hover:text-white hover:bg-white/[0.08]'
+                    }`}
                   >
-                    <span
-                      className={`block transition-all duration-300 rounded-full ${
-                        isActive
-                          ? 'w-5 sm:w-7 h-1 bg-[#008CFF] shadow-[0_0_6px_#008CFF]'
-                          : 'w-1 h-1 bg-white/20 hover:bg-white/50'
-                      }`}
-                    />
+                    {String(pIdx + 1).padStart(2, '0')}
                   </button>
                 );
               })}
             </div>
+
+            {/* Right: Quick "ALL PROJECTS [08]" Index Trigger */}
+            <button
+              type="button"
+              onClick={() => setIsIndexDrawerOpen(true)}
+              className="flex items-center gap-2 font-mono text-[10px] sm:text-xs uppercase tracking-[0.2em] text-white/70 hover:text-white bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 hover:border-white/30 px-3 sm:px-4 py-1.5 rounded-full backdrop-blur-md transition-all duration-200 cursor-pointer shadow-sm active:scale-95"
+            >
+              <List className="w-3.5 h-3.5 text-[#008CFF]" />
+              <span>INDEX [{String(totalProjects).padStart(2, '0')}]</span>
+            </button>
           </div>
         </div>
       </div>
 
       {/* ================================================================== */}
-      {/* 6. FULLSCREEN CINEMATIC REEL MODAL PLAYER                          */}
+      {/* 6. ALL PROJECTS QUICK INDEX DRAWER (JOSEPH BERRY INSPIRED)         */}
+      {/* ================================================================== */}
+      {isIndexDrawerOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-8 bg-[#020306]/85 backdrop-blur-3xl animate-in fade-in duration-200 select-none"
+          onClick={() => setIsIndexDrawerOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-3xl max-h-[85vh] bg-[#05070B] border border-white/15 rounded-3xl p-6 sm:p-10 shadow-[0_24px_80px_rgba(0,0,0,0.95)] flex flex-col overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Ambient Electric Blue Glow */}
+            <div className="absolute top-0 right-0 w-80 h-80 bg-[#008CFF]/10 rounded-full blur-[100px] pointer-events-none" />
+
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between pb-5 border-b border-white/10 relative z-10">
+              <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.26em] text-white/50">
+                <span className="w-2 h-2 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
+                <span className="text-white font-bold">PROJECT INDEX</span>
+                <span className="text-white/25">//</span>
+                <span>[{String(totalProjects).padStart(2, '0')} ARCHIVED REELS]</span>
+              </div>
+
+              <button
+                type="button"
+                aria-label="Close project index"
+                onClick={() => setIsIndexDrawerOpen(false)}
+                className="w-9 h-9 rounded-full bg-white/[0.08] hover:bg-white/[0.16] border border-white/15 text-white/80 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-95"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Scrollable Project List */}
+            <div className="flex-1 overflow-y-auto mt-4 divide-y divide-white/[0.06] pr-1 relative z-10">
+              {CLIENT_PROJECTS.map((proj, pIdx) => {
+                const isSelected = activeIndex === pIdx;
+                return (
+                  <div
+                    key={proj.id}
+                    onClick={() => {
+                      setIsIndexDrawerOpen(false);
+                      scrollToProject(pIdx);
+                    }}
+                    className={`group flex items-center justify-between py-4 sm:py-5 px-3 rounded-xl transition-all duration-200 cursor-pointer ${
+                      isSelected
+                        ? 'bg-white/[0.06] pl-4'
+                        : 'hover:bg-white/[0.04] hover:pl-4'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4 sm:gap-6">
+                      <span
+                        className={`font-mono text-xs sm:text-sm tracking-widest ${
+                          isSelected ? 'text-[#008CFF] font-bold' : 'text-white/40 group-hover:text-white/80'
+                        }`}
+                      >
+                        {String(pIdx + 1).padStart(2, '0')}
+                      </span>
+                      <div>
+                        <h3
+                          className={`font-display text-lg sm:text-2xl font-black uppercase tracking-tight transition-colors ${
+                            isSelected ? 'text-[#008CFF]' : 'text-white group-hover:text-[#008CFF]'
+                          }`}
+                        >
+                          {proj.name}
+                        </h3>
+                        <p className="text-xs font-mono uppercase tracking-wider text-white/40 sm:hidden mt-0.5">
+                          {proj.category}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 sm:gap-8 font-mono text-xs uppercase tracking-wider text-right">
+                      <span className="hidden sm:inline text-white/45">{proj.category}</span>
+                      <span className="text-white/30">{proj.year}</span>
+                      <ChevronRight className={`w-4 h-4 transition-transform ${
+                        isSelected ? 'text-[#008CFF] translate-x-1' : 'text-white/30 group-hover:text-[#008CFF] group-hover:translate-x-1'
+                      }`} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Drawer Footer Cue */}
+            <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs font-mono text-white/40 uppercase tracking-widest relative z-10">
+              <span>SELECT TO GLIDE THROUGH CORRIDOR</span>
+              <span className="text-[#008CFF]">[ESC TO EXIT]</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================================================================== */}
+      {/* 7. FULLSCREEN CINEMATIC REEL MODAL PLAYER                          */}
       {/* ================================================================== */}
       <FullScreenReelModal
         isOpen={Boolean(fullScreenProject)}
