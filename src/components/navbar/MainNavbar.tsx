@@ -134,10 +134,10 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
       {/* 1. DEDICATED MOBILE NAVBAR (Liquid Glass Blur & Polished Composition) */}
       {/* ========================================================= */}
       <header
-        className={`md:hidden fixed top-0 inset-x-0 z-[120] w-full px-5 sm:px-6 py-3.5 flex items-center justify-between transition-all duration-300 ${
+        className={`md:hidden fixed top-0 inset-x-0 z-[120] w-full px-5 sm:px-6 py-3.5 flex items-center justify-between border-0 border-none outline-none transition-[background-color,backdrop-filter] duration-300 ${
           isScrolled || menuOpen
-            ? 'bg-[#04060A]/85 backdrop-blur-2xl backdrop-saturate-[180%] border-b border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.85)]'
-            : 'bg-gradient-to-b from-[#04060A]/95 via-[#04060A]/50 to-transparent border-b border-transparent'
+            ? 'bg-[#04060A]/85 backdrop-blur-2xl backdrop-saturate-[180%]'
+            : 'bg-transparent'
         }`}
       >
         {/* BrandShoots Official Logo (Enlarged, crisp, proportional, always readable) */}
