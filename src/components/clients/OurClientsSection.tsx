@@ -106,7 +106,7 @@ export const OurClientsSection: React.FC = () => {
           <img
             src={encodeURI(item.logo)}
             alt={item.name}
-            className={`w-full h-full object-contain select-none transition-transform duration-300 group-hover:scale-110 ${item.scale || 'scale-100'}`}
+            className={`w-full h-full object-contain select-none transition-all duration-500 filter grayscale-0 group-hover:grayscale group-hover:opacity-75 ${item.scale || 'scale-100'}`}
             draggable={false}
             loading="lazy"
           />

@@ -196,32 +196,75 @@ function createDustParticleTexture(): THREE.CanvasTexture {
   return new THREE.CanvasTexture(canvas);
 }
 
-// Procedural subtle diagonal gorilla glass reflection sheen
-function createGlassGlareTexture(): THREE.CanvasTexture {
+// Procedural soft volumetric contact drop-shadow texture
+function createContactShadowTexture(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
-  canvas.width = 256;
+  canvas.width = 512;
   canvas.height = 512;
   const ctx = canvas.getContext('2d')!;
 
-  const grad = ctx.createLinearGradient(0, 0, 256, 512);
+  const grad = ctx.createRadialGradient(256, 256, 30, 256, 256, 245);
+  grad.addColorStop(0, 'rgba(0, 0, 0, 0.88)');
+  grad.addColorStop(0.35, 'rgba(0, 0, 0, 0.52)');
+  grad.addColorStop(0.70, 'rgba(0, 0, 0, 0.18)');
+  grad.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
+
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 512, 512);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  return texture;
+}
+
+// Procedural cinema-grade diagonal optical reflection sheen
+function createGlassGlareTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 1024;
+  const ctx = canvas.getContext('2d')!;
+
+  // Smooth cinematic dual-band diagonal glass glare
+  const grad = ctx.createLinearGradient(0, 0, 512, 1024);
   grad.addColorStop(0, 'rgba(255, 255, 255, 0.0)');
-  grad.addColorStop(0.35, 'rgba(255, 255, 255, 0.035)');
-  grad.addColorStop(0.48, 'rgba(255, 255, 255, 0.12)');
-  grad.addColorStop(0.52, 'rgba(255, 255, 255, 0.14)');
-  grad.addColorStop(0.65, 'rgba(255, 255, 255, 0.035)');
+  grad.addColorStop(0.30, 'rgba(255, 255, 255, 0.025)');
+  grad.addColorStop(0.44, 'rgba(255, 255, 255, 0.07)');
+  grad.addColorStop(0.48, 'rgba(255, 255, 255, 0.18)');
+  grad.addColorStop(0.52, 'rgba(255, 255, 255, 0.13)');
+  grad.addColorStop(0.56, 'rgba(255, 255, 255, 0.04)');
+  grad.addColorStop(0.70, 'rgba(255, 255, 255, 0.015)');
   grad.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
 
   ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 256, 512);
+  ctx.fillRect(0, 0, 512, 1024);
+
+  // Soft secondary highlight sheen in top right corner
+  const cornerGlow = ctx.createRadialGradient(420, 140, 10, 420, 140, 300);
+  cornerGlow.addColorStop(0, 'rgba(255, 255, 255, 0.09)');
+  cornerGlow.addColorStop(0.5, 'rgba(0, 140, 255, 0.03)');
+  cornerGlow.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
+  ctx.fillStyle = cornerGlow;
+  ctx.fillRect(0, 0, 512, 1024);
 
   return new THREE.CanvasTexture(canvas);
+}
+
+// Cinema viewfinder corner bracket L-line geometry
+function createCornerBracketGeo(length: number): THREE.BufferGeometry {
+  const pts = [
+    new THREE.Vector3(0, length, 0),
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(length, 0, 0),
+  ];
+  return new THREE.BufferGeometry().setFromPoints(pts);
 }
 
 interface PanelData {
   group: THREE.Group;
   screenMesh: THREE.Mesh;
   chassisMesh: THREE.Mesh;
-  rimLine: THREE.LineSegments;
+  innerBezelMesh: THREE.Mesh;
+  shadowMesh: THREE.Mesh;
+  rimLine: THREE.LineLoop;
   baseX: number;
   baseY: number;
   baseRotY: number;
@@ -408,18 +451,59 @@ export const PortfolioWormhole3D: React.FC = () => {
     dustBaseYRef.current = dustBaseY;
     dustSpeedsRef.current = dustSpeeds;
 
-    // 8. Construct Titanium Curved Chassis & Rounded Video Screens
-    const chassisThickness = 0.055;
-    const chassisGeo = new THREE.BoxGeometry(
-      PANEL_WIDTH + 0.08,
-      PANEL_HEIGHT + 0.08,
-      chassisThickness
-    );
-    const screenGeo = createRoundedScreenGeometry(PANEL_WIDTH, PANEL_HEIGHT, CORNER_RADIUS);
-    const rimLineGeo = createRoundedRimLineGeometry(PANEL_WIDTH + 0.005, PANEL_HEIGHT + 0.005, CORNER_RADIUS, 0.029);
+    // 8. Construct Sculpted Titanium Chassis & Rounded Cinema Display
+    const CHASSIS_OUTER_W = PANEL_WIDTH + 0.10;
+    const CHASSIS_OUTER_H = PANEL_HEIGHT + 0.10;
+    const CHASSIS_RADIUS = CORNER_RADIUS + 0.04;
+    const chassisShape = createRoundedRectShape(CHASSIS_OUTER_W, CHASSIS_OUTER_H, CHASSIS_RADIUS);
+    const chassisGeo = new THREE.ExtrudeGeometry(chassisShape, {
+      depth: 0.046,
+      bevelEnabled: true,
+      bevelSegments: 6,
+      steps: 1,
+      bevelSize: 0.016,
+      bevelThickness: 0.016,
+    });
+    chassisGeo.center();
 
+    // Matte Inner OLED Display Bezel
+    const innerBezelGeo = createRoundedScreenGeometry(PANEL_WIDTH + 0.024, PANEL_HEIGHT + 0.024, CORNER_RADIUS + 0.008);
+    const innerBezelMat = new THREE.MeshBasicMaterial({
+      color: 0x050608,
+      transparent: true,
+      opacity: 1.0,
+    });
+
+    // Active Screen Rounded Screen Geometry
+    const screenGeo = createRoundedScreenGeometry(PANEL_WIDTH, PANEL_HEIGHT, CORNER_RADIUS);
+
+    // Continuous Chamfer Rim Line Loop (No dashed skips)
+    const rimLineGeo = createRoundedRimLineGeometry(PANEL_WIDTH + 0.008, PANEL_HEIGHT + 0.008, CORNER_RADIUS + 0.003, 0.030);
+
+    // Glare Texture (Curved to exact rounded screen geometry)
     const glareTexture = createGlassGlareTexture();
-    const glareGeo = new THREE.PlaneGeometry(PANEL_WIDTH, PANEL_HEIGHT);
+
+    // Volumetric Soft Floating Contact Drop-Shadow
+    const shadowTexture = createContactShadowTexture();
+    const shadowGeo = new THREE.PlaneGeometry(PANEL_WIDTH * 1.48, PANEL_HEIGHT * 1.36);
+
+    // Top Dynamic Sensor Pill & Optic
+    const pillShape = createRoundedRectShape(0.24, 0.036, 0.018);
+    const pillGeo = new THREE.ShapeGeometry(pillShape, 16);
+    const pillMat = new THREE.MeshBasicMaterial({ color: 0x030406, transparent: true, opacity: 0.95 });
+    const opticGeo = new THREE.CircleGeometry(0.009, 16);
+    const opticMat = new THREE.MeshBasicMaterial({ color: 0x008cff, transparent: true, opacity: 0.85 });
+    const sensorGeo = new THREE.CircleGeometry(0.005, 12);
+    const sensorMat = new THREE.MeshBasicMaterial({ color: 0x141824, transparent: true, opacity: 0.9 });
+
+    // Cinema Viewfinder Corner Brackets
+    const bracketSize = 0.07;
+    const bracketGeo = createCornerBracketGeo(bracketSize);
+    const bracketMat = new THREE.LineBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.30,
+    });
 
     const textureLoader = new THREE.TextureLoader();
     const panels: PanelData[] = [];
@@ -435,22 +519,38 @@ export const PortfolioWormhole3D: React.FC = () => {
       panelGroup.position.set(baseX, baseY, 0);
       panelGroup.rotation.y = baseRotY;
 
-      // Chassis Body: Brushed Titanium Bezel
+      // 1. Soft Volumetric Contact Drop Shadow
+      const shadowMat = new THREE.MeshBasicMaterial({
+        map: shadowTexture,
+        transparent: true,
+        opacity: 0.58,
+        depthWrite: false,
+      });
+      const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
+      shadowMesh.position.set(0, -0.05, -0.065);
+      panelGroup.add(shadowMesh);
+
+      // 2. Chassis Body: Sculpted Gunmetal / Space Obsidian Titanium with Beveled Chamfers
       const chassisMat = new THREE.MeshStandardMaterial({
-        color: 0x181a20,
-        metalness: 0.92,
-        roughness: 0.32,
-        envMapIntensity: 1.2,
+        color: 0x12141a,
+        metalness: 0.95,
+        roughness: 0.22,
+        envMapIntensity: 1.4,
       });
       const chassisMesh = new THREE.Mesh(chassisGeo, chassisMat);
       chassisMesh.position.set(0, 0, 0);
       panelGroup.add(chassisMesh);
 
-      // Poster Texture (Initial crisp display)
+      // 3. Matte OLED Inner Bezel
+      const innerBezelMesh = new THREE.Mesh(innerBezelGeo, innerBezelMat);
+      innerBezelMesh.position.set(0, 0, 0.024);
+      panelGroup.add(innerBezelMesh);
+
+      // 4. Poster Texture
       const posterTexture = textureLoader.load(project.posterUrl);
       posterTexture.colorSpace = THREE.SRGBColorSpace;
 
-      // Hidden Video Element for active playback
+      // 5. Hidden Video Element
       const video = document.createElement('video');
       video.src = project.videoUrl;
       video.crossOrigin = 'anonymous';
@@ -459,37 +559,74 @@ export const PortfolioWormhole3D: React.FC = () => {
       video.playsInline = true;
       video.preload = 'metadata';
 
-      // Screen Mesh: Rounded corners with flush titanium seating
+      // 6. Active Screen Mesh with Rounded Corners
       const screenMat = new THREE.MeshBasicMaterial({
         map: posterTexture,
         transparent: true,
         opacity: 1.0,
       });
       const screenMesh = new THREE.Mesh(screenGeo, screenMat);
-      screenMesh.position.set(0, 0, 0.028);
+      screenMesh.position.set(0, 0, 0.027);
       panelGroup.add(screenMesh);
 
-      // Razor-thin Electric Blue Rim Contour Line
+      // 7. Continuous Electric Blue Chamfer Rim Line Loop
       const rimMat = new THREE.LineBasicMaterial({
         color: 0x008cff,
         transparent: true,
-        opacity: 0.55,
+        opacity: 0.75,
         linewidth: 1.5,
       });
-      const rimLine = new THREE.LineSegments(rimLineGeo, rimMat);
+      const rimLine = new THREE.LineLoop(rimLineGeo, rimMat);
       panelGroup.add(rimLine);
 
-      // Gorilla Glass Reflection Glare
+      // 8. Gorilla Glass Specular Glare (curved to exact screen radius)
       const glareMat = new THREE.MeshBasicMaterial({
         map: glareTexture,
         transparent: true,
-        opacity: 0.28,
+        opacity: 0.26,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
       });
-      const glareMesh = new THREE.Mesh(glareGeo, glareMat);
-      glareMesh.position.set(0, 0, 0.029);
+      const glareMesh = new THREE.Mesh(screenGeo, glareMat);
+      glareMesh.position.set(0, 0, 0.028);
       panelGroup.add(glareMesh);
+
+      // 9. Hardware Sensor Capsule & Optic at Top Bezel
+      const pillMesh = new THREE.Mesh(pillGeo, pillMat);
+      pillMesh.position.set(0, PANEL_HEIGHT / 2 - 0.072, 0.030);
+      panelGroup.add(pillMesh);
+
+      const opticMesh = new THREE.Mesh(opticGeo, opticMat);
+      opticMesh.position.set(-0.06, PANEL_HEIGHT / 2 - 0.072, 0.031);
+      panelGroup.add(opticMesh);
+
+      const sensorMesh = new THREE.Mesh(sensorGeo, sensorMat);
+      sensorMesh.position.set(0.06, PANEL_HEIGHT / 2 - 0.072, 0.031);
+      panelGroup.add(sensorMesh);
+
+      // 10. Cinema Viewfinder Corner Brackets
+      const bracketOffsetX = PANEL_WIDTH / 2 - 0.12;
+      const bracketOffsetY = PANEL_HEIGHT / 2 - 0.12;
+
+      const brTR = new THREE.Line(bracketGeo, bracketMat);
+      brTR.position.set(bracketOffsetX, bracketOffsetY, 0.0305);
+      brTR.rotation.z = Math.PI;
+      panelGroup.add(brTR);
+
+      const brTL = new THREE.Line(bracketGeo, bracketMat);
+      brTL.position.set(-bracketOffsetX, bracketOffsetY, 0.0305);
+      brTL.rotation.z = -Math.PI / 2;
+      panelGroup.add(brTL);
+
+      const brBL = new THREE.Line(bracketGeo, bracketMat);
+      brBL.position.set(-bracketOffsetX, -bracketOffsetY, 0.0305);
+      brBL.rotation.z = 0;
+      panelGroup.add(brBL);
+
+      const brBR = new THREE.Line(bracketGeo, bracketMat);
+      brBR.position.set(bracketOffsetX, -bracketOffsetY, 0.0305);
+      brBR.rotation.z = Math.PI / 2;
+      panelGroup.add(brBR);
 
       // Initially show only Chapter 0
       panelGroup.visible = i === 0;
@@ -500,6 +637,8 @@ export const PortfolioWormhole3D: React.FC = () => {
         group: panelGroup,
         screenMesh,
         chassisMesh,
+        innerBezelMesh,
+        shadowMesh,
         rimLine,
         baseX,
         baseY,
@@ -641,8 +780,16 @@ export const PortfolioWormhole3D: React.FC = () => {
       });
       chassisGeo.dispose();
       screenGeo.dispose();
+      innerBezelGeo.dispose();
+      innerBezelMat.dispose();
       rimLineGeo.dispose();
-      glareGeo.dispose();
+      shadowGeo.dispose();
+      shadowTexture.dispose();
+      pillGeo.dispose();
+      opticGeo.dispose();
+      sensorGeo.dispose();
+      bracketGeo.dispose();
+      bracketMat.dispose();
       backdropTexture.dispose();
       dustParticleTexture.dispose();
       lightPocketTexture.dispose();
@@ -779,11 +926,13 @@ export const PortfolioWormhole3D: React.FC = () => {
       // Material opacities & subtle rim-light emphasis
       (p.screenMesh.material as THREE.MeshBasicMaterial).opacity = opacity;
       (p.chassisMesh.material as THREE.MeshStandardMaterial).opacity = opacity;
+      (p.innerBezelMesh.material as THREE.MeshBasicMaterial).opacity = opacity;
+      (p.shadowMesh.material as THREE.MeshBasicMaterial).opacity = opacity * 0.58;
 
       // Rim light glint peaks slightly when snapped in focus
       const dist = Math.abs(delta);
       const activeEmphasis = dist < 0.35 ? (1.0 - dist * 2.8) : 0;
-      (p.rimLine.material as THREE.LineBasicMaterial).opacity = (0.45 + activeEmphasis * 0.35) * opacity;
+      (p.rimLine.material as THREE.LineBasicMaterial).opacity = (0.50 + activeEmphasis * 0.40) * opacity;
 
       // Video playback: play only when in close hero focus
       if (dist < 0.65 && opacity > 0.6) {

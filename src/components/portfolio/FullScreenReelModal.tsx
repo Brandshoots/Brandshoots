@@ -130,39 +130,53 @@ export const FullScreenReelModal: React.FC<FullScreenReelModalProps> = ({
         <X className="w-5 h-5" />
       </button>
 
-      {/* Main Reel Container (9:16 Vertical Cinema Proportion) */}
+      {/* Main Reel Frame Chassis (Sculpted Titanium Cinema Viewfinder) */}
       <div
-        className="relative z-10 w-full max-w-[430px] max-h-[90vh] aspect-[9/16] rounded-3xl overflow-hidden bg-[#060a12] border border-[#008CFF]/40 shadow-[0_0_60px_rgba(0,140,255,0.25)] flex flex-col justify-between"
+        className="relative z-10 w-full max-w-[440px] max-h-[92vh] aspect-[9/16] p-2 sm:p-2.5 rounded-[2.5rem] bg-gradient-to-b from-[#242938] via-[#0f131c] to-[#181d28] border border-white/20 shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_60px_rgba(0,140,255,0.3)] ring-1 ring-[#008CFF]/50 flex flex-col justify-between overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Top Header Information Overlay */}
-        <div className="absolute top-0 inset-x-0 z-20 p-5 bg-gradient-to-b from-black/85 via-black/40 to-transparent flex items-center justify-between pointer-events-auto">
-          <div>
-            <span className="font-mono text-[10px] sm:text-[11px] tracking-[0.24em] text-[#008CFF] uppercase font-semibold block">
-              {project.category}
-            </span>
-            <h3 className="font-display font-black text-lg sm:text-xl uppercase tracking-tight text-white mt-0.5">
-              {project.name}
-            </h3>
-          </div>
-          <span className="font-mono text-[11px] tracking-widest text-white/50 uppercase border border-white/15 px-2.5 py-1 rounded-full">
-            9:16 REEL
-          </span>
+        {/* Dynamic Island Sensor Pill at Top Bezel */}
+        <div className="absolute top-2.5 left-1/2 -translate-x-1/2 z-30 w-24 h-3.5 rounded-full bg-black/95 border border-white/10 flex items-center justify-center gap-2 pointer-events-none shadow-sm">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_6px_#008CFF]" />
+          <span className="w-1 h-1 rounded-full bg-white/30" />
         </div>
 
-        {/* The Fullscreen Video Element */}
-        <video
-          ref={videoRef}
-          src={project.videoUrl}
-          poster={project.posterUrl}
-          playsInline
-          autoPlay
-          loop
-          muted={isMuted}
-          onTimeUpdate={handleTimeUpdate}
-          onClick={togglePlay}
-          className="w-full h-full object-cover cursor-pointer"
-        />
+        {/* Inner Curved Cinema Screen with OLED Bezel */}
+        <div className="relative w-full h-full rounded-[2rem] overflow-hidden bg-[#060a12] border border-white/10 flex flex-col justify-between">
+          {/* Cinema Viewfinder Corner Registration Brackets */}
+          <div className="absolute top-4 left-4 w-3.5 h-3.5 border-t border-l border-white/40 pointer-events-none z-20" />
+          <div className="absolute top-4 right-4 w-3.5 h-3.5 border-t border-r border-white/40 pointer-events-none z-20" />
+          <div className="absolute bottom-4 left-4 w-3.5 h-3.5 border-b border-l border-white/40 pointer-events-none z-20" />
+          <div className="absolute bottom-4 right-4 w-3.5 h-3.5 border-b border-r border-white/40 pointer-events-none z-20" />
+
+          {/* Top Header Information Overlay */}
+          <div className="absolute top-0 inset-x-0 z-20 p-5 pt-6 bg-gradient-to-b from-black/85 via-black/40 to-transparent flex items-center justify-between pointer-events-auto">
+            <div>
+              <span className="font-mono text-[10px] sm:text-[11px] tracking-[0.24em] text-[#008CFF] uppercase font-semibold block">
+                {project.category}
+              </span>
+              <h3 className="font-display font-black text-lg sm:text-xl uppercase tracking-tight text-white mt-0.5">
+                {project.name}
+              </h3>
+            </div>
+            <span className="font-mono text-[11px] tracking-widest text-white/50 uppercase border border-white/15 px-2.5 py-1 rounded-full bg-black/40">
+              9:16 REEL
+            </span>
+          </div>
+
+          {/* The Fullscreen Video Element */}
+          <video
+            ref={videoRef}
+            src={project.videoUrl}
+            poster={project.posterUrl}
+            playsInline
+            autoPlay
+            loop
+            muted={isMuted}
+            onTimeUpdate={handleTimeUpdate}
+            onClick={togglePlay}
+            className="w-full h-full object-cover cursor-pointer"
+          />
 
         {/* Center Pause/Play Indicator when paused */}
         {!isPlaying && (
@@ -227,7 +241,8 @@ export const FullScreenReelModal: React.FC<FullScreenReelModalProps> = ({
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default FullScreenReelModal;

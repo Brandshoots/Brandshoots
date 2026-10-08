@@ -80,20 +80,20 @@ export const PortfolioClienteleSection: React.FC = () => {
             {marqueeRow1.map((client, idx) => (
               <div
                 key={`r1-${idx}`}
-                className="group/card w-52 sm:w-60 md:w-68 h-38 sm:h-42 p-5 sm:p-6 rounded-2xl bg-white/[0.025] hover:bg-white/[0.06] border border-white/[0.08] hover:border-[#008CFF]/50 transition-all duration-300 flex flex-col items-center justify-center shrink-0 cursor-default shadow-sm"
+                className="group/card w-52 sm:w-60 md:w-68 h-38 sm:h-42 p-5 sm:p-6 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] hover:border-white/25 transition-all duration-500 flex flex-col items-center justify-center shrink-0 cursor-default shadow-sm backdrop-blur-sm"
               >
                 <div className="h-12 sm:h-14 w-full flex items-center justify-center">
                   <img
                     src={client.logo}
                     alt={client.name}
                     loading="lazy"
-                    className="max-h-11 sm:max-h-12 max-w-[130px] sm:max-w-[150px] object-contain filter grayscale contrast-125 opacity-70 group-hover/card:grayscale-0 group-hover/card:opacity-100 group-hover/card:scale-105 transition-all duration-300"
+                    className="max-h-11 sm:max-h-12 max-w-[130px] sm:max-w-[150px] object-contain filter grayscale-0 contrast-100 opacity-95 group-hover/card:grayscale group-hover/card:contrast-125 group-hover/card:opacity-60 group-hover/card:scale-95 transition-all duration-500 ease-out"
                   />
                 </div>
                 <span className="font-sans text-xs font-semibold uppercase tracking-[0.14em] text-white/75 group-hover/card:text-white transition-colors mt-3">
                   {client.name}
                 </span>
-                <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.2em] uppercase text-white/35 mt-0.5">
+                <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.2em] uppercase text-white/35 group-hover/card:text-[#008CFF]/80 transition-colors mt-0.5">
                   {client.category}
                 </span>
               </div>
@@ -107,20 +107,20 @@ export const PortfolioClienteleSection: React.FC = () => {
             {marqueeRow2.map((client, idx) => (
               <div
                 key={`r2-${idx}`}
-                className="group/card w-52 sm:w-60 md:w-68 h-38 sm:h-42 p-5 sm:p-6 rounded-2xl bg-white/[0.025] hover:bg-white/[0.06] border border-white/[0.08] hover:border-[#008CFF]/50 transition-all duration-300 flex flex-col items-center justify-center shrink-0 cursor-default shadow-sm"
+                className="group/card w-52 sm:w-60 md:w-68 h-38 sm:h-42 p-5 sm:p-6 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] hover:border-white/25 transition-all duration-500 flex flex-col items-center justify-center shrink-0 cursor-default shadow-sm backdrop-blur-sm"
               >
                 <div className="h-12 sm:h-14 w-full flex items-center justify-center">
                   <img
                     src={client.logo}
                     alt={client.name}
                     loading="lazy"
-                    className="max-h-11 sm:max-h-12 max-w-[130px] sm:max-w-[150px] object-contain filter grayscale contrast-125 opacity-70 group-hover/card:grayscale-0 group-hover/card:opacity-100 group-hover/card:scale-105 transition-all duration-300"
+                    className="max-h-11 sm:max-h-12 max-w-[130px] sm:max-w-[150px] object-contain filter grayscale-0 contrast-100 opacity-95 group-hover/card:grayscale group-hover/card:contrast-125 group-hover/card:opacity-60 group-hover/card:scale-95 transition-all duration-500 ease-out"
                   />
                 </div>
                 <span className="font-sans text-xs font-semibold uppercase tracking-[0.14em] text-white/75 group-hover/card:text-white transition-colors mt-3">
                   {client.name}
                 </span>
-                <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.2em] uppercase text-white/35 mt-0.5">
+                <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.2em] uppercase text-white/35 group-hover/card:text-[#008CFF]/80 transition-colors mt-0.5">
                   {client.category}
                 </span>
               </div>
