@@ -106,12 +106,12 @@ export const BrandShootsCore3D: React.FC = () => {
     renderer.toneMappingExposure = 1.15;
 
     // ========================================================================
-    // 2. CAMERA SETUP (Subtle cinematic perspective)
+    // 2. CAMERA SETUP (Elevated viewport framed above the lower text dock)
     // ========================================================================
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    const baseCameraZ = isMobile ? 9.2 : isTablet ? 8.4 : 7.8;
-    camera.position.set(0, 0, baseCameraZ);
+    const baseCameraZ = isMobile ? 8.6 : isTablet ? 7.8 : 7.2;
+    camera.position.set(0, 0.25, baseCameraZ);
 
     // ========================================================================
     // 3. CINEMATIC STUDIO LIGHTING
@@ -120,7 +120,7 @@ export const BrandShootsCore3D: React.FC = () => {
     scene.add(ambientLight);
 
     const blueRimLight = new THREE.PointLight(0x008cff, 4.5, 30);
-    blueRimLight.position.set(0, 0, -2.5);
+    blueRimLight.position.set(0, 0.5, -2.5);
     scene.add(blueRimLight);
 
     const keyLight = new THREE.DirectionalLight(0xffffff, 2.4);
@@ -128,7 +128,7 @@ export const BrandShootsCore3D: React.FC = () => {
     scene.add(keyLight);
 
     const travelingSpot = new THREE.PointLight(0x38bdf8, 2.0, 18);
-    travelingSpot.position.set(0, 0.5, 3.0);
+    travelingSpot.position.set(0, 0.6, 3.0);
     scene.add(travelingSpot);
 
     // ========================================================================
@@ -143,12 +143,12 @@ export const BrandShootsCore3D: React.FC = () => {
     const videoTextures: THREE.VideoTexture[] = [];
 
     // Precise 9:16 Aspect Ratio (Smartphone / Vertical Cinema Reel)
-    const frameW = isMobile ? 1.45 : isTablet ? 1.6 : 1.75;
+    const frameW = isMobile ? 1.35 : isTablet ? 1.48 : 1.58;
     const frameH = (frameW * 16) / 9;
     const casingDepth = 0.04;
 
     // Shared Geometries
-    const boxCasingGeo = new THREE.BoxGeometry(frameW + 0.06, frameH + 0.06, casingDepth);
+    const boxCasingGeo = new THREE.BoxGeometry(frameW + 0.05, frameH + 0.05, casingDepth);
     const screenGeo = new THREE.PlaneGeometry(frameW, frameH);
     const rimEdgeGeo = new THREE.EdgesGeometry(screenGeo);
 
@@ -250,9 +250,9 @@ export const BrandShootsCore3D: React.FC = () => {
       entranceZ: -3.8, // Initial entrance from deep space
       climaxSpread: 0, // 0 = curved carousel, 1 = wings formation
       cameraZ: baseCameraZ,
-      cameraY: 0,
+      cameraY: 0.25,
       cameraX: 0,
-      cardsElevationY: isMobile ? 0.25 : 0.45,
+      cardsElevationY: isMobile ? 0.35 : 0.52,
     };
 
     // Pointer & Touch Micro-Parallax Physics
@@ -277,7 +277,7 @@ export const BrandShootsCore3D: React.FC = () => {
     window.addEventListener('touchmove', onTouchMove, { passive: true });
 
     // ========================================================================
-    // 6. GSAP SCROLLTRIGGER TIMELINE (Scroll Drives Cinematic Journey)
+    // 6. GSAP SCROLLTRIGGER TIMELINE (Airtight Sequential Choreography)
     // ========================================================================
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
@@ -299,14 +299,14 @@ export const BrandShootsCore3D: React.FC = () => {
       });
 
       // ----------------------------------------------------------------------
-      // PHASE 0 (0.00 -> 0.15): INITIAL ENTRANCE FROM DEEP Z-SPACE
+      // PHASE 0 (0.00 -> 0.20): INITIAL ENTRANCE FROM DEEP Z-SPACE
       // ----------------------------------------------------------------------
       // Cards glide forward from the deep background toward camera
       tl.to(
         scrollState,
         {
           entranceZ: 0,
-          duration: 0.6,
+          duration: 0.5,
           ease: 'power2.out',
         },
         0
@@ -315,8 +315,30 @@ export const BrandShootsCore3D: React.FC = () => {
       // Intro hint fades away
       tl.to(
         introHintRef.current,
-        { opacity: 0, y: -20, duration: 0.2, ease: 'power2.in' },
-        0.05
+        { autoAlpha: 0, duration: 0.15, ease: 'power2.in' },
+        0.04
+      );
+
+      // Logo fades out so it NEVER collides with cards during Chapters 1, 2, 3
+      tl.to(
+        logoWrapperRef.current,
+        {
+          autoAlpha: 0,
+          y: -40,
+          scale: 0.92,
+          duration: 0.22,
+          ease: 'power2.in',
+        },
+        0.08
+      );
+
+      tl.to(
+        logoAuraRef.current,
+        {
+          autoAlpha: 0,
+          duration: 0.2,
+        },
+        0.08
       );
 
       // Subtle atmospheric vignette
@@ -326,67 +348,45 @@ export const BrandShootsCore3D: React.FC = () => {
         0.1
       );
 
-      // Logo glides to top header anchor
-      tl.to(
-        logoWrapperRef.current,
-        {
-          y: isMobile ? -230 : -210,
-          scale: isMobile ? 0.45 : 0.56,
-          opacity: isMobile ? 0 : 0.85,
-          duration: 0.4,
-          ease: 'power2.out',
-        },
-        0.12
-      );
-
       // ----------------------------------------------------------------------
-      // PHASE 1 (0.15 -> 0.40): CHAPTER 01 // WE CREATE STORIES. WE MAKE THEM MOVE.
+      // CHAPTER 01 (0.25 -> 1.15): WE CREATE STORIES. WE MAKE THEM MOVE.
       // ----------------------------------------------------------------------
-      // Card progression glides to Card 1
       tl.to(
         scrollState,
         {
           cardProgress: 1.0,
-          cameraZ: baseCameraZ - 0.2,
+          cameraZ: baseCameraZ - 0.15,
           cameraX: 0.08,
           duration: 1.0,
           ease: 'none',
         },
-        0.15
-      );
-
-      tl.fromTo(
-        chapter1Ref.current,
-        { autoAlpha: 0, y: 35, scale: 0.97 },
-        { autoAlpha: 1, y: 0, scale: 1.0, duration: 0.35, ease: 'power2.out' },
-        0.18
-      );
-
-      // Staggered line reveal for Chapter 1
-      tl.fromTo(
-        '.ch1-line',
-        { yPercent: 110, opacity: 0 },
-        { yPercent: 0, opacity: 1, duration: 0.35, stagger: 0.08, ease: 'power3.out' },
         0.2
       );
 
-      tl.to(pill1Ref.current, { color: '#008CFF', scale: 1.25, duration: 0.15 }, 0.18);
+      tl.fromTo(
+        chapter1Ref.current,
+        { autoAlpha: 0, y: 25 },
+        { autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out' },
+        0.25
+      );
+
+      tl.to(pill1Ref.current, { color: '#008CFF', scale: 1.25, duration: 0.15 }, 0.25);
       if (activeChapterLabelRef.current) {
         tl.call(() => {
           if (activeChapterLabelRef.current) activeChapterLabelRef.current.innerText = '1';
-        }, [], 0.18);
+        }, [], 0.25);
       }
 
-      // Exit Chapter 1
+      // Exit Chapter 1 (completely faded out before Chapter 2 enters)
       tl.to(
         chapter1Ref.current,
-        { autoAlpha: 0, y: -30, scale: 1.02, duration: 0.25, ease: 'power2.in' },
-        1.1
+        { autoAlpha: 0, y: -20, duration: 0.2, ease: 'power2.in' },
+        0.95
       );
-      tl.to(pill1Ref.current, { color: 'rgba(255,255,255,0.35)', scale: 1.0, duration: 0.15 }, 1.1);
+      tl.to(pill1Ref.current, { color: 'rgba(255,255,255,0.35)', scale: 1.0, duration: 0.15 }, 0.95);
 
       // ----------------------------------------------------------------------
-      // PHASE 2 (0.40 -> 0.65): CHAPTER 02 // FROM FIRST FRAME TO FINAL CUT.
+      // CHAPTER 02 (1.25 -> 2.15): FROM FIRST FRAME TO FINAL CUT.
       // ----------------------------------------------------------------------
       tl.to(
         scrollState,
@@ -397,40 +397,33 @@ export const BrandShootsCore3D: React.FC = () => {
           duration: 1.0,
           ease: 'none',
         },
-        1.15
-      );
-
-      tl.fromTo(
-        chapter2Ref.current,
-        { autoAlpha: 0, y: 35, scale: 0.97 },
-        { autoAlpha: 1, y: 0, scale: 1.0, duration: 0.35, ease: 'power2.out' },
-        1.18
-      );
-
-      tl.fromTo(
-        '.ch2-line',
-        { yPercent: 110, opacity: 0 },
-        { yPercent: 0, opacity: 1, duration: 0.35, stagger: 0.08, ease: 'power3.out' },
         1.2
       );
 
-      tl.to(pill2Ref.current, { color: '#008CFF', scale: 1.25, duration: 0.15 }, 1.18);
+      tl.fromTo(
+        chapter2Ref.current,
+        { autoAlpha: 0, y: 25 },
+        { autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out' },
+        1.25
+      );
+
+      tl.to(pill2Ref.current, { color: '#008CFF', scale: 1.25, duration: 0.15 }, 1.25);
       if (activeChapterLabelRef.current) {
         tl.call(() => {
           if (activeChapterLabelRef.current) activeChapterLabelRef.current.innerText = '2';
-        }, [], 1.18);
+        }, [], 1.25);
       }
 
-      // Exit Chapter 2
+      // Exit Chapter 2 (completely faded out before Chapter 3 enters)
       tl.to(
         chapter2Ref.current,
-        { autoAlpha: 0, y: -30, scale: 1.02, duration: 0.25, ease: 'power2.in' },
-        2.1
+        { autoAlpha: 0, y: -20, duration: 0.2, ease: 'power2.in' },
+        1.95
       );
-      tl.to(pill2Ref.current, { color: 'rgba(255,255,255,0.35)', scale: 1.0, duration: 0.15 }, 2.1);
+      tl.to(pill2Ref.current, { color: 'rgba(255,255,255,0.35)', scale: 1.0, duration: 0.15 }, 1.95);
 
       // ----------------------------------------------------------------------
-      // PHASE 3 (0.65 -> 0.85): CHAPTER 03 // DIFFERENT BRANDS. ONE CREATIVE VISION.
+      // CHAPTER 03 (2.25 -> 3.15): DIFFERENT BRANDS. ONE CREATIVE VISION.
       // ----------------------------------------------------------------------
       tl.to(
         scrollState,
@@ -438,98 +431,90 @@ export const BrandShootsCore3D: React.FC = () => {
           cardProgress: 4.5,
           cameraZ: baseCameraZ - 0.15,
           cameraX: 0.08,
-          duration: 0.95,
+          duration: 1.0,
           ease: 'none',
         },
-        2.15
-      );
-
-      tl.fromTo(
-        chapter3Ref.current,
-        { autoAlpha: 0, y: 35, scale: 0.97 },
-        { autoAlpha: 1, y: 0, scale: 1.0, duration: 0.35, ease: 'power2.out' },
-        2.18
-      );
-
-      tl.fromTo(
-        '.ch3-line',
-        { yPercent: 110, opacity: 0 },
-        { yPercent: 0, opacity: 1, duration: 0.35, stagger: 0.08, ease: 'power3.out' },
         2.2
       );
 
-      tl.to(pill3Ref.current, { color: '#008CFF', scale: 1.25, duration: 0.15 }, 2.18);
+      tl.fromTo(
+        chapter3Ref.current,
+        { autoAlpha: 0, y: 25 },
+        { autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out' },
+        2.25
+      );
+
+      tl.to(pill3Ref.current, { color: '#008CFF', scale: 1.25, duration: 0.15 }, 2.25);
       if (activeChapterLabelRef.current) {
         tl.call(() => {
           if (activeChapterLabelRef.current) activeChapterLabelRef.current.innerText = '3';
-        }, [], 2.18);
+        }, [], 2.25);
       }
 
-      // Exit Chapter 3
+      // Exit Chapter 3 (completely faded out before Chapter 4 enters)
       tl.to(
         chapter3Ref.current,
-        { autoAlpha: 0, y: -30, scale: 1.02, duration: 0.25, ease: 'power2.in' },
-        3.0
+        { autoAlpha: 0, y: -20, duration: 0.2, ease: 'power2.in' },
+        2.95
       );
-      tl.to(pill3Ref.current, { color: 'rgba(255,255,255,0.35)', scale: 1.0, duration: 0.15 }, 3.0);
+      tl.to(pill3Ref.current, { color: 'rgba(255,255,255,0.35)', scale: 1.0, duration: 0.15 }, 2.95);
 
       // ----------------------------------------------------------------------
-      // PHASE 4 (0.85 -> 1.00): CHAPTER 04 CLIMAX // THE CREED & WINGS FORMATION
+      // CHAPTER 04 CLIMAX (3.25 -> 4.00): WINGS FORMATION & LOGO ANTHEM
       // ----------------------------------------------------------------------
-      // Cards part symmetrically to the left and right wings, opening the center stage
+      // Cards part symmetrically to the wings, opening the center stage
       tl.to(
         scrollState,
         {
           climaxSpread: 1.0,
           cameraZ: baseCameraZ + (isMobile ? 0.3 : 0.5),
           cameraX: 0,
-          cameraY: -0.1,
-          duration: 0.8,
+          cameraY: 0.2,
+          duration: 0.75,
           ease: 'power2.inOut',
         },
-        3.1
+        3.25
       );
 
-      // BrandShoots Official Logo returns to center dominance
+      // BrandShoots Official Logo returns to center dominance with radiant aura
       tl.to(
         logoWrapperRef.current,
         {
-          y: isMobile ? -75 : -85,
+          autoAlpha: 1,
+          y: isMobile ? -85 : -105,
           scale: 1.0,
-          opacity: 1,
-          duration: 0.5,
+          duration: 0.45,
           ease: 'power2.out',
         },
-        3.15
+        3.3
       );
 
       tl.to(
         logoAuraRef.current,
         {
-          scale: 1.4,
-          opacity: 0.95,
-          duration: 0.5,
+          autoAlpha: 0.95,
+          duration: 0.45,
           ease: 'power2.out',
         },
-        3.15
+        3.3
       );
 
       tl.fromTo(
         chapter4Ref.current,
-        { autoAlpha: 0, y: 35, scale: 0.96 },
-        { autoAlpha: 1, y: 0, scale: 1.0, duration: 0.45, ease: 'power2.out' },
-        3.2
+        { autoAlpha: 0, y: 25 },
+        { autoAlpha: 1, y: 0, duration: 0.45, ease: 'power2.out' },
+        3.35
       );
 
-      tl.to(pill4Ref.current, { color: '#008CFF', scale: 1.25, duration: 0.15 }, 3.2);
+      tl.to(pill4Ref.current, { color: '#008CFF', scale: 1.25, duration: 0.15 }, 3.35);
       if (activeChapterLabelRef.current) {
         tl.call(() => {
           if (activeChapterLabelRef.current) activeChapterLabelRef.current.innerText = '4';
-        }, [], 3.2);
+        }, [], 3.35);
       }
 
-      // Final gentle hold and dissolution leading smoothly to Leadership section
-      tl.to({}, { duration: 0.3 }, 3.7);
+      // Final gentle hold leading smoothly to Leadership section
+      tl.to({}, { duration: 0.3 }, 3.9);
     }, sectionRef);
 
     // ========================================================================
@@ -540,7 +525,7 @@ export const BrandShootsCore3D: React.FC = () => {
     let currentEntranceZ = -3.8;
     let currentClimaxSpread = 0;
     let currentCameraZ = baseCameraZ;
-    let currentCameraY = 0;
+    let currentCameraY = 0.25;
     let currentCameraX = 0;
 
     const tick = () => {
@@ -560,23 +545,23 @@ export const BrandShootsCore3D: React.FC = () => {
       currentPointerY += (pointerY - currentPointerY) * 0.05;
 
       // ----------------------------------------------------------------------
-      // CAMERA POSITION (Cinematic Travel + Micro-Parallax)
+      // CAMERA POSITION (Framed above the lower editorial dock)
       // ----------------------------------------------------------------------
       camera.position.z = currentCameraZ;
       camera.position.x = currentCameraX + currentPointerX * (isMobile ? 0.08 : 0.22);
       camera.position.y = currentCameraY - currentPointerY * (isMobile ? 0.06 : 0.16);
-      camera.lookAt(0, scrollState.cardsElevationY * 0.5, 0);
+      camera.lookAt(0, scrollState.cardsElevationY * 0.85, 0);
 
       // Lighting tracking
       travelingSpot.position.x = currentPointerX * 1.5;
-      travelingSpot.position.y = scrollState.cardsElevationY + 0.5;
+      travelingSpot.position.y = scrollState.cardsElevationY + 0.4;
 
       // ----------------------------------------------------------------------
       // 3D SPATIAL CURVED CARDS POSITIONING
       // ----------------------------------------------------------------------
-      const curveRx = isMobile ? 3.2 : isTablet ? 4.8 : 5.8;
-      const curveRz = isMobile ? 4.2 : isTablet ? 5.6 : 6.6;
-      const angleStep = isMobile ? 0.52 : 0.44;
+      const curveRx = isMobile ? 3.0 : isTablet ? 4.5 : 5.4;
+      const curveRz = isMobile ? 4.0 : isTablet ? 5.4 : 6.2;
+      const angleStep = isMobile ? 0.52 : 0.46;
 
       cardItems.forEach((card) => {
         const i = card.index;
@@ -586,23 +571,22 @@ export const BrandShootsCore3D: React.FC = () => {
         const theta = delta * angleStep;
         const carouselX = Math.sin(theta) * curveRx;
         const carouselZ = -(1 - Math.cos(theta)) * curveRz + currentEntranceZ;
-        const carouselY = scrollState.cardsElevationY - Math.min(1.2, delta * delta * 0.04);
+        const carouselY = scrollState.cardsElevationY - Math.min(0.9, delta * delta * 0.035);
         const carouselRotY = -theta * 0.85;
         const carouselRotX = currentPointerY * 0.04;
         const carouselRotZ = -delta * 0.02;
-        const carouselScale = Math.max(0.42, 1.0 - 0.16 * Math.min(3.5, Math.abs(delta)));
-        const carouselOpacity = Math.max(0.2, 1.0 - 0.24 * Math.min(3.5, Math.abs(delta)));
+        const carouselScale = Math.max(0.44, 1.0 - 0.15 * Math.min(3.5, Math.abs(delta)));
+        const carouselOpacity = Math.max(0.18, 1.0 - 0.26 * Math.min(3.5, Math.abs(delta)));
 
         // B. Wings Formation State (Chapter 04 Climax)
-        // Cards 0,1,2 fan left; Cards 3,4,5 fan right, opening center for BrandShoots logo
         const isLeftWing = i < 3;
         const wingRank = isLeftWing ? 2 - i : i - 3; // 0, 1, 2 from inner to outer
         const wingDir = isLeftWing ? -1 : 1;
-        const wingX = wingDir * (isMobile ? 1.9 + wingRank * 1.1 : 2.5 + wingRank * 1.4);
+        const wingX = wingDir * (isMobile ? 1.8 + wingRank * 1.0 : 2.5 + wingRank * 1.35);
         const wingZ = -0.6 - wingRank * 1.1;
-        const wingY = scrollState.cardsElevationY + 0.1 - wingRank * 0.15;
+        const wingY = scrollState.cardsElevationY + 0.05 - wingRank * 0.12;
         const wingRotY = -wingDir * (0.35 + wingRank * 0.12);
-        const wingScale = 0.9 - wingRank * 0.14;
+        const wingScale = 0.88 - wingRank * 0.14;
         const wingOpacity = 0.85 - wingRank * 0.2;
 
         // Smoothly blend between Carousel and Wings formation
@@ -617,7 +601,7 @@ export const BrandShootsCore3D: React.FC = () => {
         const targetOpacity = carouselOpacity * (1 - blend) + wingOpacity * blend;
 
         // Subtle organic float animation per card
-        const floatY = Math.sin(time * 1.2 + i * 1.3) * 0.035;
+        const floatY = Math.sin(time * 1.2 + i * 1.3) * 0.03;
 
         card.group.position.set(targetX, targetY + floatY, targetZ);
         card.group.rotation.set(targetRotX, targetRotY, targetRotZ);
@@ -771,6 +755,7 @@ export const BrandShootsCore3D: React.FC = () => {
 
         {/* ======================================================== */}
         {/* HERO ANCHOR: OFFICIAL BRANDSHOOTS LOGO (Z-INDEX: 30)     */}
+        {/* Visible in initial intro, hidden in Ch 1-3, climax in Ch 4 */}
         {/* ======================================================== */}
         <div
           ref={logoWrapperRef}
@@ -807,14 +792,38 @@ export const BrandShootsCore3D: React.FC = () => {
         </div>
 
         {/* ======================================================== */}
-        {/* CHAPTER DOSSIER CARDS (Z-INDEX: 50 -> CRISP & LEGIBLE)   */}
-        {/* Positioned in lower center so 3D cards shine in 3D space */}
+        {/* CHAPTER 04 CLIMAX CREED (Z-INDEX: 40)                    */}
+        {/* Centered below the logo in open corridor between wings   */}
         {/* ======================================================== */}
         <div
-          className="absolute inset-0 flex items-end sm:items-center justify-center pb-12 sm:pb-0 px-4 sm:px-8 lg:px-16 pointer-events-none"
+          ref={chapter4Ref}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 translate-y-10 sm:translate-y-14 flex flex-col items-center text-center will-change-transform opacity-0 pointer-events-none px-4 w-full max-w-xl"
+          style={{ zIndex: 40 }}
+        >
+          <div className="relative w-full px-6 py-5 rounded-2xl bg-[#05070B]/85 backdrop-blur-xl border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.9)]">
+            <h3 className="text-lg sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-white leading-tight mb-2.5">
+              WE CREATE STORIES THAT <span className="text-[#008CFF]">MOVE PEOPLE.</span>
+            </h3>
+
+            <div className="flex items-center justify-center gap-3 font-mono text-[11px] sm:text-xs tracking-[0.35em] uppercase text-[#008CFF] font-bold mt-1.5">
+              <span>CREATE</span>
+              <span className="text-white/40">•</span>
+              <span>SHOOT</span>
+              <span className="text-white/40">•</span>
+              <span>GROW</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ======================================================== */}
+        {/* LOWER EDITORIAL DOCK: CHAPTERS 01, 02, 03 (Z-INDEX: 50)   */}
+        {/* Anchored at bottom of screen so 3D cards remain 100% visible */}
+        {/* ======================================================== */}
+        <div
+          className="absolute bottom-5 sm:bottom-7 md:bottom-9 inset-x-0 flex items-center justify-center px-4 sm:px-6 pointer-events-none"
           style={{ zIndex: 50 }}
         >
-          <div className="relative w-full max-w-3xl min-h-[300px] sm:min-h-[380px] flex items-center justify-center">
+          <div className="relative w-full max-w-xl min-h-[130px] sm:min-h-[140px] flex items-center justify-center">
 
             {/* CHAPTER 01: ABOUT BRANDSHOOTS */}
             <div
@@ -822,17 +831,13 @@ export const BrandShootsCore3D: React.FC = () => {
               className="absolute inset-x-0 mx-auto flex flex-col items-center text-center will-change-transform opacity-0 pointer-events-none"
               style={{ zIndex: 50 }}
             >
-              <div className="relative max-w-2xl px-5 py-5 sm:px-7 sm:py-7 rounded-2xl bg-[#05070B]/70 backdrop-blur-[10px] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.85)] mx-3">
-                <h2 className="text-xl sm:text-3xl lg:text-5xl font-black uppercase tracking-tight text-white leading-[1.15] mb-3 sm:mb-4 drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-2xl">
-                  <span className="overflow-hidden block py-0.5">
-                    <span className="ch1-line inline-block will-change-transform">WE CREATE STORIES.</span>
-                  </span>
-                  <span className="overflow-hidden block py-0.5">
-                    <span className="ch1-line inline-block will-change-transform text-[#008CFF]">WE MAKE THEM MOVE.</span>
-                  </span>
+              <div className="relative w-full px-5 py-4 sm:px-7 sm:py-5 rounded-2xl bg-[#05070B]/85 backdrop-blur-xl border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.9)]">
+                <h2 className="text-lg sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-white leading-tight mb-2 drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+                  <span>WE CREATE STORIES. </span>
+                  <span className="text-[#008CFF]">WE MAKE THEM MOVE.</span>
                 </h2>
 
-                <p className="text-xs sm:text-sm lg:text-base text-white/90 leading-relaxed font-light drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]">
+                <p className="text-xs sm:text-sm text-white/85 leading-relaxed font-light drop-shadow-[0_1px_8px_rgba(0,0,0,0.9)] max-w-lg mx-auto">
                   BRANDSHOOTS is a creative production studio turning ideas into films,
                   campaigns and visual experiences. We bring together storytelling,
                   cinematography and creative direction to create work that connects
@@ -847,17 +852,13 @@ export const BrandShootsCore3D: React.FC = () => {
               className="absolute inset-x-0 mx-auto flex flex-col items-center text-center will-change-transform opacity-0 pointer-events-none"
               style={{ zIndex: 50 }}
             >
-              <div className="relative max-w-2xl px-5 py-5 sm:px-7 sm:py-7 rounded-2xl bg-[#05070B]/70 backdrop-blur-[10px] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.85)] mx-3">
-                <h2 className="text-xl sm:text-3xl lg:text-5xl font-black uppercase tracking-tight text-white leading-[1.15] mb-3 sm:mb-4 drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-2xl">
-                  <span className="overflow-hidden block py-0.5">
-                    <span className="ch2-line inline-block will-change-transform">FROM FIRST FRAME TO</span>
-                  </span>
-                  <span className="overflow-hidden block py-0.5">
-                    <span className="ch2-line inline-block will-change-transform text-[#008CFF]">FINAL CUT.</span>
-                  </span>
+              <div className="relative w-full px-5 py-4 sm:px-7 sm:py-5 rounded-2xl bg-[#05070B]/85 backdrop-blur-xl border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.9)]">
+                <h2 className="text-lg sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-white leading-tight mb-2 drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+                  <span>FROM FIRST FRAME TO </span>
+                  <span className="text-[#008CFF]">FINAL CUT.</span>
                 </h2>
 
-                <p className="text-xs sm:text-sm lg:text-base text-white/90 leading-relaxed font-light drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]">
+                <p className="text-xs sm:text-sm text-white/85 leading-relaxed font-light drop-shadow-[0_1px_8px_rgba(0,0,0,0.9)] max-w-lg mx-auto">
                   From concept and pre-production to filming, editing and final delivery,
                   BRANDSHOOTS brings every stage of production together to create films,
                   campaigns and visual content built around the story.
@@ -871,44 +872,18 @@ export const BrandShootsCore3D: React.FC = () => {
               className="absolute inset-x-0 mx-auto flex flex-col items-center text-center will-change-transform opacity-0 pointer-events-none"
               style={{ zIndex: 50 }}
             >
-              <div className="relative max-w-2xl px-5 py-5 sm:px-7 sm:py-7 rounded-2xl bg-[#05070B]/70 backdrop-blur-[10px] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.85)] mx-3">
-                <h2 className="text-xl sm:text-3xl lg:text-5xl font-black uppercase tracking-tight text-white leading-[1.15] mb-3 sm:mb-4 drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-2xl">
-                  <span className="overflow-hidden block py-0.5">
-                    <span className="ch3-line inline-block will-change-transform">DIFFERENT BRANDS.</span>
-                  </span>
-                  <span className="overflow-hidden block py-0.5">
-                    <span className="ch3-line inline-block will-change-transform text-[#008CFF]">ONE CREATIVE VISION.</span>
-                  </span>
+              <div className="relative w-full px-5 py-4 sm:px-7 sm:py-5 rounded-2xl bg-[#05070B]/85 backdrop-blur-xl border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.9)]">
+                <h2 className="text-lg sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-white leading-tight mb-2 drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+                  <span>DIFFERENT BRANDS. </span>
+                  <span className="text-[#008CFF]">ONE CREATIVE VISION.</span>
                 </h2>
 
-                <p className="text-xs sm:text-sm lg:text-base text-white/90 leading-relaxed font-light drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]">
+                <p className="text-xs sm:text-sm text-white/85 leading-relaxed font-light drop-shadow-[0_1px_8px_rgba(0,0,0,0.9)] max-w-lg mx-auto">
                   From industrial and corporate brands to retail, hospitality and lifestyle,
                   BRANDSHOOTS creates visual work shaped around each brand, its audience and
                   its story. Every project begins with understanding what makes the brand
                   worth watching.
                 </p>
-              </div>
-            </div>
-
-            {/* CHAPTER 04: THE BRANDSHOOTS CREED */}
-            <div
-              ref={chapter4Ref}
-              className="absolute inset-x-0 mx-auto flex flex-col items-center text-center will-change-transform opacity-0 pointer-events-none mt-20 sm:mt-28"
-              style={{ zIndex: 50 }}
-            >
-              <div className="relative max-w-2xl px-5 py-5 sm:px-7 sm:py-7 rounded-2xl bg-[#05070B]/70 backdrop-blur-[10px] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.85)] mx-3">
-                <h3 className="text-xl sm:text-3xl lg:text-5xl font-black uppercase tracking-tight text-white leading-tight mb-3 drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-2xl">
-                  WE CREATE STORIES THAT{' '}
-                  <span className="text-[#008CFF]">MOVE PEOPLE.</span>
-                </h3>
-
-                <div className="flex items-center justify-center gap-3 font-mono text-[11px] sm:text-xs tracking-[0.35em] uppercase text-[#008CFF] font-bold mt-2">
-                  <span>CREATE</span>
-                  <span className="text-white/40">•</span>
-                  <span>SHOOT</span>
-                  <span className="text-white/40">•</span>
-                  <span>GROW</span>
-                </div>
               </div>
             </div>
 
