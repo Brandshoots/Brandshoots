@@ -48,53 +48,33 @@ const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' 
 const SOCIAL_TILES = [
   {
     id: 'whatsapp',
-    name: 'WHATSAPP',
+    name: 'WhatsApp',
     handle: '+91 70759 60672',
-    tag: 'DIRECT LINE // FASTEST REPLIES',
-    headline: 'Instant Studio Chat',
-    description:
-      'Direct real-time WhatsApp line for project consultations, shoot estimates, and rapid site visit bookings.',
-    url: `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent('Hi BRANDSHOOTS, I would like to discuss a commercial project.')}`,
-    cta: 'Chat on WhatsApp',
+    url: `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent('Hi BRANDSHOOTS, I would like to discuss a project.')}`,
     brandColor: '#25D366',
     icon: WhatsAppIcon,
   },
   {
     id: 'instagram',
-    name: 'INSTAGRAM',
+    name: 'Instagram',
     handle: '@wearebrandshoots',
-    tag: 'VISUAL REELS // BEHIND THE SCENES',
-    headline: 'Daily Sets & Color Grades',
-    description:
-      'High-framerate cinema reels, lighting setups, color grading breakdowns, and production stills from our latest film shoots.',
     url: 'https://instagram.com/wearebrandshoots',
-    cta: 'Follow on Instagram',
     brandColor: '#E1306C',
     icon: Instagram,
   },
   {
     id: 'youtube',
-    name: 'YOUTUBE',
+    name: 'YouTube',
     handle: '@wearebrandshoots',
-    tag: '4K COMMERCIALS // MASTER EDITS',
-    headline: 'Commercial Films & Edits',
-    description:
-      'Full 4K/24FPS brand films, high-retention commercials, documentary narratives, and sound design masters.',
     url: 'https://youtube.com/@wearebrandshoots',
-    cta: 'Watch on YouTube',
     brandColor: '#FF0000',
     icon: Youtube,
   },
   {
     id: 'facebook',
-    name: 'FACEBOOK',
-    handle: 'BrandShoots Creative Agency',
-    tag: 'OFFICIAL PAGE // COMMUNITY',
-    headline: 'Agency News & Case Studies',
-    description:
-      'Official brand campaign releases, production announcements, client partnership highlights, and agency milestones.',
+    name: 'Facebook',
+    handle: '@wearebrandshoots',
     url: 'https://facebook.com/wearebrandshoots',
-    cta: 'Connect on Facebook',
     brandColor: '#1877F2',
     icon: Facebook,
   },
@@ -829,23 +809,20 @@ export const ContactFormSection: React.FC = () => {
         </div>
 
         {/* ============================================================== */}
-        {/* 5. BEAUTIFUL BIG SOCIAL MEDIA TILES (COLOR / HOVER B&W)        */}
+        {/* 5. MINIMAL SOCIAL TILES (COLOR / HOVER B&W)                     */}
         {/* ============================================================== */}
-        <div ref={socialTilesRef} className="pt-16 sm:pt-24">
-          <div className="mb-10 sm:mb-12 text-left">
-            <span className="block font-mono text-xs tracking-[0.24em] uppercase text-[#008CFF] mb-2 font-semibold">
-              • OFFICIAL CHANNELS // STAY CONNECTED
+        <div ref={socialTilesRef} className="pt-12 sm:pt-16 pb-6">
+          <div className="mb-6 sm:mb-8 text-left">
+            <span className="block font-mono text-[11px] tracking-[0.24em] uppercase text-[#008CFF] mb-1.5 font-medium">
+              • DIRECT CHANNELS
             </span>
-            <h2 className="font-editorial font-bold uppercase text-3xl sm:text-4xl md:text-5xl tracking-tight text-white leading-tight">
-              CONNECT ACROSS OUR NETWORK.
+            <h2 className="font-editorial font-bold uppercase text-2xl sm:text-3xl tracking-tight text-white">
+              CONNECT WITH US.
             </h2>
-            <p className="mt-3 text-white/70 text-sm sm:text-base font-light max-w-2xl leading-relaxed">
-              Explore our latest production reels, watch commercial drops, or reach our creative leads directly on WhatsApp.
-            </p>
           </div>
 
-          {/* 4 Big Tiles Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+          {/* Minimal 4 Tiles Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
             {SOCIAL_TILES.map((tile) => {
               const IconComponent = tile.icon;
               return (
@@ -854,7 +831,7 @@ export const ContactFormSection: React.FC = () => {
                   href={tile.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group relative p-6 sm:p-7 rounded-2xl sm:rounded-3xl bg-[#070A0F] border border-white/12 hover:border-white/30 transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.6)] hover:-translate-y-1.5 cursor-pointer"
+                  className="group relative p-4 sm:p-5 rounded-2xl bg-[#070A0F] border border-white/10 hover:border-white/30 transition-all duration-300 flex flex-col justify-between min-h-[130px] sm:min-h-[145px] overflow-hidden hover:-translate-y-1 cursor-pointer"
                 >
                   {/* Subtle top rim light in brand color */}
                   <div
@@ -862,63 +839,29 @@ export const ContactFormSection: React.FC = () => {
                     style={{ backgroundColor: tile.brandColor }}
                   />
 
-                  {/* Atmospheric brand background glow */}
-                  <div
-                    className="absolute top-0 right-0 w-36 h-36 rounded-full blur-3xl pointer-events-none opacity-20 group-hover:opacity-35 transition-opacity"
-                    style={{ backgroundColor: tile.brandColor }}
-                  />
-
-                  <div>
-                    {/* Top Row: Icon + Arrow */}
-                    <div className="flex items-center justify-between gap-4 mb-6">
-                      {/* Icon with Color -> Hover B&W effect */}
-                      <div
-                        className="w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:grayscale group-hover:contrast-125"
-                        style={{
-                          backgroundColor: `${tile.brandColor}20`,
-                          color: tile.brandColor,
-                          border: `1px solid ${tile.brandColor}40`,
-                        }}
-                      >
-                        <IconComponent className="w-6 h-6" />
-                      </div>
-
-                      {/* External Link Arrow */}
-                      <div className="w-8 h-8 rounded-full border border-white/10 group-hover:border-white/30 flex items-center justify-center text-white/50 group-hover:text-white transition-all duration-200">
-                        <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                      </div>
+                  {/* Top: Icon (color -> hover B&W) + Arrow */}
+                  <div className="flex items-center justify-between">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:grayscale group-hover:contrast-125"
+                      style={{
+                        backgroundColor: `${tile.brandColor}18`,
+                        color: tile.brandColor,
+                        border: `1px solid ${tile.brandColor}35`,
+                      }}
+                    >
+                      <IconComponent className="w-5 h-5" />
                     </div>
 
-                    {/* Tag badge with Color -> Hover B&W */}
-                    <div className="mb-3">
-                      <span
-                        className="inline-block px-2.5 py-0.5 rounded-full text-[9px] font-mono tracking-wider uppercase font-semibold transition-all duration-300 group-hover:grayscale"
-                        style={{
-                          backgroundColor: `${tile.brandColor}15`,
-                          color: tile.brandColor,
-                          border: `1px solid ${tile.brandColor}30`,
-                        }}
-                      >
-                        {tile.tag}
-                      </span>
-                    </div>
-
-                    {/* Platform Handle */}
-                    <h3 className="font-editorial text-xl sm:text-2xl font-bold tracking-tight text-white mb-2 group-hover:text-white transition-colors">
-                      {tile.handle}
-                    </h3>
-
-                    {/* Editorial Description */}
-                    <p className="text-xs text-white/60 font-light leading-relaxed">
-                      {tile.description}
-                    </p>
+                    <ArrowUpRight className="w-4 h-4 text-white/30 group-hover:text-white transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                   </div>
 
-                  {/* Bottom Action Footer */}
-                  <div className="mt-8 pt-4 border-t border-white/[0.08] flex items-center justify-between text-xs font-mono tracking-wider uppercase text-white/70 group-hover:text-white transition-colors">
-                    <span>{tile.cta}</span>
-                    <span className="text-sm font-bold transition-transform group-hover:translate-x-1">
-                      →
+                  {/* Bottom: Name & Handle */}
+                  <div className="mt-4">
+                    <span className="block font-mono text-[10px] sm:text-[11px] tracking-wider uppercase text-white/50 mb-0.5 group-hover:text-white/70 transition-colors">
+                      {tile.name}
+                    </span>
+                    <span className="block font-semibold text-xs sm:text-sm text-white tracking-tight truncate">
+                      {tile.handle}
                     </span>
                   </div>
                 </a>
