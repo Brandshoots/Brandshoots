@@ -3,8 +3,8 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { CLIENT_PROJECTS, ClientProject } from '../../data/clientsData';
-import { ArrowUpRight, Play, X, ChevronRight } from 'lucide-react';
-import { FullScreenReelModal } from './FullScreenReelModal';
+import { ArrowUpRight, X, ChevronRight } from 'lucide-react';
+import { ProjectDetailModal } from './ProjectDetailModal';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -282,7 +282,7 @@ export const PortfolioWormhole3D: React.FC = () => {
 
   const [scrollUnit, setScrollUnit] = useState<number>(0);
   const [activeIndex, setActiveIndex] = useState<number>(0);
-  const [fullScreenProject, setFullScreenProject] = useState<ClientProject | null>(null);
+  const [selectedProjectModal, setSelectedProjectModal] = useState<ClientProject | null>(null);
   const [isHoveringReel, setIsHoveringReel] = useState<boolean>(false);
   const [isIndexDrawerOpen, setIsIndexDrawerOpen] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth < 1024);
@@ -527,10 +527,11 @@ export const PortfolioWormhole3D: React.FC = () => {
         depthWrite: false,
       });
       const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
-      shadowMesh.position.set(0, -0.05, -0.065);
+      shadowMesh.position.set(0, -0.05, -0.080);
       panelGroup.add(shadowMesh);
 
       // 2. Chassis Body: Sculpted Gunmetal / Space Obsidian Titanium with Beveled Chamfers
+      // Positioned at z = -0.040 so its beveled front face sits cleanly at z = -0.001
       const chassisMat = new THREE.MeshStandardMaterial({
         color: 0x12141a,
         metalness: 0.95,
@@ -538,38 +539,64 @@ export const PortfolioWormhole3D: React.FC = () => {
         envMapIntensity: 1.4,
       });
       const chassisMesh = new THREE.Mesh(chassisGeo, chassisMat);
-      chassisMesh.position.set(0, 0, 0);
+      chassisMesh.position.set(0, 0, -0.040);
       panelGroup.add(chassisMesh);
 
-      // 3. Matte OLED Inner Bezel
+      // 3. Matte OLED Inner Bezel (sits cleanly at z = 0.002)
       const innerBezelMesh = new THREE.Mesh(innerBezelGeo, innerBezelMat);
-      innerBezelMesh.position.set(0, 0, 0.024);
+      innerBezelMesh.position.set(0, 0, 0.002);
       panelGroup.add(innerBezelMesh);
 
-      // 4. Poster Texture
+      // 4. Poster Texture (Initial crisp display)
       const posterTexture = textureLoader.load(project.posterUrl);
       posterTexture.colorSpace = THREE.SRGBColorSpace;
 
-      // 5. Hidden Video Element
+      // 5. Video Element with reliable auto-playback configuration
       const video = document.createElement('video');
       video.src = project.videoUrl;
       video.crossOrigin = 'anonymous';
       video.loop = true;
       video.muted = true;
+      video.defaultMuted = true;
       video.playsInline = true;
-      video.preload = 'metadata';
+      video.autoplay = true;
+      video.setAttribute('playsinline', '');
+      video.setAttribute('webkit-playsinline', '');
+      video.setAttribute('muted', '');
+      video.setAttribute('autoplay', '');
+      video.preload = 'auto';
 
-      // 6. Active Screen Mesh with Rounded Corners
+      // Pre-created VideoTexture for seamless fluid playback
+      const videoTexture = new THREE.VideoTexture(video);
+      videoTexture.colorSpace = THREE.SRGBColorSpace;
+      videoTexture.minFilter = THREE.LinearFilter;
+      videoTexture.magFilter = THREE.LinearFilter;
+      videoTexture.generateMipmaps = false;
+
+      // 6. Active Screen Mesh with Rounded Corners (at z = 0.005, clearly in front of chassis)
       const screenMat = new THREE.MeshBasicMaterial({
         map: posterTexture,
         transparent: true,
         opacity: 1.0,
       });
       const screenMesh = new THREE.Mesh(screenGeo, screenMat);
-      screenMesh.position.set(0, 0, 0.027);
+      screenMesh.position.set(0, 0, 0.005);
       panelGroup.add(screenMesh);
 
-      // 7. Continuous Electric Blue Chamfer Rim Line Loop
+      // Auto-start playback on initial hero reel
+      if (i === 0) {
+        const startPromise = video.play();
+        if (startPromise !== undefined) {
+          startPromise.then(() => {
+            screenMat.map = videoTexture;
+            screenMat.needsUpdate = true;
+          }).catch(() => {
+            // Poster remains visible; user gesture listener will resume playback
+          });
+        }
+      }
+
+      // 7. Continuous Electric Blue Chamfer Rim Line Loop (at z = 0.008)
       const rimMat = new THREE.LineBasicMaterial({
         color: 0x008cff,
         transparent: true,
@@ -577,9 +604,10 @@ export const PortfolioWormhole3D: React.FC = () => {
         linewidth: 1.5,
       });
       const rimLine = new THREE.LineLoop(rimLineGeo, rimMat);
+      rimLine.position.set(0, 0, 0.008);
       panelGroup.add(rimLine);
 
-      // 8. Gorilla Glass Specular Glare (curved to exact screen radius)
+      // 8. Gorilla Glass Specular Glare (curved to exact screen radius, at z = 0.009)
       const glareMat = new THREE.MeshBasicMaterial({
         map: glareTexture,
         transparent: true,
@@ -588,43 +616,43 @@ export const PortfolioWormhole3D: React.FC = () => {
         depthWrite: false,
       });
       const glareMesh = new THREE.Mesh(screenGeo, glareMat);
-      glareMesh.position.set(0, 0, 0.028);
+      glareMesh.position.set(0, 0, 0.009);
       panelGroup.add(glareMesh);
 
-      // 9. Hardware Sensor Capsule & Optic at Top Bezel
+      // 9. Hardware Sensor Capsule & Optic at Top Bezel (at z = 0.011)
       const pillMesh = new THREE.Mesh(pillGeo, pillMat);
-      pillMesh.position.set(0, PANEL_HEIGHT / 2 - 0.072, 0.030);
+      pillMesh.position.set(0, PANEL_HEIGHT / 2 - 0.072, 0.011);
       panelGroup.add(pillMesh);
 
       const opticMesh = new THREE.Mesh(opticGeo, opticMat);
-      opticMesh.position.set(-0.06, PANEL_HEIGHT / 2 - 0.072, 0.031);
+      opticMesh.position.set(-0.06, PANEL_HEIGHT / 2 - 0.072, 0.012);
       panelGroup.add(opticMesh);
 
       const sensorMesh = new THREE.Mesh(sensorGeo, sensorMat);
-      sensorMesh.position.set(0.06, PANEL_HEIGHT / 2 - 0.072, 0.031);
+      sensorMesh.position.set(0.06, PANEL_HEIGHT / 2 - 0.072, 0.012);
       panelGroup.add(sensorMesh);
 
-      // 10. Cinema Viewfinder Corner Brackets
+      // 10. Cinema Viewfinder Corner Brackets (at z = 0.011)
       const bracketOffsetX = PANEL_WIDTH / 2 - 0.12;
       const bracketOffsetY = PANEL_HEIGHT / 2 - 0.12;
 
       const brTR = new THREE.Line(bracketGeo, bracketMat);
-      brTR.position.set(bracketOffsetX, bracketOffsetY, 0.0305);
+      brTR.position.set(bracketOffsetX, bracketOffsetY, 0.011);
       brTR.rotation.z = Math.PI;
       panelGroup.add(brTR);
 
       const brTL = new THREE.Line(bracketGeo, bracketMat);
-      brTL.position.set(-bracketOffsetX, bracketOffsetY, 0.0305);
+      brTL.position.set(-bracketOffsetX, bracketOffsetY, 0.011);
       brTL.rotation.z = -Math.PI / 2;
       panelGroup.add(brTL);
 
       const brBL = new THREE.Line(bracketGeo, bracketMat);
-      brBL.position.set(-bracketOffsetX, -bracketOffsetY, 0.0305);
+      brBL.position.set(-bracketOffsetX, -bracketOffsetY, 0.011);
       brBL.rotation.z = 0;
       panelGroup.add(brBL);
 
       const brBR = new THREE.Line(bracketGeo, bracketMat);
-      brBR.position.set(bracketOffsetX, -bracketOffsetY, 0.0305);
+      brBR.position.set(bracketOffsetX, -bracketOffsetY, 0.011);
       brBR.rotation.z = Math.PI / 2;
       panelGroup.add(brBR);
 
@@ -644,9 +672,9 @@ export const PortfolioWormhole3D: React.FC = () => {
         baseY,
         baseRotY,
         video,
-        videoTexture: null,
+        videoTexture,
         posterTexture,
-        isPlaying: false,
+        isPlaying: i === 0,
       });
     });
 
@@ -698,13 +726,30 @@ export const PortfolioWormhole3D: React.FC = () => {
       if (activePanel && activePanel.group.visible) {
         const intersects = raycaster.intersectObjects([activePanel.screenMesh, activePanel.chassisMesh], true);
         if (intersects.length > 0) {
-          setFullScreenProject(CLIENT_PROJECTS[activeIndexRef.current]);
+          setSelectedProjectModal(CLIENT_PROJECTS[activeIndexRef.current]);
         }
+      }
+    };
+
+    // Auto-resume video playback on first user touch/click/scroll gesture
+    const handleUserInteraction = () => {
+      const active = panelsRef.current[activeIndexRef.current];
+      if (active && active.video.paused) {
+        active.video.play().then(() => {
+          active.isPlaying = true;
+          if (active.videoTexture) {
+            (active.screenMesh.material as THREE.MeshBasicMaterial).map = active.videoTexture;
+            (active.screenMesh.material as THREE.MeshBasicMaterial).needsUpdate = true;
+          }
+        }).catch(() => {});
       }
     };
 
     window.addEventListener('mousemove', handlePointerMove, { passive: true });
     window.addEventListener('click', handlePointerDown);
+    window.addEventListener('touchstart', handleUserInteraction, { passive: true });
+    window.addEventListener('mousedown', handleUserInteraction, { passive: true });
+    window.addEventListener('wheel', handleUserInteraction, { passive: true });
 
     // Handle Window Resize
     const handleResize = () => {
@@ -748,6 +793,9 @@ export const PortfolioWormhole3D: React.FC = () => {
       const activePanel = panelsRef.current[activeIndexRef.current];
       if (activePanel && activePanel.group.visible) {
         activePanel.group.rotation.x = currentMouseRef.current.y * 0.04;
+        if (activePanel.videoTexture && !activePanel.video.paused) {
+          activePanel.videoTexture.needsUpdate = true;
+        }
       }
 
       // Organic floating motion for dust motes
@@ -771,6 +819,9 @@ export const PortfolioWormhole3D: React.FC = () => {
       cancelAnimationFrame(animId);
       window.removeEventListener('mousemove', handlePointerMove);
       window.removeEventListener('click', handlePointerDown);
+      window.removeEventListener('touchstart', handleUserInteraction);
+      window.removeEventListener('mousedown', handleUserInteraction);
+      window.removeEventListener('wheel', handleUserInteraction);
       window.removeEventListener('resize', handleResize);
       panels.forEach((p) => {
         p.video.pause();
@@ -938,13 +989,15 @@ export const PortfolioWormhole3D: React.FC = () => {
       if (dist < 0.65 && opacity > 0.6) {
         if (!p.isPlaying) {
           p.isPlaying = true;
-          p.video.play().catch(() => {});
-          if (!p.videoTexture) {
-            p.videoTexture = new THREE.VideoTexture(p.video);
-            p.videoTexture.colorSpace = THREE.SRGBColorSpace;
+          const playPromise = p.video.play();
+          if (playPromise !== undefined) {
+            playPromise.then(() => {
+              if (p.videoTexture) {
+                (p.screenMesh.material as THREE.MeshBasicMaterial).map = p.videoTexture;
+                (p.screenMesh.material as THREE.MeshBasicMaterial).needsUpdate = true;
+              }
+            }).catch(() => {});
           }
-          (p.screenMesh.material as THREE.MeshBasicMaterial).map = p.videoTexture;
-          (p.screenMesh.material as THREE.MeshBasicMaterial).needsUpdate = true;
         }
       } else {
         if (p.isPlaying) {
@@ -1063,16 +1116,16 @@ export const PortfolioWormhole3D: React.FC = () => {
           </div>
 
           {/* ========================================================= */}
-          {/* 3. HOVER BADGE OVER ACTIVE REEL: CLICK TO WATCH FULLSCREEN */}
+          {/* 3. HOVER BADGE OVER ACTIVE REEL: CLICK TO VIEW PROJECT    */}
           {/* ========================================================= */}
           {isHoveringReel && (
             <div
-              className={`fixed z-30 pointer-events-none transition-all duration-300 hidden md:flex items-center gap-2.5 px-4.5 py-2.5 rounded-full bg-[#04060A]/85 text-white border border-white/20 font-sans text-xs tracking-[0.16em] uppercase font-semibold shadow-[0_8px_32px_rgba(0,0,0,0.85)] backdrop-blur-xl ${
+              className={`fixed z-30 pointer-events-none transition-all duration-300 hidden md:flex items-center gap-2.5 px-4.5 py-2.5 rounded-full bg-[#04060A]/90 text-white border border-[#008CFF]/50 font-sans text-xs tracking-[0.16em] uppercase font-bold shadow-[0_8px_32px_rgba(0,140,255,0.4)] backdrop-blur-xl ${
                 isLeft ? 'left-[22%] top-[50%]' : 'right-[22%] top-[50%]'
               } -translate-y-1/2`}
             >
-              <Play className="w-3.5 h-3.5 fill-[#008CFF] text-[#008CFF]" />
-              <span className="text-white/90">WATCH REEL</span>
+              <ArrowUpRight className="w-3.5 h-3.5 text-[#008CFF]" />
+              <span className="text-white">VIEW PROJECT</span>
             </div>
           )}
 
@@ -1113,24 +1166,20 @@ export const PortfolioWormhole3D: React.FC = () => {
                     {currentProject.headline}
                   </p>
 
-                  {/* ACTION BUTTONS (WATCH REEL / VIEW PROJECT REVEALS MORE REELS) */}
-                  <div className={`mt-6 sm:mt-7 flex items-center gap-3.5 ${isMobile ? 'justify-center' : ''}`}>
+                  {/* ACTION BUTTON: SINGLE BLUE METALLIC BUTTON */}
+                  <div className={`mt-6 sm:mt-7 flex items-center ${isMobile ? 'justify-center' : ''}`}>
                     <button
                       type="button"
-                      onClick={() => setFullScreenProject(currentProject)}
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#008CFF] hover:bg-[#007fe6] text-white font-sans text-xs tracking-[0.16em] uppercase font-semibold transition-all duration-200 cursor-pointer shadow-[0_4px_16px_rgba(0,140,255,0.35)] active:scale-95 group"
+                      onClick={() => setSelectedProjectModal(currentProject)}
+                      className="relative inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full text-white font-sans text-xs tracking-[0.2em] uppercase font-bold transition-all duration-300 cursor-pointer active:scale-95 overflow-hidden group shadow-[0_0_30px_rgba(0,140,255,0.45),inset_0_1px_1px_rgba(255,255,255,0.5)] hover:shadow-[0_0_40px_rgba(0,140,255,0.7),inset_0_1px_2px_rgba(255,255,255,0.7)] border border-[#7ec4ff]/40"
+                      style={{
+                        background: 'linear-gradient(135deg, #0066cc 0%, #008CFF 45%, #29a0ff 70%, #0070d6 100%)',
+                      }}
                     >
-                      <Play className="w-3.5 h-3.5 fill-current text-white" />
-                      <span>WATCH REEL</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setIsIndexDrawerOpen(true)}
-                      className="inline-flex items-center gap-1.5 px-5.5 py-3 rounded-full bg-white/[0.04] hover:bg-white/[0.09] border border-white/20 hover:border-white/50 text-white/80 hover:text-white font-sans text-xs tracking-[0.16em] uppercase font-medium transition-all duration-200 active:scale-95 cursor-pointer group"
-                    >
-                      <span>VIEW PROJECT</span>
-                      <ArrowUpRight className="w-3.5 h-3.5 text-white/60 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                      {/* Metallic Shimmer Gleam */}
+                      <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out pointer-events-none" />
+                      <span className="relative z-10 text-white">VIEW PROJECT</span>
+                      <ArrowUpRight className="relative z-10 w-4 h-4 text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                     </button>
                   </div>
                 </div>
@@ -1237,12 +1286,12 @@ export const PortfolioWormhole3D: React.FC = () => {
       )}
 
       {/* ================================================================== */}
-      {/* 7. FULLSCREEN CINEMATIC REEL MODAL PLAYER                          */}
+      {/* 7. IN-DEPTH PROJECT DETAIL MODAL (COMPLETE INFO & 2-3 REELS)        */}
       {/* ================================================================== */}
-      <FullScreenReelModal
-        isOpen={Boolean(fullScreenProject)}
-        project={fullScreenProject}
-        onClose={() => setFullScreenProject(null)}
+      <ProjectDetailModal
+        isOpen={Boolean(selectedProjectModal)}
+        project={selectedProjectModal}
+        onClose={() => setSelectedProjectModal(null)}
       />
     </>
   );

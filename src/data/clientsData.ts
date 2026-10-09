@@ -1,3 +1,12 @@
+export interface ProjectReelItem {
+  id: string;
+  title: string;
+  category: string;
+  duration: string;
+  videoUrl: string;
+  posterUrl: string;
+}
+
 export interface ClientProject {
   id: string;
   slug: string;
@@ -9,8 +18,11 @@ export interface ClientProject {
   logoUrl?: string;
   headline: string;
   story: string;
+  challenge?: string;
+  solution?: string;
   deliverables: string[];
   metrics?: { label: string; value: string }[];
+  reels: ProjectReelItem[];
 }
 
 export const CLIENT_PROJECTS: ClientProject[] = [
@@ -24,11 +36,40 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     posterUrl: '/reels/posters/santhi.pipes_rjy_1783494112_3936556116926232206_48644092133.jpg',
     logoUrl: '/clients/Shanti Pipes.png',
     headline: 'High-Velocity Industrial Cinematography',
-    story: 'Engineered commercial filmmaking capturing industrial manufacturing precision, high-speed automated extrusion lines, and monolithic warehouse architecture.',
-    deliverables: ['Industrial Film', 'Brand Commercial', '4K Drone Aerials', 'Social Teaser Stream'],
+    story: 'Engineered commercial filmmaking capturing industrial manufacturing precision, high-speed automated extrusion lines, and monolithic warehouse architecture. Our directional rim lights and cinematic macro tracking brought raw PVC engineering into the realm of luxury industrial art.',
+    challenge: 'Transform raw polymer extrusion manufacturing into a visually compelling, premium narrative that communicates engineering tolerance, scale, and high-volume reliability.',
+    solution: 'Deployed high-speed cinema cameras with specialized anamorphic glass, automated robotic slider tracks through active extrusion lines, and dramatic volumetric industrial lighting.',
+    deliverables: ['Industrial Anthem Film', 'Brand Commercial', '4K Drone Aerials', 'Social Teaser Stream', 'Macro Engineering Reel'],
     metrics: [
       { label: 'Retention Rate', value: '88.4%' },
       { label: 'Organic Views', value: '250K+' },
+      { label: 'Direct Leads Lift', value: '+142%' },
+    ],
+    reels: [
+      {
+        id: 'sp-01',
+        title: 'Industrial Commercial Master',
+        category: 'Brand Anthem',
+        duration: '0:34',
+        videoUrl: '/reels/santhi.pipes_rjy_1783494112_3936556116926232206_48644092133.mp4',
+        posterUrl: '/reels/posters/santhi.pipes_rjy_1783494112_3936556116926232206_48644092133.jpg',
+      },
+      {
+        id: 'sp-02',
+        title: 'Automated Extrusion Robotics Cut',
+        category: 'Precision Motion',
+        duration: '0:28',
+        videoUrl: '/reels/viswatuff.glass_rjy_1791174653_4000984496274606409_78432309239.mp4',
+        posterUrl: '/reels/posters/viswatuff.glass_rjy_1791174653_4000984496274606409_78432309239.jpg',
+      },
+      {
+        id: 'sp-03',
+        title: 'Warehouse Scale & Macro Engineering',
+        category: 'Viral Social Teaser',
+        duration: '0:22',
+        videoUrl: '/reels/wearebrandshoots_1777444216_3885805244420742638_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1777444216_3885805244420742638_77785749886.jpg',
+      },
     ],
   },
   {
@@ -41,11 +82,40 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     posterUrl: '/reels/posters/viswatuff.glass_rjy_1791174653_4000984496274606409_78432309239.jpg',
     logoUrl: '/clients/IMG_4537.PNG',
     headline: 'Monolithic Architectural Scale & Light Refraction',
-    story: 'Exploring spatial transparency and optical refraction through anamorphic glass, highlighting monumental commercial glass installations.',
-    deliverables: ['Architectural Film', 'Brand Positioning', '9:16 Vertical Showcases', 'Lighting Staging'],
+    story: 'Exploring spatial transparency and optical refraction through toughened structural glass, highlighting monumental commercial glass installations with controlled lighting and mathematical camera geometry.',
+    challenge: 'Capturing clear, reflective glass without unwanted reflections or distortion while demonstrating optical purity and structural impact resistance.',
+    solution: 'Crafted polarized optical lighting rigs with anamorphic flared rim lights, shooting in ultra-high contrast dark spatial environments.',
+    deliverables: ['Architectural Film', 'Brand Positioning', '9:16 Vertical Showcases', 'Lighting Staging', 'Commercial Case Reel'],
     metrics: [
       { label: 'Brand Reach', value: '380K+' },
-      { label: 'Inquiries', value: '+142%' },
+      { label: 'Architect Inquiries', value: '+142%' },
+      { label: 'Catalog Lift', value: '+85%' },
+    ],
+    reels: [
+      {
+        id: 'vg-01',
+        title: 'Architectural Master Film',
+        category: 'Commercial Showcase',
+        duration: '0:36',
+        videoUrl: '/reels/viswatuff.glass_rjy_1791174653_4000984496274606409_78432309239.mp4',
+        posterUrl: '/reels/posters/viswatuff.glass_rjy_1791174653_4000984496274606409_78432309239.jpg',
+      },
+      {
+        id: 'vg-02',
+        title: 'Light Refraction & Facade Glazing',
+        category: 'Optical Cinema',
+        duration: '0:30',
+        videoUrl: '/reels/wearebrandshoots_1789541302_3987282906831722378_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1789541302_3987282906831722378_77785749886.jpg',
+      },
+      {
+        id: 'vg-03',
+        title: 'Structural Toughness Demo Cut',
+        category: 'Impact Micro Reel',
+        duration: '0:24',
+        videoUrl: '/reels/santhi.pipes_rjy_1783494112_3936556116926232206_48644092133.mp4',
+        posterUrl: '/reels/posters/santhi.pipes_rjy_1783494112_3936556116926232206_48644092133.jpg',
+      },
     ],
   },
   {
@@ -59,10 +129,39 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     logoUrl: '/clients/Bags World Logo.PNG',
     headline: 'Fast-Cut Luxury Retail Visual Rhythm',
     story: 'Dynamic camera dolly movements, saturated studio lighting, and high-energy pacing designed to captivate mobile attention in the first 2 seconds.',
-    deliverables: ['Campaign Architecture', 'Viral Hook Reels', 'Color Master Finishing', 'Sound Design'],
+    challenge: 'Stand out in an ultra-saturated consumer travel accessories market where attention drop-off occurs within the first 1.5 seconds.',
+    solution: 'Engineered rapid match-cuts, zero-friction transition wipes, bespoke sound design hits, and hyper-saturated editorial color styling.',
+    deliverables: ['Campaign Architecture', 'Viral Hook Reels', 'Color Master Finishing', 'Sound Design', 'Social Micro Suite'],
     metrics: [
       { label: 'Engagement Rate', value: '14.2%' },
       { label: 'Catalog Lift', value: '+310%' },
+      { label: 'Organic Shares', value: '52K' },
+    ],
+    reels: [
+      {
+        id: 'bw-01',
+        title: 'Runway Kinetic Anthem',
+        category: 'Hero Commercial',
+        duration: '0:28',
+        videoUrl: '/reels/wearebrandshoots_1777444216_3885805244420742638_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1777444216_3885805244420742638_77785749886.jpg',
+      },
+      {
+        id: 'bw-02',
+        title: 'Studio Lighting & Model Kinetic Cut',
+        category: 'Fashion Motion',
+        duration: '0:25',
+        videoUrl: '/reels/wearebrandshoots_1786454245_3961387117295433628_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1786454245_3961387117295433628_77785749886.jpg',
+      },
+      {
+        id: 'bw-03',
+        title: 'Fast-Paced Travel Adventure Teaser',
+        category: 'Viral Social Cut',
+        duration: '0:20',
+        videoUrl: '/reels/wearebrandshoots_1788094941_3975150238988110104_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1788094941_3975150238988110104_77785749886.jpg',
+      },
     ],
   },
   {
@@ -76,10 +175,39 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     logoUrl: '/clients/Aabharan Logo.png',
     headline: 'Bespoke Traditional Goldsmithing & Heritage',
     story: 'Intimate macro jewelry cinematography illuminating delicate handcrafted gold details, royal heritage silhouettes, and directional rim lighting.',
-    deliverables: ['Luxury Macro Cinema', 'Storytelling Reels', 'High-Dynamic Range Color', 'Aesthetic Music Score'],
+    challenge: 'Communicate the intricate micro-craftsmanship of heritage handcrafted jewelry while maintaining emotional reverence and bridal splendor.',
+    solution: 'Utilized ultra-high magnification macro cinema probes with controlled motorized turntable movements and warm incandescent lighting cues.',
+    deliverables: ['Luxury Macro Cinema', 'Storytelling Reels', 'High-Dynamic Range Color', 'Aesthetic Music Score', 'Bridal Campaign Suite'],
     metrics: [
       { label: 'Shares', value: '45K+' },
       { label: 'Direct Leads', value: '+85%' },
+      { label: 'Completion Rate', value: '94%' },
+    ],
+    reels: [
+      {
+        id: 'aj-01',
+        title: 'Heritage Goldsmithing Masterpiece',
+        category: 'Royal Heritage Reel',
+        duration: '0:32',
+        videoUrl: '/reels/wearebrandshoots_1786454245_3961387117295433628_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1786454245_3961387117295433628_77785749886.jpg',
+      },
+      {
+        id: 'aj-02',
+        title: 'Macro Gold Textures & Silhouette Rim',
+        category: 'Macro Cinema',
+        duration: '0:26',
+        videoUrl: '/reels/wearebrandshoots_1787252706_3968084628303865353_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1787252706_3968084628303865353_77785749886.jpg',
+      },
+      {
+        id: 'aj-03',
+        title: 'Festive Bridal Glamour Cut',
+        category: 'Social Teaser',
+        duration: '0:22',
+        videoUrl: '/reels/wearebrandshoots_1786854627_3964745654666992928_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1786854627_3964745654666992928_77785749886.jpg',
+      },
     ],
   },
   {
@@ -93,10 +221,39 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     logoUrl: '/clients/Fresh and Fresh Logo.png',
     headline: 'Culinary Kinetic Motion & Appetite Appeal',
     story: 'High-speed food choreography capturing crisp textures, fresh ingredient explosions, and punchy editorial cuts tailored for viral culinary discovery.',
-    deliverables: ['Food Cinematography', 'High-Speed Capture', 'Kinetic Post-Production', 'Shorts Packaging'],
+    challenge: 'Bring retail supermarket produce and fresh culinary items to life in an electrifying, crave-inducing cinematic manner.',
+    solution: 'Shot at 240fps slow-motion with synchronized pneumatic fluid splashes and vibrant chromatic grading.',
+    deliverables: ['Food Cinematography', 'High-Speed Capture', 'Kinetic Post-Production', 'Shorts Packaging', 'In-Store Display Reel'],
     metrics: [
       { label: 'Video Completion', value: '92%' },
       { label: 'Store Footfall', value: '+68%' },
+      { label: 'Instagram Reach', value: '410K' },
+    ],
+    reels: [
+      {
+        id: 'ff-01',
+        title: 'Kinetic Culinary Explosions',
+        category: 'High-Speed Commercial',
+        duration: '0:30',
+        videoUrl: '/reels/wearebrandshoots_1786854627_3964745654666992928_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1786854627_3964745654666992928_77785749886.jpg',
+      },
+      {
+        id: 'ff-02',
+        title: 'Farm Fresh Textures & Macro Crunch',
+        category: 'Macro Food Cut',
+        duration: '0:24',
+        videoUrl: '/reels/wearebrandshoots_1777444216_3885805244420742638_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1777444216_3885805244420742638_77785749886.jpg',
+      },
+      {
+        id: 'ff-03',
+        title: 'Supermarket Lifestyle Experience',
+        category: 'Viral Social Teaser',
+        duration: '0:19',
+        videoUrl: '/reels/wearebrandshoots_1788094941_3975150238988110104_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1788094941_3975150238988110104_77785749886.jpg',
+      },
     ],
   },
   {
@@ -109,11 +266,40 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     posterUrl: '/reels/posters/wearebrandshoots_1787252706_3968084628303865353_77785749886.jpg',
     logoUrl: '/clients/Dayanidhi Logo.png',
     headline: 'Emotional Storytelling & Studio Lighting',
-    story: 'Deep emotional resonance paired with directional key light, cinematic slow motion, and character-driven narrative direction.',
-    deliverables: ['Brand Story Film', 'Cinematic Direction', 'Original Score Audio', 'Festival Cut'],
+    story: 'Deep emotional resonance paired with directional key light, cinematic slow motion, and character-driven narrative direction celebrating textile craftsmanship.',
+    challenge: 'Craft a narrative-driven film that balances authentic human emotion with premium textile drape and artisanal weaving details.',
+    solution: 'Designed warm atmospheric haze sets with custom anamorphic framing and an original musical score recorded for maximum emotional cadence.',
+    deliverables: ['Brand Story Film', 'Cinematic Direction', 'Original Score Audio', 'Festival Cut', 'Social Story Vignettes'],
     metrics: [
       { label: 'Audience Sentiment', value: '99% Pos' },
       { label: 'Brand Recognition', value: '+175%' },
+      { label: 'Shares', value: '38K' },
+    ],
+    reels: [
+      {
+        id: 'dc-01',
+        title: 'The Weaver Narrative Anthem',
+        category: 'Brand Story Film',
+        duration: '0:38',
+        videoUrl: '/reels/wearebrandshoots_1787252706_3968084628303865353_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1787252706_3968084628303865353_77785749886.jpg',
+      },
+      {
+        id: 'dc-02',
+        title: 'Silk Drape & Atmospheric Slow-Motion',
+        category: 'Cinematic Texture',
+        duration: '0:27',
+        videoUrl: '/reels/wearebrandshoots_1786454245_3961387117295433628_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1786454245_3961387117295433628_77785749886.jpg',
+      },
+      {
+        id: 'dc-03',
+        title: 'Celebration & Heritage Teaser',
+        category: 'Viral Social Cut',
+        duration: '0:21',
+        videoUrl: '/reels/wearebrandshoots_1790170837_3992564060770112832_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1790170837_3992564060770112832_77785749886.jpg',
+      },
     ],
   },
   {
@@ -126,11 +312,40 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     posterUrl: '/reels/posters/wearebrandshoots_1788094941_3975150238988110104_77785749886.jpg',
     logoUrl: '/clients/Jain Beauty Logo.png',
     headline: 'Editorial Fashion Portraiture & Lighting',
-    story: 'Studio beauty cinematography featuring neon rim lights, fluid textile physics, and razor-sharp skin-tone fidelity.',
-    deliverables: ['Editorial Fashion Reels', 'Studio Staging', 'Glamour Color Grading', 'Trend Audio Tracks'],
+    story: 'Studio beauty cinematography featuring neon rim lights, fluid textile physics, and razor-sharp skin-tone fidelity designed for modern beauty tastemakers.',
+    challenge: 'Deliver studio lighting and high-definition beauty textures that preserve natural skin tone while delivering bold avant-garde aesthetics.',
+    solution: 'Engineered specialized diffused parabolic lighting with custom chromatic backlighting and high-speed motion tracking.',
+    deliverables: ['Editorial Fashion Reels', 'Studio Staging', 'Glamour Color Grading', 'Trend Audio Tracks', 'Beauty Tutorial Suite'],
     metrics: [
       { label: 'Follower Growth', value: '+42K' },
       { label: 'Engagement Rate', value: '18.4%' },
+      { label: 'Booking Surge', value: '+120%' },
+    ],
+    reels: [
+      {
+        id: 'jb-01',
+        title: 'High-Fashion Studio Anthem',
+        category: 'Editorial Beauty',
+        duration: '0:30',
+        videoUrl: '/reels/wearebrandshoots_1788094941_3975150238988110104_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1788094941_3975150238988110104_77785749886.jpg',
+      },
+      {
+        id: 'jb-02',
+        title: 'Neon Rim Lights & Fluid Textile Cut',
+        category: 'Kinetic Glamour',
+        duration: '0:25',
+        videoUrl: '/reels/wearebrandshoots_1786454245_3961387117295433628_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1786454245_3961387117295433628_77785749886.jpg',
+      },
+      {
+        id: 'jb-03',
+        title: 'Viral Glow Up Transition Cut',
+        category: 'Viral Social Teaser',
+        duration: '0:18',
+        videoUrl: '/reels/wearebrandshoots_1777444216_3885805244420742638_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1777444216_3885805244420742638_77785749886.jpg',
+      },
     ],
   },
   {
@@ -144,10 +359,39 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     logoUrl: '/clients/Rk home.png',
     headline: 'Spatial Living Depth & Bespoke Furnishings',
     story: 'Smooth gimbal track sequences across contemporary architectural living spaces, capturing textures, morning ambient light, and ergonomics.',
-    deliverables: ['Spatial Architecture Film', 'Showroom Experience', 'Social Walkthroughs', 'Soundscaping'],
+    challenge: 'Convey the sensory physical experience of luxury interior living spaces, wood finishes, and Italian marble surfaces through vertical video.',
+    solution: 'Used ultra-wide cinema lenses on continuous motorized steady-cam rigs, timing every shot to natural golden hour window lighting.',
+    deliverables: ['Spatial Architecture Film', 'Showroom Experience', 'Social Walkthroughs', 'Soundscaping', 'Designer Spotlight'],
     metrics: [
       { label: 'Client Inquiries', value: '+210%' },
       { label: 'Showroom Visits', value: '+95%' },
+      { label: 'Video Shares', value: '29K' },
+    ],
+    reels: [
+      {
+        id: 'rk-01',
+        title: 'Contemporary Luxury Living Anthem',
+        category: 'Interior Architectural',
+        duration: '0:35',
+        videoUrl: '/reels/wearebrandshoots_1789108387_3983651808436403394_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1789108387_3983651808436403394_77785749886.jpg',
+      },
+      {
+        id: 'rk-02',
+        title: 'Furnishing Ergonomics & Ambient Light',
+        category: 'Spatial Cinema',
+        duration: '0:28',
+        videoUrl: '/reels/viswatuff.glass_rjy_1791174653_4000984496274606409_78432309239.mp4',
+        posterUrl: '/reels/posters/viswatuff.glass_rjy_1791174653_4000984496274606409_78432309239.jpg',
+      },
+      {
+        id: 'rk-03',
+        title: 'Showroom Walkthrough Micro Reel',
+        category: 'Viral Social Teaser',
+        duration: '0:22',
+        videoUrl: '/reels/wearebrandshoots_1789541302_3987282906831722378_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1789541302_3987282906831722378_77785749886.jpg',
+      },
     ],
   },
   {
@@ -161,10 +405,39 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     logoUrl: '/clients/SB Ventures Logo.png',
     headline: 'Corporate Vision & Clean Architectural Staging',
     story: 'Sophisticated executive positioning films blending modern office cinematography, dynamic infographics, and confident stakeholder messaging.',
-    deliverables: ['Corporate Anthem Film', 'Executive Interviews', 'Motion Graphics Package', 'Investor Cut'],
+    challenge: 'Overcome corporate video cliches to create an authoritative, magnetic investor film that positions leadership as industry innovators.',
+    solution: 'Framed corporate executives with dramatic architectural shadows, corporate drone perspectives, and motion-tracked kinetic data graphics.',
+    deliverables: ['Corporate Anthem Film', 'Executive Interviews', 'Motion Graphics Package', 'Investor Cut', 'Social Thought Leadership'],
     metrics: [
       { label: 'Investor Reach', value: '100K+' },
       { label: 'Global Retention', value: '84%' },
+      { label: 'Deal Acceleration', value: '+35%' },
+    ],
+    reels: [
+      {
+        id: 'sb-01',
+        title: 'Visionary Capital Corporate Anthem',
+        category: 'Executive Commercial',
+        duration: '0:33',
+        videoUrl: '/reels/wearebrandshoots_1789541302_3987282906831722378_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1789541302_3987282906831722378_77785749886.jpg',
+      },
+      {
+        id: 'sb-02',
+        title: 'Executive Leadership & Spatial Staging',
+        category: 'Corporate Vision',
+        duration: '0:26',
+        videoUrl: '/reels/wearebrandshoots_1789108387_3983651808436403394_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1789108387_3983651808436403394_77785749886.jpg',
+      },
+      {
+        id: 'sb-03',
+        title: 'Investor Micro Reel',
+        category: 'Social Teaser',
+        duration: '0:20',
+        videoUrl: '/reels/viswatuff.glass_rjy_1791174653_4000984496274606409_78432309239.mp4',
+        posterUrl: '/reels/posters/viswatuff.glass_rjy_1791174653_4000984496274606409_78432309239.jpg',
+      },
     ],
   },
   {
@@ -178,10 +451,39 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     logoUrl: '/clients/KC Overseas Logo.PNG',
     headline: 'Inspiring Documentary Student Journeys',
     story: 'Aspirational documentary storytelling following student ambitions across international borders, capturing authentic emotion and institutional credibility.',
-    deliverables: ['Documentary Campaign', 'Student Spotlights', 'Micro-Reel Content Engine', 'Multi-Language Edits'],
+    challenge: 'Capture the vulnerability, excitement, and triumph of students embarking on overseas education without feeling staged or commercialized.',
+    solution: 'Adopted an intimate documentary cinema-verite approach with natural ambient sound design, hand-held cinema lenses, and unscripted testimonials.',
+    deliverables: ['Documentary Campaign', 'Student Spotlights', 'Micro-Reel Content Engine', 'Multi-Language Edits', 'Campus Victory Stories'],
     metrics: [
       { label: 'Admissions Surge', value: '+62%' },
       { label: 'Organic Shares', value: '38K' },
+      { label: 'Video Retention', value: '91%' },
+    ],
+    reels: [
+      {
+        id: 'kc-01',
+        title: 'Global Ambitions Documentary Anthem',
+        category: 'Documentary Commercial',
+        duration: '0:36',
+        videoUrl: '/reels/wearebrandshoots_1790170837_3992564060770112832_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1790170837_3992564060770112832_77785749886.jpg',
+      },
+      {
+        id: 'kc-02',
+        title: 'Global Horizons & Institutional Trust',
+        category: 'Campus Stories',
+        duration: '0:29',
+        videoUrl: '/reels/wearebrandshoots_1787252706_3968084628303865353_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1787252706_3968084628303865353_77785749886.jpg',
+      },
+      {
+        id: 'kc-03',
+        title: 'Visa Victory Student Spotlight',
+        category: 'Viral Social Cut',
+        duration: '0:22',
+        videoUrl: '/reels/wearebrandshoots_1789541302_3987282906831722378_77785749886.mp4',
+        posterUrl: '/reels/posters/wearebrandshoots_1789541302_3987282906831722378_77785749886.jpg',
+      },
     ],
   },
 ];
@@ -211,4 +513,3 @@ export const ALL_CLIENT_LOGOS: ClientLogoItem[] = [
   { id: 'srk-doors', name: 'SRK Doors World', logoUrl: '/clients/SRK Doors World Logo.png' },
   { id: 't3', name: 'T3', logoUrl: '/clients/T3 Logo.png' },
 ];
-
