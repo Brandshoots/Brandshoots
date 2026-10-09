@@ -97,12 +97,12 @@ export const OurClientsSection: React.FC = () => {
       className="group relative flex flex-col items-center gap-3 shrink-0 cursor-pointer select-none active:scale-95 transition-all duration-300"
     >
       {/* Premium Dark Glass Frame with Luminous Core */}
-      <div className="relative w-44 h-44 sm:w-52 sm:h-52 md:w-56 md:h-56 p-4 rounded-2xl bg-[#090E17]/85 backdrop-blur-xl border border-white/15 shadow-[0_16px_40px_rgba(0,0,0,0.85)] flex items-center justify-center transition-all duration-400 group-hover:scale-105 group-hover:border-[#008CFF]/60 group-hover:shadow-[0_20px_50px_rgba(0,140,255,0.25)] overflow-hidden">
+      <div className="relative w-36 h-36 sm:w-40 sm:h-40 md:w-44 md:h-44 p-3 sm:p-3.5 rounded-2xl bg-[#090E17]/85 backdrop-blur-xl border border-white/15 shadow-[0_12px_32px_rgba(0,0,0,0.8)] flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:border-[#008CFF]/60 group-hover:shadow-[0_16px_40px_rgba(0,140,255,0.22)] overflow-hidden">
         {/* Subtle top sheen */}
         <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#008CFF]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         
         {/* Clean white optical backdrop for client emblems */}
-        <div className="w-full h-full rounded-xl bg-white flex items-center justify-center p-3.5 shadow-sm transition-transform duration-300 group-hover:scale-[1.02]">
+        <div className="w-full h-full rounded-xl bg-white flex items-center justify-center p-3 shadow-sm transition-transform duration-300 group-hover:scale-[1.02]">
           <img
             src={encodeURI(item.logo)}
             alt={item.name}
@@ -114,11 +114,11 @@ export const OurClientsSection: React.FC = () => {
       </div>
 
       {/* Editorial Name & Category Metadata */}
-      <div className="flex flex-col items-center text-center max-w-[180px]">
-        <span className="text-xs sm:text-sm font-bold text-white/90 group-hover:text-[#008CFF] transition-colors duration-200 tracking-wide truncate w-full">
+      <div className="flex flex-col items-center text-center max-w-[160px]">
+        <span className="text-xs sm:text-[13px] font-bold text-white/90 group-hover:text-[#008CFF] transition-colors duration-200 tracking-wide truncate w-full">
           {item.name}
         </span>
-        <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-white/45 group-hover:text-white/70 transition-colors duration-200">
+        <span className="text-[10px] font-mono tracking-[0.18em] uppercase text-white/45 group-hover:text-white/70 transition-colors duration-200">
           {item.category}
         </span>
       </div>
@@ -129,16 +129,16 @@ export const OurClientsSection: React.FC = () => {
     <section
       id="clients"
       ref={sectionRef}
-      className="relative w-full py-20 sm:py-28 lg:py-36 bg-[#04060A] text-white overflow-hidden select-none"
+      className="relative w-full py-16 sm:py-20 lg:py-24 bg-[#04060A] text-white overflow-hidden select-none"
     >
       {/* Background Architectural Atmosphere */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95vw] max-w-[1300px] h-[550px]"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95vw] max-w-[1200px] h-[450px]"
           style={{
             background:
-              'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.10) 0%, rgba(0, 50, 140, 0.02) 50%, transparent 75%)',
-            filter: 'blur(100px)',
+              'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.08) 0%, rgba(0, 50, 140, 0.02) 50%, transparent 75%)',
+            filter: 'blur(90px)',
           }}
         />
         <div className="absolute inset-0 opacity-[0.02] bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:4rem_4rem]" />
@@ -147,9 +147,9 @@ export const OurClientsSection: React.FC = () => {
       {/* Depth Watermark Background Layer */}
       <div
         ref={watermarkRef}
-        className="absolute top-1/3 left-0 w-full whitespace-nowrap pointer-events-none select-none z-0 opacity-[0.035]"
+        className="absolute top-1/3 left-0 w-full whitespace-nowrap pointer-events-none select-none z-0 opacity-[0.025]"
       >
-        <span className="font-display font-black text-[14vw] tracking-[-0.04em] uppercase text-white">
+        <span className="font-display font-black text-[9vw] lg:text-[8vw] tracking-[-0.03em] uppercase text-white">
           TRUSTED BY INDUSTRY LEADERS • CATEGORY DEFINING BRANDS •
         </span>
       </div>
@@ -157,17 +157,17 @@ export const OurClientsSection: React.FC = () => {
       {/* ======================================================== */}
       {/* TOP: EDITORIAL HEADER                                    */}
       {/* ======================================================== */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-center text-center px-6 sm:px-12 mb-14 sm:mb-20">
+      <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-center text-center px-6 sm:px-12 mb-10 sm:mb-14">
         <div className="flex items-center gap-2 mb-3">
           <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
           <span className="font-mono text-[10px] xs:text-[11px] sm:text-xs tracking-[0.3em] uppercase text-[#008CFF] font-semibold">
             02 // CLIENTS & COMMERCIAL PARTNERS
           </span>
         </div>
-        <h2 className="font-sans font-black uppercase tracking-[-0.038em] text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[0.92] text-white">
+        <h2 className="font-sans font-black uppercase tracking-[-0.038em] text-3xl xs:text-4xl sm:text-5xl md:text-6xl leading-[0.92] text-white">
           OUR CLIENTS<span className="text-[#008CFF]">.</span>
         </h2>
-        <p className="mt-4 sm:mt-5 text-sm sm:text-base text-white/60 max-w-xl font-normal leading-relaxed">
+        <p className="mt-3 sm:mt-4 text-xs sm:text-sm md:text-base text-white/60 max-w-xl font-normal leading-relaxed">
           Architecting visual authority and market command for category leaders across infrastructure, retail, luxury, and digital commerce.
         </p>
 
