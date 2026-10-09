@@ -15,6 +15,7 @@ import {
   Facebook,
 } from 'lucide-react';
 import { createLead } from '../../lib/cms/cmsService';
+import { BrandShootsLogo3D } from './BrandShootsLogo3D';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -302,34 +303,47 @@ export const ContactFormSection: React.FC = () => {
     >
       <div className="relative z-10 max-w-[1400px] mx-auto">
         {/* ============================================================== */}
-        {/* 1. HERO / OPENING (EDITORIAL & CLEAN)                          */}
+        {/* 1. HERO / OPENING (REDUCED HEADING + INTERACTIVE 3D LOGO)      */}
         {/* ============================================================== */}
-        <div className="mb-14 sm:mb-20 md:mb-24 text-left">
-          <h1 className="font-editorial font-black uppercase text-4xl xs:text-5xl sm:text-7xl md:text-8xl lg:text-[100px] tracking-tight leading-[0.92] text-white select-none">
-            <div className="overflow-hidden">
-              <span ref={headlineLine1Ref} className="block">
-                LET'S MAKE
-              </span>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center mb-14 sm:mb-20 md:mb-24">
+          {/* Left Column: Refined, Scaled-Down Editorial Heading */}
+          <div className="lg:col-span-7 flex flex-col justify-center text-left">
+            <div className="inline-flex items-center gap-2 mb-3.5 font-mono text-[11px] tracking-[0.24em] text-[#008CFF] uppercase font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
+              <span>START YOUR PRODUCTION // CONTACT</span>
             </div>
-            <div className="overflow-hidden">
-              <span ref={headlineLine2Ref} className="block text-white/95">
-                SOMETHING
-              </span>
-            </div>
-            <div className="overflow-hidden">
-              <span ref={headlineLine3Ref} className="block text-[#008CFF]">
-                WORTH WATCHING.
-              </span>
-            </div>
-          </h1>
 
-          {/* User's explicitly preserved one-line sentence */}
-          <p
-            ref={subtitleRef}
-            className="mt-6 sm:mt-8 max-w-2xl text-white/70 text-sm sm:text-base md:text-lg font-light leading-relaxed"
-          >
-            Have a project, campaign, product, or story that deserves more than ordinary content? Tell us what you're building.
-          </p>
+            <h1 className="font-editorial font-black uppercase text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-[62px] xl:text-[68px] tracking-tight leading-[0.95] text-white select-none">
+              <div className="overflow-hidden">
+                <span ref={headlineLine1Ref} className="block">
+                  LET'S MAKE
+                </span>
+              </div>
+              <div className="overflow-hidden">
+                <span ref={headlineLine2Ref} className="block text-white/95">
+                  SOMETHING
+                </span>
+              </div>
+              <div className="overflow-hidden">
+                <span ref={headlineLine3Ref} className="block text-[#008CFF]">
+                  WORTH WATCHING.
+                </span>
+              </div>
+            </h1>
+
+            {/* User's explicitly preserved one-line sentence */}
+            <p
+              ref={subtitleRef}
+              className="mt-5 sm:mt-6 max-w-xl text-white/70 text-sm sm:text-base md:text-lg font-light leading-relaxed"
+            >
+              Have a project, campaign, product, or story that deserves more than ordinary content? Tell us what you're building.
+            </p>
+          </div>
+
+          {/* Right Column: Interactive 3D BrandShoots Logo (Extruded .svg) */}
+          <div className="lg:col-span-5 flex items-center justify-center relative w-full h-[280px] xs:h-[320px] sm:h-[360px] md:h-[400px] lg:h-[420px]">
+            <BrandShootsLogo3D />
+          </div>
         </div>
 
         {/* ============================================================== */}

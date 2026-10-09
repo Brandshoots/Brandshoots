@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ChevronLeft, ChevronRight, Quote } from 'lucide-react';
+import { useCMSContent } from '../../lib/cms/useCMSContent';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -57,6 +58,10 @@ const TESTIMONIALS: Testimonial[] = [
 ];
 
 export const TestimonialsSection3D: React.FC = () => {
+  const { testimonials: cmsTestimonials } = useCMSContent();
+  const activeTestimonials =
+    cmsTestimonials && cmsTestimonials.length > 0 ? cmsTestimonials : TESTIMONIALS;
+
   const sectionRef = useRef<HTMLElement>(null);
   const quoteWrapperRef = useRef<HTMLDivElement>(null);
   const quoteTextRef = useRef<HTMLParagraphElement>(null);
@@ -160,28 +165,28 @@ export const TestimonialsSection3D: React.FC = () => {
   );
 
   const prev = useCallback(() => {
-    const nextIdx = (currentIndexRef.current - 1 + TESTIMONIALS.length) % TESTIMONIALS.length;
+    const nextIdx = (currentIndexRef.current - 1 + activeTestimonials.length) % activeTestimonials.length;
     goTo(nextIdx);
-  }, [goTo]);
+  }, [goTo, activeTestimonials.length]);
 
   const next = useCallback(() => {
-    const nextIdx = (currentIndexRef.current + 1) % TESTIMONIALS.length;
+    const nextIdx = (currentIndexRef.current + 1) % activeTestimonials.length;
     goTo(nextIdx);
-  }, [goTo]);
+  }, [goTo, activeTestimonials.length]);
 
   // Continuous auto-scroll / auto-advance every 5 seconds (pauses on hover)
   useEffect(() => {
     if (isPaused) return;
 
     const timer = setInterval(() => {
-      const nextIdx = (currentIndexRef.current + 1) % TESTIMONIALS.length;
+      const nextIdx = (currentIndexRef.current + 1) % activeTestimonials.length;
       goTo(nextIdx);
     }, 5000);
 
     return () => clearInterval(timer);
-  }, [isPaused, goTo]);
+  }, [isPaused, goTo, activeTestimonials.length]);
 
-  const activeTestimonial = TESTIMONIALS[currentIndex];
+  const activeTestimonial = activeTestimonials[currentIndex] || activeTestimonials[0];
 
   return (
     <section

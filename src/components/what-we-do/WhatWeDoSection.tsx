@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useCMSContent } from '../../lib/cms/useCMSContent';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -79,6 +80,21 @@ const MISSIONS: MissionData[] = [
 ];
 
 export const WhatWeDoSection: React.FC = () => {
+  const { services } = useCMSContent();
+  const activeMissions: MissionData[] =
+    services && services.length >= 6
+      ? services.slice(0, 6).map((s) => ({
+          id: s.id,
+          number: s.number,
+          titleLines: s.titleLines,
+          category: s.category,
+          description: s.description,
+          imageUrl: s.imageUrl,
+          aspectRatio: s.aspectRatio,
+          tag: s.tag,
+        }))
+      : MISSIONS;
+
   const sectionRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
 
@@ -190,7 +206,7 @@ export const WhatWeDoSection: React.FC = () => {
         }
 
         // Scenes 1..6: Immersive Media Presentations
-        MISSIONS.forEach((_, idx) => {
+        activeMissions.forEach((_, idx) => {
           const m = missionRefs.current[idx];
           const t = typoRefs.current[idx];
           const media = mediaContainerRefs.current[idx];
@@ -301,7 +317,7 @@ export const WhatWeDoSection: React.FC = () => {
   }, []);
 
   const currentMission =
-    activeChapterIndex >= 1 && activeChapterIndex <= 6 ? MISSIONS[activeChapterIndex - 1] : null;
+    activeChapterIndex >= 1 && activeChapterIndex <= 6 ? activeMissions[activeChapterIndex - 1] : null;
 
   return (
     <section
@@ -342,7 +358,7 @@ export const WhatWeDoSection: React.FC = () => {
 
         {/* The 6 Capabilities: Dominant mobile media cards */}
         <div className="flex flex-col gap-10">
-          {MISSIONS.map((mission) => (
+          {activeMissions.map((mission) => (
             <div
               key={`mobile-${mission.id}`}
               className="mobile-mission-card flex flex-col bg-[#070B12]/85 backdrop-blur-xl rounded-2xl p-5 sm:p-6 border border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.85)]"
@@ -447,7 +463,7 @@ export const WhatWeDoSection: React.FC = () => {
             </div>
 
             {/* Scenes 1..6: Desktop Immersive Chapters */}
-            {MISSIONS.map((mission, idx) => {
+            {activeMissions.map((mission, idx) => {
               const isEven = idx % 2 === 1;
               const isCurrentActive = activeChapterIndex === idx + 1;
 
