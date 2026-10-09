@@ -1,11 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { BRAND_PATHS, SHOOTS_PATHS, BRANDSHOOTS_LOGO_VIEWBOX } from '../footer/brandshootsLogoPaths';
+
+gsap.registerPlugin(ScrollTrigger);
 
 export const BrandShootsLogo3D: React.FC = () => {
   const mountRef = useRef<HTMLDivElement>(null);
-  const [hasInteracted, setHasInteracted] = useState(false);
 
   useEffect(() => {
     const container = mountRef.current;
@@ -136,8 +139,10 @@ export const BrandShootsLogo3D: React.FC = () => {
     masterGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
 
     // Initial heroic 3D orientation
-    masterGroup.rotation.y = -0.22;
-    masterGroup.rotation.x = 0.08;
+    const baseRotY = -0.22;
+    const baseRotX = 0.08;
+    masterGroup.rotation.y = baseRotY;
+    masterGroup.rotation.x = baseRotX;
 
     // 4. FLOATING AMBIENT GLOW DUST PARTICLES
     const particleCount = 45;
@@ -159,83 +164,54 @@ export const BrandShootsLogo3D: React.FC = () => {
     const particles = new THREE.Points(particleGeom, particleMat);
     scene.add(particles);
 
-    // 5. INTERACTIVITY & ANIMATION STATE
-    let targetRotX = 0.08;
-    let targetRotY = -0.22;
-    let isDragging = false;
-    let prevPointerX = 0;
-    let prevPointerY = 0;
-    let velocityX = 0;
-    let velocityY = 0;
-    let idleTime = 0;
+    // 5. SCROLLTRIGGER & MOUSE CURSOR INTERACTION
+    let mouseTiltX = 0;
+    let mouseTiltY = 0;
+    let targetMouseTiltX = 0;
+    let targetMouseTiltY = 0;
 
-    const onPointerMove = (e: MouseEvent | TouchEvent) => {
+    const scrollState = {
+      rotY: 0,
+      rotX: 0,
+      posZ: 0,
+    };
+
+    // GSAP ScrollTrigger for 3D logo parallax & rotation
+    const st = ScrollTrigger.create({
+      trigger: container,
+      start: 'top bottom',
+      end: 'bottom top',
+      scrub: 1.2,
+      onUpdate: (self) => {
+        // Rotates smoothly as user scrolls past the contact hero
+        scrollState.rotY = (self.progress - 0.5) * 1.1; // ~60 degree sweep
+        scrollState.rotX = (self.progress - 0.5) * -0.35;
+        scrollState.posZ = (self.progress - 0.5) * -90;
+      },
+    });
+
+    // Smooth cursor tracking across the window/hero
+    const onMouseMove = (e: MouseEvent) => {
       const rect = container.getBoundingClientRect();
-      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
 
-      const normX = ((clientX - rect.left) / rect.width) * 2 - 1;
-      const normY = -(((clientY - rect.top) / rect.height) * 2 - 1);
+      // Normalized coordinates from center [-1, 1]
+      const normX = Math.max(-1.5, Math.min(1.5, (e.clientX - centerX) / (rect.width / 2)));
+      const normY = Math.max(-1.5, Math.min(1.5, (e.clientY - centerY) / (rect.height / 2)));
 
-      // Update cursor specular point light
-      cursorLight.position.x = normX * 220;
-      cursorLight.position.y = normY * 180;
+      targetMouseTiltX = -normY * 0.22;
+      targetMouseTiltY = normX * 0.35;
+
+      // Move specular cursor light in 3D to highlight beveled facets
+      cursorLight.position.x = normX * 180;
+      cursorLight.position.y = -normY * 150;
       cursorLight.position.z = 220;
-
-      if (isDragging) {
-        const deltaX = clientX - prevPointerX;
-        const deltaY = clientY - prevPointerY;
-        velocityY = deltaX * 0.007;
-        velocityX = deltaY * 0.007;
-
-        targetRotY += velocityY;
-        targetRotX += velocityX;
-
-        prevPointerX = clientX;
-        prevPointerY = clientY;
-        idleTime = 0;
-      } else {
-        // Subtle perspective tracking when hovering
-        targetRotY = -0.22 + normX * 0.35;
-        targetRotX = 0.08 - normY * 0.25;
-      }
     };
 
-    const onPointerDown = (e: MouseEvent | TouchEvent) => {
-      isDragging = true;
-      setHasInteracted(true);
-      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-      prevPointerX = clientX;
-      prevPointerY = clientY;
-      velocityX = 0;
-      velocityY = 0;
-      idleTime = 0;
-    };
+    window.addEventListener('mousemove', onMouseMove);
 
-    const onPointerUp = () => {
-      isDragging = false;
-    };
-
-    // Double click to reset orientation
-    const onDoubleClick = () => {
-      targetRotX = 0.08;
-      targetRotY = -0.22;
-      velocityX = 0;
-      velocityY = 0;
-    };
-
-    container.addEventListener('mousemove', onPointerMove);
-    container.addEventListener('mousedown', onPointerDown);
-    window.addEventListener('mouseup', onPointerUp);
-    container.addEventListener('dblclick', onDoubleClick);
-
-    // Touch support
-    container.addEventListener('touchmove', onPointerMove, { passive: true });
-    container.addEventListener('touchstart', onPointerDown, { passive: true });
-    window.addEventListener('touchend', onPointerUp);
-
-    // 6. RENDER LOOP WITH BUTTERY INERTIAL DAMPING
+    // 6. RENDER LOOP WITH ELEGANT DAMPING
     let reqId: number;
     const clock = new THREE.Clock();
 
@@ -243,37 +219,24 @@ export const BrandShootsLogo3D: React.FC = () => {
       reqId = requestAnimationFrame(animate);
       const elapsedTime = clock.getElapsedTime();
 
-      // Inertial decay when released after drag
-      if (!isDragging) {
-        if (Math.abs(velocityX) > 0.0001 || Math.abs(velocityY) > 0.0001) {
-          targetRotX += velocityX;
-          targetRotY += velocityY;
-          velocityX *= 0.92;
-          velocityY *= 0.92;
-        } else {
-          // Slow cinematic breathing when idle
-          idleTime += 0.01;
-          const subtleFloatY = Math.sin(elapsedTime * 1.4) * 0.04;
-          const subtleFloatX = Math.cos(elapsedTime * 1.1) * 0.03;
-          masterGroup.position.y = Math.sin(elapsedTime * 1.5) * 5;
+      // Smooth lerp mouse tilts
+      mouseTiltX += (targetMouseTiltX - mouseTiltX) * 0.08;
+      mouseTiltY += (targetMouseTiltY - mouseTiltY) * 0.08;
 
-          masterGroup.rotation.y +=
-            (targetRotY + subtleFloatY - masterGroup.rotation.y) * 0.06;
-          masterGroup.rotation.x +=
-            (targetRotX + subtleFloatX - masterGroup.rotation.x) * 0.06;
-        }
-      } else {
-        masterGroup.rotation.y += (targetRotY - masterGroup.rotation.y) * 0.15;
-        masterGroup.rotation.x += (targetRotX - masterGroup.rotation.x) * 0.15;
-      }
+      // Subtle organic breathing float
+      const subtleFloatY = Math.sin(elapsedTime * 1.3) * 0.03;
+      const subtleFloatX = Math.cos(elapsedTime * 1.0) * 0.02;
+      masterGroup.position.y = Math.sin(elapsedTime * 1.4) * 4;
 
-      // Constrain vertical pitch
-      masterGroup.rotation.x = Math.max(
-        -Math.PI / 3,
-        Math.min(Math.PI / 3, masterGroup.rotation.x)
-      );
+      // Combine base orientation + scroll rotation + mouse cursor tilt + subtle float
+      const targetRotY = baseRotY + scrollState.rotY + mouseTiltY + subtleFloatY;
+      const targetRotX = baseRotX + scrollState.rotX + mouseTiltX + subtleFloatX;
 
-      // Slow drift of background particles
+      masterGroup.rotation.y += (targetRotY - masterGroup.rotation.y) * 0.08;
+      masterGroup.rotation.x += (targetRotX - masterGroup.rotation.x) * 0.08;
+      masterGroup.position.z += (scrollState.posZ - masterGroup.position.z) * 0.08;
+
+      // Drift background dust particles
       particles.rotation.y = elapsedTime * 0.03;
       particles.rotation.x = elapsedTime * 0.015;
 
@@ -300,13 +263,8 @@ export const BrandShootsLogo3D: React.FC = () => {
     return () => {
       cancelAnimationFrame(reqId);
       resizeObserver.disconnect();
-      container.removeEventListener('mousemove', onPointerMove);
-      container.removeEventListener('mousedown', onPointerDown);
-      window.removeEventListener('mouseup', onPointerUp);
-      container.removeEventListener('dblclick', onDoubleClick);
-      container.removeEventListener('touchmove', onPointerMove);
-      container.removeEventListener('touchstart', onPointerDown);
-      window.removeEventListener('touchend', onPointerUp);
+      st.kill();
+      window.removeEventListener('mousemove', onMouseMove);
 
       // Dispose Three.js objects
       logoGroup.traverse((obj) => {
@@ -329,7 +287,7 @@ export const BrandShootsLogo3D: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative w-full h-full min-h-[300px] flex items-center justify-center select-none group">
+    <div className="relative w-full h-full min-h-[300px] flex items-center justify-center select-none">
       {/* Background Volumetric Radial Glow */}
       <div
         className="absolute inset-0 pointer-events-none rounded-3xl"
@@ -343,21 +301,8 @@ export const BrandShootsLogo3D: React.FC = () => {
       {/* 3D WebGL Canvas Mount */}
       <div
         ref={mountRef}
-        className="relative z-10 w-full h-full cursor-grab active:cursor-grabbing"
-        title="Click and drag to rotate 3D BrandShoots logo in physical space"
+        className="relative z-10 w-full h-full pointer-events-auto"
       />
-
-      {/* Interactive Helper Pill */}
-      <div
-        className={`absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none transition-opacity duration-500 ${
-          hasInteracted ? 'opacity-0 group-hover:opacity-60' : 'opacity-70 group-hover:opacity-100'
-        }`}
-      >
-        <span className="px-3 py-1 rounded-full bg-white/[0.06] backdrop-blur-md border border-white/12 text-[10px] font-mono tracking-widest uppercase text-white/60 flex items-center gap-1.5 shadow-sm">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] animate-pulse" />
-          <span>DRAG TO ROTATE 3D LOGO</span>
-        </span>
-      </div>
     </div>
   );
 };

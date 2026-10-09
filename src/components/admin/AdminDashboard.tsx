@@ -52,8 +52,10 @@ import {
   Sparkles,
 } from 'lucide-react';
 
+import { AdminUserSession } from './AdminAuthGuard';
+
 interface AdminDashboardProps {
-  user: User;
+  user: User | AdminUserSession;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
@@ -168,7 +170,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
   };
 
   const handleSignOut = () => {
-    signOut(firebaseAuth);
+    localStorage.removeItem('bs_admin_auth_fallback');
+    window.dispatchEvent(new Event('bs-auth-change'));
+    signOut(firebaseAuth).catch(() => {});
   };
 
   const handleSaveCloudName = () => {
