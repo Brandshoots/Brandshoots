@@ -65,7 +65,13 @@ export const TestimonialsSection3D: React.FC = () => {
   const watermarkRef = useRef<HTMLDivElement>(null);
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   const isTransitioningRef = useRef(false);
+  const currentIndexRef = useRef(currentIndex);
+
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
 
   // Parallax and scroll emergence
   useEffect(() => {
@@ -112,7 +118,7 @@ export const TestimonialsSection3D: React.FC = () => {
 
   const goTo = useCallback(
     (targetIdx: number) => {
-      if (targetIdx === currentIndex || isTransitioningRef.current) return;
+      if (targetIdx === currentIndexRef.current || isTransitioningRef.current) return;
       isTransitioningRef.current = true;
 
       const outTl = gsap.timeline({
@@ -150,18 +156,30 @@ export const TestimonialsSection3D: React.FC = () => {
         outTl.to(authorInfoRef.current, { opacity: 0, y: -8, duration: 0.18, ease: 'power2.in' }, 0);
       }
     },
-    [currentIndex]
+    []
   );
 
-  const prev = () => {
-    const nextIdx = (currentIndex - 1 + TESTIMONIALS.length) % TESTIMONIALS.length;
+  const prev = useCallback(() => {
+    const nextIdx = (currentIndexRef.current - 1 + TESTIMONIALS.length) % TESTIMONIALS.length;
     goTo(nextIdx);
-  };
+  }, [goTo]);
 
-  const next = () => {
-    const nextIdx = (currentIndex + 1) % TESTIMONIALS.length;
+  const next = useCallback(() => {
+    const nextIdx = (currentIndexRef.current + 1) % TESTIMONIALS.length;
     goTo(nextIdx);
-  };
+  }, [goTo]);
+
+  // Continuous auto-scroll / auto-advance every 5 seconds (pauses on hover)
+  useEffect(() => {
+    if (isPaused) return;
+
+    const timer = setInterval(() => {
+      const nextIdx = (currentIndexRef.current + 1) % TESTIMONIALS.length;
+      goTo(nextIdx);
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, [isPaused, goTo]);
 
   const activeTestimonial = TESTIMONIALS[currentIndex];
 
@@ -195,7 +213,7 @@ export const TestimonialsSection3D: React.FC = () => {
         </span>
       </div>
 
-      {/* Main Content Container (Harmoniously proportioned to Viewer's POV) */}
+      {/* Main Content Container */}
       <div className="relative z-10 w-full max-w-4xl mx-auto px-5 sm:px-8 lg:px-12 flex flex-col items-center text-center">
         {/* Eyebrow */}
         <div className="flex items-center gap-2 mb-6 sm:mb-7">
@@ -205,9 +223,13 @@ export const TestimonialsSection3D: React.FC = () => {
           </span>
         </div>
 
-        {/* Refined Luxury Quote Card */}
+        {/* Refined Luxury Quote Card (Auto-scrolls, pauses on hover) */}
         <div
           ref={quoteWrapperRef}
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          onTouchStart={() => setIsPaused(true)}
+          onTouchEnd={() => setIsPaused(false)}
           className="relative w-full flex flex-col items-center bg-[#070B13]/75 backdrop-blur-2xl rounded-2xl sm:rounded-3xl p-6 sm:p-9 md:p-11 border border-white/12 shadow-[0_20px_60px_rgba(0,0,0,0.85),0_0_30px_rgba(0,140,255,0.08)]"
         >
           {/* Glowing Top Edge */}
@@ -218,7 +240,7 @@ export const TestimonialsSection3D: React.FC = () => {
             <Quote className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
 
-          {/* Editorial Quote Typography (Optimized, comfortable reading size) */}
+          {/* Editorial Quote Typography */}
           <p
             ref={quoteTextRef}
             className="font-figtree font-medium text-lg xs:text-xl sm:text-2xl md:text-[26px] lg:text-[27px] leading-[1.45] sm:leading-[1.4] tracking-[-0.015em] text-white/95 max-w-3xl"
@@ -241,7 +263,7 @@ export const TestimonialsSection3D: React.FC = () => {
             </div>
           </div>
 
-          {/* Interactive Navigation Controls */}
+          {/* Interactive Navigation Controls (Clean Stepper & Arrows) */}
           <div className="mt-6 sm:mt-8 flex items-center justify-between w-full max-w-xs pt-4 sm:pt-5 border-t border-white/10">
             <button
               type="button"
@@ -278,24 +300,6 @@ export const TestimonialsSection3D: React.FC = () => {
               <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
-        </div>
-
-        {/* Client Brand Switcher Tabs (Seamlessly visible directly below the card) */}
-        <div className="mt-6 sm:mt-7 flex flex-wrap justify-center gap-2 sm:gap-2.5">
-          {TESTIMONIALS.map((t, idx) => (
-            <button
-              key={`tab-${t.id}`}
-              type="button"
-              onClick={() => goTo(idx)}
-              className={`px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full font-mono text-[10px] sm:text-[11px] tracking-[0.14em] uppercase transition-all duration-200 cursor-pointer ${
-                currentIndex === idx
-                  ? 'bg-[#008CFF]/20 text-[#008CFF] border border-[#008CFF]/50 font-bold shadow-[0_0_10px_rgba(0,140,255,0.2)]'
-                  : 'bg-white/[0.04] text-white/50 hover:text-white border border-white/10'
-              }`}
-            >
-              {t.client}
-            </button>
-          ))}
         </div>
       </div>
     </section>
