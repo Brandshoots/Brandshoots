@@ -145,7 +145,7 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = () => {
           {/* Quick Communication Channels */}
           <div className="mt-10 sm:mt-12 grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4 w-full">
             <a
-              href="https://wa.me/919177656444"
+              href="https://wa.me/917075960672"
               target="_blank"
               rel="noopener noreferrer"
               className="px-5 py-3.5 rounded-2xl bg-[#070B13]/80 backdrop-blur-xl border border-white/12 hover:border-[#008CFF]/60 flex items-center justify-center gap-3 transition-all duration-200 group shadow-sm active:scale-95"
@@ -158,13 +158,13 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = () => {
             </a>
 
             <a
-              href="tel:+919177656444"
+              href="tel:+917075960672"
               className="px-5 py-3.5 rounded-2xl bg-[#070B13]/80 backdrop-blur-xl border border-white/12 hover:border-[#008CFF]/60 flex items-center justify-center gap-3 transition-all duration-200 group shadow-sm active:scale-95"
             >
               <Phone className="w-4 h-4 text-[#008CFF]" />
               <div className="flex flex-col text-left">
                 <span className="font-mono text-[9px] tracking-wider uppercase text-white/50">Hotline</span>
-                <span className="text-xs font-semibold text-white group-hover:text-[#008CFF] transition-colors">+91 91776 56444</span>
+                <span className="text-xs font-semibold text-white group-hover:text-[#008CFF] transition-colors">+91 70759 60672</span>
               </div>
             </a>
 

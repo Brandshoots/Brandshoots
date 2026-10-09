@@ -67,7 +67,7 @@ export const ContactPage: React.FC = () => {
   };
 
   return (
-    <main className="relative w-full min-h-screen bg-[#030508] text-white overflow-x-hidden selection:bg-[#008CFF] selection:text-white">
+    <main className="relative w-full min-h-screen bg-[#04060A] text-white overflow-x-hidden selection:bg-[#008CFF] selection:text-white">
       {/* 1. FAST SVG STROKE-DRAWING PRELOADER OVERLAY */}
       {preloaderActive && (
         <StrokeRevealPreloader onComplete={() => setPreloaderActive(false)} />

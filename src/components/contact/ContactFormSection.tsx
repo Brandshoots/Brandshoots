@@ -5,32 +5,98 @@ import {
   ArrowRight,
   ArrowUpRight,
   MessageSquare,
-  Mail,
   MapPin,
-  Clock,
+  Mail,
   Copy,
   Check,
-  CheckCircle2
+  ExternalLink,
+  Instagram,
+  Youtube,
+  Facebook,
 } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const PROJECT_TYPES = [
   'Commercial Production',
-  'Brand Film & TVC',
-  'Social Media Content & Reels',
-  'Industrial & Factory Showcase',
-  'Product Video & Visual Campaign',
-  'Fashion & Luxury Lifestyle',
-  'Corporate & Executive Showcase',
-  'Full-Service Creative Campaign',
-  'Other / Custom Scope'
+  'Brand Film',
+  'Social Media Content',
+  'Product Video',
+  'Event / Corporate',
+  'Other',
 ];
 
 const WHATSAPP_PHONE = '917075960672';
 const DISPLAY_PHONE = '+91 70759 60672';
 const STUDIO_EMAIL = 'contact@brandshoots.com';
-const STUDIO_LOCATION = 'Rajahmundry & Hyderabad, India';
+const STUDIO_FULL_ADDRESS =
+  '26-2-7/2, Jayakrishnapuram, near kambala cheruvu, Rajamahendravaram 533105, Andhra Pradesh, India';
+const GOOGLE_MAPS_EMBED_URL =
+  'https://maps.google.com/maps?q=26-2-7%2F2%2C%20Jayakrishnapuram%2C%20near%20kambala%20cheruvu%2C%20Rajamahendravaram%20533105%2C%20Andhra%20Pradesh%2C%20India&t=&z=16&ie=UTF8&iwloc=&output=embed';
+const GOOGLE_MAPS_SEARCH_URL =
+  'https://www.google.com/maps/search/?api=1&query=26-2-7%2F2%2C+Jayakrishnapuram%2C+near+kambala+cheruvu%2C+Rajamahendravaram+533105%2C+Andhra+Pradesh%2C+India';
+
+// Custom Crisp WhatsApp Vector Icon
+const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) => (
+  <svg viewBox="0 0 24 24" className={`fill-current ${className}`}>
+    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
+  </svg>
+);
+
+const SOCIAL_TILES = [
+  {
+    id: 'whatsapp',
+    name: 'WHATSAPP',
+    handle: '+91 70759 60672',
+    tag: 'DIRECT LINE // FASTEST REPLIES',
+    headline: 'Instant Studio Chat',
+    description:
+      'Direct real-time WhatsApp line for project consultations, shoot estimates, and rapid site visit bookings.',
+    url: `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent('Hi BRANDSHOOTS, I would like to discuss a commercial project.')}`,
+    cta: 'Chat on WhatsApp',
+    brandColor: '#25D366',
+    icon: WhatsAppIcon,
+  },
+  {
+    id: 'instagram',
+    name: 'INSTAGRAM',
+    handle: '@wearebrandshoots',
+    tag: 'VISUAL REELS // BEHIND THE SCENES',
+    headline: 'Daily Sets & Color Grades',
+    description:
+      'High-framerate cinema reels, lighting setups, color grading breakdowns, and production stills from our latest film shoots.',
+    url: 'https://instagram.com/wearebrandshoots',
+    cta: 'Follow on Instagram',
+    brandColor: '#E1306C',
+    icon: Instagram,
+  },
+  {
+    id: 'youtube',
+    name: 'YOUTUBE',
+    handle: '@wearebrandshoots',
+    tag: '4K COMMERCIALS // MASTER EDITS',
+    headline: 'Commercial Films & Edits',
+    description:
+      'Full 4K/24FPS brand films, high-retention commercials, documentary narratives, and sound design masters.',
+    url: 'https://youtube.com/@wearebrandshoots',
+    cta: 'Watch on YouTube',
+    brandColor: '#FF0000',
+    icon: Youtube,
+  },
+  {
+    id: 'facebook',
+    name: 'FACEBOOK',
+    handle: 'BrandShoots Creative Agency',
+    tag: 'OFFICIAL PAGE // COMMUNITY',
+    headline: 'Agency News & Case Studies',
+    description:
+      'Official brand campaign releases, production announcements, client partnership highlights, and agency milestones.',
+    url: 'https://facebook.com/wearebrandshoots',
+    cta: 'Connect on Facebook',
+    brandColor: '#1877F2',
+    icon: Facebook,
+  },
+];
 
 export const ContactFormSection: React.FC = () => {
   // Inquiry form state
@@ -40,81 +106,78 @@ export const ContactFormSection: React.FC = () => {
     phone: '',
     company: '',
     projectType: 'Commercial Production',
-    message: ''
+    message: '',
   });
 
   // Site visit state (simple & fast to fill)
   const [siteVisitData, setSiteVisitData] = useState({
     location: '',
     date: '',
-    name: ''
+    name: '',
   });
 
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [siteVisitSubmitted, setSiteVisitSubmitted] = useState(false);
-  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [copiedAddress, setCopiedAddress] = useState(false);
 
   // GSAP animation refs
   const sectionRef = useRef<HTMLDivElement>(null);
-  const badgeRef = useRef<HTMLDivElement>(null);
   const headlineLine1Ref = useRef<HTMLSpanElement>(null);
   const headlineLine2Ref = useRef<HTMLSpanElement>(null);
   const headlineLine3Ref = useRef<HTMLSpanElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
-  const statusStripRef = useRef<HTMLDivElement>(null);
-  const contactCompositionRef = useRef<HTMLDivElement>(null);
   const siteVisitSectionRef = useRef<HTMLDivElement>(null);
+  const contactCompositionRef = useRef<HTMLDivElement>(null);
+  const mapsSectionRef = useRef<HTMLDivElement>(null);
+  const socialTilesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
       // Initial states
-      gsap.set(badgeRef.current, { y: 15, opacity: 0 });
       gsap.set(
         [
           headlineLine1Ref.current,
           headlineLine2Ref.current,
-          headlineLine3Ref.current
+          headlineLine3Ref.current,
         ],
-        { yPercent: 105, opacity: 0 }
+        { yPercent: 100, opacity: 0 }
       );
       gsap.set(subtitleRef.current, { y: 20, opacity: 0 });
-      gsap.set(statusStripRef.current, { y: 20, opacity: 0 });
-      gsap.set(contactCompositionRef.current, { y: 30, opacity: 0 });
-      gsap.set(siteVisitSectionRef.current, { y: 30, opacity: 0 });
+      gsap.set(siteVisitSectionRef.current, { y: 25, opacity: 0 });
+      gsap.set(contactCompositionRef.current, { y: 25, opacity: 0 });
 
       // Cinematic staggered entrance
-      tl.to(badgeRef.current, { y: 0, opacity: 1, duration: 0.5 }, 0.05)
-        .to(
-          [
-            headlineLine1Ref.current,
-            headlineLine2Ref.current,
-            headlineLine3Ref.current
-          ],
-          {
-            yPercent: 0,
-            opacity: 1,
-            duration: 0.85,
-            stagger: 0.12,
-          },
-          0.12
-        )
+      tl.to(
+        [
+          headlineLine1Ref.current,
+          headlineLine2Ref.current,
+          headlineLine3Ref.current,
+        ],
+        {
+          yPercent: 0,
+          opacity: 1,
+          duration: 0.85,
+          stagger: 0.12,
+        },
+        0.1
+      )
         .to(
           subtitleRef.current,
           {
             y: 0,
             opacity: 1,
-            duration: 0.6,
+            duration: 0.65,
           },
           '-=0.45'
         )
         .to(
-          statusStripRef.current,
+          siteVisitSectionRef.current,
           {
             y: 0,
             opacity: 1,
-            duration: 0.55,
+            duration: 0.7,
           },
           '-=0.35'
         )
@@ -123,31 +186,51 @@ export const ContactFormSection: React.FC = () => {
           {
             y: 0,
             opacity: 1,
-            duration: 0.75,
-          },
-          '-=0.3'
-        )
-        .to(
-          siteVisitSectionRef.current,
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.75,
+            duration: 0.7,
           },
           '-=0.25'
         );
+
+      // ScrollTrigger for Maps & Social sections
+      if (mapsSectionRef.current) {
+        gsap.fromTo(
+          mapsSectionRef.current,
+          { y: 35, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.8,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: mapsSectionRef.current,
+              start: 'top 85%',
+              once: true,
+            },
+          }
+        );
+      }
+
+      if (socialTilesRef.current) {
+        gsap.fromTo(
+          socialTilesRef.current,
+          { y: 35, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.8,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: socialTilesRef.current,
+              start: 'top 85%',
+              once: true,
+            },
+          }
+        );
+      }
     }, sectionRef);
 
     return () => ctx.revert();
   }, []);
-
-  const handleCopy = (text: string, key: string) => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(text);
-      setCopiedKey(key);
-      setTimeout(() => setCopiedKey(null), 2200);
-    }
-  };
 
   // Primary form submission
   const handlePrimarySubmit = (e: React.FormEvent) => {
@@ -155,7 +238,7 @@ export const ContactFormSection: React.FC = () => {
     setFormSubmitted(true);
   };
 
-  // Site visit submission: generates WhatsApp message and redirects to official number
+  // Site visit submission: generates WhatsApp message and redirects to 7075960672
   const handleSiteVisitSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSiteVisitSubmitted(true);
@@ -163,76 +246,38 @@ export const ContactFormSection: React.FC = () => {
     const messageLines = [
       'Hi BRANDSHOOTS,',
       '',
-      'I would like to book a Site Visit & On-Location Recce (₹2,000) for my project.',
+      'I would like to book a Site Visit (₹2,000) for my project.',
       '',
-      `• Location / City: ${siteVisitData.location || 'Not provided'}`,
-      `• Preferred Date: ${siteVisitData.date || 'Flexible'}`,
-      `• Contact Name / Phone: ${siteVisitData.name || 'Client'}`,
+      `Location / City: ${siteVisitData.location || 'Not provided'}`,
+      `Preferred Date: ${siteVisitData.date || 'Flexible'}`,
+      `Name / Phone: ${siteVisitData.name || 'Client'}`,
       '',
-      'Please confirm availability for the site visit. Thank you!'
+      'Please confirm availability for the site visit. Thank you!',
     ];
 
     const waUrl = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(messageLines.join('\n'))}`;
     window.open(waUrl, '_blank', 'noopener,noreferrer');
   };
 
+  // Copy address to clipboard
+  const handleCopyAddress = () => {
+    navigator.clipboard.writeText(STUDIO_FULL_ADDRESS);
+    setCopiedAddress(true);
+    setTimeout(() => setCopiedAddress(false), 2500);
+  };
+
   return (
     <section
       id="contact-form"
       ref={sectionRef}
-      className="relative w-full min-h-screen bg-[#030508] text-white pt-32 sm:pt-40 md:pt-44 lg:pt-48 pb-24 sm:pb-32 px-5 sm:px-8 md:px-12 lg:px-16 overflow-hidden selection:bg-[#008CFF] selection:text-white"
+      className="relative w-full min-h-screen bg-[#04060A] text-white pt-28 sm:pt-36 md:pt-40 lg:pt-44 pb-20 sm:pb-28 px-5 sm:px-8 md:px-12 lg:px-16"
     >
-      {/* ============================================================== */}
-      {/* 0. ATMOSPHERIC LIGHTING & TECHNICAL GRID (MATCHES HOME/PORTFOLIO) */}
-      {/* ============================================================== */}
-      {/* Top Hero Electric Blue Horizon Radial Glow */}
-      <div
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-[90vw] max-w-[1100px] h-[520px] pointer-events-none select-none"
-        style={{
-          background:
-            'radial-gradient(ellipse at 50% 0%, rgba(0, 140, 255, 0.16) 0%, rgba(0, 80, 180, 0.05) 50%, transparent 80%)',
-          filter: 'blur(100px)',
-        }}
-      />
-
-      {/* Mid-canvas Depth Glow */}
-      <div
-        className="absolute top-[45%] right-[-10%] w-[55vw] max-w-[700px] h-[600px] pointer-events-none select-none"
-        style={{
-          background:
-            'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.07) 0%, transparent 70%)',
-          filter: 'blur(120px)',
-        }}
-      />
-
-      {/* Lower Site Visit Glow */}
-      <div
-        className="absolute bottom-[5%] left-[-10%] w-[55vw] max-w-[700px] h-[600px] pointer-events-none select-none"
-        style={{
-          background:
-            'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.08) 0%, transparent 70%)',
-          filter: 'blur(110px)',
-        }}
-      />
-
-      {/* Subtle Engineering Blueprint Grid */}
-      <div className="absolute inset-0 opacity-[0.028] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:4.5rem_4.5rem] pointer-events-none" />
-
-      {/* Subtle Cinema Vignette Overlay */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(0,140,255,0.08),rgba(3,5,8,0))] pointer-events-none" />
-
       <div className="relative z-10 max-w-[1400px] mx-auto">
         {/* ============================================================== */}
-        {/* 1. HERO / OPENING (EDITORIAL, INDEXED & ACCENTED)               */}
+        {/* 1. HERO / OPENING (EDITORIAL & CLEAN)                          */}
         {/* ============================================================== */}
         <div className="mb-14 sm:mb-20 md:mb-24 text-left">
-          {/* Section Index Pill Badge */}
-          <div ref={badgeRef} className="inline-flex items-center gap-2.5 font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold mb-6 px-4 py-1.5 rounded-full bg-[#008CFF]/10 border border-[#008CFF]/25 backdrop-blur-md">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF] animate-pulse" />
-            <span>• 01 // CONTACT & COMMISSIONS</span>
-          </div>
-
-          <h1 className="font-editorial font-black uppercase text-4xl xs:text-5xl sm:text-7xl md:text-8xl lg:text-[104px] tracking-tight leading-[0.92] text-white select-none">
+          <h1 className="font-editorial font-black uppercase text-4xl xs:text-5xl sm:text-7xl md:text-8xl lg:text-[100px] tracking-tight leading-[0.92] text-white select-none">
             <div className="overflow-hidden">
               <span ref={headlineLine1Ref} className="block">
                 LET'S MAKE
@@ -244,248 +289,279 @@ export const ContactFormSection: React.FC = () => {
               </span>
             </div>
             <div className="overflow-hidden">
-              <span ref={headlineLine3Ref} className="block text-[#008CFF] drop-shadow-[0_0_40px_rgba(0,140,255,0.45)]">
+              <span ref={headlineLine3Ref} className="block text-[#008CFF]">
                 WORTH WATCHING.
               </span>
             </div>
           </h1>
 
+          {/* User's explicitly preserved one-line sentence */}
           <p
             ref={subtitleRef}
             className="mt-6 sm:mt-8 max-w-2xl text-white/70 text-sm sm:text-base md:text-lg font-light leading-relaxed"
           >
-            Have a project, campaign, product, or visual story that deserves more than ordinary content? Tell us what you're building and let's craft something monumental together.
+            Have a project, campaign, product, or story that deserves more than ordinary content? Tell us what you're building.
           </p>
+        </div>
 
-          {/* Technical Status Strip */}
-          <div ref={statusStripRef} className="mt-8 flex flex-wrap items-center gap-2.5 sm:gap-3.5 font-mono text-[10px] sm:text-[11px] tracking-[0.2em] uppercase text-white/60">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.03] border border-white/10 backdrop-blur-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_6px_#008CFF]" />
-              <span className="text-white/80 font-medium">STATUS: ACCEPTING SELECT COMMISSIONS</span>
+        {/* ============================================================== */}
+        {/* 2. SITE VISIT // ON-LOCATION (BROUGHT TO THE TOP!)             */}
+        {/* ============================================================== */}
+        <div
+          ref={siteVisitSectionRef}
+          id="site-visit"
+          className="pb-16 sm:pb-24 border-b border-white/[0.08]"
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+            {/* Left Context: Editorial Introduction */}
+            <div className="lg:col-span-6 flex flex-col justify-center">
+              <span className="block font-mono text-xs tracking-[0.24em] uppercase text-[#008CFF] mb-2 font-semibold">
+                SITE VISIT // ON-LOCATION
+              </span>
+              <h2 className="font-editorial font-bold uppercase text-3xl sm:text-4xl md:text-5xl tracking-tight text-white mb-4 leading-tight">
+                LET'S MEET WHERE THE WORK HAPPENS.
+              </h2>
+              <p className="text-white/70 text-sm sm:text-base font-light leading-relaxed mb-6">
+                Need us to inspect your factory, showroom, outdoor estate, or shoot location in person?
+                Our team conducts comprehensive on-location spatial recces, camera framing tests, and lighting assessments before shooting begins.
+              </p>
+
+              {/* High-value Checkpoints */}
+              <div className="space-y-3 pt-2 text-xs sm:text-sm text-white/80 font-mono tracking-wide">
+                <div className="flex items-center gap-3">
+                  <span className="w-5 h-5 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/30 flex items-center justify-center text-[#008CFF] text-xs font-bold shrink-0">
+                    ✓
+                  </span>
+                  <span>Director & Cinematographer on-site recce</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="w-5 h-5 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/30 flex items-center justify-center text-[#008CFF] text-xs font-bold shrink-0">
+                    ✓
+                  </span>
+                  <span>Lighting angles, acoustics & power check</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="w-5 h-5 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/30 flex items-center justify-center text-[#008CFF] text-xs font-bold shrink-0">
+                    ✓
+                  </span>
+                  <span>Shot feasibility & production schedule planning</span>
+                </div>
+              </div>
             </div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.03] border border-white/10 backdrop-blur-sm">
-              <Clock className="w-3 h-3 text-[#008CFF]" />
-              <span>AVG. RESPONSE &lt; 2 HOURS</span>
-            </div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.03] border border-white/10 backdrop-blur-sm">
-              <MapPin className="w-3 h-3 text-[#008CFF]" />
-              <span>RAJAHMUNDRY & HYDERABAD</span>
+
+            {/* Right: The Vertical Rectangle Price Tile Card */}
+            <div className="lg:col-span-6 flex justify-start lg:justify-end">
+              <div className="w-full max-w-md p-6 sm:p-8 rounded-2xl bg-[#070A0F] border border-white/15 hover:border-[#008CFF]/40 transition-all duration-300 shadow-[0_20px_50px_rgba(0,0,0,0.7)] flex flex-col justify-between relative overflow-hidden">
+                {/* Subtle top rim light */}
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#008CFF]/50 to-transparent" />
+
+                {/* Card Header & Price Tag */}
+                <div className="pb-5 border-b border-white/10 mb-5">
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <span className="font-mono text-[10px] sm:text-[11px] tracking-[0.24em] uppercase text-white/50 font-semibold">
+                      LOCATION VISIT TILE
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/30 text-[10px] font-mono tracking-widest text-[#008CFF] uppercase font-bold">
+                      FIXED FEE
+                    </span>
+                  </div>
+
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-editorial text-4xl sm:text-5xl font-black text-white tracking-tight">
+                      ₹2,000
+                    </span>
+                    <span className="font-mono text-xs text-white/50 tracking-widest uppercase">
+                      / VISIT
+                    </span>
+                  </div>
+                  <p className="mt-1.5 text-xs text-white/60 font-light leading-relaxed">
+                    Direct on-site consultation & camera recce by BrandShoots core team.
+                  </p>
+                </div>
+
+                {/* Quick & Simple Booking Form */}
+                {siteVisitSubmitted ? (
+                  <div className="py-6 px-4 border border-[#008CFF]/30 rounded-xl bg-[#008CFF]/10 text-center animate-fadeIn">
+                    <p className="font-mono text-xs tracking-wider uppercase text-white font-semibold">
+                      INQUIRY OPENED IN WHATSAPP
+                    </p>
+                    <p className="text-xs text-white/70 mt-1">
+                      Target: +91 70759 60672. Confirming schedule with our team.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setSiteVisitSubmitted(false)}
+                      className="mt-4 font-mono text-xs uppercase tracking-widest text-[#008CFF] hover:text-white transition-colors underline underline-offset-4 cursor-pointer"
+                    >
+                      Book Another Site Visit
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSiteVisitSubmit} className="space-y-3.5">
+                    {/* Location / City */}
+                    <div>
+                      <label className="block text-[11px] font-mono tracking-wider uppercase text-white/70 mb-1.5">
+                        LOCATION / CITY <span className="text-[#008CFF]">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Hyderabad, Factory, Studio..."
+                        value={siteVisitData.location}
+                        onChange={(e) =>
+                          setSiteVisitData({ ...siteVisitData, location: e.target.value })
+                        }
+                        className="w-full px-3.5 py-2.5 rounded-lg bg-white/[0.04] border border-white/15 text-white placeholder-white/25 text-xs sm:text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
+                      />
+                    </div>
+
+                    {/* Preferred Date & Name/Phone */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-mono tracking-wider uppercase text-white/70 mb-1.5">
+                          PREFERRED DATE
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Next week, Oct 20"
+                          value={siteVisitData.date}
+                          onChange={(e) =>
+                            setSiteVisitData({ ...siteVisitData, date: e.target.value })
+                          }
+                          className="w-full px-3.5 py-2.5 rounded-lg bg-white/[0.04] border border-white/15 text-white placeholder-white/25 text-xs sm:text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-mono tracking-wider uppercase text-white/70 mb-1.5">
+                          NAME / PHONE
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Your name or phone"
+                          value={siteVisitData.name}
+                          onChange={(e) =>
+                            setSiteVisitData({ ...siteVisitData, name: e.target.value })
+                          }
+                          className="w-full px-3.5 py-2.5 rounded-lg bg-white/[0.04] border border-white/15 text-white placeholder-white/25 text-xs sm:text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
+                        />
+                      </div>
+                    </div>
+
+                    {/* CTA Button: Redirects to WhatsApp 7075960672 */}
+                    <div className="pt-2">
+                      <button
+                        type="submit"
+                        className="w-full py-3.5 px-5 rounded-full bg-[#008CFF] hover:bg-[#209CFF] text-white font-mono text-xs uppercase tracking-[0.2em] font-bold flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer shadow-[0_0_24px_rgba(0,140,255,0.4)] active:scale-98"
+                      >
+                        <span>BOOK SITE VISIT (₹2,000)</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Direct One-Click WhatsApp Link */}
+                    <div className="text-center pt-2">
+                      <a
+                        href={`https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(
+                          'Hi BRANDSHOOTS, I would like to book a Site Visit (₹2,000) for my project. Please share available dates.'
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-white/50 hover:text-[#25D366] transition-colors"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5 text-[#25D366]" />
+                        <span>Or Inquire directly on WhatsApp (7075960672) →</span>
+                      </a>
+                    </div>
+                  </form>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
         {/* ============================================================== */}
-        {/* 2. MAIN COMPOSITION: DIRECT REACH (LEFT) + INQUIRY CHASSIS (RIGHT) */}
+        {/* 3. START A CONVERSATION + DIRECT STUDIO REACH (PLACED BELOW)    */}
         {/* ============================================================== */}
         <div
           ref={contactCompositionRef}
-          className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 xl:gap-20 items-start pb-20 sm:pb-28 border-b border-white/[0.08]"
+          className="pt-16 sm:pt-24 pb-16 sm:pb-24 border-b border-white/[0.08]"
         >
-          {/* ============================================================ */}
-          {/* LEFT: DIRECT STUDIO REACH (ARCHITECTURAL GLASS TILES)        */}
-          {/* ============================================================ */}
-          <div className="lg:col-span-5 flex flex-col gap-6">
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-2 font-mono text-xs sm:text-[13px] tracking-[0.24em] uppercase text-[#008CFF] font-semibold">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
-                <span>DIRECT STUDIO REACH</span>
-              </div>
-              <span className="text-[10px] font-mono tracking-widest text-white/40 uppercase">
-                [ 04 CHANNELS ]
-              </span>
-            </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 xl:gap-24 items-start">
+            {/* ============================================================ */}
+            {/* LEFT: DIRECT STUDIO REACH                                    */}
+            {/* ============================================================ */}
+            <div className="lg:col-span-5 flex flex-col gap-10">
+              <div>
+                <span className="block font-mono text-xs tracking-[0.24em] uppercase text-[#008CFF] mb-2 font-semibold">
+                  CONNECT DIRECTLY
+                </span>
+                <h2 className="font-editorial font-bold uppercase text-2xl sm:text-3xl md:text-4xl tracking-tight text-white mb-6">
+                  DIRECT STUDIO REACH
+                </h2>
 
-            {/* CHANNEL 1: WHATSAPP DIRECT DISPATCH */}
-            <div className="group relative rounded-2xl bg-white/[0.025] hover:bg-white/[0.045] border border-white/10 hover:border-[#008CFF]/50 p-5 sm:p-6 transition-all duration-300 backdrop-blur-xl overflow-hidden shadow-[0_12px_32px_rgba(0,0,0,0.4)]">
-              {/* Subtle top laser rim */}
-              <div className="absolute top-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#008CFF]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#008CFF]/15 border border-[#008CFF]/30 flex items-center justify-center text-[#008CFF] group-hover:scale-105 group-hover:bg-[#008CFF] group-hover:text-white transition-all duration-300 shadow-[0_0_15px_rgba(0,140,255,0.25)] shrink-0">
-                    <MessageSquare className="w-4 h-4" />
-                  </div>
+                <div className="flex flex-col gap-8">
+                  {/* WHATSAPP */}
                   <div>
-                    <span className="block font-mono text-[10px] tracking-[0.22em] uppercase text-white/50 mb-0.5">
-                      WHATSAPP DIRECT
+                    <span className="block font-mono text-[11px] tracking-[0.2em] uppercase text-white/40 mb-1.5 flex items-center gap-1.5">
+                      <WhatsAppIcon className="w-3.5 h-3.5 text-[#25D366]" />
+                      <span>WHATSAPP (DIRECT)</span>
                     </span>
                     <a
                       href={`https://wa.me/${WHATSAPP_PHONE}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-lg sm:text-xl font-medium tracking-wide text-white group-hover:text-[#008CFF] transition-colors inline-flex items-center gap-1.5"
+                      className="inline-block text-white hover:text-[#25D366] text-lg sm:text-xl md:text-2xl font-medium tracking-wide transition-colors"
                     >
-                      <span>{DISPLAY_PHONE}</span>
-                      <ArrowUpRight className="w-4 h-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                      {DISPLAY_PHONE}
                     </a>
                   </div>
-                </div>
 
-                {/* Copy Button */}
-                <button
-                  type="button"
-                  onClick={() => handleCopy(DISPLAY_PHONE, 'phone')}
-                  aria-label="Copy phone number"
-                  className="px-2.5 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 text-white/60 hover:text-white text-[10px] font-mono tracking-wider uppercase transition-all duration-200 cursor-pointer flex items-center gap-1 shrink-0"
-                >
-                  {copiedKey === 'phone' ? (
-                    <>
-                      <Check className="w-3 h-3 text-[#008CFF]" />
-                      <span className="text-[#008CFF]">COPIED</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3 h-3" />
-                      <span>COPY</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
-              <div className="mt-4 pt-3.5 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-white/50 tracking-wider">
-                <span className="flex items-center gap-1.5 text-white/60">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Instant Direct Dispatch
-                </span>
-                <span className="text-white/40">Active Daily</span>
-              </div>
-            </div>
-
-            {/* CHANNEL 2: STUDIO EMAIL */}
-            <div className="group relative rounded-2xl bg-white/[0.025] hover:bg-white/[0.045] border border-white/10 hover:border-[#008CFF]/50 p-5 sm:p-6 transition-all duration-300 backdrop-blur-xl overflow-hidden shadow-[0_12px_32px_rgba(0,0,0,0.4)]">
-              <div className="absolute top-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#008CFF]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#008CFF]/15 border border-[#008CFF]/30 flex items-center justify-center text-[#008CFF] group-hover:scale-105 group-hover:bg-[#008CFF] group-hover:text-white transition-all duration-300 shadow-[0_0_15px_rgba(0,140,255,0.25)] shrink-0">
-                    <Mail className="w-4 h-4" />
-                  </div>
+                  {/* EMAIL */}
                   <div>
-                    <span className="block font-mono text-[10px] tracking-[0.22em] uppercase text-white/50 mb-0.5">
-                      OFFICIAL STUDIO DESK
+                    <span className="block font-mono text-[11px] tracking-[0.2em] uppercase text-white/40 mb-1.5 flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5 text-[#008CFF]" />
+                      <span>EMAIL</span>
                     </span>
                     <a
                       href={`mailto:${STUDIO_EMAIL}`}
-                      className="text-[14px] xs:text-[15px] sm:text-xl font-medium tracking-wide text-white group-hover:text-[#008CFF] transition-colors inline-flex items-center gap-1.5"
+                      className="inline-block text-white hover:text-[#008CFF] text-lg sm:text-xl md:text-2xl font-medium tracking-wide transition-colors"
                     >
-                      <span>{STUDIO_EMAIL}</span>
-                      <ArrowUpRight className="w-4 h-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0" />
+                      {STUDIO_EMAIL}
                     </a>
                   </div>
+
+                  {/* PHYSICAL ADDRESS */}
+                  <div>
+                    <span className="block font-mono text-[11px] tracking-[0.2em] uppercase text-white/40 mb-1.5 flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-[#008CFF]" />
+                      <span>STUDIO ADDRESS</span>
+                    </span>
+                    <span className="block text-white text-sm sm:text-base font-medium leading-relaxed max-w-sm">
+                      {STUDIO_FULL_ADDRESS}
+                    </span>
+                  </div>
                 </div>
-
-                {/* Copy Button */}
-                <button
-                  type="button"
-                  onClick={() => handleCopy(STUDIO_EMAIL, 'email')}
-                  aria-label="Copy studio email"
-                  className="px-2.5 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 text-white/60 hover:text-white text-[10px] font-mono tracking-wider uppercase transition-all duration-200 cursor-pointer flex items-center gap-1 shrink-0"
-                >
-                  {copiedKey === 'email' ? (
-                    <>
-                      <Check className="w-3 h-3 text-[#008CFF]" />
-                      <span className="text-[#008CFF]">COPIED</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3 h-3" />
-                      <span>COPY</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
-              <div className="mt-4 pt-3.5 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-white/50 tracking-wider">
-                <span>Director Treatments & Briefs</span>
-                <span className="text-[#008CFF]/80">24h SLA</span>
               </div>
             </div>
 
-            {/* CHANNEL 3: PRODUCTION BASES */}
-            <div className="relative rounded-2xl bg-white/[0.025] border border-white/10 p-5 sm:p-6 backdrop-blur-xl shadow-[0_12px_32px_rgba(0,0,0,0.4)]">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-white/70 shrink-0">
-                  <MapPin className="w-4 h-4 text-[#008CFF]" />
-                </div>
-                <div>
-                  <span className="block font-mono text-[10px] tracking-[0.22em] uppercase text-white/50 mb-0.5">
-                    PRODUCTION HUBS
-                  </span>
-                  <span className="text-base sm:text-lg font-medium text-white block">
-                    {STUDIO_LOCATION}
-                  </span>
-                </div>
-              </div>
-              <p className="mt-3 text-xs text-white/60 font-light leading-relaxed">
-                Full-scale camera packages, aerial cinematography, and lighting teams ready to deploy across India and international sets.
-              </p>
-            </div>
-
-            {/* CHANNEL 4: OPERATING HOURS & AVAILABILITY */}
-            <div className="relative rounded-2xl bg-white/[0.025] border border-white/10 p-5 sm:p-6 backdrop-blur-xl shadow-[0_12px_32px_rgba(0,0,0,0.4)]">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-white/70 shrink-0">
-                  <Clock className="w-4 h-4 text-[#008CFF]" />
-                </div>
-                <div>
-                  <span className="block font-mono text-[10px] tracking-[0.22em] uppercase text-white/50 mb-0.5">
-                    STUDIO HOURS
-                  </span>
-                  <span className="text-base sm:text-lg font-medium text-white block font-mono">
-                    MON — SAT // 09:00 — 20:00 IST
-                  </span>
-                </div>
-              </div>
-              <div className="mt-3 pt-3 border-t border-white/[0.06] flex items-center gap-2 text-xs font-mono text-white/50">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
-                <span>On-call 24/7 during active shoot schedules</span>
-              </div>
-            </div>
-          </div>
-
-          {/* ============================================================ */}
-          {/* RIGHT: PROJECT INQUIRY CHASSIS (ELEVATED CINEMA PANEL)       */}
-          {/* ============================================================ */}
-          <div className="lg:col-span-7">
-            <div className="relative rounded-3xl bg-gradient-to-b from-[#080B12]/95 via-[#06080E]/90 to-[#04060A]/95 border border-white/12 p-6 sm:p-9 md:p-11 backdrop-blur-2xl shadow-[0_30px_90px_rgba(0,0,0,0.85)] overflow-hidden">
-              {/* Top Electric Blue Laser Rim Line */}
-              <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-[#008CFF]/80 to-transparent pointer-events-none" />
-
-              {/* Technical Corner Registration Marks (Signature BrandShoots Cinema Chassis) */}
-              <div className="absolute top-3.5 left-3.5 w-2.5 h-2.5 border-t border-l border-white/25 pointer-events-none" />
-              <div className="absolute top-3.5 right-3.5 w-2.5 h-2.5 border-t border-r border-white/25 pointer-events-none" />
-              <div className="absolute bottom-3.5 left-3.5 w-2.5 h-2.5 border-b border-l border-white/25 pointer-events-none" />
-              <div className="absolute bottom-3.5 right-3.5 w-2.5 h-2.5 border-b border-r border-white/25 pointer-events-none" />
-
-              {/* Chassis Internal Header */}
-              <div className="mb-8 pb-5 border-b border-white/10 flex items-center justify-between">
-                <div>
-                  <span className="block font-mono text-[10px] sm:text-[11px] tracking-[0.24em] uppercase text-[#008CFF] font-semibold mb-1">
-                    PROJECT INQUIRY FORM
-                  </span>
-                  <h2 className="font-editorial text-2xl sm:text-3xl font-bold uppercase tracking-tight text-white">
-                    START A CONVERSATION
-                  </h2>
-                </div>
-                <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-[10px] font-mono tracking-widest text-white/50 uppercase">
-                  <span className="w-1 h-1 rounded-full bg-[#008CFF]" />
-                  <span>CONFIDENTIAL</span>
-                </div>
-              </div>
+            {/* ============================================================ */}
+            {/* RIGHT: PROJECT INQUIRY FORM                                  */}
+            {/* ============================================================ */}
+            <div className="lg:col-span-7">
+              <span className="block font-mono text-xs tracking-[0.24em] uppercase text-[#008CFF] mb-2 font-semibold">
+                PROJECT INQUIRY
+              </span>
+              <h2 className="font-editorial font-bold uppercase text-2xl sm:text-3xl md:text-4xl tracking-tight text-white mb-6">
+                START A CONVERSATION
+              </h2>
 
               {formSubmitted ? (
-                <div className="py-16 px-6 sm:px-10 text-center flex flex-col items-center">
-                  <div className="w-16 h-16 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/40 flex items-center justify-center text-[#008CFF] mb-6 shadow-[0_0_30px_rgba(0,140,255,0.4)] animate-pulse">
-                    <CheckCircle2 className="w-8 h-8" />
-                  </div>
-                  <h3 className="font-editorial text-3xl sm:text-4xl font-bold uppercase tracking-tight text-white mb-2">
-                    BRIEF RECEIVED.
+                <div className="py-12 px-6 sm:px-8 border border-white/[0.08] rounded-xl bg-white/[0.02] text-left">
+                  <h3 className="font-editorial text-2xl sm:text-3xl font-bold uppercase tracking-tight text-white mb-2">
+                    THANK YOU.
                   </h3>
-                  <p className="font-mono text-xs sm:text-sm tracking-wider uppercase text-[#008CFF] mb-4">
-                    WE WILL BE IN TOUCH WITHIN 2 HOURS.
-                  </p>
-                  <p className="max-w-md text-white/70 text-sm font-light leading-relaxed mb-8">
-                    Thank you, {formData.name || 'Friend'}. Our executive creative producers will review your requirements and reach out with director treatments and scheduling options.
+                  <p className="font-mono text-xs sm:text-sm tracking-wider uppercase text-white/70">
+                    WE'LL BE IN TOUCH.
                   </p>
                   <button
                     type="button"
@@ -497,12 +573,12 @@ export const ContactFormSection: React.FC = () => {
                         phone: '',
                         company: '',
                         projectType: 'Commercial Production',
-                        message: ''
+                        message: '',
                       });
                     }}
-                    className="font-mono text-xs uppercase tracking-[0.2em] px-6 py-3 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/15 text-white/70 hover:text-white transition-all cursor-pointer"
+                    className="mt-8 font-mono text-xs uppercase tracking-widest text-white/50 hover:text-white transition-colors underline underline-offset-4 cursor-pointer"
                   >
-                    Send another message →
+                    Send another message
                   </button>
                 </div>
               ) : (
@@ -510,30 +586,30 @@ export const ContactFormSection: React.FC = () => {
                   {/* 1. Name & Email */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     <div>
-                      <label className="block text-[11px] font-mono tracking-[0.18em] uppercase text-white/70 mb-2">
+                      <label className="block text-xs font-mono tracking-wider uppercase text-white/60 mb-2">
                         NAME <span className="text-[#008CFF]">*</span>
                       </label>
                       <input
                         type="text"
                         required
-                        placeholder="Your full name"
+                        placeholder="Your name"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-4.5 py-3.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.05] border border-white/12 focus:border-[#008CFF] focus:bg-white/[0.05] focus:shadow-[0_0_20px_rgba(0,140,255,0.25)] text-white placeholder-white/30 text-sm transition-all duration-200 outline-none"
+                        className="w-full px-4 py-3 sm:py-3.5 rounded-lg bg-white/[0.03] border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-mono tracking-[0.18em] uppercase text-white/70 mb-2">
-                        WORK EMAIL <span className="text-[#008CFF]">*</span>
+                      <label className="block text-xs font-mono tracking-wider uppercase text-white/60 mb-2">
+                        EMAIL <span className="text-[#008CFF]">*</span>
                       </label>
                       <input
                         type="email"
                         required
-                        placeholder="your@company.com"
+                        placeholder="your@email.com"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full px-4.5 py-3.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.05] border border-white/12 focus:border-[#008CFF] focus:bg-white/[0.05] focus:shadow-[0_0_20px_rgba(0,140,255,0.25)] text-white placeholder-white/30 text-sm transition-all duration-200 outline-none"
+                        className="w-full px-4 py-3 sm:py-3.5 rounded-lg bg-white/[0.03] border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
                       />
                     </div>
                   </div>
@@ -541,7 +617,7 @@ export const ContactFormSection: React.FC = () => {
                   {/* 2. Phone / WhatsApp & Company */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     <div>
-                      <label className="block text-[11px] font-mono tracking-[0.18em] uppercase text-white/70 mb-2">
+                      <label className="block text-xs font-mono tracking-wider uppercase text-white/60 mb-2">
                         PHONE / WHATSAPP <span className="text-[#008CFF]">*</span>
                       </label>
                       <input
@@ -550,37 +626,39 @@ export const ContactFormSection: React.FC = () => {
                         placeholder="+91 00000 00000"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="w-full px-4.5 py-3.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.05] border border-white/12 focus:border-[#008CFF] focus:bg-white/[0.05] focus:shadow-[0_0_20px_rgba(0,140,255,0.25)] text-white placeholder-white/30 text-sm transition-all duration-200 outline-none"
+                        className="w-full px-4 py-3 sm:py-3.5 rounded-lg bg-white/[0.03] border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-mono tracking-[0.18em] uppercase text-white/70 mb-2">
+                      <label className="block text-xs font-mono tracking-wider uppercase text-white/60 mb-2">
                         COMPANY / BRAND
                       </label>
                       <input
                         type="text"
-                        placeholder="Brand or studio name"
+                        placeholder="Company or brand name"
                         value={formData.company}
                         onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                        className="w-full px-4.5 py-3.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.05] border border-white/12 focus:border-[#008CFF] focus:bg-white/[0.05] focus:shadow-[0_0_20px_rgba(0,140,255,0.25)] text-white placeholder-white/30 text-sm transition-all duration-200 outline-none"
+                        className="w-full px-4 py-3 sm:py-3.5 rounded-lg bg-white/[0.03] border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
                       />
                     </div>
                   </div>
 
                   {/* 3. Project Type Dropdown */}
                   <div>
-                    <label className="block text-[11px] font-mono tracking-[0.18em] uppercase text-white/70 mb-2">
-                      PROJECT CATEGORY
+                    <label className="block text-xs font-mono tracking-wider uppercase text-white/60 mb-2">
+                      PROJECT TYPE
                     </label>
                     <div className="relative">
                       <select
                         value={formData.projectType}
-                        onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
-                        className="w-full px-4.5 py-3.5 rounded-xl bg-[#080B12] hover:bg-[#0A0E18] border border-white/12 text-white text-sm focus:outline-none focus:border-[#008CFF] focus:shadow-[0_0_20px_rgba(0,140,255,0.25)] transition-all duration-200 appearance-none cursor-pointer pr-10"
+                        onChange={(e) =>
+                          setFormData({ ...formData, projectType: e.target.value })
+                        }
+                        className="w-full px-4 py-3 sm:py-3.5 rounded-lg bg-[#070A0F] border border-white/10 text-white text-sm focus:outline-none focus:border-[#008CFF] transition-colors appearance-none cursor-pointer"
                       >
                         {PROJECT_TYPES.map((type) => (
-                          <option key={type} value={type} className="bg-[#080B12] text-white py-2">
+                          <option key={type} value={type} className="bg-[#070A0F] text-white">
                             {type}
                           </option>
                         ))}
@@ -595,37 +673,39 @@ export const ContactFormSection: React.FC = () => {
 
                   {/* 4. Message */}
                   <div>
-                    <label className="block text-[11px] font-mono tracking-[0.18em] uppercase text-white/70 mb-2">
-                      PROJECT BRIEF & VISION
+                    <label className="block text-xs font-mono tracking-wider uppercase text-white/60 mb-2">
+                      TELL US ABOUT YOUR PROJECT
                     </label>
                     <textarea
                       rows={3}
-                      placeholder="Tell us what you're building, target platforms, timeline, and where you want to take your brand."
+                      placeholder="Tell us what you're building, what you need, and where you want to take it."
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      className="w-full px-4.5 py-3.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.05] border border-white/12 focus:border-[#008CFF] focus:bg-white/[0.05] focus:shadow-[0_0_20px_rgba(0,140,255,0.25)] text-white placeholder-white/30 text-sm transition-all duration-200 resize-none leading-relaxed outline-none"
+                      className="w-full px-4 py-3 sm:py-3.5 rounded-lg bg-white/[0.03] border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#008CFF] transition-colors resize-none leading-relaxed"
                     />
                   </div>
 
-                  {/* 5. Actions: Primary Brand Button + WhatsApp Link */}
+                  {/* 5. Two Clear Actions: Primary + Secondary WhatsApp */}
                   <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
                     {/* Primary Submit */}
                     <button
                       type="submit"
-                      className="relative group overflow-hidden py-4 px-8 rounded-full bg-[#008CFF] hover:bg-[#209CFF] text-white font-mono text-xs uppercase tracking-[0.22em] font-bold shadow-[0_0_28px_rgba(0,140,255,0.45)] hover:shadow-[0_0_40px_rgba(0,140,255,0.7)] flex items-center justify-center gap-2.5 transition-all duration-300 active:scale-98 cursor-pointer"
+                      className="py-3.5 px-8 rounded-full bg-[#008CFF] hover:bg-[#209CFF] text-white font-mono text-xs uppercase tracking-[0.2em] font-bold flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer active:scale-98"
                     >
                       <span>START A CONVERSATION</span>
-                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </button>
 
-                    {/* Secondary WhatsApp Inquire Link */}
+                    {/* Secondary Understated WhatsApp Action */}
                     <a
-                      href={`https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent("Hi BRANDSHOOTS, I would like to discuss a project.")}`}
+                      href={`https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(
+                        'Hi BRANDSHOOTS, I would like to discuss a project.'
+                      )}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-mono text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors flex items-center justify-center gap-2 py-2.5 px-4 rounded-full bg-white/[0.03] hover:bg-white/[0.07] border border-white/10"
+                      className="font-mono text-xs uppercase tracking-widest text-white/60 hover:text-[#25D366] transition-colors flex items-center justify-center gap-1.5 py-2"
                     >
-                      <MessageSquare className="w-3.5 h-3.5 text-[#008CFF]" />
+                      <WhatsAppIcon className="w-3.5 h-3.5 text-[#25D366]" />
                       <span>INQUIRE ON WHATSAPP</span>
                       <span>→</span>
                     </a>
@@ -637,178 +717,171 @@ export const ContactFormSection: React.FC = () => {
         </div>
 
         {/* ============================================================== */}
-        {/* 3. SITE VISIT — SEPARATE ARCHITECTURAL PRICE TILE CARD         */}
+        {/* 4. GOOGLE MAPS EMBED IFRAME SECTION                            */}
         {/* ============================================================== */}
-        <div ref={siteVisitSectionRef} className="pt-16 sm:pt-24">
-          {/* Section Pill Badge */}
-          <div className="inline-flex items-center gap-2.5 font-mono text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold mb-6 px-4 py-1.5 rounded-full bg-[#008CFF]/10 border border-[#008CFF]/25 backdrop-blur-md">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
-            <span>• 02 // ON-LOCATION AUDIT & RECCE</span>
+        <div
+          ref={mapsSectionRef}
+          id="studio-map"
+          className="pt-16 sm:pt-24 pb-16 sm:pb-24 border-b border-white/[0.08]"
+        >
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8 sm:mb-10">
+            <div>
+              <span className="block font-mono text-xs tracking-[0.24em] uppercase text-[#008CFF] mb-2 font-semibold">
+                • LOCATION // PHYSICAL STUDIO RECCE
+              </span>
+              <h2 className="font-editorial font-bold uppercase text-3xl sm:text-4xl md:text-5xl tracking-tight text-white leading-tight">
+                VISIT OUR PHYSICAL STUDIO.
+              </h2>
+              <p className="mt-3 text-white/70 text-sm sm:text-base font-light max-w-2xl leading-relaxed">
+                {STUDIO_FULL_ADDRESS}
+              </p>
+            </div>
+
+            {/* Direct Directions & Copy Address Controls */}
+            <div className="flex flex-wrap items-center gap-3">
+              <a
+                href={GOOGLE_MAPS_SEARCH_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-3 px-5 rounded-full bg-[#008CFF] hover:bg-[#209CFF] text-white font-mono text-xs uppercase tracking-wider font-bold inline-flex items-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer"
+              >
+                <MapPin className="w-3.5 h-3.5" />
+                <span>GET DIRECTIONS</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+
+              <button
+                type="button"
+                onClick={handleCopyAddress}
+                className="py-3 px-5 rounded-full bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-white font-mono text-xs uppercase tracking-wider font-semibold inline-flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+              >
+                {copiedAddress ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-[#25D366]" />
+                    <span className="text-[#25D366]">COPIED TO CLIPBOARD</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5 text-white/60" />
+                    <span>COPY ADDRESS</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
-            
-            {/* Left Context: Editorial Introduction */}
-            <div className="lg:col-span-6 flex flex-col justify-center">
-              <h2 className="font-editorial font-bold uppercase text-3xl sm:text-4xl md:text-5xl tracking-tight text-white mb-4 leading-tight">
-                LET'S MEET WHERE THE WORK HAPPENS.
-              </h2>
-              <p className="text-white/70 text-sm sm:text-base font-light leading-relaxed mb-8">
-                Need us to inspect your factory, showroom, outdoor estate, or shoot location in person? 
-                Our team conducts comprehensive on-location spatial recces, camera framing tests, and lighting assessments before production begins.
-              </p>
+          {/* Responsive Google Maps Iframe Container */}
+          <div className="w-full h-[380px] sm:h-[450px] md:h-[500px] rounded-2xl sm:rounded-3xl border border-white/15 bg-[#070A0F] overflow-hidden relative shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+            {/* Top ambient blue light rim */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#008CFF]/60 to-transparent z-10 pointer-events-none" />
 
-              {/* High-value Points */}
-              <div className="space-y-3.5 pt-1 text-xs sm:text-sm text-white/80 font-mono tracking-wide">
-                <div className="flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/30 flex items-center justify-center text-[#008CFF] text-xs font-bold shrink-0 shadow-[0_0_8px_rgba(0,140,255,0.3)]">✓</span>
-                  <span>Director & Cinematographer on-site spatial recce</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/30 flex items-center justify-center text-[#008CFF] text-xs font-bold shrink-0 shadow-[0_0_8px_rgba(0,140,255,0.3)]">✓</span>
-                  <span>Lighting angles, acoustics & 3-phase power audit</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/30 flex items-center justify-center text-[#008CFF] text-xs font-bold shrink-0 shadow-[0_0_8px_rgba(0,140,255,0.3)]">✓</span>
-                  <span>Shot feasibility & production schedule planning</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/30 flex items-center justify-center text-[#008CFF] text-xs font-bold shrink-0 shadow-[0_0_8px_rgba(0,140,255,0.3)]">✓</span>
-                  <span>Aerial drone clearance & camera flight path test</span>
-                </div>
-              </div>
-            </div>
+            <iframe
+              title="BrandShoots Studio Location Map"
+              src={GOOGLE_MAPS_EMBED_URL}
+              className="w-full h-full border-0 filter contrast-[1.05]"
+              loading="lazy"
+              allowFullScreen
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
+        </div>
 
-            {/* Right: The Separate Vertical Rectangle Price Tile Card */}
-            <div className="lg:col-span-6 flex justify-start lg:justify-end">
-              <div className="w-full max-w-md p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-[#080B12]/95 via-[#06080E]/90 to-[#04060A]/95 border border-white/15 hover:border-[#008CFF]/50 transition-all duration-300 shadow-[0_24px_60px_rgba(0,0,0,0.85)] flex flex-col justify-between relative overflow-hidden backdrop-blur-2xl">
-                
-                {/* Top laser rim light */}
-                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#008CFF]/70 to-transparent pointer-events-none" />
+        {/* ============================================================== */}
+        {/* 5. BEAUTIFUL BIG SOCIAL MEDIA TILES (COLOR / HOVER B&W)        */}
+        {/* ============================================================== */}
+        <div ref={socialTilesRef} className="pt-16 sm:pt-24">
+          <div className="mb-10 sm:mb-12 text-left">
+            <span className="block font-mono text-xs tracking-[0.24em] uppercase text-[#008CFF] mb-2 font-semibold">
+              • OFFICIAL CHANNELS // STAY CONNECTED
+            </span>
+            <h2 className="font-editorial font-bold uppercase text-3xl sm:text-4xl md:text-5xl tracking-tight text-white leading-tight">
+              CONNECT ACROSS OUR NETWORK.
+            </h2>
+            <p className="mt-3 text-white/70 text-sm sm:text-base font-light max-w-2xl leading-relaxed">
+              Explore our latest production reels, watch commercial drops, or reach our creative leads directly on WhatsApp.
+            </p>
+          </div>
 
-                {/* Corner registration marks */}
-                <div className="absolute top-3 left-3 w-2 h-2 border-t border-l border-white/20 pointer-events-none" />
-                <div className="absolute top-3 right-3 w-2 h-2 border-t border-r border-white/20 pointer-events-none" />
-                <div className="absolute bottom-3 left-3 w-2 h-2 border-b border-l border-white/20 pointer-events-none" />
-                <div className="absolute bottom-3 right-3 w-2 h-2 border-b border-r border-white/20 pointer-events-none" />
+          {/* 4 Big Tiles Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+            {SOCIAL_TILES.map((tile) => {
+              const IconComponent = tile.icon;
+              return (
+                <a
+                  key={tile.id}
+                  href={tile.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative p-6 sm:p-7 rounded-2xl sm:rounded-3xl bg-[#070A0F] border border-white/12 hover:border-white/30 transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.6)] hover:-translate-y-1.5 cursor-pointer"
+                >
+                  {/* Subtle top rim light in brand color */}
+                  <div
+                    className="absolute top-0 left-0 right-0 h-[2px] opacity-70 group-hover:opacity-100 transition-opacity"
+                    style={{ backgroundColor: tile.brandColor }}
+                  />
 
-                {/* Card Header & Price Tag */}
-                <div className="pb-6 border-b border-white/10 mb-6">
-                  <div className="flex items-center justify-between gap-3 mb-3">
-                    <span className="font-mono text-[10px] sm:text-[11px] tracking-[0.24em] uppercase text-white/50 font-semibold">
-                      LOCATION VISIT TILE
-                    </span>
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/30 text-[10px] font-mono tracking-widest text-[#008CFF] uppercase font-bold shadow-[0_0_8px_rgba(0,140,255,0.3)]">
-                      FIXED FEE
-                    </span>
-                  </div>
+                  {/* Atmospheric brand background glow */}
+                  <div
+                    className="absolute top-0 right-0 w-36 h-36 rounded-full blur-3xl pointer-events-none opacity-20 group-hover:opacity-35 transition-opacity"
+                    style={{ backgroundColor: tile.brandColor }}
+                  />
 
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-editorial text-4xl sm:text-5xl font-black text-white tracking-tight drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-                      ₹2,000
-                    </span>
-                    <span className="font-mono text-xs text-[#008CFF] tracking-widest uppercase font-semibold">
-                      / PER RECCE
-                    </span>
-                  </div>
-                  <p className="mt-2 text-xs text-white/60 font-light leading-relaxed">
-                    Direct on-site spatial consultation & cinema camera recce by BrandShoots core team.
-                  </p>
-                </div>
-
-                {/* Quick & Simple Booking Form */}
-                {siteVisitSubmitted ? (
-                  <div className="py-8 px-4 border border-[#008CFF]/30 rounded-2xl bg-[#008CFF]/10 text-center animate-fadeIn">
-                    <div className="w-12 h-12 rounded-full bg-[#008CFF]/20 border border-[#008CFF]/40 flex items-center justify-center text-[#008CFF] mx-auto mb-3 shadow-[0_0_20px_rgba(0,140,255,0.4)]">
-                      <Check className="w-6 h-6" />
-                    </div>
-                    <p className="font-mono text-xs tracking-wider uppercase text-white font-semibold">
-                      INQUIRY OPENED IN WHATSAPP
-                    </p>
-                    <p className="text-xs text-white/70 mt-1 max-w-xs mx-auto">
-                      Connecting with +91 70759 60672 to confirm shoot dates.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setSiteVisitSubmitted(false)}
-                      className="mt-5 font-mono text-xs uppercase tracking-widest text-[#008CFF] hover:text-white transition-colors underline underline-offset-4 cursor-pointer"
-                    >
-                      Book Another Site Visit
-                    </button>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSiteVisitSubmit} className="space-y-4">
-                    {/* Location / City */}
-                    <div>
-                      <label className="block text-[11px] font-mono tracking-wider uppercase text-white/70 mb-1.5">
-                        LOCATION / CITY <span className="text-[#008CFF]">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. Hyderabad, Factory, Studio..."
-                        value={siteVisitData.location}
-                        onChange={(e) => setSiteVisitData({ ...siteVisitData, location: e.target.value })}
-                        className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/15 text-white placeholder-white/25 text-xs sm:text-sm focus:outline-none focus:border-[#008CFF] focus:shadow-[0_0_15px_rgba(0,140,255,0.25)] transition-all duration-200"
-                      />
-                    </div>
-
-                    {/* Preferred Date & Name/Phone */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      <div>
-                        <label className="block text-[11px] font-mono tracking-wider uppercase text-white/70 mb-1.5">
-                          PREFERRED DATE
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="e.g. Next week, Oct 25"
-                          value={siteVisitData.date}
-                          onChange={(e) => setSiteVisitData({ ...siteVisitData, date: e.target.value })}
-                          className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/15 text-white placeholder-white/25 text-xs sm:text-sm focus:outline-none focus:border-[#008CFF] focus:shadow-[0_0_15px_rgba(0,140,255,0.25)] transition-all duration-200"
-                        />
+                  <div>
+                    {/* Top Row: Icon + Arrow */}
+                    <div className="flex items-center justify-between gap-4 mb-6">
+                      {/* Icon with Color -> Hover B&W effect */}
+                      <div
+                        className="w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:grayscale group-hover:contrast-125"
+                        style={{
+                          backgroundColor: `${tile.brandColor}20`,
+                          color: tile.brandColor,
+                          border: `1px solid ${tile.brandColor}40`,
+                        }}
+                      >
+                        <IconComponent className="w-6 h-6" />
                       </div>
-                      <div>
-                        <label className="block text-[11px] font-mono tracking-wider uppercase text-white/70 mb-1.5">
-                          NAME / PHONE
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Your name or phone"
-                          value={siteVisitData.name}
-                          onChange={(e) => setSiteVisitData({ ...siteVisitData, name: e.target.value })}
-                          className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/15 text-white placeholder-white/25 text-xs sm:text-sm focus:outline-none focus:border-[#008CFF] focus:shadow-[0_0_15px_rgba(0,140,255,0.25)] transition-all duration-200"
-                        />
+
+                      {/* External Link Arrow */}
+                      <div className="w-8 h-8 rounded-full border border-white/10 group-hover:border-white/30 flex items-center justify-center text-white/50 group-hover:text-white transition-all duration-200">
+                        <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                       </div>
                     </div>
 
-                    {/* CTA Button: Redirects to WhatsApp 7075960672 */}
-                    <div className="pt-2">
-                      <button
-                        type="submit"
-                        className="w-full py-4 px-5 rounded-full bg-[#008CFF] hover:bg-[#209CFF] text-white font-mono text-xs uppercase tracking-[0.2em] font-bold flex items-center justify-center gap-2.5 transition-all duration-200 cursor-pointer shadow-[0_0_24px_rgba(0,140,255,0.4)] hover:shadow-[0_0_36px_rgba(0,140,255,0.65)] active:scale-98"
+                    {/* Tag badge with Color -> Hover B&W */}
+                    <div className="mb-3">
+                      <span
+                        className="inline-block px-2.5 py-0.5 rounded-full text-[9px] font-mono tracking-wider uppercase font-semibold transition-all duration-300 group-hover:grayscale"
+                        style={{
+                          backgroundColor: `${tile.brandColor}15`,
+                          color: tile.brandColor,
+                          border: `1px solid ${tile.brandColor}30`,
+                        }}
                       >
-                        <span>BOOK SITE VISIT (₹2,000)</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
+                        {tile.tag}
+                      </span>
                     </div>
 
-                    {/* Direct One-Click WhatsApp Link */}
-                    <div className="text-center pt-2">
-                      <a
-                        href={`https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent("Hi BRANDSHOOTS, I would like to book a Site Visit (₹2,000) for my project. Please share available dates.")}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-white/60 hover:text-[#008CFF] transition-colors"
-                      >
-                        <MessageSquare className="w-3.5 h-3.5 text-[#008CFF]" />
-                        <span>Or Inquire directly on WhatsApp (7075960672) →</span>
-                      </a>
-                    </div>
-                  </form>
-                )}
-              </div>
-            </div>
+                    {/* Platform Handle */}
+                    <h3 className="font-editorial text-xl sm:text-2xl font-bold tracking-tight text-white mb-2 group-hover:text-white transition-colors">
+                      {tile.handle}
+                    </h3>
 
+                    {/* Editorial Description */}
+                    <p className="text-xs text-white/60 font-light leading-relaxed">
+                      {tile.description}
+                    </p>
+                  </div>
+
+                  {/* Bottom Action Footer */}
+                  <div className="mt-8 pt-4 border-t border-white/[0.08] flex items-center justify-between text-xs font-mono tracking-wider uppercase text-white/70 group-hover:text-white transition-colors">
+                    <span>{tile.cta}</span>
+                    <span className="text-sm font-bold transition-transform group-hover:translate-x-1">
+                      →
+                    </span>
+                  </div>
+                </a>
+              );
+            })}
           </div>
         </div>
       </div>

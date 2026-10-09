@@ -148,7 +148,7 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = () => {
             </a>
 
             <a
-              href="https://wa.me/919177656444"
+              href="https://wa.me/917075960672"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="WhatsApp"
