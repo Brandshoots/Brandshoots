@@ -1,10 +1,15 @@
 import React, { useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useCMSContent } from '../../lib/cms/useCMSContent';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export const AboutLeadershipSection: React.FC = () => {
+  const { leadership } = useCMSContent();
+  const nameParts = (leadership?.founderName || 'DURGARAO VALLEPU').trim().split(/\s+/);
+  const firstName = nameParts[0] || 'DURGARAO';
+  const lastName = nameParts.slice(1).join(' ') || 'VALLEPU';
   const sectionRef = useRef<HTMLElement>(null);
   const portraitMaskRef = useRef<HTMLDivElement>(null);
   const portraitImgRef = useRef<HTMLImageElement>(null);
@@ -156,8 +161,8 @@ export const AboutLeadershipSection: React.FC = () => {
               >
                 <img
                   ref={portraitImgRef}
-                  src="/founder.png"
-                  alt="Durgarao Vallepu — Founder, BRANDSHOOTS"
+                  src={leadership?.founderImage || '/founder.png'}
+                  alt={`${leadership?.founderName || 'Durgarao Vallepu'} — ${leadership?.founderRole || 'Founder'}`}
                   className="w-full h-full object-cover object-[center_20%] select-none will-change-transform"
                 />
 
@@ -194,12 +199,12 @@ export const AboutLeadershipSection: React.FC = () => {
             <h3 className="font-display font-black uppercase tracking-[-0.035em] text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.88] text-[#F7F9FF] mb-4">
               <span className="overflow-hidden block py-0.5">
                 <span ref={nameLine1Ref} className="inline-block">
-                  DURGARAO
+                  {firstName.toUpperCase()}
                 </span>
               </span>
               <span className="overflow-hidden block py-0.5">
                 <span ref={nameLine2Ref} className="inline-block text-[#F7F9FF]">
-                  VALLEPU
+                  {lastName.toUpperCase()}
                 </span>
               </span>
             </h3>
@@ -208,7 +213,7 @@ export const AboutLeadershipSection: React.FC = () => {
             <div ref={designationRef} className="flex items-center gap-2.5 mb-5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#139EF2]" />
               <p className="font-mono text-xs sm:text-sm md:text-base tracking-[0.26em] uppercase text-white/80 font-semibold">
-                FOUNDER — <span className="text-[#139EF2]">BRANDSHOOTS</span>
+                {leadership?.founderRole ? leadership.founderRole.toUpperCase() : 'FOUNDER — BRANDSHOOTS'}
               </p>
             </div>
 
@@ -220,7 +225,8 @@ export const AboutLeadershipSection: React.FC = () => {
               ref={statementRef}
               className="font-editorial text-base sm:text-lg lg:text-xl text-[#B9BEC9] leading-relaxed max-w-xl font-normal"
             >
-              Leading BrandShoots with the conviction that high-production craft and digital brand growth belong together. Every frame is composed to elevate perceived brand equity and ignite audience momentum.
+              {leadership?.founderBio ||
+                'Leading BrandShoots with the conviction that high-production craft and digital brand growth belong together. Every frame is composed to elevate perceived brand equity and ignite audience momentum.'}
             </p>
           </div>
 

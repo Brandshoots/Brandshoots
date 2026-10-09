@@ -1,10 +1,15 @@
 import React, { useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useCMSContent } from '../../lib/cms/useCMSContent';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export const TheLeadershipSection: React.FC = () => {
+  const { leadership } = useCMSContent();
+  const nameParts = (leadership?.founderName || 'DURGARAO VALLEPU').trim().split(/\s+/);
+  const firstName = nameParts[0] || 'DURGARAO';
+  const lastName = nameParts.slice(1).join(' ') || 'VALLEPU';
   const sectionRef = useRef<HTMLElement>(null);
   const backdropGlowRef = useRef<HTMLDivElement>(null);
   const watermarkRef = useRef<HTMLDivElement>(null);
@@ -172,8 +177,8 @@ export const TheLeadershipSection: React.FC = () => {
               <div className="relative w-full h-full rounded-3xl overflow-hidden bg-[#070B12] border border-white/20 shadow-[0_30px_90px_rgba(0,0,0,0.95),0_0_35px_rgba(0,140,255,0.2)]">
                 <img
                   ref={portraitImgRef}
-                  src="/founder.png"
-                  alt="Durgarao Vallepu — Founder & Creative Director, BrandShoots"
+                  src={leadership?.founderImage || '/founder.png'}
+                  alt={`${leadership?.founderName || 'Durgarao Vallepu'} — ${leadership?.founderRole || 'Founder'}`}
                   className="w-full h-full object-cover object-[center_20%] filter brightness-[0.96] contrast-[1.06] select-none"
                   draggable={false}
                   loading="lazy"
@@ -199,7 +204,7 @@ export const TheLeadershipSection: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
                     <span className="font-mono text-[9px] tracking-[0.24em] uppercase font-semibold text-white/80">
-                      FOUNDER & DIRECTOR
+                      {leadership?.founderRole || 'FOUNDER & DIRECTOR'}
                     </span>
                   </div>
                   <span className="font-mono text-[9px] tracking-[0.2em] text-[#008CFF] uppercase font-bold">
@@ -226,10 +231,10 @@ export const TheLeadershipSection: React.FC = () => {
             {/* Monumental Founder Name */}
             <h2 className="font-sans font-black uppercase text-4xl xs:text-5xl sm:text-6xl lg:text-7xl xl:text-8xl leading-[0.88] tracking-[-0.038em] text-white">
               <span ref={nameLine1Ref} className="block text-white">
-                DURGARAO
+                {firstName.toUpperCase()}
               </span>
               <span ref={nameLine2Ref} className="block text-[#008CFF] mt-1 sm:mt-2">
-                VALLEPU<span className="text-white">.</span>
+                {lastName.toUpperCase()}<span className="text-white">.</span>
               </span>
             </h2>
 
@@ -238,9 +243,7 @@ export const TheLeadershipSection: React.FC = () => {
               ref={designationRef}
               className="mt-4 sm:mt-5 font-mono text-xs sm:text-sm tracking-[0.28em] uppercase text-white/75 font-bold flex items-center gap-2.5"
             >
-              <span>FOUNDER</span>
-              <span className="w-1 h-1 rounded-full bg-[#008CFF]" />
-              <span className="text-[#008CFF]">CREATIVE DIRECTOR</span>
+              <span>{leadership?.founderRole || 'FOUNDER & CREATIVE DIRECTOR'}</span>
             </div>
 
             {/* Accent divider line */}
@@ -251,7 +254,8 @@ export const TheLeadershipSection: React.FC = () => {
               ref={quoteRef}
               className="text-base sm:text-lg lg:text-xl text-white/80 font-normal leading-[1.65] max-w-xl"
             >
-              "Every frame is calculated. Every cut has intent. We don’t just capture visuals — we architect cultural presence and commercial momentum for brands that refuse to be ignored."
+              {leadership?.founderBio ||
+                '"Every frame is calculated. Every cut has intent. We don’t just capture visuals — we architect cultural presence and commercial momentum for brands that refuse to be ignored."'}
             </p>
 
             {/* Creative Tenets */}

@@ -5,22 +5,22 @@ import {
   sendPasswordResetEmail,
 } from 'firebase/auth';
 import { firebaseAuth } from '../../lib/firebase';
-import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle, CheckCircle, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const MASTER_EMAIL = 'brandshoots.in@gmail.com';
 const MASTER_PASS = 'BD@admin2026';
 
 export const AdminLoginPage: React.FC = () => {
-  const [email, setEmail] = useState(MASTER_EMAIL);
-  const [password, setPassword] = useState(MASTER_PASS);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Forgot password state
   const [showResetModal, setShowResetModal] = useState(false);
-  const [resetEmail, setResetEmail] = useState(MASTER_EMAIL);
+  const [resetEmail, setResetEmail] = useState('');
   const [resetSending, setResetSending] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
   const [resetError, setResetError] = useState<string | null>(null);
@@ -86,7 +86,7 @@ export const AdminLoginPage: React.FC = () => {
       } else if (err.code === 'auth/user-not-found') {
         msg = 'No admin account found with this email.';
       } else if (err.code === 'auth/configuration-not-found') {
-        msg = 'Firebase Authentication initializing. Click "Quick Login" below.';
+        msg = 'Authentication service initializing. Please verify credentials and retry.';
       } else if (err.code === 'auth/too-many-requests') {
         msg = 'Access temporarily locked due to multiple failed attempts. Try again later.';
       } else if (err.message) {
@@ -148,25 +148,6 @@ export const AdminLoginPage: React.FC = () => {
           <p className="mt-1 font-mono text-[11px] tracking-[0.24em] uppercase text-white/50">
             Production CMS & Portal
           </p>
-        </div>
-
-        {/* Master Admin Quick Credentials Bar */}
-        <div className="mb-6 p-3.5 rounded-2xl bg-[#008CFF]/10 border border-[#008CFF]/30 flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <span className="text-[9px] font-mono uppercase tracking-wider text-white/50 block">
-              Configured Superadmin
-            </span>
-            <p className="text-xs font-mono font-bold text-[#008CFF] truncate">{MASTER_EMAIL}</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => performLogin(MASTER_EMAIL, MASTER_PASS)}
-            disabled={isSubmitting}
-            className="px-3 py-1.5 rounded-xl bg-[#008CFF] hover:bg-[#209CFF] disabled:opacity-50 text-white font-mono text-[10px] uppercase font-bold tracking-wider shrink-0 flex items-center gap-1.5 shadow-[0_0_15px_rgba(0,140,255,0.4)] cursor-pointer"
-          >
-            <Sparkles className="w-3 h-3" />
-            <span>Quick Login</span>
-          </button>
         </div>
 
         {/* Error message */}

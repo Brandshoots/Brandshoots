@@ -8,6 +8,7 @@ import {
   CMSHero,
   CMSService,
   CMSTestimonial,
+  CMSLeadership,
   CMSSiteSettings,
   CMSLead,
   CMSProjectReel,
@@ -20,10 +21,20 @@ import {
   deleteClient,
   saveHero,
   saveService,
+  saveLeadership,
   saveSiteSettings,
   updateLeadStatus,
   deleteLead,
 } from '../../lib/cms/cmsService';
+import {
+  INITIAL_PROJECTS,
+  INITIAL_CLIENTS,
+  INITIAL_HERO,
+  INITIAL_SERVICES,
+  INITIAL_TESTIMONIALS,
+  INITIAL_LEADERSHIP,
+  INITIAL_SITE_SETTINGS,
+} from '../../lib/cms/seedData';
 import { CloudinaryUploader } from './CloudinaryUploader';
 import {
   LayoutDashboard,
@@ -50,6 +61,7 @@ import {
   Copy,
   ChevronRight,
   Sparkles,
+  Award,
 } from 'lucide-react';
 
 import { AdminUserSession } from './AdminAuthGuard';
@@ -60,18 +72,27 @@ interface AdminDashboardProps {
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'projects' | 'clientele' | 'hero' | 'services' | 'testimonials' | 'leads' | 'settings'
+    'overview' | 'projects' | 'clientele' | 'leads' | 'hero' | 'services' | 'about' | 'testimonials' | 'settings'
   >('overview');
 
-  // Live state from Firebase
-  const [projects, setProjects] = useState<CMSProject[]>([]);
-  const [clients, setClients] = useState<CMSClientLogo[]>([]);
-  const [hero, setHero] = useState<CMSHero | null>(null);
-  const [services, setServices] = useState<CMSService[]>([]);
-  const [testimonials, setTestimonials] = useState<CMSTestimonial[]>([]);
-  const [siteSettings, setSiteSettings] = useState<CMSSiteSettings | null>(null);
+  // Pre-populated state loaded with complete website dataset
+  const [projects, setProjects] = useState<CMSProject[]>(() =>
+    Object.values(INITIAL_PROJECTS).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  );
+  const [clients, setClients] = useState<CMSClientLogo[]>(() =>
+    Object.values(INITIAL_CLIENTS).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  );
+  const [hero, setHero] = useState<CMSHero>(INITIAL_HERO);
+  const [services, setServices] = useState<CMSService[]>(() =>
+    Object.values(INITIAL_SERVICES).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  );
+  const [testimonials, setTestimonials] = useState<CMSTestimonial[]>(() =>
+    Object.values(INITIAL_TESTIMONIALS).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  );
+  const [leadership, setLeadership] = useState<CMSLeadership>(INITIAL_LEADERSHIP);
+  const [siteSettings, setSiteSettings] = useState<CMSSiteSettings>(INITIAL_SITE_SETTINGS);
   const [leads, setLeads] = useState<CMSLead[]>([]);
-  const [dbLoading, setDbLoading] = useState(true);
+  const [dbLoading, setDbLoading] = useState(false);
 
   // Status feedback
   const [actionNotice, setActionNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -102,28 +123,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
     const unsubPublished = onValue(publishedRef, (snapshot) => {
       if (snapshot.exists()) {
         const val = snapshot.val();
-        if (val.projects) {
+        if (val.projects && Object.keys(val.projects).length > 0) {
           const list: CMSProject[] = Object.values(val.projects);
           setProjects(list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0)));
-        } else {
-          setProjects([]);
         }
 
-        if (val.clients) {
+        if (val.clients && Object.keys(val.clients).length > 0) {
           const list: CMSClientLogo[] = Object.values(val.clients);
           setClients(list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0)));
-        } else {
-          setClients([]);
         }
 
         if (val.hero) setHero(val.hero);
-        if (val.services) {
+        if (val.services && Object.keys(val.services).length > 0) {
           const list: CMSService[] = Object.values(val.services);
           setServices(list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0)));
         }
-        if (val.testimonials) {
+        if (val.testimonials && Object.keys(val.testimonials).length > 0) {
           const list: CMSTestimonial[] = Object.values(val.testimonials);
           setTestimonials(list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0)));
+        }
+        if (val.leadership) {
+          setLeadership(val.leadership);
         }
         if (val.siteSettings) {
           setSiteSettings(val.siteSettings);
@@ -133,8 +153,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
           }
         }
       } else {
-        setProjects([]);
-        setClients([]);
+        // Automatically sync production seed to Firebase in background if node empty
+        seedDatabase(false);
       }
       setDbLoading(false);
     });
@@ -328,6 +348,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
             >
               <Briefcase className="w-4 h-4" />
               <span>What We Do</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('about')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-mono uppercase tracking-wider transition-all ${
+                activeTab === 'about'
+                  ? 'bg-[#008CFF] text-white font-bold shadow-[0_0_20px_rgba(0,140,255,0.4)]'
+                  : 'text-white/60 hover:text-white hover:bg-white/[0.04]'
+              }`}
+            >
+              <Award className="w-4 h-4" />
+              <span>About & Founder</span>
             </button>
 
             <button
@@ -1098,7 +1130,107 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
           </div>
         )}
 
-        {/* TAB 7: TESTIMONIALS */}
+        {/* TAB 7: ABOUT & LEADERSHIP (FOUNDER PROFILE) */}
+        {activeTab === 'about' && (
+          <div className="space-y-6 max-w-4xl">
+            <div>
+              <h1 className="font-display font-black text-2xl uppercase tracking-wider text-white">
+                About & Leadership (Founder Profile)
+              </h1>
+              <p className="text-xs text-white/50 font-mono mt-0.5">
+                Manage the founder portrait, credentials, and brand manifesto displayed on the About page and leadership sections.
+              </p>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (leadership) {
+                  await saveLeadership(leadership);
+                  triggerNotice('Leadership profile saved successfully to live site!', 'success');
+                }
+              }}
+              className="p-6 rounded-2xl bg-[#070B12] border border-white/10 space-y-6"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-mono uppercase text-white/60 mb-2">
+                    Founder Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={leadership?.founderName || 'Durgarao Vallepu'}
+                    onChange={(e) => setLeadership({ ...leadership!, founderName: e.target.value })}
+                    className="w-full px-3 py-2.5 rounded-xl bg-black/60 border border-white/15 text-white font-mono text-sm focus:border-[#008CFF] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono uppercase text-white/60 mb-2">
+                    Designation / Title *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={leadership?.founderRole || 'Founder & Creative Director'}
+                    onChange={(e) => setLeadership({ ...leadership!, founderRole: e.target.value })}
+                    className="w-full px-3 py-2.5 rounded-xl bg-black/60 border border-white/15 text-white font-mono text-sm focus:border-[#008CFF] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono uppercase text-white/60 mb-2">
+                  Founder Bio & Creative Manifesto
+                </label>
+                <textarea
+                  rows={4}
+                  value={leadership?.founderBio || ''}
+                  onChange={(e) => setLeadership({ ...leadership!, founderBio: e.target.value })}
+                  placeholder="Director, visual strategist, and commercial filmmaker dedicated to elevating brands..."
+                  className="w-full px-4 py-3 rounded-xl bg-black/60 border border-white/15 text-white font-sans text-xs leading-relaxed focus:border-[#008CFF] focus:outline-none"
+                />
+              </div>
+
+              <div className="space-y-4">
+                <CloudinaryUploader
+                  label="Founder Portrait Photograph"
+                  value={leadership?.founderImage || '/founder.png'}
+                  onChange={(url) => setLeadership({ ...leadership!, founderImage: url })}
+                  accept="image"
+                  helpText="High-resolution editorial portrait. Default is /founder.png"
+                />
+
+                {leadership?.founderImage && (
+                  <div className="flex items-center gap-4 p-4 rounded-xl bg-black/40 border border-white/10">
+                    <img
+                      src={leadership.founderImage}
+                      alt={leadership.founderName}
+                      className="w-20 h-24 object-cover rounded-lg border border-white/20"
+                    />
+                    <div>
+                      <p className="text-xs font-mono font-bold text-white">{leadership.founderName}</p>
+                      <p className="text-[11px] font-mono text-[#008CFF]">{leadership.founderRole}</p>
+                      <span className="text-[10px] font-mono text-white/40 block mt-1">Current Active Portrait</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-4 border-t border-white/10 flex justify-end">
+                <button
+                  type="submit"
+                  className="px-6 py-3 rounded-full bg-[#008CFF] hover:bg-[#209CFF] text-white font-mono text-xs uppercase font-bold tracking-wider shadow-[0_0_24px_rgba(0,140,255,0.4)] cursor-pointer"
+                >
+                  Save Leadership Profile
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* TAB 8: TESTIMONIALS */}
         {activeTab === 'testimonials' && (
           <div className="space-y-6 max-w-5xl">
             <div>

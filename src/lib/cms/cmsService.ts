@@ -6,6 +6,7 @@ import {
   CMSHero,
   CMSService,
   CMSTestimonial,
+  CMSLeadership,
   CMSSiteSettings,
   CMSLead,
 } from '../../types/cms';
@@ -175,6 +176,21 @@ export async function fetchSiteSettings(): Promise<CMSSiteSettings | null> {
 export async function saveSiteSettings(settings: CMSSiteSettings): Promise<void> {
   await set(ref(firebaseDb, 'published/siteSettings'), {
     ...settings,
+    updatedAt: Date.now(),
+  });
+}
+
+// ----------------------------------------------------
+// LEADERSHIP & FOUNDER CRUD
+// ----------------------------------------------------
+export async function fetchPublishedLeadership(): Promise<CMSLeadership | null> {
+  const snapshot = await get(ref(firebaseDb, 'published/leadership'));
+  return snapshot.exists() ? snapshot.val() : null;
+}
+
+export async function saveLeadership(leadership: CMSLeadership): Promise<void> {
+  await set(ref(firebaseDb, 'published/leadership'), {
+    ...leadership,
     updatedAt: Date.now(),
   });
 }
