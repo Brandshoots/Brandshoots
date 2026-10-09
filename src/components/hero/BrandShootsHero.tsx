@@ -4,10 +4,12 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ReelWall3D } from './ReelWall3D';
 import { HeroCinematicBackground } from './HeroCinematicBackground';
 import { MobileCinematicHero } from './MobileCinematicHero';
+import { useCMSContent } from '../../lib/cms/useCMSContent';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export const BrandShootsHero: React.FC = () => {
+  const { hero } = useCMSContent();
   const heroRef = useRef<HTMLDivElement>(null);
   const titleBrandRef = useRef<HTMLSpanElement>(null);
   const titleShootsRef = useRef<HTMLSpanElement>(null);
@@ -152,7 +154,7 @@ export const BrandShootsHero: React.FC = () => {
             className="inline-block text-[#008CFF]"
             style={{ textShadow: '0 4px 24px rgba(0,0,0,0.8)' }}
           >
-            BRAND
+            {hero?.brandTitle || 'BRAND'}
           </span>
 
           {/* SHOOTS — clean flat white */}
@@ -161,7 +163,7 @@ export const BrandShootsHero: React.FC = () => {
             className="inline-block text-white ml-[0.015em]"
             style={{ textShadow: '0 4px 24px rgba(0,0,0,0.8)' }}
           >
-            SHOOTS
+            {hero?.shootsTitle || 'SHOOTS'}
           </span>
         </h1>
       </div>
@@ -192,11 +194,11 @@ export const BrandShootsHero: React.FC = () => {
         ref={taglineRef}
         className="hidden md:block absolute bottom-[17.5vh] left-0 right-0 z-30 font-mono text-[13px] lg:text-[14px] tracking-[0.48em] uppercase font-bold text-center pointer-events-none"
       >
-        <span className="text-white">CREATE. </span>
+        <span className="text-white">{hero?.taglinePrefix || 'CREATE. '}</span>
         <span className="text-[#008CFF] drop-shadow-[0_0_14px_rgba(0,140,255,0.85)]">
-          SHOOT.
+          {hero?.taglineAccent || 'SHOOT.'}
         </span>
-        <span className="text-white"> GROW.</span>
+        <span className="text-white">{hero?.taglineSuffix || ' GROW.'}</span>
       </div>
 
       {/* Scroll Down Indicator (Desktop Only) */}

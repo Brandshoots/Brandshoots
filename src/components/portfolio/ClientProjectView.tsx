@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import gsap from 'gsap';
-import { CLIENT_PROJECTS } from '../../data/clientsData';
+import { CLIENT_PROJECTS, ClientProject } from '../../data/clientsData';
+import { useCMSContent } from '../../lib/cms/useCMSContent';
 
 export const ClientProjectView: React.FC = () => {
   const { clientSlug } = useParams<{ clientSlug: string }>();
@@ -11,12 +12,15 @@ export const ClientProjectView: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
 
-  // Find project by slug
-  const projectIndex = CLIENT_PROJECTS.findIndex((p) => p.slug === clientSlug);
-  const project = projectIndex !== -1 ? CLIENT_PROJECTS[projectIndex] : CLIENT_PROJECTS[0];
+  const { projects: cmsProjects } = useCMSContent();
+  const allProjects = cmsProjects && cmsProjects.length > 0 ? (cmsProjects as unknown as ClientProject[]) : CLIENT_PROJECTS;
 
-  const prevProject = CLIENT_PROJECTS[(projectIndex - 1 + CLIENT_PROJECTS.length) % CLIENT_PROJECTS.length];
-  const nextProject = CLIENT_PROJECTS[(projectIndex + 1) % CLIENT_PROJECTS.length];
+  // Find project by slug
+  const projectIndex = allProjects.findIndex((p) => p.slug === clientSlug);
+  const project = projectIndex !== -1 ? allProjects[projectIndex] : allProjects[0];
+
+  const prevProject = allProjects[(projectIndex - 1 + allProjects.length) % allProjects.length];
+  const nextProject = allProjects[(projectIndex + 1) % allProjects.length];
 
   // GSAP entrance animation
   useEffect(() => {

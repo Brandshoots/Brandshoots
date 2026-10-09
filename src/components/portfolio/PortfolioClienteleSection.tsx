@@ -1,4 +1,5 @@
 import React from 'react';
+import { useCMSContent } from '../../lib/cms/useCMSContent';
 
 interface ClientLogoItem {
   name: string;
@@ -26,9 +27,20 @@ const ALL_CLIENTS: ClientLogoItem[] = [
 ];
 
 export const PortfolioClienteleSection: React.FC = () => {
-  // Split clients into two rows for dual opposing continuous loop animation
-  const row1 = ALL_CLIENTS.slice(0, 8);
-  const row2 = ALL_CLIENTS.slice(8);
+  const { clients } = useCMSContent();
+
+  const activeClients: ClientLogoItem[] =
+    clients && clients.length > 0
+      ? clients.map((c) => ({
+          name: c.name,
+          category: 'BrandShoots Client',
+          logo: c.logoUrl,
+        }))
+      : ALL_CLIENTS;
+
+  const half = Math.ceil(activeClients.length / 2);
+  const row1 = activeClients.slice(0, half);
+  const row2 = activeClients.slice(half);
 
   // Duplicate each list for seamless infinite marquee loop (50% translate)
   const marqueeRow1 = [...row1, ...row1];

@@ -1,0 +1,22 @@
+{
+  "rules": {
+    "published": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "drafts": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "leads": {
+      ".read": "auth != null",
+      "$leadId": {
+        ".write": "!data.exists() || auth != null"
+      }
+    },
+    "analytics": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    }
+  }
+}

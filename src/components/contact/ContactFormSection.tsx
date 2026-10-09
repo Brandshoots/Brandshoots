@@ -14,6 +14,7 @@ import {
   Youtube,
   Facebook,
 } from 'lucide-react';
+import { createLead } from '../../lib/cms/cmsService';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -232,16 +233,43 @@ export const ContactFormSection: React.FC = () => {
     return () => ctx.revert();
   }, []);
 
-  // Primary form submission
-  const handlePrimarySubmit = (e: React.FormEvent) => {
+  // Primary form submission: saves to Firebase RTDB leads
+  const handlePrimarySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormSubmitted(true);
+
+    try {
+      await createLead({
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        brandName: formData.company,
+        serviceType: formData.projectType,
+        message: formData.message,
+        type: 'general_inquiry',
+        status: 'new',
+      });
+    } catch (err) {
+      console.error('Firebase lead push note:', err);
+    }
   };
 
-  // Site visit submission: generates WhatsApp message and redirects to 7075960672
-  const handleSiteVisitSubmit = (e: React.FormEvent) => {
+  // Site visit submission: saves to Firebase RTDB and redirects to WhatsApp 7075960672
+  const handleSiteVisitSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSiteVisitSubmitted(true);
+
+    try {
+      await createLead({
+        name: siteVisitData.name || 'Client Site Visit',
+        phone: siteVisitData.name || '',
+        message: `Booked Site Visit (₹2,000) for Location: ${siteVisitData.location || 'N/A'}, Preferred Date: ${siteVisitData.date || 'Flexible'}`,
+        type: 'site_visit',
+        status: 'new',
+      });
+    } catch (err) {
+      console.error('Firebase site visit lead push note:', err);
+    }
 
     const messageLines = [
       'Hi BRANDSHOOTS,',

@@ -17,20 +17,22 @@ import { ClientProjectView } from './components/portfolio/ClientProjectView';
 import { AboutPage } from './pages/AboutPage';
 import { PortfolioPage } from './pages/PortfolioPage';
 import { ContactPage } from './pages/ContactPage';
+import { AdminPage } from './pages/AdminPage';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export function App() {
   const location = useLocation();
   const [preloaderActive, setPreloaderActive] = useState(() => {
-    // If nopreload query param is provided or directly accessing a project/about/portfolio/contact route, bypass
+    // If nopreload query param is provided or directly accessing a project/about/portfolio/contact/admin route, bypass
     if (typeof window !== 'undefined') {
       if (window.location.search.includes('nopreload')) return false;
       if (
         window.location.pathname.startsWith('/portfolio') ||
         window.location.pathname.startsWith('/projects/') ||
         window.location.pathname.startsWith('/about') ||
-        window.location.pathname.startsWith('/contact')
+        window.location.pathname.startsWith('/contact') ||
+        window.location.pathname.startsWith('/admin')
       ) {
         return false;
       }
@@ -125,6 +127,10 @@ export function App() {
 
         {/* CONTACT — always accessible, has its own StrokeRevealPreloader */}
         <Route path="/contact" element={<ContactPage />} />
+
+        {/* ADMIN CMS & PORTAL */}
+        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/admin/*" element={<AdminPage />} />
       </Routes>
     </main>
   );

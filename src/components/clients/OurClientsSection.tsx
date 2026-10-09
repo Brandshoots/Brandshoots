@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowUpRight } from 'lucide-react';
+import { useCMSContent } from '../../lib/cms/useCMSContent';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -40,9 +41,24 @@ export const OurClientsSection: React.FC = () => {
   const row2Ref = useRef<HTMLDivElement>(null);
   const watermarkRef = useRef<HTMLDivElement>(null);
 
+  const { clients } = useCMSContent();
+
+  const activeClientsList: ClientItem[] =
+    clients && clients.length > 0
+      ? clients.map((c) => ({
+          id: c.id,
+          name: c.name,
+          category: 'BrandShoots Partner',
+          logo: c.logoUrl,
+          slug: c.slug || c.id,
+          scale: 'scale-105',
+        }))
+      : CLIENTS_LIST;
+
   // Split clients into two continuous flowing rows
-  const row1Clients = CLIENTS_LIST.slice(0, 8);
-  const row2Clients = CLIENTS_LIST.slice(8).concat(CLIENTS_LIST.slice(0, 1));
+  const half = Math.ceil(activeClientsList.length / 2);
+  const row1Clients = activeClientsList.slice(0, half);
+  const row2Clients = activeClientsList.slice(half).concat(activeClientsList.slice(0, 1));
 
   useEffect(() => {
     if (!sectionRef.current) return;

@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { CLIENT_PROJECTS, ClientProject } from '../../data/clientsData';
+import { useCMSContent } from '../../lib/cms/useCMSContent';
 import { ArrowUpRight, X, ChevronRight } from 'lucide-react';
 import { ProjectDetailModal } from './ProjectDetailModal';
 
@@ -290,7 +291,10 @@ export const PortfolioWormhole3D: React.FC = () => {
   const activeIndexRef = useRef<number>(0);
   activeIndexRef.current = activeIndex;
 
-  const totalProjects = CLIENT_PROJECTS.length;
+  const { projects: cmsProjects } = useCMSContent();
+  const activeProjects: ClientProject[] =
+    cmsProjects && cmsProjects.length > 0 ? (cmsProjects as unknown as ClientProject[]) : CLIENT_PROJECTS;
+  const totalProjects = activeProjects.length;
 
   // Interactive Cursor Parallax Refs
   const targetMouseRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -508,7 +512,7 @@ export const PortfolioWormhole3D: React.FC = () => {
     const textureLoader = new THREE.TextureLoader();
     const panels: PanelData[] = [];
 
-    CLIENT_PROJECTS.forEach((project, i) => {
+    activeProjects.forEach((project, i) => {
       const panelGroup = new THREE.Group();
 
       const isLeft = i % 2 === 0;
@@ -726,7 +730,7 @@ export const PortfolioWormhole3D: React.FC = () => {
       if (activePanel && activePanel.group.visible) {
         const intersects = raycaster.intersectObjects([activePanel.screenMesh, activePanel.chassisMesh], true);
         if (intersects.length > 0) {
-          setSelectedProjectModal(CLIENT_PROJECTS[activeIndexRef.current]);
+          setSelectedProjectModal(activeProjects[activeIndexRef.current]);
         }
       }
     };
@@ -1070,7 +1074,7 @@ export const PortfolioWormhole3D: React.FC = () => {
   );
 
   // Active project data
-  const currentProject: ClientProject = CLIENT_PROJECTS[activeIndex] || CLIENT_PROJECTS[0];
+  const currentProject: ClientProject = activeProjects[activeIndex] || activeProjects[0];
   const isLeft = activeIndex % 2 === 0;
 
   // Editorial directional drift & smooth opacity during scroll
@@ -1227,7 +1231,7 @@ export const PortfolioWormhole3D: React.FC = () => {
 
             {/* Scrollable Project List */}
             <div className="flex-1 overflow-y-auto mt-4 divide-y divide-white/[0.06] pr-1 relative z-10">
-              {CLIENT_PROJECTS.map((proj, pIdx) => {
+              {activeProjects.map((proj, pIdx) => {
                 const isSelected = activeIndex === pIdx;
                 return (
                   <div
