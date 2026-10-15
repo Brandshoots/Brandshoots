@@ -99,7 +99,7 @@ export const AnnouncementsCMS: React.FC = () => {
     setEditingIndex(null);
     setFormTitle('');
     setFormDescription('');
-    setFormImageUrl('/Reels Folder/thumbnails/santhi.pipes_rjy_2026-09-06_10-01-41_3979966688738161477_48644092133.jpg');
+    setFormImageUrl('/reels/thumbnails/santhi.pipes_rjy_2026-09-06_10-01-41_3979966688738161477_48644092133.jpg');
     setFormButtonUrl('/contact');
     setFormIsActive(true);
     setUploadError(null);
@@ -529,7 +529,7 @@ export const AnnouncementsCMS: React.FC = () => {
                     type="text"
                     value={formImageUrl}
                     onChange={(e) => setFormImageUrl(e.target.value)}
-                    placeholder="e.g. /Reels Folder/thumbnails/... or https://res.cloudinary.com/.../image.jpg"
+                    placeholder="e.g. /reels/thumbnails/... or https://res.cloudinary.com/.../image.jpg"
                     required
                     className="w-full px-4 py-2.5 pl-10 rounded-xl bg-black/70 border border-white/20 text-white text-sm font-mono placeholder:text-white/30 focus:outline-none focus:border-white/60 transition-colors"
                   />

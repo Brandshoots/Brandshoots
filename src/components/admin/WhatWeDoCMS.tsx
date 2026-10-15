@@ -430,7 +430,7 @@ export const WhatWeDoCMS: React.FC = () => {
                     type="text"
                     value={formVideoUrl}
                     onChange={(e) => setFormVideoUrl(e.target.value)}
-                    placeholder="e.g. /Reels Folder/... or https://res.cloudinary.com/.../video.mp4"
+                    placeholder="e.g. /reels/... or https://res.cloudinary.com/.../video.mp4"
                     required
                     className="w-full px-4 py-2.5 pl-10 rounded-xl bg-black/70 border border-white/20 text-white text-sm font-mono placeholder:text-white/30 focus:outline-none focus:border-white/60 transition-colors"
                   />
