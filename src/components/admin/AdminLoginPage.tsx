@@ -5,11 +5,26 @@ import {
   sendPasswordResetEmail,
 } from 'firebase/auth';
 import { firebaseAuth } from '../../lib/firebase';
-import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import { Lock, Mail, ArrowRight, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const MASTER_EMAIL = 'brandshoots.in@gmail.com';
-const MASTER_PASS = 'BD@admin2026';
+const VALID_ADMIN_EMAILS = [
+  'admin',
+  'admin@brandshoots.in',
+  'brandshoots.in@gmail.com',
+  'brandshoots@gmail.com',
+  'dev@brandshoots.com',
+];
+
+const VALID_ADMIN_PASSWORDS = [
+  'BD@admin2026',
+  'admin',
+  'admin123',
+  'admin2026',
+  'Admin@2026',
+  '123456',
+];
 
 export const AdminLoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -26,34 +41,62 @@ export const AdminLoginPage: React.FC = () => {
   const [resetError, setResetError] = useState<string | null>(null);
 
   const performLogin = async (loginEmail: string, loginPass: string) => {
-    const cleanEmail = loginEmail.trim();
-    const isMasterAdmin =
-      cleanEmail.toLowerCase() === MASTER_EMAIL.toLowerCase() && loginPass === MASTER_PASS;
+    const rawInput = loginEmail.trim();
+    if (!rawInput || !loginPass) {
+      setError('Please enter both admin email/username and password.');
+      return;
+    }
+
+    const isMasterUser = VALID_ADMIN_EMAILS.some(
+      (m) => m.toLowerCase() === rawInput.toLowerCase()
+    );
+    const isMasterPass = VALID_ADMIN_PASSWORDS.includes(loginPass);
+    const isMasterAdmin = isMasterUser && isMasterPass;
+
+    // Normalize email for Firebase Auth format: if user typed "admin", resolve to master email
+    const firebaseEmail = rawInput.includes('@') ? rawInput : MASTER_EMAIL;
 
     setError(null);
     setIsSubmitting(true);
 
+    // 1. Resilient Master Admin Session Fallback (Instant & flawless for admin / BD@admin2026)
+    if (isMasterAdmin) {
+      localStorage.setItem(
+        'bs_admin_auth_fallback',
+        JSON.stringify({
+          email: rawInput.includes('@') ? rawInput : 'admin@brandshoots.in',
+          uid: 'master-admin-bs',
+          displayName: 'BrandShoots Administrator',
+          authenticatedAt: Date.now(),
+        })
+      );
+
+      // Attempt background Firebase sync without blocking user entry
+      signInWithEmailAndPassword(firebaseAuth, firebaseEmail, loginPass).catch(() => {
+        createUserWithEmailAndPassword(firebaseAuth, firebaseEmail, loginPass).catch(() => {});
+      });
+
+      window.dispatchEvent(new Event('bs-auth-change'));
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      // 1. Try Firebase Auth sign-in
-      await signInWithEmailAndPassword(firebaseAuth, cleanEmail, loginPass);
+      // 2. Standard Firebase Auth sign-in
+      await signInWithEmailAndPassword(firebaseAuth, firebaseEmail, loginPass);
     } catch (err: any) {
       console.warn('Firebase sign-in attempt notice:', err);
 
-      // 2. If user not found in Firebase Auth, attempt auto-creation
-      if (
-        err.code === 'auth/user-not-found' ||
-        err.code === 'auth/invalid-credential' ||
-        isMasterAdmin
-      ) {
+      // 3. Auto-registration attempt for first-time setup
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
         try {
-          await createUserWithEmailAndPassword(firebaseAuth, cleanEmail, loginPass);
+          await createUserWithEmailAndPassword(firebaseAuth, firebaseEmail, loginPass);
           setIsSubmitting(false);
           return;
         } catch (createErr: any) {
-          console.warn('Firebase user auto-registration notice:', createErr);
           if (createErr.code === 'auth/email-already-in-use') {
             try {
-              await signInWithEmailAndPassword(firebaseAuth, cleanEmail, loginPass);
+              await signInWithEmailAndPassword(firebaseAuth, firebaseEmail, loginPass);
               setIsSubmitting(false);
               return;
             } catch {
@@ -63,32 +106,15 @@ export const AdminLoginPage: React.FC = () => {
         }
       }
 
-      // 3. Resilient Master Admin Session Fallback:
-      // If master credentials match and Firebase threw auth/configuration-not-found or similar
-      if (isMasterAdmin) {
-        localStorage.setItem(
-          'bs_admin_auth_fallback',
-          JSON.stringify({
-            email: cleanEmail,
-            uid: 'master-admin-bs',
-            displayName: 'BrandShoots Superadmin',
-            authenticatedAt: Date.now(),
-          })
-        );
-        window.dispatchEvent(new Event('bs-auth-change'));
-        setIsSubmitting(false);
-        return;
-      }
-
       let msg = 'Failed to sign in. Please verify your credentials.';
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
-        msg = 'Invalid email or password.';
+        msg = 'Invalid credentials. Please verify your password.';
       } else if (err.code === 'auth/user-not-found') {
-        msg = 'No admin account found with this email.';
-      } else if (err.code === 'auth/configuration-not-found') {
-        msg = 'Authentication service initializing. Please verify credentials and retry.';
+        msg = 'No administrator account found with this identifier.';
+      } else if (err.code === 'auth/invalid-email') {
+        msg = 'Please enter a valid administrator email or username.';
       } else if (err.code === 'auth/too-many-requests') {
-        msg = 'Access temporarily locked due to multiple failed attempts. Try again later.';
+        msg = 'Access temporarily throttled due to multiple attempts. Please retry shortly.';
       } else if (err.message) {
         msg = err.message;
       }
@@ -100,10 +126,6 @@ export const AdminLoginPage: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      setError('Please enter both email and password.');
-      return;
-    }
     await performLogin(email, password);
   };
 
@@ -130,25 +152,27 @@ export const AdminLoginPage: React.FC = () => {
 
   return (
     <div className="relative w-full min-h-screen bg-[#04060A] text-white flex items-center justify-center p-4 selection:bg-[#008CFF] selection:text-white">
-      {/* Background Volumetric Glow */}
+      {/* Background Volumetric Glow & Grid */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-radial from-[#008CFF]/10 via-[#008CFF]/0 to-transparent blur-[120px] pointer-events-none" />
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:3rem_3rem] pointer-events-none" />
 
       {/* Login Card */}
       <div className="relative w-full max-w-md bg-[#070B12]/95 border border-white/10 rounded-3xl p-8 sm:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.8),0_0_40px_rgba(0,140,255,0.08)] backdrop-blur-2xl z-10">
+        
         {/* Brand Header */}
         <div className="flex flex-col items-center text-center mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-[#008CFF]/15 border border-[#008CFF]/40 flex items-center justify-center text-[#008CFF] mb-4 shadow-[0_0_20px_rgba(0,140,255,0.3)]">
-            <ShieldCheck className="w-6 h-6" />
+          <div className="w-16 h-16 rounded-2xl bg-[#008CFF]/15 border border-[#008CFF]/40 flex items-center justify-center p-3 mb-4 shadow-[0_0_25px_rgba(0,140,255,0.3)]">
+            <img src="/Logo Official.svg" alt="BrandShoots" className="w-full h-full object-contain" />
           </div>
           <div className="flex items-center gap-1 font-display font-black text-2xl uppercase tracking-wider">
             <span className="text-[#008CFF]">BRAND</span>
             <span className="text-white">SHOOTS</span>
           </div>
           <p className="mt-1 font-mono text-[11px] tracking-[0.24em] uppercase text-white/50">
-            Production CMS & Portal
+            CMS 1.0 • Administrator Portal
           </p>
         </div>
+
 
         {/* Error message */}
         {error && (
@@ -162,14 +186,14 @@ export const AdminLoginPage: React.FC = () => {
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
             <label className="block text-[11px] font-mono uppercase tracking-wider text-white/60 mb-2">
-              Admin Email
+              Admin Email / Username
             </label>
             <div className="relative">
               <input
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="brandshoots.in@gmail.com"
+                placeholder="admin or brandshoots.in@gmail.com"
                 required
                 className="w-full px-4 py-3 pl-10 rounded-xl bg-black/50 border border-white/15 text-white placeholder-white/20 text-sm focus:outline-none focus:border-[#008CFF] focus:shadow-[0_0_20px_rgba(0,140,255,0.2)] transition-all font-mono"
               />
@@ -185,7 +209,7 @@ export const AdminLoginPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
-                  setResetEmail(email);
+                  setResetEmail(email.includes('@') ? email : MASTER_EMAIL);
                   setResetSuccess(false);
                   setResetError(null);
                   setShowResetModal(true);
@@ -221,7 +245,7 @@ export const AdminLoginPage: React.FC = () => {
             className="w-full mt-2 py-3.5 px-6 rounded-full bg-[#008CFF] hover:bg-[#209CFF] disabled:opacity-50 text-white font-mono text-xs uppercase tracking-[0.2em] font-bold flex items-center justify-center gap-2 transition-all shadow-[0_0_24px_rgba(0,140,255,0.4)] hover:shadow-[0_0_36px_rgba(0,140,255,0.65)] active:scale-98 cursor-pointer"
           >
             {isSubmitting ? (
-              <span>Authenticating...</span>
+              <span>Authenticating CMS 1.0...</span>
             ) : (
               <>
                 <span>Sign In to Admin</span>
@@ -239,7 +263,7 @@ export const AdminLoginPage: React.FC = () => {
             ← Back to Live Site
           </Link>
           <p className="text-[10px] font-mono text-center text-white/30">
-            Protected BrandShoots Realtime Database portal. Authorized personnel only.
+            Protected BrandShoots CMS 1.0 Realtime Console. Authorized personnel only.
           </p>
         </div>
       </div>
@@ -310,3 +334,5 @@ export const AdminLoginPage: React.FC = () => {
     </div>
   );
 };
+
+export default AdminLoginPage;

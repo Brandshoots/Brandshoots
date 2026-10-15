@@ -21,7 +21,7 @@ export const ContactPage: React.FC = () => {
 
   // Set document title & reset scroll
   useEffect(() => {
-    document.title = 'Contact | BRANDSHOOTS — Creative Branding & Production Studio';
+    document.title = 'Contact | BRANDSHOOTS — Create. Shoot. Grow.';
     window.scrollTo(0, 0);
   }, []);
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 import gsap from 'gsap';
@@ -10,6 +10,7 @@ import { ManifestoScrollSection } from '../components/about/ManifestoScrollSecti
 import { BrandShootsCore3D } from '../components/about/BrandShootsCore3D';
 import { AboutLeadershipSection } from '../components/about/AboutLeadershipSection';
 import { AboutFooter } from '../components/about/AboutFooter';
+import { BrandShootsFooter } from '../components/footer/BrandShootsFooter';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -21,10 +22,21 @@ export const AboutPage: React.FC = () => {
     return true;
   });
 
-  // Set document title
+  const handlePreloaderComplete = useCallback(() => {
+    setPreloaderActive(false);
+  }, []);
+
+  // Set document title, scroll to top, and clear legacy session flag
   useEffect(() => {
-    document.title = 'About | BRANDSHOOTS — Creative Branding & Production Studio';
+    document.title = 'About | BRANDSHOOTS — Create. Shoot. Grow.';
     window.scrollTo(0, 0);
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.removeItem('brandshoots_about_seen');
+      } catch (e) {
+        // Ignore storage exceptions
+      }
+    }
   }, []);
 
   // Butter-Smooth Lenis Inertial Scrolling synced with GSAP ScrollTrigger
@@ -32,7 +44,7 @@ export const AboutPage: React.FC = () => {
     if (preloaderActive) return;
 
     const lenis = new Lenis({
-      duration: 1.35,
+      duration: 1.25,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
@@ -48,18 +60,20 @@ export const AboutPage: React.FC = () => {
     };
 
     gsap.ticker.add(ticker);
-    gsap.ticker.lagSmoothing(0);
+    // Maintain healthy lagSmoothing to prevent visual stuttering on momentary frame spikes
+    gsap.ticker.lagSmoothing(500, 33);
 
     (window as any).__lenis = lenis;
 
     const timer = setTimeout(() => {
       ScrollTrigger.refresh();
-    }, 250);
+    }, 200);
 
     return () => {
       clearTimeout(timer);
       delete (window as any).__lenis;
       gsap.ticker.remove(ticker);
+      lenis.off('scroll', ScrollTrigger.update);
       lenis.destroy();
     };
   }, [preloaderActive]);
@@ -68,7 +82,7 @@ export const AboutPage: React.FC = () => {
     <main className="relative w-full min-h-screen bg-[#04060A] text-white overflow-x-hidden">
       {/* 1. FAST SVG PRELOADER OVERLAY WITH OFFICIAL LOGO ONLY */}
       {preloaderActive && (
-        <StrokeRevealPreloader onComplete={() => setPreloaderActive(false)} />
+        <StrokeRevealPreloader onComplete={handlePreloaderComplete} />
       )}
 
       {/* 2. CINEMATIC ABOUT PAGE CHAPTERS (Rendered seamlessly underneath preloader overlay) */}
@@ -83,8 +97,11 @@ export const AboutPage: React.FC = () => {
       {/* Leadership: Durgarao Vallepu */}
       <AboutLeadershipSection />
 
-      {/* Ready to Collaborate (Heavy GSAP) & Footer */}
+      {/* Ready to Collaborate CTA */}
       <AboutFooter />
+
+      {/* Official BrandShoots Footer (Identical to Homepage) */}
+      <BrandShootsFooter />
     </main>
   );
 };

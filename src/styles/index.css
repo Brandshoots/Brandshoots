@@ -9,7 +9,7 @@
     box-sizing: border-box;
   }
 
-  body {
+  html, body {
     background-color: #08090C;
     color: #FFFFFF;
     font-family: 'Figtree', sans-serif;
@@ -17,6 +17,85 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  button, input, select, textarea {
+    font-family: 'Figtree', sans-serif;
+  }
+}
+
+/* ========================================================= */
+/* LUXURY OBSIDIAN & ELECTRIC BLUE SCROLLBARS                */
+/* ========================================================= */
+
+/* Firefox standard scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+/* WebKit (Chrome, Edge, Safari, Opera) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 9999px;
+  transition: all 0.2s ease-in-out;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #008CFF;
+  box-shadow: 0 0 10px rgba(0, 140, 255, 0.6);
+}
+
+::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Custom Sleek Scrollbar for Drawers and Modals */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) rgba(255, 255, 255, 0.02);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 9999px;
+  margin: 4px 0;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #008CFF;
+  box-shadow: 0 0 10px #008CFF;
+}
+
+.custom-scrollbar::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* Film Grain Texture */
@@ -78,5 +157,56 @@
 
 .animate-client-marquee:hover {
   animation-play-state: paused;
+}
+
+/* Atmospheric Background Watermark Continuous Auto-Scroll */
+@keyframes watermarkMarqueeLeft {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes watermarkMarqueeRight {
+  0% {
+    transform: translate3d(-50%, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-watermark-left {
+  display: flex;
+  width: max-content;
+  animation: watermarkMarqueeLeft 46s linear infinite;
+  will-change: transform;
+}
+
+.animate-watermark-right {
+  display: flex;
+  width: max-content;
+  animation: watermarkMarqueeRight 46s linear infinite;
+  will-change: transform;
+}
+
+/* Slow Ambient Blue Glow Blink for Client Metrics */
+@keyframes slowBlueGlowBlink {
+  0%, 100% {
+    opacity: 0.78;
+    filter: drop-shadow(0 0 3px rgba(0, 140, 255, 0.22));
+    border-color: rgba(0, 140, 255, 0.18);
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 9px rgba(0, 140, 255, 0.55));
+    border-color: rgba(0, 140, 255, 0.42);
+  }
+}
+
+.animate-glow-blink-slow {
+  animation: slowBlueGlowBlink 3.4s ease-in-out infinite;
 }
 

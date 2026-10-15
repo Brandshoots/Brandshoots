@@ -21,11 +21,12 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['"Cooper Hewitt"', '"Barlow Semi Condensed"', '"Figtree"', 'sans-serif'],
+        sans: ['"Figtree"', 'sans-serif'],
         mono: ['"Figtree"', 'monospace'],
-        display: ['"Cooper Hewitt"', '"Barlow Semi Condensed"', '"Montserrat"', 'sans-serif'],
-        editorial: ['"Cooper Hewitt"', '"Barlow Semi Condensed"', 'sans-serif'],
-        syne: ['"Syne"', 'sans-serif'],
+        display: ['"Figtree"', 'sans-serif'],
+        editorial: ['"Figtree"', 'sans-serif'],
+        figtree: ['"Figtree"', 'sans-serif'],
+        syne: ['"Figtree"', 'sans-serif'],
       },
       boxShadow: {
         'glow-blue': '0 0 40px -10px rgba(20, 151, 245, 0.45)',

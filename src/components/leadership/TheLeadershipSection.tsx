@@ -12,10 +12,10 @@ export const TheLeadershipSection: React.FC = () => {
   const lastName = nameParts.slice(1).join(' ') || 'VALLEPU';
   const sectionRef = useRef<HTMLElement>(null);
   const backdropGlowRef = useRef<HTMLDivElement>(null);
-  const watermarkRef = useRef<HTMLDivElement>(null);
 
   // Portrait refs
   const portraitWrapperRef = useRef<HTMLDivElement>(null);
+  const portraitCanvasRef = useRef<HTMLDivElement>(null);
   const portraitImgRef = useRef<HTMLImageElement>(null);
 
   // Typography refs
@@ -23,25 +23,13 @@ export const TheLeadershipSection: React.FC = () => {
   const nameLine1Ref = useRef<HTMLSpanElement>(null);
   const nameLine2Ref = useRef<HTMLSpanElement>(null);
   const designationRef = useRef<HTMLDivElement>(null);
+  const dividerRef = useRef<HTMLDivElement>(null);
   const quoteRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
     if (!sectionRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Background watermark parallax
-      if (watermarkRef.current) {
-        gsap.to(watermarkRef.current, {
-          x: 100,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: 'top bottom',
-            end: 'bottom top',
-            scrub: 2.0,
-          },
-        });
-      }
 
       // Parallax differential: Portrait moves slightly upward while text flows naturally
       if (portraitWrapperRef.current) {
@@ -97,12 +85,30 @@ export const TheLeadershipSection: React.FC = () => {
         );
       }
 
+      if (portraitCanvasRef.current) {
+        entryTl.fromTo(
+          portraitCanvasRef.current,
+          { clipPath: 'inset(14% 0% 14% 0%)', opacity: 0, scale: 0.96 },
+          { clipPath: 'inset(0% 0% 0% 0%)', opacity: 1, scale: 1, duration: 0.95, ease: 'power3.out' },
+          0.1
+        );
+      }
+
+      if (portraitImgRef.current) {
+        entryTl.fromTo(
+          portraitImgRef.current,
+          { scale: 1.12 },
+          { scale: 1.0, duration: 1.1, ease: 'power2.out' },
+          0.1
+        );
+      }
+
       if (nameLine1Ref.current && nameLine2Ref.current) {
         entryTl.fromTo(
           [nameLine1Ref.current, nameLine2Ref.current],
           { y: 35, opacity: 0 },
           { y: 0, opacity: 1, duration: 0.65, stagger: 0.1, ease: 'power3.out' },
-          0.15
+          0.2
         );
       }
 
@@ -111,7 +117,16 @@ export const TheLeadershipSection: React.FC = () => {
           designationRef.current,
           { opacity: 0, y: 15 },
           { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' },
-          0.3
+          0.32
+        );
+      }
+
+      if (dividerRef.current) {
+        entryTl.fromTo(
+          dividerRef.current,
+          { scaleX: 0, transformOrigin: 'left center' },
+          { scaleX: 1, duration: 0.6, ease: 'power3.out' },
+          0.38
         );
       }
 
@@ -120,7 +135,7 @@ export const TheLeadershipSection: React.FC = () => {
           quoteRef.current,
           { opacity: 0, y: 20 },
           { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' },
-          0.4
+          0.44
         );
       }
     }, sectionRef);
@@ -132,7 +147,7 @@ export const TheLeadershipSection: React.FC = () => {
     <section
       id="leadership"
       ref={sectionRef}
-      className="relative w-full min-h-[90vh] py-24 sm:py-32 lg:py-40 bg-[#04060A] text-white flex items-center justify-center select-none overflow-hidden"
+      className="relative w-full py-14 sm:py-18 lg:py-20 bg-[#04060A] text-white flex items-center justify-center select-none overflow-hidden"
     >
       {/* Background Volumetric Blue Aura */}
       <div className="absolute inset-0 pointer-events-none z-0">
@@ -145,17 +160,31 @@ export const TheLeadershipSection: React.FC = () => {
             filter: 'blur(100px)',
           }}
         />
-        <div className="absolute inset-0 opacity-[0.02] bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:4rem_4rem]" />
+        <div
+          className="absolute inset-0 opacity-[0.02] bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:4rem_4rem]"
+          style={{
+            maskImage:
+              'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
+            WebkitMaskImage:
+              'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
+          }}
+        />
       </div>
 
-      {/* Atmospheric Watermark Depth Layer */}
-      <div
-        ref={watermarkRef}
-        className="absolute bottom-10 -left-20 w-full whitespace-nowrap pointer-events-none select-none z-0 opacity-[0.03]"
-      >
-        <span className="font-display font-black text-[18vw] tracking-[-0.05em] uppercase text-white">
-          VALLEPU • VISION •
-        </span>
+      {/* Atmospheric Watermark Depth Layer (Continuous Auto-Scroll) */}
+      <div className="absolute bottom-6 sm:bottom-10 inset-x-0 w-full overflow-hidden pointer-events-none select-none z-0 opacity-[0.035]">
+        <div className="animate-watermark-left">
+          <div className="flex shrink-0 items-center whitespace-nowrap">
+            <span className="font-display font-black text-[14vw] sm:text-[16vw] lg:text-[18vw] tracking-[-0.05em] uppercase text-white pr-16">
+              VALLEPU • VISION • CINEMATIC DIRECTION • BRANDSHOOTS •
+            </span>
+          </div>
+          <div className="flex shrink-0 items-center whitespace-nowrap">
+            <span className="font-display font-black text-[14vw] sm:text-[16vw] lg:text-[18vw] tracking-[-0.05em] uppercase text-white pr-16">
+              VALLEPU • VISION • CINEMATIC DIRECTION • BRANDSHOOTS •
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* ==================================================== */}
@@ -174,7 +203,10 @@ export const TheLeadershipSection: React.FC = () => {
               <div className="absolute -inset-2 rounded-3xl bg-gradient-to-b from-[#008CFF]/25 via-white/5 to-[#008CFF]/20 opacity-70 blur-[8px] pointer-events-none" />
 
               {/* Framed Editorial Canvas */}
-              <div className="relative w-full h-full rounded-3xl overflow-hidden bg-[#070B12] border border-white/20 shadow-[0_30px_90px_rgba(0,0,0,0.95),0_0_35px_rgba(0,140,255,0.2)]">
+              <div
+                ref={portraitCanvasRef}
+                className="relative w-full h-full rounded-3xl overflow-hidden bg-[#070B12] border border-white/20 shadow-[0_30px_90px_rgba(0,0,0,0.95),0_0_35px_rgba(0,140,255,0.2)]"
+              >
                 <img
                   ref={portraitImgRef}
                   src={leadership?.founderImage || '/founder.png'}
@@ -182,6 +214,7 @@ export const TheLeadershipSection: React.FC = () => {
                   className="w-full h-full object-cover object-[center_20%] filter brightness-[0.96] contrast-[1.06] select-none"
                   draggable={false}
                   loading="lazy"
+                  decoding="async"
                 />
 
                 {/* Film Noir Subtle Vignette */}
@@ -201,15 +234,7 @@ export const TheLeadershipSection: React.FC = () => {
 
                 {/* Founder Badge */}
                 <div className="absolute bottom-4 left-5 right-5 z-20 flex items-center justify-between text-white/90">
-                  <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
-                    <span className="font-mono text-[9px] tracking-[0.24em] uppercase font-semibold text-white/80">
-                      {leadership?.founderRole || 'FOUNDER & DIRECTOR'}
-                    </span>
-                  </div>
-                  <span className="font-mono text-[9px] tracking-[0.2em] text-[#008CFF] uppercase font-bold">
-                    BRANDSHOOTS
-                  </span>
+
                 </div>
               </div>
             </div>
@@ -220,13 +245,6 @@ export const TheLeadershipSection: React.FC = () => {
             ref={textContentRef}
             className="lg:col-span-7 flex flex-col justify-center text-center lg:text-left items-center lg:items-start order-2 will-change-transform"
           >
-            {/* Eyebrow */}
-            <div className="flex items-center gap-2 mb-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
-              <span className="font-mono text-[10px] xs:text-[11px] sm:text-xs tracking-[0.3em] uppercase text-[#008CFF] font-semibold">
-                03 // LEADERSHIP & VISION
-              </span>
-            </div>
 
             {/* Monumental Founder Name */}
             <h2 className="font-sans font-black uppercase text-4xl xs:text-5xl sm:text-6xl lg:text-7xl xl:text-8xl leading-[0.88] tracking-[-0.038em] text-white">
@@ -247,7 +265,10 @@ export const TheLeadershipSection: React.FC = () => {
             </div>
 
             {/* Accent divider line */}
-            <div className="w-20 sm:w-28 h-[2px] bg-gradient-to-r from-[#008CFF] to-transparent my-6 sm:my-7" />
+            <div
+              ref={dividerRef}
+              className="w-20 sm:w-28 h-[2px] bg-gradient-to-r from-[#008CFF] to-transparent my-6 sm:my-7 origin-left"
+            />
 
             {/* Short Compelling Philosophy Copy */}
             <p
@@ -258,26 +279,6 @@ export const TheLeadershipSection: React.FC = () => {
                 '"Every frame is calculated. Every cut has intent. We don’t just capture visuals — we architect cultural presence and commercial momentum for brands that refuse to be ignored."'}
             </p>
 
-            {/* Creative Tenets */}
-            <div className="mt-8 sm:mt-10 grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4 w-full max-w-xl">
-              {[
-                { title: 'CINEMATIC INTENT', desc: 'Precision lensing & mood' },
-                { title: 'AUDIENCE PSYCHOLOGY', desc: 'High-retention hooks' },
-                { title: 'COMMERCIAL EXECUTION', desc: 'Tangible brand growth' },
-              ].map((tenet, idx) => (
-                <div
-                  key={idx}
-                  className="px-4 py-3 rounded-xl bg-white/[0.04] border border-white/10 flex flex-col items-center sm:items-start text-center sm:text-left shadow-sm"
-                >
-                  <span className="font-mono text-[10px] tracking-[0.2em] uppercase font-bold text-[#008CFF]">
-                    {tenet.title}
-                  </span>
-                  <span className="text-[11px] text-white/50 mt-1 font-medium">
-                    {tenet.desc}
-                  </span>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </div>

@@ -14,7 +14,42 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const backdropAuraRef = useRef<HTMLDivElement>(null);
   const headlineWrapperRef = useRef<HTMLDivElement>(null);
+  const line1Ref = useRef<HTMLSpanElement>(null);
+  const line2Ref = useRef<HTMLSpanElement>(null);
   const ctaHubRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLDivElement>(null);
+
+  // Magnetic button hover interaction
+  useEffect(() => {
+    const btn = buttonRef.current;
+    if (!btn) return;
+
+    const xTo = gsap.quickTo(btn, 'x', { duration: 0.35, ease: 'power3.out' });
+    const yTo = gsap.quickTo(btn, 'y', { duration: 0.35, ease: 'power3.out' });
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = btn.getBoundingClientRect();
+      const x = e.clientX - (rect.left + rect.width / 2);
+      const y = e.clientY - (rect.top + rect.height / 2);
+      xTo(x * 0.28);
+      yTo(y * 0.28);
+    };
+
+    const handleMouseLeave = () => {
+      xTo(0);
+      yTo(0);
+    };
+
+    btn.addEventListener('mousemove', handleMouseMove);
+    btn.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      btn.removeEventListener('mousemove', handleMouseMove);
+      btn.removeEventListener('mouseleave', handleMouseLeave);
+      xTo(0);
+      yTo(0);
+    };
+  }, []);
 
   useEffect(() => {
     if (!sectionRef.current) return;
@@ -39,20 +74,21 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = () => {
         );
       }
 
-      if (headlineWrapperRef.current) {
+      // Headline emergence (soft translate + fade without overflow clipping)
+      if (line1Ref.current && line2Ref.current) {
         gsap.fromTo(
-          headlineWrapperRef.current,
-          { scale: 0.92, y: 50, opacity: 0.3 },
+          [line1Ref.current, line2Ref.current],
+          { y: 32, opacity: 0 },
           {
-            scale: 1,
             y: 0,
             opacity: 1,
-            ease: 'none',
+            duration: 0.95,
+            stagger: 0.15,
+            ease: 'power3.out',
             scrollTrigger: {
-              trigger: sectionRef.current,
+              trigger: headlineWrapperRef.current,
               start: 'top 85%',
-              end: 'center center',
-              scrub: 1.0,
+              toggleActions: 'play none none none',
             },
           }
         );
@@ -61,17 +97,17 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = () => {
       if (ctaHubRef.current) {
         gsap.fromTo(
           ctaHubRef.current,
-          { scale: 0.94, y: 40, opacity: 0.2 },
+          { scale: 0.96, y: 28, opacity: 0 },
           {
             scale: 1,
             y: 0,
             opacity: 1,
-            ease: 'none',
+            duration: 0.85,
+            ease: 'power3.out',
             scrollTrigger: {
-              trigger: sectionRef.current,
-              start: 'top 70%',
-              end: 'center center',
-              scrub: 1.0,
+              trigger: ctaHubRef.current,
+              start: 'top 85%',
+              toggleActions: 'play none none none',
             },
           }
         );
@@ -85,57 +121,77 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = () => {
     <section
       id="cta"
       ref={sectionRef}
-      className="relative w-full py-28 sm:py-36 lg:py-48 bg-[#04060A] text-white flex flex-col justify-center items-center px-6 sm:px-12 select-none overflow-hidden"
+      className="relative w-full py-24 sm:py-28 md:py-32 lg:py-36 bg-[#020306] text-white flex flex-col justify-center items-center px-6 sm:px-12 select-none overflow-hidden"
     >
-      {/* Background Radiating Blue Climax Aura */}
+      {/* Background Radiating Blue Climax Aura (Clean luxury backdrop without harsh grid lines) */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <div
           ref={backdropAuraRef}
           className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[110vw] max-w-[1500px] h-[650px] will-change-transform"
           style={{
             background:
-              'radial-gradient(ellipse at 50% 80%, rgba(0, 140, 255, 0.25) 0%, rgba(0, 70, 180, 0.08) 45%, transparent 75%)',
+              'radial-gradient(ellipse at 50% 80%, rgba(0, 140, 255, 0.18) 0%, rgba(0, 70, 180, 0.05) 50%, transparent 75%)',
             filter: 'blur(100px)',
           }}
         />
-        <div className="absolute inset-0 opacity-[0.025] bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:4rem_4rem]" />
+
+        {/* Minimal Cosmic Dust Specks */}
+        <div className="absolute inset-0 overflow-hidden opacity-40">
+          <div className="absolute top-[20%] left-[15%] w-1 h-1 rounded-full bg-[#008CFF] shadow-[0_0_6px_#008CFF]" />
+          <div className="absolute top-[35%] right-[18%] w-1 h-1 rounded-full bg-white shadow-[0_0_6px_#fff]" />
+          <div className="absolute bottom-[28%] left-[24%] w-1 h-1 rounded-full bg-[#008CFF]/80 shadow-[0_0_5px_#008CFF]" />
+          <div className="absolute bottom-[38%] right-[22%] w-1 h-1 rounded-full bg-white/70 shadow-[0_0_4px_#fff]" />
+        </div>
       </div>
 
       {/* Main Climax Composition */}
       <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col items-center text-center">
-        {/* Eyebrow */}
-        <div className="flex items-center gap-2 mb-4">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
-          <span className="font-mono text-[10px] xs:text-[11px] sm:text-xs tracking-[0.3em] uppercase text-[#008CFF] font-semibold">
-            05 // THE NEXT CHAPTER
-          </span>
-        </div>
 
         {/* Monumental Climax Headline */}
-        <div ref={headlineWrapperRef} className="will-change-transform">
-          <h2 className="font-sans font-black uppercase text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.9] tracking-[-0.04em] text-white">
-            <span className="block text-white">LET'S CREATE SOMETHING</span>
-            <span className="block text-[#008CFF] mt-2 drop-shadow-[0_0_35px_rgba(0,140,255,0.45)]">
-              UNFORGETTABLE<span className="text-white">.</span>
+        <div ref={headlineWrapperRef} className="will-change-transform w-full flex flex-col items-center">
+          <h2 className="font-sans font-black uppercase text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-[4.75rem] xl:text-[5.5rem] leading-[0.94] tracking-[-0.035em] text-white">
+            <span
+              ref={line1Ref}
+              className="block text-white will-change-transform whitespace-normal sm:whitespace-nowrap"
+            >
+              LET'S CREATE SOMETHING
             </span>
-          </h2>
 
-          <p className="mt-6 sm:mt-8 font-sans text-sm xs:text-base sm:text-lg text-white/70 max-w-2xl mx-auto leading-relaxed font-normal">
-            From high-stakes commercial productions to viral social systems and category-defining brand identities — let's tell your story with uncompromising visual authority.
-          </p>
+            <div className="relative inline-block mt-2 sm:mt-3">
+              {/* Refined Soft Volumetric Glow Aura (Subtle, Clean Studio Backlight) */}
+              <div
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] max-w-[600px] h-[180%] pointer-events-none rounded-full"
+                style={{
+                  background:
+                    'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.16) 0%, rgba(0, 140, 255, 0.04) 50%, transparent 72%)',
+                  filter: 'blur(45px)',
+                }}
+              />
+              <span
+                ref={line2Ref}
+                className="relative z-10 block text-[#008CFF] will-change-transform"
+                style={{
+                  textShadow:
+                    '0 0 18px rgba(0, 140, 255, 0.38), 0 0 36px rgba(0, 140, 255, 0.15)',
+                }}
+              >
+                EXTRAORDINARY<span className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">.</span>
+              </span>
+            </div>
+          </h2>
         </div>
 
         {/* Interactive Action Hub */}
         <div
           ref={ctaHubRef}
-          className="mt-12 sm:mt-16 w-full max-w-3xl flex flex-col items-center will-change-transform"
+          className="mt-10 sm:mt-12 w-full max-w-3xl flex flex-col items-center will-change-transform"
         >
           {/* Primary High-Impact Button */}
-          <div className="relative inline-block group">
-            <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#008CFF] via-[#52B2FF] to-[#008CFF] opacity-75 blur-md group-hover:opacity-100 transition-opacity duration-300" />
+          <div ref={buttonRef} className="relative inline-block group will-change-transform">
+            <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#008CFF] via-[#52B2FF] to-[#008CFF] opacity-30 blur-md group-hover:opacity-75 transition-opacity duration-300" />
             <Link
               to="/contact"
-              className="relative px-9 py-4 sm:px-12 sm:py-5 rounded-full bg-white text-[#04060A] font-mono font-black text-xs xs:text-sm tracking-[0.24em] uppercase shadow-[0_12px_40px_rgba(0,140,255,0.4)] group-hover:bg-[#008CFF] group-hover:text-white transition-all duration-300 flex items-center gap-3 cursor-pointer active:scale-95"
+              className="relative px-9 py-4 sm:px-12 sm:py-5 rounded-full bg-white text-[#04060A] font-mono font-black text-xs xs:text-sm tracking-[0.24em] uppercase shadow-[0_8px_24px_rgba(0,140,255,0.2)] hover:shadow-[0_8px_32px_rgba(0,140,255,0.4)] group-hover:bg-[#008CFF] group-hover:text-white transition-all duration-300 flex items-center gap-3 cursor-pointer active:scale-95"
             >
               <span>START YOUR PROJECT</span>
               <ArrowUpRight className="w-5 h-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -143,7 +199,7 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = () => {
           </div>
 
           {/* Quick Communication Channels */}
-          <div className="mt-10 sm:mt-12 grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4 w-full">
+          <div className="mt-8 sm:mt-10 grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4 w-full">
             <a
               href="https://wa.me/917075960672"
               target="_blank"

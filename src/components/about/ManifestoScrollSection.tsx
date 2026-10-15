@@ -26,9 +26,22 @@ export const ManifestoScrollSection: React.FC = () => {
   const progressBarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Interactive pointer/touch parallax for 3D stage
+    // Interactive pointer/touch parallax for 3D stage (gated by section visibility)
+    let isSectionInView = true;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          isSectionInView = e.isIntersecting;
+        });
+      },
+      { threshold: 0 }
+    );
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
     const onMouseMove = (e: MouseEvent) => {
-      if (window.innerWidth < 768 || !stageRef.current) return;
+      if (!isSectionInView || window.innerWidth < 768 || !stageRef.current) return;
       const normX = (e.clientX / window.innerWidth) * 2 - 1;
       const normY = (e.clientY / window.innerHeight) * 2 - 1;
       gsap.to(stageRef.current, {
@@ -36,6 +49,7 @@ export const ManifestoScrollSection: React.FC = () => {
         rotateX: -normY * 4,
         duration: 0.8,
         ease: 'power2.out',
+        overwrite: 'auto',
       });
     };
 
@@ -225,6 +239,7 @@ export const ManifestoScrollSection: React.FC = () => {
     }, sectionRef);
 
     return () => {
+      observer.disconnect();
       window.removeEventListener('mousemove', onMouseMove);
       ctx.revert();
     };
@@ -240,22 +255,8 @@ export const ManifestoScrollSection: React.FC = () => {
         ref={pinWrapperRef}
         className="relative w-full h-[100dvh] min-h-[100dvh] flex flex-col justify-between items-center py-8 sm:py-12 px-6 sm:px-12 max-w-[1720px] mx-auto z-10 overflow-hidden"
       >
-        {/* ======================================================== */}
-        {/* TOP: EYEBROW & PROGRESS TELEMETRY                        */}
-        {/* ======================================================== */}
-        <div className="shrink-0 w-full flex flex-col items-center text-center z-20 pt-16 sm:pt-14">
-          <div className="flex items-center gap-3 mb-2.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#008CFF] shadow-[0_0_12px_#008CFF]" />
-
-          </div>
-
-          <div className="w-36 sm:w-48 h-[2px] bg-white/10 rounded-full mt-2 overflow-hidden">
-            <div
-              ref={progressBarRef}
-              className="h-full bg-gradient-to-r from-[#008CFF] to-[#60B8FF] w-0 transition-all"
-            />
-          </div>
-        </div>
+        {/* TOP: CLEAN HEADER BUFFER FOR NAVBAR */}
+        <div className="shrink-0 w-full pt-16 sm:pt-14" />
 
         {/* Volumetric Radial Light Glow */}
         <div
@@ -367,10 +368,18 @@ export const ManifestoScrollSection: React.FC = () => {
           </div>
         </div>
 
-        {/* Bottom Status */}
-        <div className="shrink-0 w-full flex items-center justify-between text-white/35 font-mono text-[11px] tracking-[0.24em] uppercase pt-4 border-t border-white/[0.06]">
-          <span>BRANDSHOOTS</span>
-          <span>SCROLL TO PROGRESS</span>
+        {/* Bottom Status & Progress Telemetry */}
+        <div className="shrink-0 w-full flex items-end justify-between text-white/35 font-mono text-[11px] tracking-[0.24em] uppercase pt-4 border-t border-white/[0.06]">
+          <span className="pb-0.5">BRANDSHOOTS</span>
+          <div className="flex flex-col items-end gap-2.5">
+            <div className="w-32 sm:w-44 h-[2px] bg-white/10 rounded-full overflow-hidden">
+              <div
+                ref={progressBarRef}
+                className="h-full bg-gradient-to-r from-[#008CFF] to-[#60B8FF] w-0 transition-all shadow-[0_0_8px_rgba(0,140,255,0.7)]"
+              />
+            </div>
+            <span>SCROLL TO PROGRESS</span>
+          </div>
         </div>
       </div>
     </section>

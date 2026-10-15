@@ -132,51 +132,35 @@ export const FullScreenReelModal: React.FC<FullScreenReelModalProps> = ({
 
       {/* Main Reel Frame Chassis (Sculpted Titanium Cinema Viewfinder) */}
       <div
-        className="relative z-10 w-full max-w-[440px] max-h-[92vh] aspect-[9/16] p-2 sm:p-2.5 rounded-[2.5rem] bg-gradient-to-b from-[#242938] via-[#0f131c] to-[#181d28] border border-white/20 shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_60px_rgba(0,140,255,0.3)] ring-1 ring-[#008CFF]/50 flex flex-col justify-between overflow-hidden"
+        className="relative z-10 aspect-[9/16] h-[86vh] max-h-[820px] w-auto max-w-[92vw] rounded-3xl bg-black border border-white/20 shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_60px_rgba(0,140,255,0.3)] ring-1 ring-[#008CFF]/50 flex flex-col justify-between overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Dynamic Island Sensor Pill at Top Bezel */}
-        <div className="absolute top-2.5 left-1/2 -translate-x-1/2 z-30 w-24 h-3.5 rounded-full bg-black/95 border border-white/10 flex items-center justify-center gap-2 pointer-events-none shadow-sm">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_6px_#008CFF]" />
-          <span className="w-1 h-1 rounded-full bg-white/30" />
-        </div>
-
-        {/* Inner Curved Cinema Screen with OLED Bezel */}
-        <div className="relative w-full h-full rounded-[2rem] overflow-hidden bg-[#060a12] border border-white/10 flex flex-col justify-between">
-          {/* Cinema Viewfinder Corner Registration Brackets */}
-          <div className="absolute top-4 left-4 w-3.5 h-3.5 border-t border-l border-white/40 pointer-events-none z-20" />
-          <div className="absolute top-4 right-4 w-3.5 h-3.5 border-t border-r border-white/40 pointer-events-none z-20" />
-          <div className="absolute bottom-4 left-4 w-3.5 h-3.5 border-b border-l border-white/40 pointer-events-none z-20" />
-          <div className="absolute bottom-4 right-4 w-3.5 h-3.5 border-b border-r border-white/40 pointer-events-none z-20" />
-
-          {/* Top Header Information Overlay */}
-          <div className="absolute top-0 inset-x-0 z-20 p-5 pt-6 bg-gradient-to-b from-black/85 via-black/40 to-transparent flex items-center justify-between pointer-events-auto">
-            <div>
-              <span className="font-mono text-[10px] sm:text-[11px] tracking-[0.24em] text-[#008CFF] uppercase font-semibold block">
-                {project.category}
-              </span>
-              <h3 className="font-display font-black text-lg sm:text-xl uppercase tracking-tight text-white mt-0.5">
-                {project.name}
-              </h3>
-            </div>
-            <span className="font-mono text-[11px] tracking-widest text-white/50 uppercase border border-white/15 px-2.5 py-1 rounded-full bg-black/40">
-              9:16 REEL
+        {/* Top Header Floating Badge */}
+        <div className="absolute top-3.5 inset-x-3.5 z-20 flex items-center justify-between pointer-events-none">
+          <div className="px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/15 pointer-events-auto flex items-center gap-2 shadow-lg">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_6px_#008CFF]" />
+            <span className="font-mono text-[10px] sm:text-[11px] tracking-wider text-white uppercase font-bold">
+              {project.name}
             </span>
           </div>
+          <span className="font-mono text-[10px] sm:text-[11px] tracking-widest text-white/70 uppercase border border-white/15 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md pointer-events-auto">
+            9:16 REEL
+          </span>
+        </div>
 
-          {/* The Fullscreen Video Element */}
-          <video
-            ref={videoRef}
-            src={project.videoUrl}
-            poster={project.posterUrl}
-            playsInline
-            autoPlay
-            loop
-            muted={isMuted}
-            onTimeUpdate={handleTimeUpdate}
-            onClick={togglePlay}
-            className="w-full h-full object-cover cursor-pointer"
-          />
+        {/* The Fullscreen Video Element */}
+        <video
+          ref={videoRef}
+          src={project.videoUrl}
+          poster={project.posterUrl}
+          playsInline
+          autoPlay
+          loop
+          muted={isMuted}
+          onTimeUpdate={handleTimeUpdate}
+          onClick={togglePlay}
+          className="w-full h-full object-contain bg-black cursor-pointer"
+        />
 
         {/* Center Pause/Play Indicator when paused */}
         {!isPlaying && (
@@ -190,12 +174,12 @@ export const FullScreenReelModal: React.FC<FullScreenReelModalProps> = ({
           </div>
         )}
 
-        {/* Bottom Video Controls Overlay */}
-        <div className="absolute bottom-0 inset-x-0 z-20 p-4 sm:p-5 bg-gradient-to-t from-black/90 via-black/60 to-transparent flex flex-col gap-3 pointer-events-auto">
+        {/* Bottom Floating Video Controls */}
+        <div className="absolute bottom-3.5 inset-x-3.5 z-20 p-3 sm:p-3.5 rounded-2xl bg-black/70 backdrop-blur-md border border-white/15 shadow-xl flex flex-col gap-2.5 pointer-events-auto">
           {/* Scrubbable Progress Bar */}
           <div
             onClick={handleSeek}
-            className="relative w-full h-1.5 bg-white/20 hover:h-2 rounded-full cursor-pointer transition-all duration-150 overflow-hidden"
+            className="relative w-full h-1.5 hover:h-2 bg-white/20 rounded-full cursor-pointer transition-all duration-150 overflow-hidden"
           >
             <div
               className="absolute left-0 top-0 bottom-0 bg-[#008CFF] shadow-[0_0_10px_#008CFF] rounded-full transition-all duration-75"
@@ -210,7 +194,7 @@ export const FullScreenReelModal: React.FC<FullScreenReelModalProps> = ({
                 type="button"
                 onClick={togglePlay}
                 aria-label={isPlaying ? 'Pause' : 'Play'}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
               >
                 {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current translate-x-0.5" />}
               </button>
@@ -219,7 +203,7 @@ export const FullScreenReelModal: React.FC<FullScreenReelModalProps> = ({
                 type="button"
                 onClick={toggleMute}
                 aria-label={isMuted ? 'Unmute' : 'Mute'}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
               >
                 {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4 text-[#008CFF]" />}
               </button>
@@ -233,14 +217,13 @@ export const FullScreenReelModal: React.FC<FullScreenReelModalProps> = ({
               type="button"
               onClick={handleNativeFullscreen}
               aria-label="Native Fullscreen"
-              className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/80 hover:text-white transition-colors"
+              className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/80 hover:text-white transition-colors cursor-pointer"
             >
               <Maximize2 className="w-4 h-4" />
             </button>
           </div>
         </div>
       </div>
-    </div>
   </div>
 );
 };

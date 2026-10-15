@@ -181,7 +181,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
           <img
             src="/Logo Official.svg"
             alt="BrandShoots Official Logo"
-            className="h-11 sm:h-12 w-auto object-contain filter drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]"
+            className="h-12 sm:h-14 w-auto object-contain filter drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]"
           />
         </Link>
 
@@ -216,13 +216,13 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
         <motion.header
           initial={false}
           animate={{
-            maxWidth: isScrolled ? 580 : 1220,
-            y: isScrolled ? 10 : 20,
-            paddingTop: isScrolled ? 8 : 14,
-            paddingBottom: isScrolled ? 8 : 14,
-            paddingLeft: isScrolled ? 22 : 36,
-            paddingRight: isScrolled ? 22 : 36,
-            backgroundColor: isScrolled ? 'rgba(5, 7, 10, 0.82)' : 'rgba(5, 7, 10, 0)',
+            maxWidth: isScrolled ? 680 : 1320,
+            y: isScrolled ? 10 : 18,
+            paddingTop: isScrolled ? 10 : 16,
+            paddingBottom: isScrolled ? 10 : 16,
+            paddingLeft: isScrolled ? 26 : 40,
+            paddingRight: isScrolled ? 26 : 40,
+            backgroundColor: isScrolled ? 'rgba(5, 7, 10, 0.85)' : 'rgba(5, 7, 10, 0)',
             borderColor: isScrolled ? 'rgba(255, 255, 255, 0.22)' : 'rgba(255, 255, 255, 0)',
             boxShadow: isScrolled
               ? '0 16px 40px rgba(0, 0, 0, 0.85), inset 0 1px 1px 0 rgba(255, 255, 255, 0.2)'
@@ -246,7 +246,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
             className="absolute inset-x-8 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none rounded-full"
           />
 
-          {/* Left: BrandShoots Official Logo */}
+          {/* Left: BrandShoots Official Logo (Enlarged, commanding, bold) */}
           <div className="flex items-center flex-shrink-0">
             <Link
               to="/"
@@ -259,13 +259,13 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
                 alt="BrandShoots Official Logo"
                 initial={false}
                 animate={{
-                  height: isScrolled ? 26 : 38,
+                  height: isScrolled ? 36 : 56,
                 }}
                 transition={{
                   duration: 0.45,
                   ease: [0.16, 1, 0.3, 1],
                 }}
-                className="w-auto object-contain filter drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]"
+                className="w-auto object-contain filter drop-shadow-[0_2px_14px_rgba(0,0,0,0.9)]"
               />
             </Link>
           </div>

@@ -297,11 +297,11 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
             onClick={() => setMode('device')}
             className={`px-3 py-1 rounded-lg text-[10px] font-mono uppercase font-bold tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
               mode === 'device'
-                ? 'bg-[#008CFF] text-white shadow-[0_0_12px_rgba(0,140,255,0.4)]'
-                : 'text-white/50 hover:text-white hover:bg-white/[0.04]'
+                ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.25)]'
+                : 'text-white/60 hover:text-white hover:bg-white/[0.04]'
             }`}
           >
-            <HardDrive className="w-3 h-3" />
+            <HardDrive className={`w-3 h-3 ${mode === 'device' ? 'text-black' : 'text-white'}`} />
             <span>Upload from Device</span>
           </button>
 
@@ -310,11 +310,11 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
             onClick={() => setMode('url')}
             className={`px-3 py-1 rounded-lg text-[10px] font-mono uppercase font-bold tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
               mode === 'url'
-                ? 'bg-[#008CFF] text-white shadow-[0_0_12px_rgba(0,140,255,0.4)]'
-                : 'text-white/50 hover:text-white hover:bg-white/[0.04]'
+                ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.25)]'
+                : 'text-white/60 hover:text-white hover:bg-white/[0.04]'
             }`}
           >
-            <LinkIcon className="w-3 h-3" />
+            <LinkIcon className={`w-3 h-3 ${mode === 'url' ? 'text-black' : 'text-white'}`} />
             <span>Enter URL</span>
           </button>
         </div>
@@ -348,30 +348,30 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
             onClick={() => fileInputRef.current?.click()}
             className={`relative w-full border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all ${
               isDragging
-                ? 'border-[#008CFF] bg-[#008CFF]/15 scale-[1.01]'
+                ? 'border-white bg-white/15 scale-[1.01]'
                 : isUploading
-                ? 'border-[#008CFF]/80 bg-[#008CFF]/10'
-                : 'border-white/15 hover:border-[#008CFF] bg-black/40 hover:bg-[#008CFF]/5'
+                ? 'border-white/60 bg-white/10'
+                : 'border-white/15 hover:border-white/40 bg-black/40 hover:bg-white/[0.03]'
             }`}
           >
             {isUploading ? (
               <div className="flex flex-col items-center gap-3 w-full max-w-sm py-2">
-                <Loader2 className="w-6 h-6 text-[#008CFF] animate-spin" />
+                <Loader2 className="w-6 h-6 text-white animate-spin" />
                 <div className="text-center space-y-1">
                   <p className="text-xs font-mono font-bold text-white">{statusMessage}</p>
-                  <p className="text-[10px] font-mono text-[#008CFF]">{progress}% Completed</p>
+                  <p className="text-[10px] font-mono text-white/70">{progress}% Completed</p>
                 </div>
                 <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden border border-white/10">
                   <div
-                    className="bg-gradient-to-r from-[#008CFF] to-cyan-400 h-full transition-all duration-300"
+                    className="bg-white h-full transition-all duration-300"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
               </div>
             ) : (
               <>
-                <div className="w-12 h-12 rounded-2xl bg-[#008CFF]/10 border border-[#008CFF]/30 flex items-center justify-center text-[#008CFF] shadow-[0_0_20px_rgba(0,140,255,0.2)]">
-                  <Upload className="w-6 h-6" />
+                <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                  <Upload className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-center space-y-1">
                   <p className="text-xs font-mono font-bold text-white tracking-wide">
@@ -391,7 +391,7 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
                     e.stopPropagation();
                     fileInputRef.current?.click();
                   }}
-                  className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-[#008CFF] text-white font-mono text-[10px] uppercase font-bold tracking-wider transition-all"
+                  className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white text-white hover:text-black font-mono text-[10px] uppercase font-bold tracking-wider transition-all"
                 >
                   Browse Device Files
                 </button>

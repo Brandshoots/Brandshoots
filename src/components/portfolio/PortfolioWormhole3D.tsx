@@ -4,49 +4,46 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { CLIENT_PROJECTS, ClientProject } from '../../data/clientsData';
 import { useCMSContent } from '../../lib/cms/useCMSContent';
-import { ArrowUpRight, X, ChevronRight } from 'lucide-react';
 import { ProjectDetailModal } from './ProjectDetailModal';
+import { ArrowUpRight, X, ChevronRight, Volume2, Volume1, VolumeX, Play, Pause } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
 /**
- * BRANDSHOOTS PORTFOLIO — 3D TIME MACHINE CORRIDOR & EDITORIAL ARCHIVE
+ * BRANDSHOOTS PORTFOLIO — 3D LUXURY CINEMATIC SHOWCASE
  *
- * Art-direction & interaction inspired by Joseph Berry:
- * - Direct numbered progression (01-08) & dynamic project tracking
- * - Smooth scroll-driven directional text transitions with inertia drift
- * - Giant typographic watermark numbers behind editorial copy
- * - Interactive cursor-driven 3D parallax depth on cinema chassis
- * - "ALL PROJECTS [08]" Quick Index Drawer for immediate project jumping
- * - Consistent BrandShoots Homepage visual identity:
- *   Electric blue (#008CFF), deep obsidian (#020306), Figtree & Display typography,
- *   refined deliverable tags, metallic buttons, and buttery Lenis scroll sync.
+ * Art-directed for pure, neat, high-end aesthetics:
+ * - Simple, sleek 9:16 reel frames with rounded corners
+ * - Deep, immaculate obsidian studio atmosphere (no clutter, no radar grids)
+ * - Subtle, minimal floating cosmic dust motes
+ * - Real client reels with instant fluid playback
+ * - Monumental editorial typography & glowing BrandShoots electric blue accents
  */
 
-const PANEL_WIDTH = 1.76;
-const PANEL_HEIGHT = 3.12; // exact 9:16 vertical reel proportion
-const CORNER_RADIUS = 0.15; // smooth luxurious rounded corners
-const CAM_Z = 7.0; // camera distance from active plane at Z = 0
-const DUST_COUNT = 140;
+const PANEL_WIDTH = 1.92;
+const PANEL_HEIGHT = (1.92 * 16) / 9; // ~3.413 (exact 9:16 vertical ratio)
+const CORNER_RADIUS = 0.125; // smooth, minimal border radius
+const CHASSIS_PADDING = 0.024;
+const CHASSIS_DEPTH = 0.018;
+const CAM_Z = 6.8;
+const DUST_COUNT = 55; // minimal and unobtrusive
 
-// Helper: Create rounded rectangle shape in Three.js
-function createRoundedRectShape(width: number, height: number, radius: number): THREE.Shape {
+// Helper: Create rounded rectangle shape in Three.js with smooth circular arcs
+function createRoundedRectShape(w: number, h: number, r: number): THREE.Shape {
   const shape = new THREE.Shape();
-  const x = -width / 2;
-  const y = -height / 2;
-  const w = width;
-  const h = height;
-  const r = radius;
+  const x = -w / 2;
+  const y = -h / 2;
+  const radius = Math.min(r, w / 2, h / 2);
 
-  shape.moveTo(x + r, y);
-  shape.lineTo(x + w - r, y);
-  shape.quadraticCurveTo(x + w, y, x + w, y + r);
-  shape.lineTo(x + w, y + h - r);
-  shape.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  shape.lineTo(x + r, y + h);
-  shape.quadraticCurveTo(x, y + h, x, y + h - r);
-  shape.lineTo(x, y + r);
-  shape.quadraticCurveTo(x, y, x + r, y);
+  shape.moveTo(x + radius, y);
+  shape.lineTo(x + w - radius, y);
+  shape.absarc(x + w - radius, y + radius, radius, -Math.PI / 2, 0, false);
+  shape.lineTo(x + w, y + h - radius);
+  shape.absarc(x + w - radius, y + h - radius, radius, 0, Math.PI / 2, false);
+  shape.lineTo(x + radius, y + h);
+  shape.absarc(x + radius, y + h - radius, radius, Math.PI / 2, Math.PI, false);
+  shape.lineTo(x, y + radius);
+  shape.absarc(x + radius, y + radius, radius, Math.PI, (3 * Math.PI) / 2, false);
 
   return shape;
 }
@@ -54,7 +51,7 @@ function createRoundedRectShape(width: number, height: number, radius: number): 
 // Helper: Create rounded screen geometry with normalized UV coordinates
 function createRoundedScreenGeometry(w: number, h: number, r: number): THREE.BufferGeometry {
   const shape = createRoundedRectShape(w, h, r);
-  const geo = new THREE.ShapeGeometry(shape, 28);
+  const geo = new THREE.ShapeGeometry(shape, 20);
   const posAttr = geo.getAttribute('position');
   const uvs = new Float32Array(posAttr.count * 2);
   for (let i = 0; i < posAttr.count; i++) {
@@ -67,134 +64,46 @@ function createRoundedScreenGeometry(w: number, h: number, r: number): THREE.Buf
   return geo;
 }
 
-// Helper: Create continuous perimeter line for the electric blue rim contour
-function createRoundedRimLineGeometry(w: number, h: number, r: number, z: number = 0.028): THREE.BufferGeometry {
+// Helper: Create delicate perimeter line for the electric blue rim contour
+function createRoundedRimLineGeometry(w: number, h: number, r: number, z: number = 0.010): THREE.BufferGeometry {
   const shape = createRoundedRectShape(w, h, r);
-  const points = shape.getPoints(54);
+  const points = shape.getPoints(44);
   const pts3D = points.map((p) => new THREE.Vector3(p.x, p.y, z));
   pts3D.push(pts3D[0].clone()); // close loop
   return new THREE.BufferGeometry().setFromPoints(pts3D);
 }
 
-// Procedural dark cinematic backdrop texture with subtle light graphics
+// Procedural clean, deep studio backdrop texture (pure, neat, silky)
 function createDarkCinematicBackdropTexture(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
   canvas.height = 1024;
   const ctx = canvas.getContext('2d')!;
 
-  // 1. Rich near-black studio base
-  ctx.fillStyle = '#020306';
+  // 1. Pure obsidian base
+  ctx.fillStyle = '#030509';
   ctx.fillRect(0, 0, 1024, 1024);
 
-  // 2. Faint BrandShoots Electric Blue (#008CFF) volumetric ambient glow in deep center
-  const centerGlow = ctx.createRadialGradient(512, 512, 50, 512, 512, 520);
-  centerGlow.addColorStop(0, 'rgba(0, 140, 255, 0.09)');
-  centerGlow.addColorStop(0.35, 'rgba(0, 95, 210, 0.04)');
-  centerGlow.addColorStop(0.70, 'rgba(0, 40, 120, 0.01)');
+  // 2. Subtle central studio volumetric radial aura (soft luxury vignette)
+  const centerGlow = ctx.createRadialGradient(512, 512, 40, 512, 512, 520);
+  centerGlow.addColorStop(0, 'rgba(0, 140, 255, 0.08)');
+  centerGlow.addColorStop(0.35, 'rgba(8, 20, 50, 0.16)');
+  centerGlow.addColorStop(0.70, 'rgba(4, 8, 18, 0.06)');
   centerGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
   ctx.fillStyle = centerGlow;
   ctx.fillRect(0, 0, 1024, 1024);
 
-  // 3. Light Graphics: Minimal architectural coordinate grid lines
-  ctx.strokeStyle = 'rgba(0, 140, 255, 0.035)';
-  ctx.lineWidth = 1;
-  const gridSize = 72;
-  for (let x = 0; x <= 1024; x += gridSize) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, 1024);
-    ctx.stroke();
-  }
-  for (let y = 0; y <= 1024; y += gridSize) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(1024, y);
-    ctx.stroke();
-  }
-
-  // 4. Light Graphics: Subtle curved horizon arc
-  ctx.strokeStyle = 'rgba(0, 140, 255, 0.08)';
-  ctx.lineWidth = 1.2;
-  ctx.beginPath();
-  ctx.arc(512, 980, 680, Math.PI * 1.18, Math.PI * 1.82);
-  ctx.stroke();
-
-  // 5. Light Graphics: Delicate coordinate crosshairs
-  ctx.strokeStyle = 'rgba(0, 140, 255, 0.12)';
-  ctx.lineWidth = 1.5;
-  const crosshairPoints = [
-    { x: 216, y: 288 },
-    { x: 808, y: 288 },
-    { x: 512, y: 504 },
-    { x: 216, y: 720 },
-    { x: 808, y: 720 },
-  ];
-  crosshairPoints.forEach((pt) => {
-    ctx.beginPath();
-    ctx.moveTo(pt.x - 7, pt.y);
-    ctx.lineTo(pt.x + 7, pt.y);
-    ctx.moveTo(pt.x, pt.y - 7);
-    ctx.lineTo(pt.x, pt.y + 7);
-    ctx.stroke();
-  });
-
-  // 6. Subtle micro stardust motes in deep space
-  for (let i = 0; i < 90; i++) {
-    const x = Math.random() * 1024;
-    const y = Math.random() * 1024;
-    const radius = Math.random() * 0.9 + 0.3;
-    const alpha = Math.random() * 0.22 + 0.05;
-    ctx.fillStyle = `rgba(180, 220, 255, ${alpha})`;
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  // 3. Gentle bottom floor sheen
+  const floorGrad = ctx.createLinearGradient(0, 800, 0, 1024);
+  floorGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+  floorGrad.addColorStop(1, 'rgba(0, 140, 255, 0.04)');
+  ctx.fillStyle = floorGrad;
+  ctx.fillRect(0, 800, 1024, 224);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.wrapS = THREE.ClampToEdgeWrapping;
   texture.wrapT = THREE.ClampToEdgeWrapping;
   return texture;
-}
-
-// Procedural volumetric glow texture for the traveling light pocket
-function createLightPocketTexture(): THREE.CanvasTexture {
-  const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 512;
-  const ctx = canvas.getContext('2d')!;
-
-  const grad = ctx.createRadialGradient(256, 256, 10, 256, 256, 250);
-  grad.addColorStop(0, 'rgba(0, 140, 255, 0.40)');
-  grad.addColorStop(0.25, 'rgba(0, 120, 240, 0.22)');
-  grad.addColorStop(0.55, 'rgba(0, 70, 180, 0.08)');
-  grad.addColorStop(0.85, 'rgba(0, 30, 90, 0.02)');
-  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 512, 512);
-
-  const texture = new THREE.CanvasTexture(canvas);
-  return texture;
-}
-
-// Procedural soft stardust circle sprite
-function createDustParticleTexture(): THREE.CanvasTexture {
-  const canvas = document.createElement('canvas');
-  canvas.width = 64;
-  canvas.height = 64;
-  const ctx = canvas.getContext('2d')!;
-
-  const grad = ctx.createRadialGradient(32, 32, 2, 32, 32, 30);
-  grad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
-  grad.addColorStop(0.3, 'rgba(0, 140, 255, 0.6)');
-  grad.addColorStop(0.7, 'rgba(0, 100, 220, 0.2)');
-  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 64, 64);
-
-  return new THREE.CanvasTexture(canvas);
 }
 
 // Procedural soft volumetric contact drop-shadow texture
@@ -205,9 +114,9 @@ function createContactShadowTexture(): THREE.CanvasTexture {
   const ctx = canvas.getContext('2d')!;
 
   const grad = ctx.createRadialGradient(256, 256, 30, 256, 256, 245);
-  grad.addColorStop(0, 'rgba(0, 0, 0, 0.88)');
-  grad.addColorStop(0.35, 'rgba(0, 0, 0, 0.52)');
-  grad.addColorStop(0.70, 'rgba(0, 0, 0, 0.18)');
+  grad.addColorStop(0, 'rgba(0, 0, 0, 0.72)');
+  grad.addColorStop(0.35, 'rgba(0, 0, 0, 0.42)');
+  grad.addColorStop(0.70, 'rgba(0, 0, 0, 0.12)');
   grad.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
 
   ctx.fillStyle = grad;
@@ -217,53 +126,29 @@ function createContactShadowTexture(): THREE.CanvasTexture {
   return texture;
 }
 
-// Procedural cinema-grade diagonal optical reflection sheen
-function createGlassGlareTexture(): THREE.CanvasTexture {
+// Procedural soft stardust circle sprite (cosmic dust)
+function createDustParticleTexture(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 1024;
+  canvas.width = 32;
+  canvas.height = 32;
   const ctx = canvas.getContext('2d')!;
 
-  // Smooth cinematic dual-band diagonal glass glare
-  const grad = ctx.createLinearGradient(0, 0, 512, 1024);
-  grad.addColorStop(0, 'rgba(255, 255, 255, 0.0)');
-  grad.addColorStop(0.30, 'rgba(255, 255, 255, 0.025)');
-  grad.addColorStop(0.44, 'rgba(255, 255, 255, 0.07)');
-  grad.addColorStop(0.48, 'rgba(255, 255, 255, 0.18)');
-  grad.addColorStop(0.52, 'rgba(255, 255, 255, 0.13)');
-  grad.addColorStop(0.56, 'rgba(255, 255, 255, 0.04)');
-  grad.addColorStop(0.70, 'rgba(255, 255, 255, 0.015)');
-  grad.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+  const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+  grad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+  grad.addColorStop(0.25, 'rgba(147, 197, 253, 0.6)');
+  grad.addColorStop(0.65, 'rgba(0, 140, 255, 0.15)');
+  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
   ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 512, 1024);
-
-  // Soft secondary highlight sheen in top right corner
-  const cornerGlow = ctx.createRadialGradient(420, 140, 10, 420, 140, 300);
-  cornerGlow.addColorStop(0, 'rgba(255, 255, 255, 0.09)');
-  cornerGlow.addColorStop(0.5, 'rgba(0, 140, 255, 0.03)');
-  cornerGlow.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
-  ctx.fillStyle = cornerGlow;
-  ctx.fillRect(0, 0, 512, 1024);
+  ctx.fillRect(0, 0, 32, 32);
 
   return new THREE.CanvasTexture(canvas);
-}
-
-// Cinema viewfinder corner bracket L-line geometry
-function createCornerBracketGeo(length: number): THREE.BufferGeometry {
-  const pts = [
-    new THREE.Vector3(0, length, 0),
-    new THREE.Vector3(0, 0, 0),
-    new THREE.Vector3(length, 0, 0),
-  ];
-  return new THREE.BufferGeometry().setFromPoints(pts);
 }
 
 interface PanelData {
   group: THREE.Group;
   screenMesh: THREE.Mesh;
   chassisMesh: THREE.Mesh;
-  innerBezelMesh: THREE.Mesh;
   shadowMesh: THREE.Mesh;
   rimLine: THREE.LineLoop;
   baseX: number;
@@ -273,6 +158,8 @@ interface PanelData {
   videoTexture: THREE.VideoTexture | null;
   posterTexture: THREE.Texture;
   isPlaying: boolean;
+  targetVolume: number;
+  currentVolume: number;
 }
 
 export const PortfolioWormhole3D: React.FC = () => {
@@ -283,18 +170,48 @@ export const PortfolioWormhole3D: React.FC = () => {
 
   const [scrollUnit, setScrollUnit] = useState<number>(0);
   const [activeIndex, setActiveIndex] = useState<number>(0);
-  const [selectedProjectModal, setSelectedProjectModal] = useState<ClientProject | null>(null);
-  const [isHoveringReel, setIsHoveringReel] = useState<boolean>(false);
   const [isIndexDrawerOpen, setIsIndexDrawerOpen] = useState<boolean>(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState<boolean>(false);
+  const [isMuted, setIsMuted] = useState<boolean>(false); // Audio ON by default
+  const [volumeLevel, setVolumeLevel] = useState<number>(1.0); // User-adjustable volume (0.0 to 1.0)
+  const [isUserPaused, setIsUserPaused] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth < 1024);
+  const [isVolumeHovered, setIsVolumeHovered] = useState<boolean>(false);
+  const [isDraggingVolume, setIsDraggingVolume] = useState<boolean>(false);
 
   const activeIndexRef = useRef<number>(0);
   activeIndexRef.current = activeIndex;
 
+  const isMutedRef = useRef<boolean>(false);
+  isMutedRef.current = isMuted;
+
+  const volumeLevelRef = useRef<number>(1.0);
+  volumeLevelRef.current = volumeLevel;
+
+  const volumeTrackRef = useRef<HTMLDivElement>(null);
+
+  const isUserPausedRef = useRef<boolean>(false);
+  isUserPausedRef.current = isUserPaused;
+
+  const isDetailModalOpenRef = useRef<boolean>(false);
+  isDetailModalOpenRef.current = isDetailModalOpen;
+
+  const isIndexDrawerOpenRef = useRef<boolean>(false);
+  isIndexDrawerOpenRef.current = isIndexDrawerOpen;
+
+  const isTransitioningRef = useRef<boolean>(false);
+  const targetProjectIndexRef = useRef<number>(0);
+  const transitionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const stRef = useRef<ScrollTrigger | null>(null);
+  const debouncedSnapRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Source of truth from CMS with instant fallback to default CLIENT_PROJECTS
   const { projects: cmsProjects } = useCMSContent();
-  const activeProjects: ClientProject[] =
-    cmsProjects && cmsProjects.length > 0 ? (cmsProjects as unknown as ClientProject[]) : CLIENT_PROJECTS;
+  const activeProjects: ClientProject[] = (cmsProjects && cmsProjects.length > 0
+    ? (cmsProjects as unknown as ClientProject[])
+    : CLIENT_PROJECTS);
   const totalProjects = activeProjects.length;
+  const projects3DKey = activeProjects.map((p) => `${p.id}:${p.videoUrl}:${p.posterUrl}`).join('|');
 
   // Interactive Cursor Parallax Refs
   const targetMouseRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -306,8 +223,6 @@ export const PortfolioWormhole3D: React.FC = () => {
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const panelsRef = useRef<PanelData[]>([]);
   const backdropMeshRef = useRef<THREE.Mesh | null>(null);
-  const lightPocketMeshRef = useRef<THREE.Mesh | null>(null);
-  const lightPocketMatRef = useRef<THREE.MeshBasicMaterial | null>(null);
   const pocketPointLightRef = useRef<THREE.PointLight | null>(null);
   const dustGeoRef = useRef<THREE.BufferGeometry | null>(null);
   const dustBaseYRef = useRef<Float32Array | null>(null);
@@ -322,16 +237,183 @@ export const PortfolioWormhole3D: React.FC = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Keyboard navigation & ESC handler for drawer
+  // Play / Pause Toggle Handler
+  const togglePlayPause = useCallback(() => {
+    setIsUserPaused((prev) => {
+      const next = !prev;
+      isUserPausedRef.current = next;
+      const activePanel = panelsRef.current[activeIndexRef.current];
+      if (activePanel) {
+        if (next) {
+          activePanel.isPlaying = false;
+          activePanel.targetVolume = 0;
+          activePanel.video.pause();
+        } else {
+          activePanel.isPlaying = true;
+          activePanel.targetVolume = isMutedRef.current ? 0 : volumeLevelRef.current;
+          activePanel.video.play().catch(() => {});
+          if (activePanel.videoTexture) {
+            (activePanel.screenMesh.material as THREE.MeshBasicMaterial).map = activePanel.videoTexture;
+            (activePanel.screenMesh.material as THREE.MeshBasicMaterial).needsUpdate = true;
+          }
+        }
+      }
+      return next;
+    });
+  }, []);
+
+  const togglePlayPauseRef = useRef(togglePlayPause);
+  togglePlayPauseRef.current = togglePlayPause;
+
+  // Audio Mute / Unmute Toggle Handler with smooth volume transition
+  const toggleMute = useCallback(() => {
+    setIsMuted((prev) => {
+      const next = !prev;
+      isMutedRef.current = next;
+      panelsRef.current.forEach((p, idx) => {
+        if (next) {
+          p.targetVolume = 0;
+        } else {
+          if (idx === activeIndexRef.current) {
+            p.video.muted = false;
+            const restoreVol = volumeLevelRef.current > 0.05 ? volumeLevelRef.current : 1.0;
+            if (volumeLevelRef.current <= 0.05) {
+              setVolumeLevel(1.0);
+              volumeLevelRef.current = 1.0;
+            }
+            p.targetVolume = restoreVol;
+            if (!isUserPausedRef.current) {
+              p.isPlaying = true;
+              p.video.play().catch(() => {});
+            }
+          } else {
+            p.targetVolume = 0;
+          }
+        }
+      });
+      return next;
+    });
+  }, []);
+
+  // Direct volume adjustment handler (0.0 to 1.0)
+  const handleVolumeChange = useCallback((newVolume: number) => {
+    const clamped = Math.max(0, Math.min(1, Math.round(newVolume * 100) / 100));
+    setVolumeLevel(clamped);
+    volumeLevelRef.current = clamped;
+
+    if (clamped <= 0.01) {
+      setIsMuted(true);
+      isMutedRef.current = true;
+      panelsRef.current.forEach((p) => {
+        p.targetVolume = 0;
+      });
+    } else {
+      setIsMuted(false);
+      isMutedRef.current = false;
+      const activePanel = panelsRef.current[activeIndexRef.current];
+      if (activePanel) {
+        activePanel.video.muted = false;
+        activePanel.targetVolume = clamped;
+        activePanel.video.volume = clamped;
+        if (!isUserPausedRef.current && activePanel.video.paused) {
+          activePanel.video.play().catch(() => {});
+        }
+      }
+    }
+  }, []);
+
+  const calculateVolumeFromY = useCallback((clientY: number) => {
+    if (!volumeTrackRef.current) return;
+    const rect = volumeTrackRef.current.getBoundingClientRect();
+    const offsetY = rect.bottom - clientY;
+    const pct = offsetY / rect.height;
+    handleVolumeChange(pct);
+  }, [handleVolumeChange]);
+
+  const handleVolumeTrackPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingVolume(true);
+    calculateVolumeFromY(e.clientY);
+
+    const onPointerMove = (moveEvent: PointerEvent) => {
+      calculateVolumeFromY(moveEvent.clientY);
+    };
+
+    const onPointerUp = () => {
+      setIsDraggingVolume(false);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+    };
+
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+  }, [calculateVolumeFromY]);
+
+  // Browser Autoplay Policy: Unlock unmuted audio on first user gesture anywhere
+  useEffect(() => {
+    const unlockAudio = () => {
+      if (!isMutedRef.current) {
+        const activePanel = panelsRef.current[activeIndexRef.current];
+        if (activePanel && activePanel.video) {
+          activePanel.video.muted = false;
+          activePanel.targetVolume = volumeLevelRef.current;
+          activePanel.video.play().catch(() => {});
+        }
+      }
+      window.removeEventListener('click', unlockAudio);
+      window.removeEventListener('wheel', unlockAudio);
+      window.removeEventListener('keydown', unlockAudio);
+      window.removeEventListener('touchstart', unlockAudio);
+    };
+
+    window.addEventListener('click', unlockAudio, { passive: true });
+    window.addEventListener('wheel', unlockAudio, { passive: true });
+    window.addEventListener('keydown', unlockAudio, { passive: true });
+    window.addEventListener('touchstart', unlockAudio, { passive: true });
+
+    return () => {
+      window.removeEventListener('click', unlockAudio);
+      window.removeEventListener('wheel', unlockAudio);
+      window.removeEventListener('keydown', unlockAudio);
+      window.removeEventListener('touchstart', unlockAudio);
+    };
+  }, []);
+
+  // Pause 3D background reel when detail modal is active; resume on close
+  useEffect(() => {
+    isDetailModalOpenRef.current = isDetailModalOpen;
+    if (isDetailModalOpen) {
+      panelsRef.current.forEach((p) => {
+        p.isPlaying = false;
+        p.targetVolume = 0;
+        p.video.pause();
+        p.video.muted = true;
+      });
+    } else {
+      if (!isUserPausedRef.current) {
+        const activePanel = panelsRef.current[activeIndexRef.current];
+        if (activePanel) {
+          activePanel.video.muted = isMutedRef.current;
+          activePanel.targetVolume = isMutedRef.current ? 0 : volumeLevelRef.current;
+          activePanel.isPlaying = true;
+          activePanel.video.play().catch(() => {});
+        }
+      }
+    }
+  }, [isDetailModalOpen]);
+
+  // Keyboard navigation & ESC handler for drawer and modal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        if (isDetailModalOpen) setIsDetailModalOpen(false);
         if (isIndexDrawerOpen) setIsIndexDrawerOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isIndexDrawerOpen]);
+  }, [isIndexDrawerOpen, isDetailModalOpen]);
 
   // GSAP Editorial Stagger Reveal on Project Change
   useEffect(() => {
@@ -340,8 +422,8 @@ export const PortfolioWormhole3D: React.FC = () => {
       gsap.killTweensOf(el.children);
       gsap.fromTo(
         el.children,
-        { opacity: 0, y: 18 },
-        { opacity: 1, y: 0, duration: 0.42, stagger: 0.05, ease: 'power2.out' }
+        { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 0.38, stagger: 0.04, ease: 'power2.out' }
       );
     }
   }, [activeIndex]);
@@ -357,12 +439,12 @@ export const PortfolioWormhole3D: React.FC = () => {
 
     // 1. Scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#020306');
-    scene.fog = new THREE.FogExp2('#020306', 0.04);
+    scene.background = new THREE.Color('#030509');
+    scene.fog = new THREE.FogExp2('#030509', 0.035);
     sceneRef.current = scene;
 
     // 2. Camera
-    const camera = new THREE.PerspectiveCamera(mob ? 52 : 44, width / height, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(mob ? 50 : 42, width / height, 0.1, 100);
     camera.position.set(0, mob ? 0.35 : 0.0, CAM_Z);
     cameraRef.current = camera;
 
@@ -371,34 +453,34 @@ export const PortfolioWormhole3D: React.FC = () => {
       canvas,
       antialias: true,
       powerPreference: 'high-performance',
-      alpha: false,
+      alpha: true,
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, mob ? 1.25 : 1.5));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.15;
     rendererRef.current = renderer;
 
     // 4. Lighting System
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.55);
     scene.add(ambientLight);
 
-    const keyDirectionalLight = new THREE.DirectionalLight(0xffffff, 1.4);
+    const keyDirectionalLight = new THREE.DirectionalLight(0xffffff, 1.6);
     keyDirectionalLight.position.set(4, 6, 8);
     scene.add(keyDirectionalLight);
 
-    const studioFillLight = new THREE.DirectionalLight(0x008cff, 0.85);
+    const studioFillLight = new THREE.DirectionalLight(0x008cff, 0.9);
     studioFillLight.position.set(-6, -2, 4);
     scene.add(studioFillLight);
 
-    const pocketPointLight = new THREE.PointLight(0x008cff, 1.8, 14, 1.4);
-    pocketPointLight.position.set(mob ? 0 : -2.35, 0.2, -1.6);
+    const pocketPointLight = new THREE.PointLight(0x008cff, 1.6, 16, 1.4);
+    pocketPointLight.position.set(mob ? 0 : -2.42, 0.2, -1.6);
     scene.add(pocketPointLight);
     pocketPointLightRef.current = pocketPointLight;
 
-    // 5. Cinematic Backdrop with subtle Light Graphics
+    // 5. Clean Studio Backdrop (Smooth luxury vignette, NO grid lines)
     const backdropTexture = createDarkCinematicBackdropTexture();
-    const backdropGeo = new THREE.PlaneGeometry(38, 26);
+    const backdropGeo = new THREE.PlaneGeometry(36, 24);
     const backdropMat = new THREE.MeshBasicMaterial({
       map: backdropTexture,
       depthWrite: false,
@@ -408,44 +490,28 @@ export const PortfolioWormhole3D: React.FC = () => {
     scene.add(backdropMesh);
     backdropMeshRef.current = backdropMesh;
 
-    // 6. Traveling Volumetric Light Pocket Plane
-    const lightPocketTexture = createLightPocketTexture();
-    const lightPocketGeo = new THREE.PlaneGeometry(9.5, 9.5);
-    const lightPocketMat = new THREE.MeshBasicMaterial({
-      map: lightPocketTexture,
-      transparent: true,
-      opacity: 0.16,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    });
-    const lightPocketMesh = new THREE.Mesh(lightPocketGeo, lightPocketMat);
-    lightPocketMesh.position.set(mob ? 0 : -2.35, 0.0, -2.5);
-    scene.add(lightPocketMesh);
-    lightPocketMeshRef.current = lightPocketMesh;
-    lightPocketMatRef.current = lightPocketMat;
-
-    // 7. Ambient Stardust Motes
+    // 6. Ambient Minimal Cosmic Dust
     const dustGeo = new THREE.BufferGeometry();
     const dustPositions = new Float32Array(DUST_COUNT * 3);
     const dustBaseY = new Float32Array(DUST_COUNT);
     const dustSpeeds = new Float32Array(DUST_COUNT);
 
     for (let i = 0; i < DUST_COUNT; i++) {
-      dustPositions[i * 3 + 0] = (Math.random() - 0.5) * 16;
+      dustPositions[i * 3 + 0] = (Math.random() - 0.5) * 18;
       const y = (Math.random() - 0.5) * 12;
       dustPositions[i * 3 + 1] = y;
       dustBaseY[i] = y;
-      dustPositions[i * 3 + 2] = -Math.random() * 20;
-      dustSpeeds[i] = 0.5 + Math.random() * 0.9;
+      dustPositions[i * 3 + 2] = -1.8 - Math.random() * 8.0;
+      dustSpeeds[i] = 0.4 + Math.random() * 0.8;
     }
 
     dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
     const dustParticleTexture = createDustParticleTexture();
     const dustMat = new THREE.PointsMaterial({
-      size: 0.18,
+      size: 0.10,
       map: dustParticleTexture,
       transparent: true,
-      opacity: 0.45,
+      opacity: 0.28,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
@@ -455,59 +521,27 @@ export const PortfolioWormhole3D: React.FC = () => {
     dustBaseYRef.current = dustBaseY;
     dustSpeedsRef.current = dustSpeeds;
 
-    // 8. Construct Sculpted Titanium Chassis & Rounded Cinema Display
-    const CHASSIS_OUTER_W = PANEL_WIDTH + 0.10;
-    const CHASSIS_OUTER_H = PANEL_HEIGHT + 0.10;
-    const CHASSIS_RADIUS = CORNER_RADIUS + 0.04;
+    // 7. Geometries for Clean Rounded Reel Frames
+    const CHASSIS_OUTER_W = PANEL_WIDTH + CHASSIS_PADDING * 2;
+    const CHASSIS_OUTER_H = PANEL_HEIGHT + CHASSIS_PADDING * 2;
+    const CHASSIS_RADIUS = CORNER_RADIUS + CHASSIS_PADDING * 0.5;
     const chassisShape = createRoundedRectShape(CHASSIS_OUTER_W, CHASSIS_OUTER_H, CHASSIS_RADIUS);
     const chassisGeo = new THREE.ExtrudeGeometry(chassisShape, {
-      depth: 0.046,
-      bevelEnabled: true,
-      bevelSegments: 6,
+      depth: CHASSIS_DEPTH,
+      bevelEnabled: false,
       steps: 1,
-      bevelSize: 0.016,
-      bevelThickness: 0.016,
     });
     chassisGeo.center();
-
-    // Matte Inner OLED Display Bezel
-    const innerBezelGeo = createRoundedScreenGeometry(PANEL_WIDTH + 0.024, PANEL_HEIGHT + 0.024, CORNER_RADIUS + 0.008);
-    const innerBezelMat = new THREE.MeshBasicMaterial({
-      color: 0x050608,
-      transparent: true,
-      opacity: 1.0,
-    });
 
     // Active Screen Rounded Screen Geometry
     const screenGeo = createRoundedScreenGeometry(PANEL_WIDTH, PANEL_HEIGHT, CORNER_RADIUS);
 
-    // Continuous Chamfer Rim Line Loop (No dashed skips)
-    const rimLineGeo = createRoundedRimLineGeometry(PANEL_WIDTH + 0.008, PANEL_HEIGHT + 0.008, CORNER_RADIUS + 0.003, 0.030);
-
-    // Glare Texture (Curved to exact rounded screen geometry)
-    const glareTexture = createGlassGlareTexture();
+    // Continuous Chamfer Rim Line Loop
+    const rimLineGeo = createRoundedRimLineGeometry(PANEL_WIDTH, PANEL_HEIGHT, CORNER_RADIUS, CHASSIS_DEPTH / 2 + 0.002);
 
     // Volumetric Soft Floating Contact Drop-Shadow
     const shadowTexture = createContactShadowTexture();
-    const shadowGeo = new THREE.PlaneGeometry(PANEL_WIDTH * 1.48, PANEL_HEIGHT * 1.36);
-
-    // Top Dynamic Sensor Pill & Optic
-    const pillShape = createRoundedRectShape(0.24, 0.036, 0.018);
-    const pillGeo = new THREE.ShapeGeometry(pillShape, 16);
-    const pillMat = new THREE.MeshBasicMaterial({ color: 0x030406, transparent: true, opacity: 0.95 });
-    const opticGeo = new THREE.CircleGeometry(0.009, 16);
-    const opticMat = new THREE.MeshBasicMaterial({ color: 0x008cff, transparent: true, opacity: 0.85 });
-    const sensorGeo = new THREE.CircleGeometry(0.005, 12);
-    const sensorMat = new THREE.MeshBasicMaterial({ color: 0x141824, transparent: true, opacity: 0.9 });
-
-    // Cinema Viewfinder Corner Brackets
-    const bracketSize = 0.07;
-    const bracketGeo = createCornerBracketGeo(bracketSize);
-    const bracketMat = new THREE.LineBasicMaterial({
-      color: 0xffffff,
-      transparent: true,
-      opacity: 0.30,
-    });
+    const shadowGeo = new THREE.PlaneGeometry(PANEL_WIDTH * 1.35, PANEL_HEIGHT * 1.25);
 
     const textureLoader = new THREE.TextureLoader();
     const panels: PanelData[] = [];
@@ -516,9 +550,9 @@ export const PortfolioWormhole3D: React.FC = () => {
       const panelGroup = new THREE.Group();
 
       const isLeft = i % 2 === 0;
-      const baseX = mob ? 0 : (isLeft ? -2.35 : 2.35);
+      const baseX = mob ? 0 : (isLeft ? -2.42 : 2.42);
       const baseY = mob ? 0.65 : 0.0;
-      const baseRotY = mob ? (isLeft ? 0.14 : -0.14) : (isLeft ? 0.38 : -0.38);
+      const baseRotY = mob ? (isLeft ? 0.12 : -0.12) : (isLeft ? 0.35 : -0.35);
 
       panelGroup.position.set(baseX, baseY, 0);
       panelGroup.rotation.y = baseRotY;
@@ -527,64 +561,60 @@ export const PortfolioWormhole3D: React.FC = () => {
       const shadowMat = new THREE.MeshBasicMaterial({
         map: shadowTexture,
         transparent: true,
-        opacity: 0.58,
+        opacity: 0.55,
         depthWrite: false,
       });
       const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
-      shadowMesh.position.set(0, -0.05, -0.080);
+      shadowMesh.position.set(0, -0.04, -0.06);
       panelGroup.add(shadowMesh);
 
-      // 2. Chassis Body: Sculpted Gunmetal / Space Obsidian Titanium with Beveled Chamfers
-      // Positioned at z = -0.040 so its beveled front face sits cleanly at z = -0.001
+      // 2. Chassis Body: Minimal Obsidian Unibody matching rounded corner radius
       const chassisMat = new THREE.MeshStandardMaterial({
-        color: 0x12141a,
-        metalness: 0.95,
-        roughness: 0.22,
-        envMapIntensity: 1.4,
+        color: 0x070b14,
+        metalness: 0.65,
+        roughness: 0.35,
       });
       const chassisMesh = new THREE.Mesh(chassisGeo, chassisMat);
-      chassisMesh.position.set(0, 0, -0.040);
       panelGroup.add(chassisMesh);
 
-      // 3. Matte OLED Inner Bezel (sits cleanly at z = 0.002)
-      const innerBezelMesh = new THREE.Mesh(innerBezelGeo, innerBezelMat);
-      innerBezelMesh.position.set(0, 0, 0.002);
-      panelGroup.add(innerBezelMesh);
-
-      // 4. Poster Texture (Initial crisp display)
+      // 3. Poster Texture (Initial display)
       const posterTexture = textureLoader.load(project.posterUrl);
       posterTexture.colorSpace = THREE.SRGBColorSpace;
 
-      // 5. Video Element with reliable auto-playback configuration
+      // 4. Video Element for reel footage
       const video = document.createElement('video');
       video.src = project.videoUrl;
       video.crossOrigin = 'anonymous';
       video.loop = true;
-      video.muted = true;
-      video.defaultMuted = true;
       video.playsInline = true;
       video.autoplay = true;
       video.setAttribute('playsinline', '');
       video.setAttribute('webkit-playsinline', '');
-      video.setAttribute('muted', '');
-      video.setAttribute('autoplay', '');
       video.preload = 'auto';
 
-      // Pre-created VideoTexture for seamless fluid playback
+      // Active hero (index 0) audio is enabled by default; non-active panels are muted
+      if (i === 0 && !isMutedRef.current) {
+        video.muted = false;
+        video.volume = 0.0;
+      } else {
+        video.muted = true;
+        video.volume = 0.0;
+      }
+
       const videoTexture = new THREE.VideoTexture(video);
       videoTexture.colorSpace = THREE.SRGBColorSpace;
       videoTexture.minFilter = THREE.LinearFilter;
       videoTexture.magFilter = THREE.LinearFilter;
       videoTexture.generateMipmaps = false;
 
-      // 6. Active Screen Mesh with Rounded Corners (at z = 0.005, clearly in front of chassis)
+      // 5. Active Screen Mesh with Rounded Corners
       const screenMat = new THREE.MeshBasicMaterial({
         map: posterTexture,
         transparent: true,
         opacity: 1.0,
       });
       const screenMesh = new THREE.Mesh(screenGeo, screenMat);
-      screenMesh.position.set(0, 0, 0.005);
+      screenMesh.position.set(0, 0, CHASSIS_DEPTH / 2 + 0.001);
       panelGroup.add(screenMesh);
 
       // Auto-start playback on initial hero reel
@@ -595,72 +625,26 @@ export const PortfolioWormhole3D: React.FC = () => {
             screenMat.map = videoTexture;
             screenMat.needsUpdate = true;
           }).catch(() => {
-            // Poster remains visible; user gesture listener will resume playback
+            // If browser autoplay policy blocks unmuted audio before user interaction, fallback to muted
+            video.muted = true;
+            video.play().then(() => {
+              screenMat.map = videoTexture;
+              screenMat.needsUpdate = true;
+            }).catch(() => {});
           });
         }
       }
 
-      // 7. Continuous Electric Blue Chamfer Rim Line Loop (at z = 0.008)
+      // 6. Delicate Curved Rim Line Loop (Subtle electric blue glow)
       const rimMat = new THREE.LineBasicMaterial({
         color: 0x008cff,
         transparent: true,
-        opacity: 0.75,
-        linewidth: 1.5,
+        opacity: 0.45,
       });
       const rimLine = new THREE.LineLoop(rimLineGeo, rimMat);
-      rimLine.position.set(0, 0, 0.008);
       panelGroup.add(rimLine);
 
-      // 8. Gorilla Glass Specular Glare (curved to exact screen radius, at z = 0.009)
-      const glareMat = new THREE.MeshBasicMaterial({
-        map: glareTexture,
-        transparent: true,
-        opacity: 0.26,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      });
-      const glareMesh = new THREE.Mesh(screenGeo, glareMat);
-      glareMesh.position.set(0, 0, 0.009);
-      panelGroup.add(glareMesh);
-
-      // 9. Hardware Sensor Capsule & Optic at Top Bezel (at z = 0.011)
-      const pillMesh = new THREE.Mesh(pillGeo, pillMat);
-      pillMesh.position.set(0, PANEL_HEIGHT / 2 - 0.072, 0.011);
-      panelGroup.add(pillMesh);
-
-      const opticMesh = new THREE.Mesh(opticGeo, opticMat);
-      opticMesh.position.set(-0.06, PANEL_HEIGHT / 2 - 0.072, 0.012);
-      panelGroup.add(opticMesh);
-
-      const sensorMesh = new THREE.Mesh(sensorGeo, sensorMat);
-      sensorMesh.position.set(0.06, PANEL_HEIGHT / 2 - 0.072, 0.012);
-      panelGroup.add(sensorMesh);
-
-      // 10. Cinema Viewfinder Corner Brackets (at z = 0.011)
-      const bracketOffsetX = PANEL_WIDTH / 2 - 0.12;
-      const bracketOffsetY = PANEL_HEIGHT / 2 - 0.12;
-
-      const brTR = new THREE.Line(bracketGeo, bracketMat);
-      brTR.position.set(bracketOffsetX, bracketOffsetY, 0.011);
-      brTR.rotation.z = Math.PI;
-      panelGroup.add(brTR);
-
-      const brTL = new THREE.Line(bracketGeo, bracketMat);
-      brTL.position.set(-bracketOffsetX, bracketOffsetY, 0.011);
-      brTL.rotation.z = -Math.PI / 2;
-      panelGroup.add(brTL);
-
-      const brBL = new THREE.Line(bracketGeo, bracketMat);
-      brBL.position.set(-bracketOffsetX, -bracketOffsetY, 0.011);
-      brBL.rotation.z = 0;
-      panelGroup.add(brBL);
-
-      const brBR = new THREE.Line(bracketGeo, bracketMat);
-      brBR.position.set(bracketOffsetX, -bracketOffsetY, 0.011);
-      brBR.rotation.z = Math.PI / 2;
-      panelGroup.add(brBR);
-
-      // Initially show only Chapter 0
+      // Initially show ONLY Project 0 (Active hero)
       panelGroup.visible = i === 0;
 
       scene.add(panelGroup);
@@ -669,7 +653,6 @@ export const PortfolioWormhole3D: React.FC = () => {
         group: panelGroup,
         screenMesh,
         chassisMesh,
-        innerBezelMesh,
         shadowMesh,
         rimLine,
         baseX,
@@ -679,64 +662,118 @@ export const PortfolioWormhole3D: React.FC = () => {
         videoTexture,
         posterTexture,
         isPlaying: i === 0,
+        targetVolume: i === 0 && !isMutedRef.current ? volumeLevelRef.current : 0.0,
+        currentVolume: 0.0,
       });
     });
 
     panelsRef.current = panels;
 
-    // Raycaster Pointer Interaction
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-
     const handlePointerMove = (e: MouseEvent) => {
-      // Track normalized mouse for 3D cursor parallax
       targetMouseRef.current.x = (e.clientX / window.innerWidth) * 2 - 1;
       targetMouseRef.current.y = -(e.clientY / window.innerHeight) * 2 + 1;
 
-      const rect = canvas.getBoundingClientRect();
-      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      // Update cursor when hovering over the active 3D reel
+      const camera = cameraRef.current;
+      const canvas = canvasRef.current;
+      if (camera && canvas && !isDetailModalOpenRef.current && !isIndexDrawerOpenRef.current) {
+        const rect = canvas.getBoundingClientRect();
+        if (
+          e.clientX >= rect.left &&
+          e.clientX <= rect.right &&
+          e.clientY >= rect.top &&
+          e.clientY <= rect.bottom
+        ) {
+          const mouse = new THREE.Vector2(
+            ((e.clientX - rect.left) / rect.width) * 2 - 1,
+            -((e.clientY - rect.top) / rect.height) * 2 + 1
+          );
+          const raycaster = new THREE.Raycaster();
+          raycaster.setFromCamera(mouse, camera);
 
-      if (!cameraRef.current) return;
-      raycaster.setFromCamera(mouse, cameraRef.current);
-
-      const activePanel = panelsRef.current[activeIndexRef.current];
-      if (activePanel && activePanel.group.visible) {
-        const intersects = raycaster.intersectObjects([activePanel.screenMesh, activePanel.chassisMesh], true);
-        if (intersects.length > 0) {
-          canvas.style.cursor = 'pointer';
-          setIsHoveringReel(true);
-          return;
+          const activePanel = panelsRef.current[activeIndexRef.current];
+          if (activePanel && activePanel.group && activePanel.group.visible) {
+            const targets = [
+              activePanel.screenMesh,
+              activePanel.chassisMesh,
+              ...activePanel.group.children,
+            ];
+            const hits = raycaster.intersectObjects(targets, true);
+            canvas.style.cursor = hits.length > 0 ? 'pointer' : 'default';
+          } else {
+            canvas.style.cursor = 'default';
+          }
+        } else {
+          canvas.style.cursor = 'default';
         }
       }
-      canvas.style.cursor = 'default';
-      setIsHoveringReel(false);
     };
 
-    const handlePointerDown = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'BUTTON' || target.tagName === 'A' || target.closest('button') || target.closest('a')) {
+    // Track click vs drag on the 3D reel to toggle play/pause
+    let pointerDownPos = { x: 0, y: 0, time: 0 };
+
+    const handlePointerDown = (e: PointerEvent) => {
+      pointerDownPos = { x: e.clientX, y: e.clientY, time: Date.now() };
+    };
+
+    const handlePointerUp = (e: PointerEvent) => {
+      // Don't toggle if client detail modal or index drawer is open
+      if (isDetailModalOpenRef.current || isIndexDrawerOpenRef.current) return;
+
+      const dx = e.clientX - pointerDownPos.x;
+      const dy = e.clientY - pointerDownPos.y;
+      const dt = Date.now() - pointerDownPos.time;
+
+      // Must be a clean tap/click (less than 12px drag and under 500ms)
+      if (Math.hypot(dx, dy) > 12 || dt > 500) return;
+
+      // Ignore if user tapped directly on an interactive HTML element (button, link, drawer toggle, etc.)
+      const target = e.target as HTMLElement | null;
+      if (target && target.closest('button, a, input, select, textarea, [role="button"]')) {
         return;
       }
 
-      const rect = canvas.getBoundingClientRect();
-      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      const camera = cameraRef.current;
+      const canvas = canvasRef.current;
+      if (!camera || !canvas) return;
 
-      if (!cameraRef.current) return;
-      raycaster.setFromCamera(mouse, cameraRef.current);
+      const rect = canvas.getBoundingClientRect();
+      if (
+        e.clientX < rect.left ||
+        e.clientX > rect.right ||
+        e.clientY < rect.top ||
+        e.clientY > rect.bottom
+      ) {
+        return;
+      }
+
+      const mouse = new THREE.Vector2(
+        ((e.clientX - rect.left) / rect.width) * 2 - 1,
+        -((e.clientY - rect.top) / rect.height) * 2 + 1
+      );
+
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(mouse, camera);
 
       const activePanel = panelsRef.current[activeIndexRef.current];
-      if (activePanel && activePanel.group.visible) {
-        const intersects = raycaster.intersectObjects([activePanel.screenMesh, activePanel.chassisMesh], true);
-        if (intersects.length > 0) {
-          setSelectedProjectModal(activeProjects[activeIndexRef.current]);
-        }
+      if (!activePanel || !activePanel.group || !activePanel.group.visible) return;
+
+      const targets = [
+        activePanel.screenMesh,
+        activePanel.chassisMesh,
+        ...activePanel.group.children,
+      ];
+
+      const hits = raycaster.intersectObjects(targets, true);
+      if (hits.length > 0) {
+        // Toggle play/pause - fully synchronized with bottom controls button
+        togglePlayPauseRef.current();
       }
     };
 
-    // Auto-resume video playback on first user touch/click/scroll gesture
+    // Auto-resume video playback on initial user gesture (unless user paused)
     const handleUserInteraction = () => {
+      if (isUserPausedRef.current) return;
       const active = panelsRef.current[activeIndexRef.current];
       if (active && active.video.paused) {
         active.video.play().then(() => {
@@ -750,9 +787,9 @@ export const PortfolioWormhole3D: React.FC = () => {
     };
 
     window.addEventListener('mousemove', handlePointerMove, { passive: true });
-    window.addEventListener('click', handlePointerDown);
+    window.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('pointerup', handlePointerUp);
     window.addEventListener('touchstart', handleUserInteraction, { passive: true });
-    window.addEventListener('mousedown', handleUserInteraction, { passive: true });
     window.addEventListener('wheel', handleUserInteraction, { passive: true });
 
     // Handle Window Resize
@@ -761,7 +798,7 @@ export const PortfolioWormhole3D: React.FC = () => {
       const h = window.innerHeight;
       const isMob = w < 1024;
       if (cameraRef.current) {
-        cameraRef.current.fov = isMob ? 52 : 44;
+        cameraRef.current.fov = isMob ? 50 : 42;
         cameraRef.current.aspect = w / h;
         cameraRef.current.position.y = isMob ? 0.35 : 0.0;
         cameraRef.current.updateProjectionMatrix();
@@ -769,45 +806,78 @@ export const PortfolioWormhole3D: React.FC = () => {
       if (rendererRef.current) {
         rendererRef.current.setSize(w, h);
       }
-      // Update responsive coordinates
       panels.forEach((p, idx) => {
         const isLeft = idx % 2 === 0;
-        p.baseX = isMob ? 0 : (isLeft ? -2.35 : 2.35);
+        p.baseX = isMob ? 0 : (isLeft ? -2.42 : 2.42);
         p.baseY = isMob ? 0.65 : 0.0;
-        p.baseRotY = isMob ? (isLeft ? 0.14 : -0.14) : (isLeft ? 0.38 : -0.38);
+        p.baseRotY = isMob ? (isLeft ? 0.12 : -0.12) : (isLeft ? 0.35 : -0.35);
       });
     };
     window.addEventListener('resize', handleResize);
 
-    // Animation Loop with Organic Dust Drift and Interactive Cursor Parallax
+    // Animation Loop with Organic Dust Drift, Interactive Cursor Parallax, and Audio Fade Engine
     let animId: number;
+    let lastTime = performance.now();
+
     const animate = () => {
       animId = requestAnimationFrame(animate);
+
+      const now = performance.now();
+      const dt = Math.min(0.1, (now - lastTime) / 1000);
+      lastTime = now;
+
+      // Audio Fade Engine: Exponential volume lerping (0.5s - 1.0s smooth fade)
+      // Exponential rate 3.6 gives 95% completion at ~0.8s
+      const volumeStep = 1.0 - Math.exp(-3.6 * dt);
+
+      panelsRef.current.forEach((p) => {
+        // Smoothly lerp current volume towards target volume
+        if (Math.abs(p.currentVolume - p.targetVolume) > 0.001) {
+          p.currentVolume += (p.targetVolume - p.currentVolume) * volumeStep;
+          if (p.currentVolume < 0.001) p.currentVolume = 0;
+          if (p.currentVolume > 0.999) p.currentVolume = 1;
+        } else {
+          p.currentVolume = p.targetVolume;
+        }
+
+        // Apply volume safely to video element
+        if (p.video) {
+          p.video.volume = Math.max(0, Math.min(1, p.currentVolume));
+
+          // Mute when volume is zero; unmute when volume rises above zero if user hasn't muted
+          if (p.currentVolume <= 0.002 && p.targetVolume === 0) {
+            p.video.muted = true;
+          } else if (p.currentVolume > 0.005 && !isMutedRef.current) {
+            p.video.muted = false;
+          }
+        }
+
+        // Update video textures for all active playing videos during transitions
+        if (p.videoTexture && p.isPlaying && !p.video.paused) {
+          p.videoTexture.needsUpdate = true;
+        }
+      });
 
       // Smooth cursor parallax lerp
       currentMouseRef.current.x += (targetMouseRef.current.x - currentMouseRef.current.x) * 0.04;
       currentMouseRef.current.y += (targetMouseRef.current.y - currentMouseRef.current.y) * 0.04;
 
-      // Gentle interactive tilt on camera & active panel
       if (cameraRef.current) {
-        cameraRef.current.rotation.y = -currentMouseRef.current.x * 0.022;
-        cameraRef.current.rotation.x = currentMouseRef.current.y * 0.018;
+        cameraRef.current.rotation.y = -currentMouseRef.current.x * 0.02;
+        cameraRef.current.rotation.x = currentMouseRef.current.y * 0.015;
       }
 
       const activePanel = panelsRef.current[activeIndexRef.current];
       if (activePanel && activePanel.group.visible) {
-        activePanel.group.rotation.x = currentMouseRef.current.y * 0.04;
-        if (activePanel.videoTexture && !activePanel.video.paused) {
-          activePanel.videoTexture.needsUpdate = true;
-        }
+        activePanel.group.rotation.x = currentMouseRef.current.y * 0.035;
       }
 
-      // Organic floating motion for dust motes
+      // Organic slow floating motion for cosmic dust motes
       if (dustGeoRef.current && dustBaseYRef.current && dustSpeedsRef.current) {
         const posAttr = dustGeoRef.current.getAttribute('position') as THREE.BufferAttribute;
-        const time = Date.now() * 0.0006;
+        const time = Date.now() * 0.0005;
         for (let i = 0; i < DUST_COUNT; i++) {
-          const y = dustBaseYRef.current[i] + Math.sin(time * dustSpeedsRef.current[i] + i) * 0.22;
+          const y = dustBaseYRef.current[i] + Math.sin(time * dustSpeedsRef.current[i] + i) * 0.18;
           posAttr.setY(i, y);
         }
         posAttr.needsUpdate = true;
@@ -822,9 +892,9 @@ export const PortfolioWormhole3D: React.FC = () => {
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener('mousemove', handlePointerMove);
-      window.removeEventListener('click', handlePointerDown);
+      window.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('pointerup', handlePointerUp);
       window.removeEventListener('touchstart', handleUserInteraction);
-      window.removeEventListener('mousedown', handleUserInteraction);
       window.removeEventListener('wheel', handleUserInteraction);
       window.removeEventListener('resize', handleResize);
       panels.forEach((p) => {
@@ -835,23 +905,14 @@ export const PortfolioWormhole3D: React.FC = () => {
       });
       chassisGeo.dispose();
       screenGeo.dispose();
-      innerBezelGeo.dispose();
-      innerBezelMat.dispose();
       rimLineGeo.dispose();
       shadowGeo.dispose();
       shadowTexture.dispose();
-      pillGeo.dispose();
-      opticGeo.dispose();
-      sensorGeo.dispose();
-      bracketGeo.dispose();
-      bracketMat.dispose();
       backdropTexture.dispose();
       dustParticleTexture.dispose();
-      lightPocketTexture.dispose();
-      glareTexture.dispose();
       renderer.dispose();
     };
-  }, []);
+  }, [projects3DKey]);
 
   // Update Three.js Wormhole Motion & Dark Space based on Scroll Unit
   const updateThreeScene = useCallback((u: number) => {
@@ -860,9 +921,8 @@ export const PortfolioWormhole3D: React.FC = () => {
     if (panels.length === 0 || !camera) return;
 
     const mobile = window.innerWidth < 1024;
-    const baseScale = mobile ? 0.78 : 1.0;
+    const baseScale = mobile ? 0.82 : 1.0;
 
-    // 1. Calculate Active Chapters & Transition Interpolation
     const currentChapter = Math.min(panels.length - 1, Math.max(0, Math.floor(u)));
     const nextChapter = Math.min(panels.length - 1, currentChapter + 1);
     const frac = u - currentChapter; // 0.0 to 1.0
@@ -871,22 +931,14 @@ export const PortfolioWormhole3D: React.FC = () => {
     const isCurrentLeft = currentChapter % 2 === 0;
     const isNextLeft = nextChapter % 2 === 0;
 
-    const curLightX = mobile ? 0 : (isCurrentLeft ? -2.35 : 2.35);
-    const nextLightX = mobile ? 0 : (isNextLeft ? -2.35 : 2.35);
+    const curLightX = mobile ? 0 : (isCurrentLeft ? -2.42 : 2.42);
+    const nextLightX = mobile ? 0 : (isNextLeft ? -2.42 : 2.42);
     const targetLightX = curLightX + (nextLightX - curLightX) * smoothFrac;
 
-    // Snap focus emphasis factor: 1.0 at rest, dims down during travel
     const snapDist = Math.abs(u - Math.round(u));
     const snapFocus = Math.max(0, 1.0 - snapDist * 2.8);
 
-    // 2. Cinematic Traveling Light Pocket in Dark Space
-    const midTravelDip = Math.sin(Math.PI * frac); // 0 at settle, 1 at mid-scroll
-    if (lightPocketMeshRef.current && lightPocketMatRef.current) {
-      lightPocketMeshRef.current.position.x = targetLightX;
-      lightPocketMeshRef.current.position.y = mobile ? 0.65 : 0.0;
-      lightPocketMeshRef.current.position.z = -2.4 - 1.8 * midTravelDip;
-      lightPocketMatRef.current.opacity = 0.12 + snapFocus * 0.06;
-    }
+    const midTravelDip = Math.sin(Math.PI * frac);
 
     if (pocketPointLightRef.current) {
       pocketPointLightRef.current.position.x = targetLightX;
@@ -895,52 +947,53 @@ export const PortfolioWormhole3D: React.FC = () => {
       pocketPointLightRef.current.intensity = 1.2 + snapFocus * 0.6;
     }
 
-    // 3. Subtle Parallax for Backdrop
     if (backdropMeshRef.current) {
-      backdropMeshRef.current.position.x = targetLightX * 0.08;
+      backdropMeshRef.current.position.x = targetLightX * 0.06;
     }
 
-    // 4. Subtle Restrained Cinematic Camera Motion
-    const camPushZ = midTravelDip * 0.28;
-    const camDriftY = Math.sin(u * Math.PI) * 0.035;
-    const activeIsLeft = Math.round(u) % 2 === 0;
-    const activeTargetX = mobile ? 0 : (activeIsLeft ? -2.35 : 2.35);
-    const camLeanX = activeTargetX * 0.05 * (1.0 - midTravelDip * 0.5);
+    // Camera Motion: continuous, fluid tracking without axis discontinuity
+    const camPushZ = midTravelDip * 0.25;
+    const camDriftY = Math.sin(u * Math.PI) * 0.03;
+    const camLeanX = targetLightX * 0.045 * (1.0 - midTravelDip * 0.5);
 
     camera.position.z = CAM_Z - camPushZ;
     camera.position.y = (mobile ? 0.35 : 0.0) + camDriftY;
     camera.position.x = camLeanX;
     camera.lookAt(camLeanX * 0.3, camera.position.y, 0);
 
-    // 5. Panel Transitions Dynamics
+    // Panel Transitions Dynamics:
+    // Strictly isolate visibility to within transition bounds!
     panels.forEach((p, idx) => {
       const delta = u - idx; // 0 = active hero, < 0 = upcoming (entering), > 0 = exiting
 
-      // Far upcoming panels: hidden
-      if (delta <= -1.0) {
+      // Outside immediate active range: Completely hide, mute, and pause video!
+      if (delta <= -0.90 || delta >= 0.90) {
         p.group.visible = false;
+        p.targetVolume = 0;
+        p.currentVolume = 0;
+        if (p.video) {
+          p.video.volume = 0;
+          p.video.muted = true;
+        }
         if (p.isPlaying) {
           p.isPlaying = false;
           p.video.pause();
-          (p.screenMesh.material as THREE.MeshBasicMaterial).map = p.posterTexture;
-          (p.screenMesh.material as THREE.MeshBasicMaterial).needsUpdate = true;
         }
         return;
       }
 
-      // Far exited panels: hidden
-      if (delta >= 1.0) {
-        p.group.visible = false;
-        if (p.isPlaying) {
-          p.isPlaying = false;
-          p.video.pause();
-          (p.screenMesh.material as THREE.MeshBasicMaterial).map = p.posterTexture;
-          (p.screenMesh.material as THREE.MeshBasicMaterial).needsUpdate = true;
-        }
+      // If jumping across multiple projects via drawer: keep intermediate reels quiet
+      if (
+        isTransitioningRef.current &&
+        Math.abs(u - targetProjectIndexRef.current) > 0.85 &&
+        idx !== targetProjectIndexRef.current &&
+        idx !== activeIndexRef.current
+      ) {
+        p.targetVolume = 0;
         return;
       }
 
-      // Actively transitioning or hero: visible
+      // Actively transitioning or active hero: visible
       p.group.visible = true;
 
       let posX = p.baseX;
@@ -951,48 +1004,61 @@ export const PortfolioWormhole3D: React.FC = () => {
       let opacity = 1.0;
 
       if (delta < 0) {
-        // Entering from 3D wormhole depth (delta: -1.0 -> 0.0)
-        const t = 1.0 + delta;
+        // Entering smoothly from 3D space depth (delta: -0.90 -> 0.0)
+        const t = (0.90 + delta) / 0.90; // 0.0 to 1.0
         const ease = t * t * (3 - 2 * t);
 
-        posZ = -14.0 * (1.0 - ease);
+        posZ = -8.5 * (1.0 - ease);
         posX = mobile ? 0 : p.baseX * (0.35 + 0.65 * ease);
         rotY = p.baseRotY * (0.6 + 0.4 * ease);
-        scale = baseScale * (0.45 + 0.55 * ease);
-        opacity = Math.min(1.0, ease * 1.5);
+        scale = baseScale * (0.65 + 0.35 * ease);
+        opacity = ease;
       } else if (delta > 0) {
-        // Exiting off to the side past camera (delta: 0.0 -> 1.0)
-        const t = delta;
-        const ease = t * t;
+        // Exiting smoothly past camera (delta: 0.0 -> 0.90)
+        const t = delta / 0.90; // 0.0 to 1.0
+        const ease = t * t * (3 - 2 * t);
 
-        posZ = 5.5 * ease;
+        posZ = 4.8 * (t * t);
         posX = mobile
-          ? p.baseX + (idx % 2 === 0 ? -1.8 : 1.8) * ease
-          : p.baseX * (1.0 + 1.25 * ease);
-        rotY = p.baseRotY * (1.0 + 0.85 * ease);
-        scale = baseScale * (1.0 + 0.3 * ease);
-        opacity = Math.max(0.0, 1.0 - ease * 1.2);
+          ? p.baseX + (idx % 2 === 0 ? -1.5 : 1.5) * ease
+          : p.baseX * (1.0 + 1.15 * ease);
+        rotY = p.baseRotY * (1.0 + 0.6 * ease);
+        scale = baseScale * (1.0 + 0.22 * ease);
+        opacity = Math.max(0.0, 1.0 - ease);
       }
 
       p.group.position.set(posX, posY, posZ);
       p.group.rotation.y = rotY;
       p.group.scale.setScalar(scale);
 
-      // Material opacities & subtle rim-light emphasis
+      // Apply smooth opacity
       (p.screenMesh.material as THREE.MeshBasicMaterial).opacity = opacity;
       (p.chassisMesh.material as THREE.MeshStandardMaterial).opacity = opacity;
-      (p.innerBezelMesh.material as THREE.MeshBasicMaterial).opacity = opacity;
-      (p.shadowMesh.material as THREE.MeshBasicMaterial).opacity = opacity * 0.58;
+      (p.shadowMesh.material as THREE.MeshBasicMaterial).opacity = opacity * 0.55;
 
-      // Rim light glint peaks slightly when snapped in focus
       const dist = Math.abs(delta);
-      const activeEmphasis = dist < 0.35 ? (1.0 - dist * 2.8) : 0;
-      (p.rimLine.material as THREE.LineBasicMaterial).opacity = (0.50 + activeEmphasis * 0.40) * opacity;
+      const activeEmphasis = dist < 0.3 ? (1.0 - dist * 3.3) : 0;
+      (p.rimLine.material as THREE.LineBasicMaterial).opacity = (0.35 + activeEmphasis * 0.35) * opacity;
 
-      // Video playback: play only when in close hero focus
-      if (dist < 0.65 && opacity > 0.6) {
+      // =======================================================================
+      // AUDIO FADE & VIDEO PLAYBACK ORCHESTRATION (0.5s - 1.0s Smooth Crossfade)
+      // =======================================================================
+      // If client detail modal is open or user explicitly paused:
+      if (isDetailModalOpenRef.current || isUserPausedRef.current) {
+        p.targetVolume = 0;
+        if (p.isPlaying) {
+          p.isPlaying = false;
+          p.video.pause();
+        }
+        return;
+      }
+
+      // Video playback: keep playing while in visibility corridor (dist < 0.70)
+      if (dist < 0.70) {
         if (!p.isPlaying) {
           p.isPlaying = true;
+          p.video.muted = isMutedRef.current;
+          p.video.volume = Math.max(0, Math.min(1, p.currentVolume));
           const playPromise = p.video.play();
           if (playPromise !== undefined) {
             playPromise.then(() => {
@@ -1000,95 +1066,292 @@ export const PortfolioWormhole3D: React.FC = () => {
                 (p.screenMesh.material as THREE.MeshBasicMaterial).map = p.videoTexture;
                 (p.screenMesh.material as THREE.MeshBasicMaterial).needsUpdate = true;
               }
-            }).catch(() => {});
+            }).catch(() => {
+              // Gracefully fall back to muted if unmuted autoplay is rejected by browser
+              p.video.muted = true;
+              p.video.play().catch(() => {});
+            });
+          }
+        }
+
+        // Acoustic target volume:
+        // When unmuted:
+        // - dist <= 0.15: 1.0 full volume
+        // - 0.15 < dist < 0.45: smooth Hermite fade curve down to 0
+        // - dist >= 0.45: 0.0 (silent at midpoint u=0.50 to avoid clash)
+        if (isMutedRef.current) {
+          p.targetVolume = 0;
+        } else {
+          if (dist <= 0.15) {
+            p.targetVolume = volumeLevelRef.current;
+          } else if (dist < 0.45) {
+            const vT = (0.45 - dist) / (0.45 - 0.15); // 1.0 at 0.15 -> 0.0 at 0.45
+            p.targetVolume = vT * vT * (3 - 2 * vT) * volumeLevelRef.current;
+          } else {
+            p.targetVolume = 0.0;
           }
         }
       } else {
-        if (p.isPlaying) {
+        // Outside playback focus: target volume 0
+        p.targetVolume = 0;
+        if (dist >= 0.85 && p.isPlaying) {
           p.isPlaying = false;
           p.video.pause();
-          (p.screenMesh.material as THREE.MeshBasicMaterial).map = p.posterTexture;
-          (p.screenMesh.material as THREE.MeshBasicMaterial).needsUpdate = true;
         }
       }
     });
   }, []);
 
-  // GSAP ScrollTrigger with Precision Snap
+  // Jump smoothly to project chapter with exact sub-pixel positioning
+  const scrollToProject = useCallback(
+    (index: number, customDuration: number = 0.72) => {
+      const clamped = Math.min(totalProjects - 1, Math.max(0, index));
+      let targetTop = 0;
+
+      const st = stRef.current;
+      if (st && st.end > st.start) {
+        targetTop = st.start + (clamped / (totalProjects - 1)) * (st.end - st.start);
+      } else if (containerRef.current) {
+        const container = containerRef.current;
+        const totalScrollable = container.offsetHeight - window.innerHeight;
+        targetTop = container.offsetTop + (clamped / (totalProjects - 1)) * totalScrollable;
+      } else {
+        return;
+      }
+
+      targetProjectIndexRef.current = clamped;
+      isTransitioningRef.current = true;
+      if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current);
+      transitionTimeoutRef.current = setTimeout(() => {
+        isTransitioningRef.current = false;
+      }, customDuration * 1000 + 100);
+
+      const lenis = (window as any).__lenis;
+      if (lenis) {
+        lenis.scrollTo(targetTop, {
+          duration: customDuration,
+          easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+          onComplete: () => {
+            isTransitioningRef.current = false;
+          },
+        });
+      } else {
+        window.scrollTo({
+          top: targetTop,
+          behavior: 'smooth',
+        });
+        setTimeout(() => {
+          isTransitioningRef.current = false;
+        }, 500);
+      }
+    },
+    [totalProjects]
+  );
+
+  // GSAP ScrollTrigger: High-Performance 1:1 Scrub with Lenis (No jitter, no competing snap tweens)
   useEffect(() => {
     const container = containerRef.current;
     const stage = stageRef.current;
     if (!container || !stage) return;
-
-    const snapPoints = 1 / (totalProjects - 1);
 
     const st = ScrollTrigger.create({
       trigger: container,
       pin: stage,
       start: 'top top',
       end: 'bottom bottom',
-      scrub: 0.35,
+      scrub: true,
       anticipatePin: 1,
-      snap: {
-        snapTo: snapPoints,
-        duration: { min: 0.25, max: 0.55 },
-        delay: 0.02,
-        ease: 'power2.out',
-      },
       onUpdate: (self) => {
         const u = self.progress * (totalProjects - 1);
         setScrollUnit(u);
-        const currentActive = Math.round(u);
-        setActiveIndex(currentActive);
+        const currentActive = Math.min(totalProjects - 1, Math.max(0, Math.round(u)));
+        if (currentActive !== activeIndexRef.current) {
+          activeIndexRef.current = currentActive;
+          isUserPausedRef.current = false;
+          setIsUserPaused(false);
+          setActiveIndex(currentActive);
+        }
         updateThreeScene(u);
+
+        // Magnetic debounced alignment for when continuous scroll ceases (e.g. dragging scrollbar)
+        if (debouncedSnapRef.current) clearTimeout(debouncedSnapRef.current);
+        if (!isTransitioningRef.current && self.isActive) {
+          debouncedSnapRef.current = setTimeout(() => {
+            const nearest = Math.min(totalProjects - 1, Math.max(0, Math.round(u)));
+            if (Math.abs(u - nearest) > 0.035) {
+              scrollToProject(nearest, 0.5);
+            }
+          }, 180);
+        }
       },
     });
 
-    // Initial render
+    stRef.current = st;
     updateThreeScene(0);
 
     return () => {
       st.kill();
+      stRef.current = null;
+      if (debouncedSnapRef.current) clearTimeout(debouncedSnapRef.current);
+      if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current);
     };
-  }, [totalProjects, updateThreeScene]);
+  }, [totalProjects, updateThreeScene, scrollToProject]);
 
-  // Jump smoothly to project chapter (supports Lenis smooth glide)
-  const scrollToProject = useCallback(
-    (index: number) => {
-      if (!containerRef.current) return;
-      const container = containerRef.current;
-      const totalScrollable = container.offsetHeight - window.innerHeight;
-      const targetTop = container.offsetTop + (index / (totalProjects - 1)) * totalScrollable;
+  // Controlled Wheel Navigation: Decisive, instantaneous reel advancement (no dead space)
+  useEffect(() => {
+    let wheelAccumulator = 0;
+    let wheelResetTimer: NodeJS.Timeout | null = null;
 
-      const lenis = (window as any).__lenis;
-      if (lenis) {
-        lenis.scrollTo(targetTop, { duration: 1.15 });
+    const handleWheel = (e: WheelEvent) => {
+      const st = stRef.current;
+      if (!st || !st.isActive) return;
+      if (isDetailModalOpenRef.current || isIndexDrawerOpenRef.current) return;
+
+      const delta = e.deltaY;
+      if (Math.abs(delta) < 5) return;
+
+      wheelAccumulator += delta;
+      if (wheelResetTimer) clearTimeout(wheelResetTimer);
+      wheelResetTimer = setTimeout(() => {
+        wheelAccumulator = 0;
+      }, 160);
+
+      // Decisive threshold: a single wheel notch or light trackpad swipe
+      if (Math.abs(wheelAccumulator) < 16) return;
+
+      if (wheelAccumulator > 0) {
+        // Scrolling DOWN
+        if (activeIndexRef.current < totalProjects - 1) {
+          e.preventDefault();
+          wheelAccumulator = 0;
+          if (isTransitioningRef.current) return;
+          scrollToProject(activeIndexRef.current + 1);
+        } else {
+          // At last project (11): let normal scroll take user smoothly down to clientele section
+          wheelAccumulator = 0;
+        }
       } else {
-        window.scrollTo({
-          top: targetTop,
-          behavior: 'smooth',
-        });
+        // Scrolling UP
+        if (activeIndexRef.current > 0) {
+          e.preventDefault();
+          wheelAccumulator = 0;
+          if (isTransitioningRef.current) return;
+          scrollToProject(activeIndexRef.current - 1);
+        } else {
+          // At first project (0): let normal scroll take user up
+          wheelAccumulator = 0;
+        }
       }
-    },
-    [totalProjects]
-  );
+    };
 
-  // Active project data
+    window.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+      if (wheelResetTimer) clearTimeout(wheelResetTimer);
+    };
+  }, [scrollToProject, totalProjects]);
+
+  // Mobile Touch Swipe Navigation: Fast, native feel reel-by-reel swipe
+  useEffect(() => {
+    let touchStartY = 0;
+    let touchStartX = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (isDetailModalOpenRef.current || isIndexDrawerOpenRef.current) return;
+      touchStartY = e.touches[0].clientY;
+      touchStartX = e.touches[0].clientX;
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      const st = stRef.current;
+      if (!st || !st.isActive) return;
+      if (isDetailModalOpenRef.current || isIndexDrawerOpenRef.current) return;
+
+      const touchEndY = e.changedTouches[0].clientY;
+      const touchEndX = e.changedTouches[0].clientX;
+      const diffY = touchStartY - touchEndY; // > 0 means swiped UP (advance forward)
+      const diffX = touchStartX - touchEndX;
+
+      if (Math.abs(diffX) > Math.abs(diffY)) return; // ignore horizontal gestures
+      if (Math.abs(diffY) < 32) return; // ignore tap
+
+      if (diffY > 0) {
+        if (activeIndexRef.current < totalProjects - 1) {
+          if (!isTransitioningRef.current) {
+            scrollToProject(activeIndexRef.current + 1);
+          }
+        }
+      } else {
+        if (activeIndexRef.current > 0) {
+          if (!isTransitioningRef.current) {
+            scrollToProject(activeIndexRef.current - 1);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [scrollToProject, totalProjects]);
+
+  // Keyboard Arrow Up / Arrow Down Reel Stepping
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const st = stRef.current;
+      if (!st || !st.isActive) return;
+      if (isDetailModalOpenRef.current || isIndexDrawerOpenRef.current) return;
+
+      if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+        if (activeIndexRef.current < totalProjects - 1) {
+          e.preventDefault();
+          scrollToProject(activeIndexRef.current + 1);
+        }
+      } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+        if (activeIndexRef.current > 0) {
+          e.preventDefault();
+          scrollToProject(activeIndexRef.current - 1);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [scrollToProject, totalProjects]);
+
   const currentProject: ClientProject = activeProjects[activeIndex] || activeProjects[0];
   const isLeft = activeIndex % 2 === 0;
 
   // Editorial directional drift & smooth opacity during scroll
   const scrollDelta = scrollUnit - activeIndex;
-  const editorialDriftY = scrollDelta * -24; // gentle inertia glide in direction of scroll
-  const editorialOpacity = Math.max(0.18, 1 - Math.abs(scrollDelta) * 1.5);
+  const editorialDriftY = scrollDelta * -20;
+  const editorialOpacity = Math.max(0.15, 1 - Math.abs(scrollDelta) * 1.6);
+
+  // Center Client Logo Reveal: continuous 3D depth and rotational transition synced with scroll
+  const centerLogoProjectIndex = Math.min(
+    totalProjects - 1,
+    Math.max(0, Math.round(scrollUnit))
+  );
+  const centerLogoProject = activeProjects[centerLogoProjectIndex] || currentProject;
+  const logoDelta = scrollUnit - centerLogoProjectIndex; // -0.5 to +0.5
+  const logoAbsDelta = Math.abs(logoDelta);
+  const logoOpacity = Math.max(0, (1 - logoAbsDelta * 2.0) * 0.95);
+  const logoScale = Math.max(0.75, 1 - logoAbsDelta * 0.16);
+  const logoRotateY = logoDelta * 24; // subtle 3D rotational tilt
+  const logoTranslateZ = -logoAbsDelta * 50; // 3D depth retreat away from camera
+  const logoTranslateY = logoDelta * -20; // organic parallax float
 
   return (
     <>
       <div
         ref={containerRef}
-        className="relative w-full bg-[#020306] text-white select-none"
+        className="relative w-full bg-[#030509] text-white select-none"
         style={{
-          // 100vh per project for generous scroll travel and exact snap settle
           height: `${totalProjects * 100}vh`,
         }}
       >
@@ -1100,48 +1363,79 @@ export const PortfolioWormhole3D: React.FC = () => {
           className="relative w-full h-screen overflow-hidden flex flex-col justify-between pointer-events-none"
         >
           {/* ========================================================= */}
-          {/* 1. THREE.JS 3D WEBGL CANVAS (REAL 3D CORRIDOR ENGINE)     */}
+          {/* 1. LUXURY STUDIO ATMOSPHERE BACKDROP                      */}
           {/* ========================================================= */}
-          <canvas
-            ref={canvasRef}
-            className="absolute inset-0 w-full h-full block z-0 pointer-events-auto"
-          />
+          <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
+            {/* Subtle Central Studio Radial Aura */}
+            <div
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] max-w-[1200px] h-[70vh] max-h-[700px] rounded-full pointer-events-none"
+              style={{
+                background:
+                  'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.09) 0%, rgba(8, 20, 60, 0.22) 50%, transparent 75%)',
+                filter: 'blur(90px)',
+              }}
+            />
 
-          {/* ========================================================= */}
-          {/* 2. TOP HUD: PROJECT COUNTER ONLY                          */}
-          {/* ========================================================= */}
-          <div className="relative z-20 w-full px-5 sm:px-10 md:px-14 pt-20 sm:pt-24 md:pt-28 flex items-center justify-end pointer-events-none">
-            {/* Clean Project Counter */}
-            <div className="font-mono text-xs sm:text-sm tracking-[0.22em] text-white/50">
-              <span className="text-white font-bold">{String(activeIndex + 1).padStart(2, '0')}</span>
-              <span className="text-white/30 mx-1.5">/</span>
-              <span>{String(totalProjects).padStart(2, '0')}</span>
-            </div>
+            {/* Gentle Floor Sheen at Bottom */}
+            <div
+              className="absolute bottom-0 inset-x-0 h-[30vh] pointer-events-none"
+              style={{
+                background:
+                  'linear-gradient(to top, rgba(0, 140, 255, 0.04) 0%, rgba(3, 5, 9, 0.6) 60%, transparent 100%)',
+              }}
+            />
           </div>
 
           {/* ========================================================= */}
-          {/* 3. HOVER BADGE OVER ACTIVE REEL: CLICK TO VIEW PROJECT    */}
+          {/* 2. THREE.JS 3D WEBGL CANVAS (Hero 3D Reels Engine)        */}
           {/* ========================================================= */}
-          {isHoveringReel && (
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 w-full h-full block pointer-events-auto"
+            style={{ zIndex: 5 }}
+          />
+
+          {/* ========================================================= */}
+          {/* 2.5 CENTER CLIENT LOGO REVEAL (SUBTLE 3D DEPTH/ROTATION) */}
+          {/* ========================================================= */}
+          {centerLogoProject.logoUrl && (
             <div
-              className={`fixed z-30 pointer-events-none transition-all duration-300 hidden md:flex items-center gap-2.5 px-4.5 py-2.5 rounded-full bg-[#04060A]/90 text-white border border-[#008CFF]/50 font-sans text-xs tracking-[0.16em] uppercase font-bold shadow-[0_8px_32px_rgba(0,140,255,0.4)] backdrop-blur-xl ${
-                isLeft ? 'left-[22%] top-[50%]' : 'right-[22%] top-[50%]'
-              } -translate-y-1/2`}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none hidden md:flex items-center justify-center"
+              style={{
+                zIndex: 11,
+                perspective: '800px',
+              }}
             >
-              <ArrowUpRight className="w-3.5 h-3.5 text-[#008CFF]" />
-              <span className="text-white">VIEW PROJECT</span>
+              <div
+                style={{
+                  opacity: logoOpacity,
+                  transform: `translate3d(0, ${logoTranslateY}px, ${logoTranslateZ}px) rotateY(${logoRotateY}deg) scale(${logoScale})`,
+                  transformStyle: 'preserve-3d',
+                  transition: 'opacity 0.08s ease-out, transform 0.08s ease-out',
+                }}
+                className="flex items-center justify-center p-2"
+              >
+                <img
+                  src={centerLogoProject.logoUrl}
+                  alt={`${centerLogoProject.name} logo`}
+                  className="max-w-[150px] sm:max-w-[175px] md:max-w-[195px] lg:max-w-[215px] xl:max-w-[235px] max-h-[56px] sm:max-h-[64px] md:max-h-[72px] lg:max-h-[78px] xl:max-h-[84px] w-auto h-auto object-contain filter drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]"
+                  loading="eager"
+                />
+              </div>
             </div>
           )}
 
           {/* ========================================================= */}
-          {/* 4. INTEGRATED EDITORIAL LAYOUT (JOSEPH BERRY INSPIRED)     */}
-          {/*    (Positioned cleanly on opposite side of active reel)   */}
+          {/* 3. INTEGRATED EDITORIAL LAYOUT (OPPOSITE OF ACTIVE REEL)  */}
           {/* ========================================================= */}
-          <div className="relative z-10 w-full flex-1 flex items-center px-5 sm:px-10 md:px-14 lg:px-20 xl:px-28 pointer-events-none pb-12 sm:pb-16">
+          <div
+            className="relative w-full flex-1 flex items-center px-6 sm:px-10 md:px-12 lg:px-16 xl:px-20 pointer-events-none pt-20 sm:pt-24 pb-20 sm:pb-24"
+            style={{ zIndex: 15 }}
+          >
             <div
-              className={`relative w-full flex pointer-events-auto ${
+              className={`relative w-full flex pointer-events-none ${
                 isMobile
-                  ? 'justify-center items-end text-center mt-auto mb-12 pb-4'
+                  ? 'justify-center items-end text-center mt-auto mb-16 pb-4'
                   : isLeft
                   ? 'justify-end items-center text-left'
                   : 'justify-start items-center text-left'
@@ -1152,49 +1446,217 @@ export const PortfolioWormhole3D: React.FC = () => {
                 transition: 'opacity 0.12s ease-out, transform 0.12s ease-out',
               }}
             >
-              <div className="relative max-w-md lg:max-w-lg xl:max-w-xl flex flex-col">
-                {/* Animated Editorial Content Block — Minimal, Focused, Clean */}
-                <div ref={editorialContentRef} className="relative z-10 flex flex-col">
-                  {/* PROJECT NUMBER */}
-                  <div className={`font-mono text-xs sm:text-[13px] tracking-[0.3em] uppercase text-[#008CFF] font-semibold mb-3 ${isMobile ? 'text-center' : ''}`}>
-                    PROJECT — {String(activeIndex + 1).padStart(2, '0')}
-                  </div>
+              <div
+                className={`relative flex flex-col pointer-events-auto ${
+                  isMobile
+                    ? 'w-full max-w-sm'
+                    : isLeft
+                    ? 'w-full md:w-[46%] lg:w-[40%] xl:w-[38%] max-w-[460px] ml-auto'
+                    : 'w-full md:w-[46%] lg:w-[40%] xl:w-[38%] max-w-[460px] mr-auto'
+                }`}
+              >
+                {/* Soft Back Aura for Editorial Depth */}
+                <div
+                  className="absolute -inset-10 rounded-full pointer-events-none opacity-40"
+                  style={{
+                    background:
+                      'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.15) 0%, transparent 70%)',
+                    filter: 'blur(60px)',
+                  }}
+                />
 
-                  {/* PROJECT NAME (Dominant & Monumental) */}
-                  <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-black tracking-[-0.035em] text-white uppercase drop-shadow-[0_4px_30px_rgba(0,0,0,0.95)] leading-[0.95]">
+                {/* Animated Editorial Content Block */}
+                <div ref={editorialContentRef} className="relative z-10 flex flex-col pointer-events-auto">
+                  {/* Monumental Brand Title */}
+                  <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[44px] xl:text-[54px] font-sans font-black tracking-[-0.025em] text-white uppercase leading-[1.0] drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
                     {currentProject.name}
                   </h2>
 
-                  {/* SHORT ONE-LINE DESCRIPTION */}
-                  <p className="mt-3.5 sm:mt-4 text-sm sm:text-base md:text-lg font-sans font-normal text-white/70 leading-relaxed line-clamp-2">
+                  {/* Refined Matter / Story Below */}
+                  <p className="mt-3 sm:mt-3.5 text-xs sm:text-sm md:text-base font-sans font-light text-white/75 leading-relaxed max-w-sm sm:max-w-md">
                     {currentProject.headline}
                   </p>
 
-                  {/* ACTION BUTTON: SINGLE BLUE METALLIC BUTTON */}
-                  <div className={`mt-6 sm:mt-7 flex items-center ${isMobile ? 'justify-center' : ''}`}>
+                  {/* Middle: Client Stat Badges (Views, Followers, Likes) */}
+                  {(() => {
+                    const fallbackMetrics = [
+                      { label: 'Views', value: '250K+' },
+                      { label: 'Followers', value: '18K+' },
+                      { label: 'Likes', value: '34K+' },
+                    ];
+                    const stats =
+                      currentProject.metrics && currentProject.metrics.length > 0
+                        ? currentProject.metrics
+                        : fallbackMetrics;
+
+                    return (
+                      <div
+                        className={`mt-4 sm:mt-5 grid grid-cols-3 gap-2 sm:gap-2.5 max-w-[290px] sm:max-w-[330px] ${
+                          isMobile ? 'mx-auto' : ''
+                        }`}
+                      >
+                        {stats.map((metric, idx) => (
+                          <div
+                            key={idx}
+                            className="animate-glow-blink-slow px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-xl bg-[#008CFF]/[0.04] border border-[#008CFF]/20 hover:border-[#008CFF]/45 backdrop-blur-md flex flex-col items-center justify-center text-center transition-all duration-300 shadow-[0_0_14px_rgba(0,140,255,0.08)]"
+                            style={{ animationDelay: `${idx * 0.28}s` }}
+                          >
+                            <span className="text-xs sm:text-sm md:text-base font-sans font-medium text-white tracking-tight leading-none drop-shadow-[0_0_8px_rgba(0,140,255,0.45)]">
+                              {metric.value}
+                            </span>
+                            <span className="mt-1 text-[8px] sm:text-[9px] font-sans font-medium uppercase tracking-[0.14em] text-white/50 leading-none">
+                              {metric.label}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+
+                  {/* Single Clean Action Button: MORE INFO */}
+                  <div className={`mt-5 sm:mt-6 flex items-center ${isMobile ? 'justify-center' : 'justify-start'} pointer-events-auto relative z-30`}>
                     <button
                       type="button"
-                      onClick={() => setSelectedProjectModal(currentProject)}
-                      className="relative inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full text-white font-sans text-xs tracking-[0.2em] uppercase font-bold transition-all duration-300 cursor-pointer active:scale-95 overflow-hidden group shadow-[0_0_30px_rgba(0,140,255,0.45),inset_0_1px_1px_rgba(255,255,255,0.5)] hover:shadow-[0_0_40px_rgba(0,140,255,0.7),inset_0_1px_2px_rgba(255,255,255,0.7)] border border-[#7ec4ff]/40"
-                      style={{
-                        background: 'linear-gradient(135deg, #0066cc 0%, #008CFF 45%, #29a0ff 70%, #0070d6 100%)',
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        isDetailModalOpenRef.current = true;
+                        panelsRef.current.forEach((p) => {
+                          p.isPlaying = false;
+                          p.targetVolume = 0;
+                          p.video.pause();
+                          p.video.muted = true;
+                        });
+                        setIsDetailModalOpen(true);
                       }}
+                      className="pointer-events-auto relative z-30 group inline-flex items-center gap-2.5 px-6 sm:px-7 py-3 rounded-full bg-[#008CFF] hover:bg-[#1a97ff] text-white font-mono text-xs font-bold tracking-[0.2em] uppercase transition-all duration-300 shadow-[0_0_25px_rgba(0,140,255,0.4)] hover:shadow-[0_0_40px_rgba(0,140,255,0.65)] active:scale-95 cursor-pointer"
                     >
-                      {/* Metallic Shimmer Gleam */}
-                      <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out pointer-events-none" />
-                      <span className="relative z-10 text-white">VIEW PROJECT</span>
-                      <ArrowUpRight className="relative z-10 w-4 h-4 text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                      <span>MORE INFO</span>
+                      <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                     </button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+          {/* ========================================================= */}
+          {/* 4. BOTTOM MIDDLE DOCK: PLAY/PAUSE, AUDIO & REEL COUNTER   */}
+          {/* ========================================================= */}
+          <div
+            className="absolute bottom-6 sm:bottom-8 md:bottom-10 left-1/2 -translate-x-1/2 pointer-events-none select-none"
+            style={{ zIndex: 30 }}
+          >
+            <div className="flex items-center gap-2.5 sm:gap-3 pointer-events-auto">
+              {/* Play / Pause Toggle Button (Borderless) */}
+              <button
+                type="button"
+                onClick={togglePlayPause}
+                aria-label={isUserPaused ? 'Play Reel' : 'Pause Reel'}
+                title={isUserPaused ? 'Play Reel' : 'Pause Reel'}
+                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#070B14]/85 hover:bg-[#131b2e] backdrop-blur-md flex items-center justify-center text-white transition-all active:scale-95 cursor-pointer shadow-[0_4px_24px_rgba(0,0,0,0.6)]"
+              >
+                {isUserPaused ? (
+                  <Play className="w-4 h-4 text-[#008CFF] fill-current translate-x-0.5" />
+                ) : (
+                  <Pause className="w-4 h-4 text-white/80 hover:text-white" />
+                )}
+              </button>
+
+              {/* Audio Mute / Unmute & Vertical Volume Slider (Hover to Adjust) */}
+              <div
+                className="relative group flex items-center justify-center pointer-events-auto"
+                onMouseEnter={() => setIsVolumeHovered(true)}
+                onMouseLeave={() => {
+                  if (!isDraggingVolume) setIsVolumeHovered(false);
+                }}
+                onWheel={(e) => {
+                  e.preventDefault();
+                  const delta = e.deltaY < 0 ? 0.05 : -0.05;
+                  handleVolumeChange(volumeLevel + delta);
+                }}
+              >
+                {/* Vertical Volume Bar Popup (Shows on Hover or Drag) */}
+                <div
+                  className={`absolute bottom-full mb-3 left-1/2 -translate-x-1/2 flex flex-col items-center p-2.5 rounded-2xl bg-[#070B14]/95 backdrop-blur-xl border border-white/12 shadow-[0_12px_36px_rgba(0,0,0,0.85),0_0_20px_rgba(0,140,255,0.18)] transition-all duration-200 ease-out z-50 ${
+                    isVolumeHovered || isDraggingVolume
+                      ? 'opacity-100 pointer-events-auto translate-y-0'
+                      : 'opacity-0 pointer-events-none translate-y-2'
+                  }`}
+                >
+                  {/* Invisible hover bridge to prevent cursor gap drop */}
+                  <div className="absolute -bottom-3 inset-x-0 h-3 pointer-events-auto" />
+
+                  {/* Percentage Label */}
+                  <span className="font-mono text-[10px] font-bold text-white/85 tracking-wider mb-2 select-none">
+                    {Math.round(isMuted ? 0 : volumeLevel * 100)}%
+                  </span>
+
+                  {/* Vertical Draggable Track */}
+                  <div
+                    ref={volumeTrackRef}
+                    onPointerDown={handleVolumeTrackPointerDown}
+                    aria-label="Adjust Volume"
+                    role="slider"
+                    aria-valuenow={Math.round(isMuted ? 0 : volumeLevel * 100)}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    className="w-6 h-28 flex items-center justify-center cursor-pointer relative py-1 touch-none select-none group/track"
+                  >
+                    {/* Rail */}
+                    <div className="w-1.5 h-full rounded-full bg-white/15 relative overflow-hidden group-hover/track:bg-white/20 transition-colors">
+                      {/* Filled Volume Level */}
+                      <div
+                        className="absolute bottom-0 inset-x-0 bg-[#008CFF] rounded-full shadow-[0_0_8px_#008CFF] transition-all duration-75"
+                        style={{ height: `${isMuted ? 0 : volumeLevel * 100}%` }}
+                      />
+                    </div>
+
+                    {/* Draggable Knob / Thumb */}
+                    <div
+                      className="absolute left-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full bg-white shadow-[0_0_10px_rgba(0,140,255,0.9)] border border-[#008CFF] transition-all duration-75 pointer-events-none"
+                      style={{
+                        bottom: `calc(${isMuted ? 0 : volumeLevel * 100}% - 7px)`,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Main Volume Button */}
+                <button
+                  type="button"
+                  onClick={toggleMute}
+                  aria-label={isMuted ? 'Unmute Audio' : 'Mute Audio'}
+                  title={isMuted ? 'Unmute Audio' : `Mute Audio (${Math.round(volumeLevel * 100)}%)`}
+                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#070B14]/85 hover:bg-[#131b2e] backdrop-blur-md flex items-center justify-center text-white transition-all active:scale-95 cursor-pointer shadow-[0_4px_24px_rgba(0,0,0,0.6)]"
+                >
+                  {isMuted || volumeLevel <= 0.01 ? (
+                    <VolumeX className="w-4 h-4 text-white/45 hover:text-white" />
+                  ) : volumeLevel < 0.5 ? (
+                    <Volume1 className="w-4 h-4 text-[#008CFF]" />
+                  ) : (
+                    <Volume2 className="w-4 h-4 text-[#008CFF]" />
+                  )}
+                </button>
+              </div>
+
+              {/* Clean Counter / Index Pill (Borderless) */}
+              <button
+                type="button"
+                onClick={() => setIsIndexDrawerOpen(true)}
+                title="View All Reels"
+                aria-label="View All Reels"
+                className="h-10 sm:h-11 flex items-center gap-2 px-4 rounded-full bg-[#070B14]/85 hover:bg-[#131b2e] backdrop-blur-md font-mono text-xs tracking-[0.22em] text-white transition-all cursor-pointer shadow-[0_4px_24px_rgba(0,0,0,0.6)] active:scale-95"
+              >
+                <span className="text-[#008CFF] font-bold">{String(activeIndex + 1).padStart(2, '0')}</span>
+                <span className="text-white/25">/</span>
+                <span className="text-white/60">{String(totalProjects).padStart(2, '0')}</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* ================================================================== */}
-      {/* 6. ALL PROJECTS QUICK INDEX DRAWER (JOSEPH BERRY INSPIRED)         */}
+      {/* 5. ALL PROJECTS QUICK INDEX DRAWER                                 */}
       {/* ================================================================== */}
       {isIndexDrawerOpen && (
         <div
@@ -1229,8 +1691,8 @@ export const PortfolioWormhole3D: React.FC = () => {
               </button>
             </div>
 
-            {/* Scrollable Project List */}
-            <div className="flex-1 overflow-y-auto mt-4 divide-y divide-white/[0.06] pr-1 relative z-10">
+            {/* Scrollable Project List with Sleek Obsidian Scrollbar */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar mt-4 divide-y divide-white/[0.06] pr-2.5 relative z-10">
               {activeProjects.map((proj, pIdx) => {
                 const isSelected = activeIndex === pIdx;
                 return (
@@ -1256,7 +1718,7 @@ export const PortfolioWormhole3D: React.FC = () => {
                       </span>
                       <div>
                         <h3
-                          className={`font-display text-lg sm:text-2xl font-black uppercase tracking-tight transition-colors ${
+                          className={`font-sans text-lg sm:text-2xl font-black uppercase tracking-tight transition-colors ${
                             isSelected ? 'text-[#008CFF]' : 'text-white group-hover:text-[#008CFF]'
                           }`}
                         >
@@ -1283,19 +1745,28 @@ export const PortfolioWormhole3D: React.FC = () => {
             {/* Drawer Footer Cue */}
             <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs font-mono text-white/40 uppercase tracking-widest relative z-10">
               <span>SELECT TO GLIDE THROUGH CORRIDOR</span>
-              <span className="text-[#008CFF]">[ESC TO EXIT]</span>
             </div>
           </div>
         </div>
       )}
 
-      {/* ================================================================== */}
-      {/* 7. IN-DEPTH PROJECT DETAIL MODAL (COMPLETE INFO & 2-3 REELS)        */}
-      {/* ================================================================== */}
+      {/* 6. FULL SCREEN PROJECT DETAIL MODAL */}
       <ProjectDetailModal
-        isOpen={Boolean(selectedProjectModal)}
-        project={selectedProjectModal}
-        onClose={() => setSelectedProjectModal(null)}
+        isOpen={isDetailModalOpen}
+        project={currentProject}
+        onClose={() => {
+          isDetailModalOpenRef.current = false;
+          setIsDetailModalOpen(false);
+          if (!isUserPausedRef.current) {
+            const activePanel = panelsRef.current[activeIndexRef.current];
+            if (activePanel) {
+              activePanel.video.muted = isMutedRef.current;
+              activePanel.targetVolume = isMutedRef.current ? 0 : volumeLevelRef.current;
+              activePanel.isPlaying = true;
+              activePanel.video.play().catch(() => {});
+            }
+          }
+        }}
       />
     </>
   );

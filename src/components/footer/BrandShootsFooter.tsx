@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Instagram, Youtube, Facebook, MessageCircle, ArrowUp } from 'lucide-react';
 import { BRAND_PATHS, SHOOTS_PATHS, BRANDSHOOTS_LOGO_VIEWBOX } from './brandshootsLogoPaths';
+import { useCMSContent } from '../../lib/cms/useCMSContent';
 
 interface BrandShootsFooterProps {
   onOpenContact?: () => void;
@@ -9,6 +10,12 @@ interface BrandShootsFooterProps {
 
 export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = () => {
   const footerRef = useRef<HTMLElement>(null);
+  const { contact } = useCMSContent();
+
+  const instagramUrl = contact?.instagramUrl || 'https://instagram.com/wearebrandshoots';
+  const youtubeUrl = contact?.youtubeUrl || 'https://youtube.com/@wearebrandshoots';
+  const facebookUrl = contact?.facebookUrl || 'https://facebook.com/wearebrandshoots';
+  const whatsappUrl = `https://wa.me/${contact?.whatsappPhone || '917075960672'}`;
 
   const scrollToTop = () => {
     const lenis = (window as any).__lenis;
@@ -24,10 +31,16 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = () => {
       <footer
         id="footer"
         ref={footerRef}
-        className="relative w-full bg-[#030508] text-white border-t border-white/[0.08] select-none overflow-hidden"
+        className="relative w-full bg-[#030508] text-white select-none overflow-hidden"
       >
-        {/* Subtle horizon glow at top border */}
-        <div className="absolute top-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#008CFF]/50 to-transparent pointer-events-none" />
+        {/* Soft atmospheric gradient blend from preceding section */}
+        <div
+          className="absolute top-0 inset-x-0 h-16 pointer-events-none z-10"
+          style={{
+            background:
+              'linear-gradient(to bottom, #020306 0%, rgba(2,3,6,0.6) 40%, transparent 100%)',
+          }}
+        />
 
         {/* Atmospheric lighting */}
         <div
@@ -39,13 +52,18 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = () => {
           }}
         />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 pt-16 sm:pt-20 pb-12 flex flex-col items-center text-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 pt-12 sm:pt-16 pb-12 flex flex-col items-center text-center">
           
           {/* ========================================================= */}
           {/* 1. MONUMENTAL BRANDSHOOTS VECTOR LOGO (Final Frame Anchor) */}
           {/* ========================================================= */}
-          <div
-            onClick={scrollToTop}
+          <Link
+            to="/"
+            onClick={() => {
+              if (window.location.pathname === '/') {
+                scrollToTop();
+              }
+            }}
             className="cursor-pointer group select-none py-2 inline-flex flex-col items-center w-full max-w-[280px] xs:max-w-[340px] sm:max-w-xl md:max-w-2xl lg:max-w-3xl"
           >
             <svg
@@ -66,7 +84,7 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = () => {
                 </g>
               </g>
             </svg>
-          </div>
+          </Link>
 
           {/* CREATE. SHOOT. GROW. Signature Creed */}
           <div className="mt-4 sm:mt-5 font-mono text-[10px] xs:text-[11px] sm:text-xs tracking-[0.42em] uppercase font-bold text-center">
@@ -85,6 +103,13 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = () => {
           {/* ========================================================= */}
           <nav className="mt-10 sm:mt-12 flex flex-wrap justify-center items-center gap-7 sm:gap-11 text-white/75 font-sans text-xs sm:text-[13px] tracking-[0.24em] uppercase font-semibold">
             <Link
+              to="/"
+              className="hover:text-[#008CFF] transition-colors duration-200 cursor-pointer"
+            >
+              HOME
+            </Link>
+
+            <Link
               to="/about"
               className="hover:text-[#008CFF] transition-colors duration-200 cursor-pointer"
             >
@@ -100,6 +125,18 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = () => {
 
             <Link
               to="/#what-we-do"
+              onClick={(e) => {
+                if (window.location.pathname === '/') {
+                  e.preventDefault();
+                  const el = document.getElementById('what-we-do');
+                  const lenis = (window as any).__lenis;
+                  if (el && lenis) {
+                    lenis.scrollTo(el, { duration: 1.0 });
+                  } else if (el) {
+                    el.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }
+              }}
               className="hover:text-[#008CFF] transition-colors duration-200 cursor-pointer"
             >
               SERVICES
@@ -118,7 +155,7 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = () => {
           {/* ========================================================= */}
           <div className="mt-8 sm:mt-10 flex items-center gap-3.5 sm:gap-4">
             <a
-              href="https://instagram.com/wearebrandshoots"
+              href={instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram"
@@ -128,7 +165,7 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = () => {
             </a>
 
             <a
-              href="https://youtube.com/@wearebrandshoots"
+              href={youtubeUrl}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="YouTube"
@@ -138,7 +175,7 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = () => {
             </a>
 
             <a
-              href="https://facebook.com/wearebrandshoots"
+              href={facebookUrl}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Facebook"
@@ -148,7 +185,7 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = () => {
             </a>
 
             <a
-              href="https://wa.me/917075960672"
+              href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="WhatsApp"

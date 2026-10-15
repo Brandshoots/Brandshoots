@@ -50,7 +50,7 @@ const BRAND_REELS: ReelData[] = [
 interface CardMeshItem {
   group: THREE.Group;
   screenMesh: THREE.Mesh;
-  rimLine: THREE.LineSegments;
+  rimLine: THREE.Line;
   filmMat: THREE.MeshBasicMaterial;
   rimMat: THREE.LineBasicMaterial;
   video: HTMLVideoElement;
@@ -73,13 +73,6 @@ export const BrandShootsCore3D: React.FC = () => {
   const chapter3Ref = useRef<HTMLDivElement>(null);
   const chapter4Ref = useRef<HTMLDivElement>(null);
 
-  // HUD indicators
-  const pill1Ref = useRef<HTMLSpanElement>(null);
-  const pill2Ref = useRef<HTMLSpanElement>(null);
-  const pill3Ref = useRef<HTMLSpanElement>(null);
-  const pill4Ref = useRef<HTMLSpanElement>(null);
-  const activeChapterLabelRef = useRef<HTMLSpanElement>(null);
-
   useEffect(() => {
     const pinContainer = pinContainerRef.current;
     const canvas = canvasRef.current;
@@ -100,7 +93,7 @@ export const BrandShootsCore3D: React.FC = () => {
       powerPreference: 'high-performance',
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.75 : 2.0));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.25 : 1.5));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.15;
 
@@ -136,65 +129,154 @@ export const BrandShootsCore3D: React.FC = () => {
     const cardsRootGroup = new THREE.Group();
     scene.add(cardsRootGroup);
 
+    // ========================================================================
+    // 4A. MINIMAL COSMIC DUST BACKGROUND (Subtle, Dreamy Floating Particles)
+    // ========================================================================
+    const DUST_COUNT = 65; // Very few, minimal and unobtrusive
+    const dustPositions = new Float32Array(DUST_COUNT * 3);
+    for (let i = 0; i < DUST_COUNT; i++) {
+      dustPositions[i * 3] = (Math.random() - 0.5) * 20;
+      dustPositions[i * 3 + 1] = (Math.random() - 0.5) * 12;
+      dustPositions[i * 3 + 2] = -1.8 - Math.random() * 6.0; // Placed behind the reels
+    }
+    const dustGeo = new THREE.BufferGeometry();
+    dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
+
+    const createDustTexture = () => {
+      const c = document.createElement('canvas');
+      c.width = 32;
+      c.height = 32;
+      const ctx = c.getContext('2d');
+      if (!ctx) return null;
+      const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+      grad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+      grad.addColorStop(0.25, 'rgba(147, 197, 253, 0.6)');
+      grad.addColorStop(0.65, 'rgba(0, 140, 255, 0.15)');
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 32, 32);
+      return new THREE.CanvasTexture(c);
+    };
+
+    const dustTex = createDustTexture();
+    const dustMat = new THREE.PointsMaterial({
+      size: isMobile ? 0.08 : 0.11,
+      map: dustTex || undefined,
+      transparent: true,
+      opacity: 0.28,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      sizeAttenuation: true,
+    });
+    const dustPoints = new THREE.Points(dustGeo, dustMat);
+    scene.add(dustPoints);
+
     const textureLoader = new THREE.TextureLoader();
     const cardItems: CardMeshItem[] = [];
     const videoElements: HTMLVideoElement[] = [];
     const videoTextures: THREE.VideoTexture[] = [];
+    const posterTextures: THREE.Texture[] = [];
+
+    // Helper to generate rounded rectangle shapes
+    const createRoundedRectShape = (w: number, h: number, r: number) => {
+      const shape = new THREE.Shape();
+      const x = -w / 2;
+      const y = -h / 2;
+      const radius = Math.min(r, w / 2, h / 2);
+
+      shape.moveTo(x + radius, y);
+      shape.lineTo(x + w - radius, y);
+      shape.absarc(x + w - radius, y + radius, radius, -Math.PI / 2, 0, false);
+      shape.lineTo(x + w, y + h - radius);
+      shape.absarc(x + w - radius, y + h - radius, radius, 0, Math.PI / 2, false);
+      shape.lineTo(x + radius, y + h);
+      shape.absarc(x + radius, y + h - radius, radius, Math.PI / 2, Math.PI, false);
+      shape.lineTo(x, y + radius);
+      shape.absarc(x + radius, y + radius, radius, Math.PI, (3 * Math.PI) / 2, false);
+
+      return shape;
+    };
 
     // Precise 9:16 Aspect Ratio
     const frameW = isMobile ? 1.4 : isTablet ? 1.55 : 1.68;
     const frameH = (frameW * 16) / 9;
-    const casingDepth = 0.04;
+    const cornerRadius = isMobile ? 0.07 : 0.085;
+    const chassisPadding = 0.022;
+    const chassisDepth = 0.014;
 
-    // Rock-solid standard geometries with guaranteed UV mapping
-    const boxCasingGeo = new THREE.BoxGeometry(frameW + 0.06, frameH + 0.06, casingDepth);
-    const screenGeo = new THREE.PlaneGeometry(frameW, frameH);
-    const rimEdgeGeo = new THREE.EdgesGeometry(screenGeo);
+    // 1. Screen Geometry with Clean Rounded Corners & Exact Normalized UV Mapping
+    const screenShape = createRoundedRectShape(frameW, frameH, cornerRadius);
+    const screenGeo = new THREE.ShapeGeometry(screenShape, 12);
+    const posAttr = screenGeo.attributes.position;
+    const uvs = new Float32Array(posAttr.count * 2);
+    for (let p = 0; p < posAttr.count; p++) {
+      const px = posAttr.getX(p);
+      const py = posAttr.getY(p);
+      uvs[p * 2] = (px + frameW / 2) / frameW;
+      uvs[p * 2 + 1] = (py + frameH / 2) / frameH;
+    }
+    screenGeo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
 
-    // Obsidian brushed titanium casing
+    // 2. Simple Minimal Chassis with matching rounded corner radius
+    const chassisW = frameW + chassisPadding * 2;
+    const chassisH = frameH + chassisPadding * 2;
+    const chassisRadius = cornerRadius + chassisPadding * 0.5;
+    const chassisShape = createRoundedRectShape(chassisW, chassisH, chassisRadius);
+    const chassisGeo = new THREE.ExtrudeGeometry(chassisShape, {
+      depth: chassisDepth,
+      bevelEnabled: false,
+      steps: 1,
+    });
+    chassisGeo.center();
+
+    // 3. Delicate rounded outline rim following the reel border radius
+    const rimPoints = screenShape.getPoints(40);
+    const rimGeo = new THREE.BufferGeometry().setFromPoints(rimPoints);
+
+    // Sleek obsidian chassis material
     const casingMat = new THREE.MeshStandardMaterial({
-      color: 0x080c14,
-      roughness: 0.32,
-      metalness: 0.88,
+      color: 0x070b14,
+      roughness: 0.45,
+      metalness: 0.5,
     });
 
-    // Glowing razor-sharp electric blue rim
-    const rimMat = new THREE.LineBasicMaterial({
+    // Clean subtle glowing electric blue border line
+    const baseRimMat = new THREE.LineBasicMaterial({
       color: 0x008cff,
       transparent: true,
-      opacity: 0.7,
+      opacity: 0.45,
     });
 
     BRAND_REELS.forEach((reel, i) => {
       const cardGroup = new THREE.Group();
 
-      // Physical titanium chassis
-      const casingMesh = new THREE.Mesh(boxCasingGeo, casingMat);
+      // Simple, elegant rounded chassis
+      const casingMesh = new THREE.Mesh(chassisGeo, casingMat);
       cardGroup.add(casingMesh);
 
-      // HTML5 video element for reel footage
+      // HTML5 video element for reel footage (lazy non-blocking streaming)
       const video = document.createElement('video');
-      video.src = reel.video;
       video.crossOrigin = 'anonymous';
       video.loop = true;
       video.defaultMuted = true;
       video.muted = true;
       video.playsInline = true;
-      video.autoplay = true;
       video.setAttribute('muted', '');
       video.setAttribute('playsinline', '');
       video.setAttribute('webkit-playsinline', '');
-      video.play().catch(() => {});
+      video.preload = 'none';
       videoElements.push(video);
 
       const videoTex = new THREE.VideoTexture(video);
       videoTex.colorSpace = THREE.SRGBColorSpace;
       videoTex.minFilter = THREE.LinearFilter;
       videoTex.magFilter = THREE.LinearFilter;
+      videoTex.generateMipmaps = false;
       videoTextures.push(videoTex);
 
       const posterTex = textureLoader.load(reel.poster);
       posterTex.colorSpace = THREE.SRGBColorSpace;
+      posterTextures.push(posterTex);
 
       // MeshBasicMaterial guarantees the footage and posters are ALWAYS 100% bright and vivid
       const filmMat = new THREE.MeshBasicMaterial({
@@ -208,12 +290,15 @@ export const BrandShootsCore3D: React.FC = () => {
         filmMat.needsUpdate = true;
       });
 
+      // Front screen with rounded corners sitting cleanly on chassis surface
       const screenMesh = new THREE.Mesh(screenGeo, filmMat);
-      screenMesh.position.z = casingDepth / 2 + 0.002;
+      screenMesh.position.z = chassisDepth / 2 + 0.001;
       cardGroup.add(screenMesh);
 
-      const rimLine = new THREE.LineSegments(rimEdgeGeo, rimMat);
-      rimLine.position.z = casingDepth / 2 + 0.003;
+      // Delicate matching rounded rim outline
+      const cardRimMat = baseRimMat.clone();
+      const rimLine = new THREE.Line(rimGeo, cardRimMat);
+      rimLine.position.z = chassisDepth / 2 + 0.002;
       cardGroup.add(rimLine);
 
       cardsRootGroup.add(cardGroup);
@@ -223,17 +308,30 @@ export const BrandShootsCore3D: React.FC = () => {
         screenMesh,
         rimLine,
         filmMat,
-        rimMat,
+        rimMat: cardRimMat,
         video,
         videoTex,
         index: i,
       });
     });
 
-    // Touch / scroll kick to guarantee autoplay on mobile browsers
+    // Lifecycle visibility flags
+    let isSectionVisible = true;
+    let isRendererRunning = true;
+
+    // Touch / scroll kick to guarantee autoplay on mobile browsers when in focal spotlight
     const wakeVideos = () => {
-      videoElements.forEach((v) => {
-        if (v.paused) v.play().catch(() => {});
+      if (!isSectionVisible) return;
+      cardItems.forEach((c) => {
+        const delta = c.index - currentCardProgress;
+        if (Math.abs(delta) < 1.15 || currentClimaxSpread > 0.4) {
+          if (!c.video.src && BRAND_REELS[c.index]?.video) {
+            c.video.src = BRAND_REELS[c.index].video;
+          }
+          if (c.video.paused) {
+            c.video.play().catch(() => {});
+          }
+        }
       });
     };
     window.addEventListener('scroll', wakeVideos, { passive: true, once: true });
@@ -261,11 +359,13 @@ export const BrandShootsCore3D: React.FC = () => {
     let currentPointerY = 0;
 
     const onPointerMove = (e: MouseEvent) => {
+      if (!isSectionVisible) return;
       pointerX = (e.clientX / window.innerWidth) * 2 - 1;
       pointerY = (e.clientY / window.innerHeight) * 2 - 1;
     };
 
     const onTouchMove = (e: TouchEvent) => {
+      if (!isSectionVisible) return;
       if (e.touches.length > 0) {
         pointerX = (e.touches[0].clientX / window.innerWidth) * 2 - 1;
         pointerY = (e.touches[0].clientY / window.innerHeight) * 2 - 1;
@@ -361,20 +461,12 @@ export const BrandShootsCore3D: React.FC = () => {
         0.25
       );
 
-      tl.to(pill1Ref.current, { color: '#008CFF', scale: 1.25, duration: 0.15 }, 0.25);
-      if (activeChapterLabelRef.current) {
-        tl.call(() => {
-          if (activeChapterLabelRef.current) activeChapterLabelRef.current.innerText = '1';
-        }, [], 0.25);
-      }
-
       // Exit Chapter 1 (completely faded out before Chapter 2 enters)
       tl.to(
         chapter1Ref.current,
         { autoAlpha: 0, y: -20, duration: 0.2, ease: 'power2.in' },
         0.95
       );
-      tl.to(pill1Ref.current, { color: 'rgba(255,255,255,0.35)', scale: 1.0, duration: 0.15 }, 0.95);
 
       // ----------------------------------------------------------------------
       // CHAPTER 02 (1.25 -> 2.15): FROM FIRST FRAME TO FINAL CUT.
@@ -398,20 +490,12 @@ export const BrandShootsCore3D: React.FC = () => {
         1.25
       );
 
-      tl.to(pill2Ref.current, { color: '#008CFF', scale: 1.25, duration: 0.15 }, 1.25);
-      if (activeChapterLabelRef.current) {
-        tl.call(() => {
-          if (activeChapterLabelRef.current) activeChapterLabelRef.current.innerText = '2';
-        }, [], 1.25);
-      }
-
       // Exit Chapter 2 (completely faded out before Chapter 3 enters)
       tl.to(
         chapter2Ref.current,
         { autoAlpha: 0, y: -20, duration: 0.2, ease: 'power2.in' },
         1.95
       );
-      tl.to(pill2Ref.current, { color: 'rgba(255,255,255,0.35)', scale: 1.0, duration: 0.15 }, 1.95);
 
       // ----------------------------------------------------------------------
       // CHAPTER 03 (2.25 -> 3.15): DIFFERENT BRANDS. ONE CREATIVE VISION.
@@ -435,20 +519,12 @@ export const BrandShootsCore3D: React.FC = () => {
         2.25
       );
 
-      tl.to(pill3Ref.current, { color: '#008CFF', scale: 1.25, duration: 0.15 }, 2.25);
-      if (activeChapterLabelRef.current) {
-        tl.call(() => {
-          if (activeChapterLabelRef.current) activeChapterLabelRef.current.innerText = '3';
-        }, [], 2.25);
-      }
-
       // Exit Chapter 3 (completely faded out before Chapter 4 enters)
       tl.to(
         chapter3Ref.current,
         { autoAlpha: 0, y: -20, duration: 0.2, ease: 'power2.in' },
         2.95
       );
-      tl.to(pill3Ref.current, { color: 'rgba(255,255,255,0.35)', scale: 1.0, duration: 0.15 }, 2.95);
 
       // ----------------------------------------------------------------------
       // CHAPTER 04 CLIMAX (3.25 -> 4.00): WINGS FORMATION & LOGO ANTHEM
@@ -497,21 +573,14 @@ export const BrandShootsCore3D: React.FC = () => {
         3.35
       );
 
-      tl.to(pill4Ref.current, { color: '#008CFF', scale: 1.25, duration: 0.15 }, 3.35);
-      if (activeChapterLabelRef.current) {
-        tl.call(() => {
-          if (activeChapterLabelRef.current) activeChapterLabelRef.current.innerText = '4';
-        }, [], 3.35);
-      }
-
       // Final gentle hold leading smoothly to Leadership section
       tl.to({}, { duration: 0.3 }, 3.9);
     }, sectionRef);
 
     // ========================================================================
-    // 7. 60FPS THREE.JS RENDER LOOP (Panoramic Spacious Gallery Arc)
+    // 7. 60FPS THREE.JS RENDER LOOP (Viewport-Gated & Focal Stream Optimized)
     // ========================================================================
-    let animId: number;
+    let animId: number = 0;
     let currentCardProgress = 0;
     let currentEntranceZ = -3.8;
     let currentClimaxSpread = 0;
@@ -520,6 +589,10 @@ export const BrandShootsCore3D: React.FC = () => {
     let currentCameraX = 0;
 
     const tick = () => {
+      if (!isSectionVisible) {
+        isRendererRunning = false;
+        return;
+      }
       animId = requestAnimationFrame(tick);
       const time = performance.now() * 0.001;
 
@@ -602,24 +675,59 @@ export const BrandShootsCore3D: React.FC = () => {
         card.filmMat.opacity = targetOpacity;
         card.rimMat.opacity = Math.max(0.2, targetOpacity * 0.8);
 
-        // Active video optimization: Play video for cards in focal spotlight
-        const isFocal = Math.abs(delta) < 1.15 || blend > 0.4;
-        if (isFocal && card.video.paused) {
-          card.video.play().catch(() => {});
-        } else if (!isFocal && !card.video.paused && Math.abs(delta) > 2.2) {
-          card.video.pause();
-        }
-
-        // Texture upload
-        if (card.videoTex.image && (card.videoTex.image as HTMLVideoElement).readyState >= 2) {
-          card.videoTex.needsUpdate = true;
+        // Active video optimization: Play video ONLY for cards in focal spotlight
+        const isFocal = isSectionVisible && (Math.abs(delta) < 1.15 || blend > 0.4);
+        if (isFocal) {
+          if (!card.video.src && BRAND_REELS[i]?.video) {
+            card.video.src = BRAND_REELS[i].video;
+          }
+          if (card.video.paused) {
+            card.video.play().catch(() => {});
+          }
+          // Only update texture when the video is actively playing!
+          if (!card.video.paused && card.video.readyState >= 2) {
+            card.videoTex.needsUpdate = true;
+          }
+        } else {
+          if (!card.video.paused) {
+            card.video.pause();
+          }
         }
       });
+
+      // Dreamy, ultra-slow floating cosmic dust drift
+      dustPoints.rotation.y = time * 0.01;
+      dustPoints.rotation.x = Math.sin(time * 0.008) * 0.015;
 
       renderer.render(scene, camera);
     };
 
-    tick();
+    animId = requestAnimationFrame(tick);
+
+    // Viewport-gated IntersectionObserver to pause RAF and hardware video decoders when offscreen
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          isSectionVisible = entry.isIntersecting;
+          if (isSectionVisible) {
+            if (!isRendererRunning) {
+              isRendererRunning = true;
+              animId = requestAnimationFrame(tick);
+            }
+          } else {
+            // Free hardware decoders and pause videos when section is offscreen
+            videoElements.forEach((v) => {
+              if (!v.paused) v.pause();
+            });
+          }
+        });
+      },
+      { rootMargin: '300px 0px 300px 0px', threshold: 0 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
 
     // ========================================================================
     // 8. RESIZE HANDLER
@@ -633,13 +741,17 @@ export const BrandShootsCore3D: React.FC = () => {
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
+      if (!isRendererRunning && isSectionVisible) {
+        renderer.render(scene, camera);
+      }
     };
     window.addEventListener('resize', handleResize);
 
     // ========================================================================
-    // 9. CLEANUP
+    // 9. CLEANUP & LEAK-FREE WEBGL CONTEXT DISPOSAL
     // ========================================================================
     return () => {
+      observer.disconnect();
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', onPointerMove);
@@ -655,17 +767,24 @@ export const BrandShootsCore3D: React.FC = () => {
         v.load();
       });
       videoTextures.forEach((vt) => vt.dispose());
+      posterTextures.forEach((pt) => pt.dispose());
 
-      boxCasingGeo.dispose();
+      dustGeo.dispose();
+      dustMat.dispose();
+      dustTex?.dispose();
+
+      chassisGeo.dispose();
       screenGeo.dispose();
-      rimEdgeGeo.dispose();
+      rimGeo.dispose();
       casingMat.dispose();
+      baseRimMat.dispose();
 
       cardItems.forEach((c) => {
         c.filmMat.dispose();
         c.rimMat.dispose();
       });
 
+      scene.clear();
       renderer.dispose();
     };
   }, []);
@@ -704,36 +823,6 @@ export const BrandShootsCore3D: React.FC = () => {
                 'linear-gradient(to top, rgba(0, 140, 255, 0.05) 0%, rgba(4, 6, 10, 0.5) 50%, transparent 100%)',
             }}
           />
-        </div>
-
-        {/* ======================================================== */}
-        {/* 2. TOP: CHAPTER HUD & PROGRESSION BAR (Z-INDEX: 60)      */}
-        {/* ======================================================== */}
-        <div
-          className="absolute top-20 sm:top-10 inset-x-0 flex items-center justify-between px-5 sm:px-12 pointer-events-none"
-          style={{ zIndex: 60 }}
-        >
-          <div className="flex items-center gap-2.5">
-            <span className="w-2 h-2 rounded-full bg-[#008CFF] shadow-[0_0_10px_#008CFF] animate-pulse" />
-            <span
-              ref={activeChapterLabelRef}
-              className="font-mono text-[10px] sm:text-xs tracking-[0.32em] uppercase text-[#008CFF] font-semibold"
-            >
-              <span className="hidden sm:inline">THE BRANDSHOOTS CORE // 3D REEL INSTALLATION</span>
-              <span className="sm:hidden">3D REELS // ARCHIVE</span>
-            </span>
-          </div>
-
-          {/* Chapter indicator pills */}
-          <div className="flex items-center gap-2 font-mono text-[11px] tracking-widest text-white/40">
-            <span ref={pill1Ref} className="transition-all duration-300">01</span>
-            <span>/</span>
-            <span ref={pill2Ref} className="transition-all duration-300">02</span>
-            <span>/</span>
-            <span ref={pill3Ref} className="transition-all duration-300">03</span>
-            <span>/</span>
-            <span ref={pill4Ref} className="transition-all duration-300">04</span>
-          </div>
         </div>
 
         {/* Top Progress Track Bar */}

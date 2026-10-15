@@ -1,6 +1,5 @@
 import { forwardRef } from 'react';
 import { motion } from 'framer-motion';
-import { FocusReveal } from './FocusReveal';
 
 interface BrandLogoOverlayProps {
   stage: 'hidden' | 'focus' | 'shutter' | 'snap' | 'locked' | 'expand';
@@ -11,7 +10,8 @@ interface BrandLogoOverlayProps {
 /**
  * BRAND LOGO OVERLAY:
  * - Pure unconstrained centerpiece using tight vector bounds (/Logo-Official-Tight.svg)
- * - Clean camera corner brackets hugging outside the logo letters
+ * - Sharp architectural border-radius (border-radius: 0)
+ * - Removed all corner brackets / blue viewfinder frames
  * - High performance, always mounted ref container for GSAP synchronization
  */
 export const BrandLogoOverlay = forwardRef<HTMLDivElement, BrandLogoOverlayProps>(({
@@ -20,7 +20,6 @@ export const BrandLogoOverlay = forwardRef<HTMLDivElement, BrandLogoOverlayProps
   className = ''
 }, ref) => {
   const isVisible = stage !== 'hidden';
-  const isLocked = stage === 'locked' || stage === 'snap' || stage === 'shutter';
 
   return (
     <div
@@ -38,22 +37,15 @@ export const BrandLogoOverlay = forwardRef<HTMLDivElement, BrandLogoOverlayProps
         transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
         className="relative flex flex-col items-center justify-center"
       >
-        {/* LOGO CONTAINER WITH EXACT CAMERA VIEWFINDER BRACKETS & FROSTED GLASS BACKDROP BLUR */}
-        <div className="relative inline-flex items-center justify-center px-6 sm:px-12 py-5 sm:py-8 rounded-2xl sm:rounded-3xl backdrop-blur-2xl bg-black/60 border border-white/10 shadow-[0_25px_70px_rgba(0,0,0,0.92)]">
+        {/* LOGO CONTAINER WITH SUBTLE EDITORIAL BORDER RADIUS */}
+        <div className="relative inline-flex items-center justify-center px-6 sm:px-12 py-5 sm:py-8 rounded-lg sm:rounded-xl backdrop-blur-2xl bg-black/75 border border-white/15 shadow-[0_25px_70px_rgba(0,0,0,0.95)]">
           {/* Subtle electric blue ambient aura behind the logo */}
           <div
-            className="absolute inset-0 rounded-2xl sm:rounded-3xl pointer-events-none -z-10"
+            className="absolute inset-0 rounded-lg sm:rounded-xl pointer-events-none -z-10"
             style={{
               background:
                 'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.16) 0%, rgba(0, 50, 140, 0.04) 60%, transparent 80%)',
             }}
-          />
-
-          {/* Cinema Camera Frame hugging the outside boundary */}
-          <FocusReveal
-            isFocusing={stage === 'focus'}
-            isLocked={isLocked}
-            stage={stage}
           />
 
           {/* The Exact Official BrandShoots Vector Letters */}

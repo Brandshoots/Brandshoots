@@ -4,13 +4,14 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowUpRight } from 'lucide-react';
 import { useCMSContent } from '../../lib/cms/useCMSContent';
+import { getClientSocialStats } from '../../data/clientSocialData';
 
 gsap.registerPlugin(ScrollTrigger);
 
 interface ClientItem {
   id: string;
   name: string;
-  category: string;
+  category?: string;
   logo: string;
   slug: string;
   scale?: string;
@@ -18,6 +19,7 @@ interface ClientItem {
 
 const CLIENTS_LIST: ClientItem[] = [
   { id: 'santhi-pipes', name: 'Santhi Pipes', category: 'Heavy Infrastructure', logo: '/clients/trimmed/Shanti Pipes.png', slug: 'santhi-pipes', scale: 'scale-105' },
+  { id: 'viswatuff-glass', name: 'Viswatuff Glass', category: 'Architectural Glass', logo: '/clients/trimmed/IMG_4537.PNG', slug: 'viswatuff-glass', scale: 'scale-105' },
   { id: 'bags-world', name: 'Bags World', category: 'Retail & Fashion', logo: '/clients/trimmed/Bags World Logo.PNG', slug: 'bags-world', scale: 'scale-115' },
   { id: 'aabharan-jewellers', name: 'Aabharan Jewellers', category: 'Luxury & Heritage', logo: '/clients/trimmed/Aabharan Logo.png', slug: 'aabharan-jewellers', scale: 'scale-105' },
   { id: 'fresh-fresh', name: 'Fresh & Fresh', category: 'Supermarket & FMCG', logo: '/clients/trimmed/Fresh and Fresh Logo.png', slug: 'fresh-and-fresh', scale: 'scale-95' },
@@ -37,9 +39,6 @@ const CLIENTS_LIST: ClientItem[] = [
 export const OurClientsSection: React.FC = () => {
   const navigate = useNavigate();
   const sectionRef = useRef<HTMLElement>(null);
-  const row1Ref = useRef<HTMLDivElement>(null);
-  const row2Ref = useRef<HTMLDivElement>(null);
-  const watermarkRef = useRef<HTMLDivElement>(null);
 
   const { clients } = useCMSContent();
 
@@ -48,104 +47,119 @@ export const OurClientsSection: React.FC = () => {
       ? clients.map((c) => ({
           id: c.id,
           name: c.name,
-          category: 'BrandShoots Partner',
           logo: c.logoUrl,
           slug: c.slug || c.id,
           scale: 'scale-105',
         }))
       : CLIENTS_LIST;
 
-  // Split clients into two continuous flowing rows
+  // Split 16 clients evenly into two 8-client sets
   const half = Math.ceil(activeClientsList.length / 2);
   const row1Clients = activeClientsList.slice(0, half);
-  const row2Clients = activeClientsList.slice(half).concat(activeClientsList.slice(0, 1));
+  const row2Clients = activeClientsList.slice(half);
+
+  // Repeat for seamless 50% translation across all screen resolutions
+  const marqueeRow1 = [...row1Clients, ...row1Clients, ...row1Clients, ...row1Clients];
+  const marqueeRow2 = [...row2Clients, ...row2Clients, ...row2Clients, ...row2Clients];
+
+  const headerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!sectionRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Scrubbed parallax linked to continuous scroll progression
-      if (row1Ref.current && row2Ref.current) {
-        gsap.to(row1Ref.current, {
-          x: -180,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: 'top bottom',
-            end: 'bottom top',
-            scrub: 1.2,
-          },
-        });
-
-        gsap.to(row2Ref.current, {
-          x: 180,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: 'top bottom',
-            end: 'bottom top',
-            scrub: 1.2,
-          },
-        });
-      }
-
-      if (watermarkRef.current) {
-        gsap.to(watermarkRef.current, {
-          x: -120,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: 'top bottom',
-            end: 'bottom top',
-            scrub: 2.0,
-          },
-        });
+      if (headerRef.current) {
+        gsap.fromTo(
+          headerRef.current.children,
+          { y: 32, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.85,
+            stagger: 0.15,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: headerRef.current,
+              start: 'top 85%',
+              toggleActions: 'play none none none',
+            },
+          }
+        );
       }
     }, sectionRef);
 
     return () => ctx.revert();
   }, []);
 
-  const renderClientCard = (item: ClientItem, key: string) => (
-    <div
-      key={key}
-      onClick={() => navigate(`/portfolio/${item.slug}`)}
-      className="group relative flex flex-col items-center gap-3 shrink-0 cursor-pointer select-none active:scale-95 transition-all duration-300"
-    >
-      {/* Premium Dark Glass Frame with Luminous Core */}
-      <div className="relative w-36 h-36 sm:w-40 sm:h-40 md:w-44 md:h-44 p-3 sm:p-3.5 rounded-2xl bg-[#090E17]/85 backdrop-blur-xl border border-white/15 shadow-[0_12px_32px_rgba(0,0,0,0.8)] flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:border-[#008CFF]/60 group-hover:shadow-[0_16px_40px_rgba(0,140,255,0.22)] overflow-hidden">
-        {/* Subtle top sheen */}
-        <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#008CFF]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        
-        {/* Clean white optical backdrop for client emblems */}
-        <div className="w-full h-full rounded-xl bg-white flex items-center justify-center p-3 shadow-sm transition-transform duration-300 group-hover:scale-[1.02]">
-          <img
-            src={encodeURI(item.logo)}
-            alt={item.name}
-            className={`w-full h-full object-contain select-none transition-all duration-500 filter grayscale-0 group-hover:grayscale group-hover:opacity-75 ${item.scale || 'scale-100'}`}
-            draggable={false}
-            loading="lazy"
-          />
+  const renderClientCard = (item: ClientItem, key: string) => {
+    const social = getClientSocialStats(item.id) || getClientSocialStats(item.slug);
+    const hasSocialCounts = Boolean(social?.followers && social?.posts);
+
+    return (
+      <div
+        key={key}
+        onClick={() => navigate('/portfolio')}
+        className="group relative flex flex-col items-center gap-3 shrink-0 cursor-pointer select-none active:scale-95 transition-all duration-300 mr-5 sm:mr-7 hover:-translate-y-1"
+      >
+        {/* Premium Dark Glass Frame with Luminous Core */}
+        <div className="relative w-36 h-36 sm:w-40 sm:h-40 md:w-44 md:h-44 p-3 sm:p-3.5 rounded-2xl bg-[#090E17]/85 backdrop-blur-xl border border-white/15 shadow-[0_12px_32px_rgba(0,0,0,0.8)] flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:border-[#008CFF]/60 group-hover:shadow-[0_16px_40px_rgba(0,140,255,0.22)] overflow-hidden">
+          {/* Subtle top sheen */}
+          <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#008CFF]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          
+          {/* Clean white optical backdrop for client emblems */}
+          <div className="w-full h-full rounded-xl bg-white flex items-center justify-center p-1.5 sm:p-2 shadow-sm transition-transform duration-300 group-hover:scale-[1.02] overflow-hidden">
+            <img
+              src={encodeURI(item.logo)}
+              alt={item.name}
+              className="w-full h-full object-contain select-none transition-all duration-300 filter grayscale-0 group-hover:grayscale group-hover:opacity-75"
+              draggable={false}
+              loading="lazy"
+              decoding="async"
+              onError={(e) => {
+                const target = e.currentTarget;
+                target.style.display = 'none';
+                const parent = target.parentElement;
+                if (parent && !parent.querySelector('.logo-fallback')) {
+                  const fallback = document.createElement('span');
+                  fallback.className = 'logo-fallback font-bold text-slate-800 text-xs sm:text-sm tracking-wide text-center px-1 uppercase select-none';
+                  fallback.innerText = item.name;
+                  parent.appendChild(fallback);
+                }
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Editorial Client Name & Social Meta */}
+        <div className="flex flex-col items-center text-center max-w-[170px] px-1">
+          <span className="text-xs sm:text-[13px] font-bold text-white/90 group-hover:text-[#008CFF] transition-colors duration-200 tracking-wide truncate w-full">
+            {item.name}
+          </span>
+          {hasSocialCounts && social?.instagramUrl ? (
+            <a
+              href={social.instagramUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="mt-0.5 text-[11px] sm:text-xs font-sans text-white/45 hover:text-[#008CFF] transition-colors tracking-tight text-center truncate max-w-full"
+            >
+              {social?.followers} Followers · {social?.posts} Posts
+            </a>
+          ) : hasSocialCounts && social ? (
+            <span className="mt-0.5 text-[11px] sm:text-xs font-sans text-white/45 tracking-tight text-center truncate max-w-full">
+              {social.followers} Followers · {social.posts} Posts
+            </span>
+          ) : null}
         </div>
       </div>
-
-      {/* Editorial Name & Category Metadata */}
-      <div className="flex flex-col items-center text-center max-w-[160px]">
-        <span className="text-xs sm:text-[13px] font-bold text-white/90 group-hover:text-[#008CFF] transition-colors duration-200 tracking-wide truncate w-full">
-          {item.name}
-        </span>
-        <span className="text-[10px] font-mono tracking-[0.18em] uppercase text-white/45 group-hover:text-white/70 transition-colors duration-200">
-          {item.category}
-        </span>
-      </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <section
       id="clients"
       ref={sectionRef}
-      className="relative w-full py-16 sm:py-20 lg:py-24 bg-[#04060A] text-white overflow-hidden select-none"
+      className="relative w-full pt-10 sm:pt-14 lg:pt-16 pb-14 sm:pb-18 lg:pb-20 bg-[#04060A] text-white overflow-hidden select-none"
     >
       {/* Background Architectural Atmosphere */}
       <div className="absolute inset-0 pointer-events-none z-0">
@@ -157,35 +171,28 @@ export const OurClientsSection: React.FC = () => {
             filter: 'blur(90px)',
           }}
         />
-        <div className="absolute inset-0 opacity-[0.02] bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:4rem_4rem]" />
+        <div
+          className="absolute inset-0 opacity-[0.02] bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:4rem_4rem]"
+          style={{
+            maskImage:
+              'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
+            WebkitMaskImage:
+              'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
+          }}
+        />
       </div>
 
-      {/* Depth Watermark Background Layer */}
-      <div
-        ref={watermarkRef}
-        className="absolute top-1/3 left-0 w-full whitespace-nowrap pointer-events-none select-none z-0 opacity-[0.025]"
-      >
-        <span className="font-display font-black text-[9vw] lg:text-[8vw] tracking-[-0.03em] uppercase text-white">
-          TRUSTED BY INDUSTRY LEADERS • CATEGORY DEFINING BRANDS •
-        </span>
-      </div>
 
       {/* ======================================================== */}
       {/* TOP: EDITORIAL HEADER                                    */}
       {/* ======================================================== */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-center text-center px-6 sm:px-12 mb-10 sm:mb-14">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
-          <span className="font-mono text-[10px] xs:text-[11px] sm:text-xs tracking-[0.3em] uppercase text-[#008CFF] font-semibold">
-            02 // CLIENTS & COMMERCIAL PARTNERS
-          </span>
-        </div>
+      <div
+        ref={headerRef}
+        className="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-center text-center px-6 sm:px-12 mb-7 sm:mb-9"
+      >
         <h2 className="font-sans font-black uppercase tracking-[-0.038em] text-3xl xs:text-4xl sm:text-5xl md:text-6xl leading-[0.92] text-white">
           OUR CLIENTS<span className="text-[#008CFF]">.</span>
         </h2>
-        <p className="mt-3 sm:mt-4 text-xs sm:text-sm md:text-base text-white/60 max-w-xl font-normal leading-relaxed">
-          Architecting visual authority and market command for category leaders across infrastructure, retail, luxury, and digital commerce.
-        </p>
 
         {/* Dedicated "EXPLORE ALL PROJECTS" CTA */}
         <button
@@ -199,36 +206,63 @@ export const OurClientsSection: React.FC = () => {
       </div>
 
       {/* ======================================================== */}
-      {/* CONTINUOUS PARALLAX CLIENT SHOWCASE STREAM               */}
+      {/* 24/7 CONTINUOUS AUTO-SCROLLING CLIENT SHOWCASE STREAMS   */}
       {/* ======================================================== */}
-      <div className="relative z-10 w-full flex flex-col gap-8 sm:gap-10 overflow-hidden">
-        {/* Row 1: Leftward Parallax Flow */}
-        <div
-          ref={row1Ref}
-          className="flex items-center gap-6 sm:gap-8 will-change-transform pl-4"
-        >
-          {row1Clients.map((client, idx) =>
-            renderClientCard(client, `r1-a-${client.id}-${idx}`)
-          )}
-          {row1Clients.map((client, idx) =>
-            renderClientCard(client, `r1-b-${client.id}-${idx}`)
-          )}
+      <div
+        className="relative z-10 w-full flex flex-col gap-6 sm:gap-8 overflow-hidden py-2"
+        style={{
+          maskImage: 'linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)',
+        }}
+      >
+        {/* Row 1: Continuous Stream Left */}
+        <div className="w-full overflow-hidden flex select-none">
+          <div className="flex shrink-0 items-center animate-clients-marquee-left will-change-transform py-2 hover:[animation-play-state:paused]">
+            {marqueeRow1.map((client, idx) =>
+              renderClientCard(client, `r1-${client.id}-${idx}`)
+            )}
+          </div>
         </div>
 
-        {/* Row 2: Rightward Parallax Flow */}
-        <div
-          ref={row2Ref}
-          className="flex items-center gap-6 sm:gap-8 will-change-transform pr-4"
-          style={{ transform: 'translateX(-120px)' }}
-        >
-          {row2Clients.map((client, idx) =>
-            renderClientCard(client, `r2-a-${client.id}-${idx}`)
-          )}
-          {row2Clients.map((client, idx) =>
-            renderClientCard(client, `r2-b-${client.id}-${idx}`)
-          )}
+        {/* Row 2: Continuous Stream Right */}
+        <div className="w-full overflow-hidden flex select-none">
+          <div className="flex shrink-0 items-center animate-clients-marquee-right will-change-transform py-2 hover:[animation-play-state:paused]">
+            {marqueeRow2.map((client, idx) =>
+              renderClientCard(client, `r2-${client.id}-${idx}`)
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Embedded High-Performance GPU Infinite Marquee Keyframes */}
+      <style>{`
+        @keyframes clientsStreamLeft {
+          0% {
+            transform: translate3d(0, 0, 0);
+          }
+          100% {
+            transform: translate3d(-50%, 0, 0);
+          }
+        }
+        @keyframes clientsStreamRight {
+          0% {
+            transform: translate3d(-50%, 0, 0);
+          }
+          100% {
+            transform: translate3d(0, 0, 0);
+          }
+        }
+        .animate-clients-marquee-left {
+          animation: clientsStreamLeft 40s linear infinite;
+        }
+        .animate-clients-marquee-right {
+          animation: clientsStreamRight 44s linear infinite;
+        }
+        .animate-clients-marquee-left:hover,
+        .animate-clients-marquee-right:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
     </section>
   );
 };

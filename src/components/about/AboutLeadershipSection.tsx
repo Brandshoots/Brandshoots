@@ -96,9 +96,21 @@ export const AboutLeadershipSection: React.FC = () => {
     return () => ctx.revert();
   }, []);
 
+  const cardRectRef = useRef<DOMRect | null>(null);
+
+  const handleCardMouseEnter = () => {
+    if (cardRef.current) {
+      cardRectRef.current = cardRef.current.getBoundingClientRect();
+    }
+  };
+
   const handleCardMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (window.innerWidth < 1024 || !cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
+    let rect = cardRectRef.current;
+    if (!rect) {
+      rect = cardRef.current.getBoundingClientRect();
+      cardRectRef.current = rect;
+    }
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
     gsap.to(cardRef.current, {
@@ -107,10 +119,12 @@ export const AboutLeadershipSection: React.FC = () => {
       scale: 1.02,
       duration: 0.4,
       ease: 'power2.out',
+      overwrite: 'auto',
     });
   };
 
   const handleCardMouseLeave = () => {
+    cardRectRef.current = null;
     if (!cardRef.current) return;
     gsap.to(cardRef.current, {
       rotateY: 0,
@@ -118,6 +132,7 @@ export const AboutLeadershipSection: React.FC = () => {
       scale: 1.0,
       duration: 0.6,
       ease: 'power2.out',
+      overwrite: 'auto',
     });
   };
 
@@ -148,6 +163,7 @@ export const AboutLeadershipSection: React.FC = () => {
           <div className="lg:col-span-5 flex justify-center lg:justify-end order-1">
             <div
               ref={cardRef}
+              onMouseEnter={handleCardMouseEnter}
               onMouseMove={handleCardMouseMove}
               onMouseLeave={handleCardMouseLeave}
               className="relative w-full max-w-[340px] sm:max-w-[400px] lg:max-w-[450px] aspect-[4/5] will-change-transform transition-shadow duration-300 cursor-pointer"
@@ -163,6 +179,8 @@ export const AboutLeadershipSection: React.FC = () => {
                   ref={portraitImgRef}
                   src={leadership?.founderImage || '/founder.png'}
                   alt={`${leadership?.founderName || 'Durgarao Vallepu'} — ${leadership?.founderRole || 'Founder'}`}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover object-[center_20%] select-none will-change-transform"
                 />
 

@@ -26,7 +26,7 @@ export const HeroCinematicBackground: React.FC<HeroCinematicBackgroundProps> = (
       45,
       window.innerWidth / window.innerHeight,
       0.1,
-      100
+      120
     );
     camera.position.z = 22;
 
@@ -36,67 +36,144 @@ export const HeroCinematicBackground: React.FC<HeroCinematicBackgroundProps> = (
       antialias: true,
       powerPreference: 'high-performance',
     });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     // -------------------------------------------------------------------------
-    // 2. DUST PARTICLES TEXTURE (CIRCULAR SOFT GAUSSIAN MOTE)
+    // 2. PROCEDURAL PROCEDURAL COSMIC GLOW TEXTURES
     // -------------------------------------------------------------------------
-    const createDustTexture = () => {
+    // A. Cosmic Glowing Mote Texture (Electric Cyan / Royal Blue Halo)
+    const createCosmicGlowTexture = () => {
       const texCanvas = document.createElement('canvas');
-      texCanvas.width = 64;
-      texCanvas.height = 64;
+      texCanvas.width = 128;
+      texCanvas.height = 128;
       const ctx = texCanvas.getContext('2d');
       if (ctx) {
-        const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-        grad.addColorStop(0, 'rgba(255, 255, 255, 0.85)');
-        grad.addColorStop(0.25, 'rgba(120, 195, 255, 0.45)');
-        grad.addColorStop(0.6, 'rgba(0, 140, 255, 0.12)');
+        const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+        grad.addColorStop(0, 'rgba(255, 255, 255, 1.0)');       // Pure brilliant star core
+        grad.addColorStop(0.12, 'rgba(180, 240, 255, 0.95)');   // Intense electric cyan
+        grad.addColorStop(0.32, 'rgba(0, 160, 255, 0.65)');     // Brand electric blue
+        grad.addColorStop(0.65, 'rgba(0, 70, 220, 0.22)');      // Deep cosmic sapphire
         grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
         ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, 64, 64);
+        ctx.fillRect(0, 0, 128, 128);
       }
       return new THREE.CanvasTexture(texCanvas);
     };
 
-    const dustTexture = createDustTexture();
+    // B. Large Soft Cinematic Bokeh Orb Texture
+    const createBokehOrbTexture = () => {
+      const texCanvas = document.createElement('canvas');
+      texCanvas.width = 128;
+      texCanvas.height = 128;
+      const ctx = texCanvas.getContext('2d');
+      if (ctx) {
+        const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+        grad.addColorStop(0, 'rgba(140, 220, 255, 0.55)');
+        grad.addColorStop(0.4, 'rgba(0, 140, 255, 0.28)');
+        grad.addColorStop(0.75, 'rgba(0, 50, 180, 0.08)');
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 128, 128);
+      }
+      return new THREE.CanvasTexture(texCanvas);
+    };
+
+    const cosmicGlowTexture = createCosmicGlowTexture();
+    const bokehOrbTexture = createBokehOrbTexture();
 
     // -------------------------------------------------------------------------
-    // 3. 3D FLOATING DUST PARTICLES (DEPTH LAYERS)
+    // 3. LAYER 1: VIBRANT COSMIC GLOWING DUST MOTES (Refined balanced density)
     // -------------------------------------------------------------------------
-    const particleCount = 130;
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(particleCount * 3);
-    const driftSpeeds = new Float32Array(particleCount * 3);
+    const countMotes = 140;
+    const geomMotes = new THREE.BufferGeometry();
+    const posMotes = new Float32Array(countMotes * 3);
+    const speedMotes = new Float32Array(countMotes * 3);
 
-    for (let i = 0; i < particleCount; i++) {
-      // Spatial distribution across frustum width/height/depth
-      positions[i * 3] = (Math.random() - 0.5) * 36;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 22;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 30 - 2; // depth layers from z: -17 to +13
+    for (let i = 0; i < countMotes; i++) {
+      posMotes[i * 3] = (Math.random() - 0.5) * 52;
+      posMotes[i * 3 + 1] = (Math.random() - 0.5) * 32;
+      posMotes[i * 3 + 2] = (Math.random() - 0.5) * 36 - 1;
 
-      // Organic subtle drift speeds
-      driftSpeeds[i * 3] = (Math.random() - 0.5) * 0.0015;
-      driftSpeeds[i * 3 + 1] = Math.random() * 0.0025 + 0.001;
-      driftSpeeds[i * 3 + 2] = (Math.random() - 0.5) * 0.001;
+      speedMotes[i * 3] = (Math.random() - 0.5) * 0.0022;
+      speedMotes[i * 3 + 1] = Math.random() * 0.0035 + 0.0015;
+      speedMotes[i * 3 + 2] = (Math.random() - 0.5) * 0.0018;
     }
+    geomMotes.setAttribute('position', new THREE.BufferAttribute(posMotes, 3));
 
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-    const material = new THREE.PointsMaterial({
-      size: 0.18,
-      map: dustTexture,
+    const matMotes = new THREE.PointsMaterial({
+      size: 0.42,
+      map: cosmicGlowTexture,
       transparent: true,
-      opacity: 0.28,
+      opacity: 0.58,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
-
-    const particleSystem = new THREE.Points(geometry, material);
-    scene.add(particleSystem);
+    const systemMotes = new THREE.Points(geomMotes, matMotes);
+    scene.add(systemMotes);
 
     // -------------------------------------------------------------------------
-    // 4. MOUSE PARALLAX & ANIMATION LOOP (GENTLE 5-10PX DAMPING)
+    // 4. LAYER 2: SHIMMERING COSMIC STAR-DUST CONSTELLATION (Subtle cosmic dusting)
+    // -------------------------------------------------------------------------
+    const countStars = 220;
+    const geomStars = new THREE.BufferGeometry();
+    const posStars = new Float32Array(countStars * 3);
+    const speedStars = new Float32Array(countStars * 3);
+
+    for (let i = 0; i < countStars; i++) {
+      posStars[i * 3] = (Math.random() - 0.5) * 60;
+      posStars[i * 3 + 1] = (Math.random() - 0.5) * 38;
+      posStars[i * 3 + 2] = (Math.random() - 0.5) * 44 - 5;
+
+      speedStars[i * 3] = (Math.random() - 0.5) * 0.0012;
+      speedStars[i * 3 + 1] = Math.random() * 0.002 + 0.0008;
+      speedStars[i * 3 + 2] = (Math.random() - 0.5) * 0.0012;
+    }
+    geomStars.setAttribute('position', new THREE.BufferAttribute(posStars, 3));
+
+    const matStars = new THREE.PointsMaterial({
+      size: 0.22,
+      map: cosmicGlowTexture,
+      transparent: true,
+      opacity: 0.60,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const systemStars = new THREE.Points(geomStars, matStars);
+    scene.add(systemStars);
+
+    // -------------------------------------------------------------------------
+    // 5. LAYER 3: FOREGROUND FLOATING CINEMATIC BOKEH ORBS (Gentle accents)
+    // -------------------------------------------------------------------------
+    const countBokeh = 22;
+    const geomBokeh = new THREE.BufferGeometry();
+    const posBokeh = new Float32Array(countBokeh * 3);
+    const speedBokeh = new Float32Array(countBokeh * 3);
+
+    for (let i = 0; i < countBokeh; i++) {
+      posBokeh[i * 3] = (Math.random() - 0.5) * 44;
+      posBokeh[i * 3 + 1] = (Math.random() - 0.5) * 28;
+      posBokeh[i * 3 + 2] = Math.random() * 12 + 4; // close to camera for dreamy bokeh blur
+
+      speedBokeh[i * 3] = (Math.random() - 0.5) * 0.0015;
+      speedBokeh[i * 3 + 1] = Math.random() * 0.002 + 0.0008;
+      speedBokeh[i * 3 + 2] = (Math.random() - 0.5) * 0.001;
+    }
+    geomBokeh.setAttribute('position', new THREE.BufferAttribute(posBokeh, 3));
+
+    const matBokeh = new THREE.PointsMaterial({
+      size: 1.15,
+      map: bokehOrbTexture,
+      transparent: true,
+      opacity: 0.30,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const systemBokeh = new THREE.Points(geomBokeh, matBokeh);
+    scene.add(systemBokeh);
+
+    // -------------------------------------------------------------------------
+    // 6. MOUSE PARALLAX & ANIMATION LOOP
     // -------------------------------------------------------------------------
     let mouseX = 0;
     let mouseY = 0;
@@ -122,39 +199,81 @@ export const HeroCinematicBackground: React.FC<HeroCinematicBackgroundProps> = (
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     window.addEventListener('resize', handleResize);
 
+    let isVisible = true;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const wasVisible = isVisible;
+          isVisible = entry.isIntersecting;
+          if (isVisible && !wasVisible) {
+            clock.start();
+            cancelAnimationFrame(animId);
+            animId = requestAnimationFrame(animate);
+          } else if (!isVisible && wasVisible) {
+            cancelAnimationFrame(animId);
+          }
+        });
+      },
+      { threshold: 0.05 }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
     const animate = () => {
+      if (!isVisible) return;
       const elapsedTime = clock.getElapsedTime();
 
-      // Gentle camera mouse lerp (5–10px equivalent movement in world space)
-      targetX += (mouseX * 0.38 - targetX) * 0.045;
-      targetY += (-mouseY * 0.24 - targetY) * 0.045;
+      // Smooth camera parallax
+      targetX += (mouseX * 0.45 - targetX) * 0.045;
+      targetY += (-mouseY * 0.3 - targetY) * 0.045;
       camera.position.x = targetX;
       camera.position.y = targetY;
       camera.lookAt(0, 0, 0);
 
-      // DOM Parallax elements lerp (strict 5–10px bounds)
+      // DOM Parallax
       if (parallaxGroupRef.current) {
-        const domPxX = targetX * 18;
-        const domPxY = -targetY * 18;
+        const domPxX = targetX * 22;
+        const domPxY = -targetY * 22;
         parallaxGroupRef.current.style.transform = `translate3d(${domPxX}px, ${domPxY}px, 0)`;
       }
 
-      // Organic dust motes drift
-      const posAttr = geometry.attributes.position as THREE.BufferAttribute;
-      const posArray = posAttr.array as Float32Array;
+      // 1. Drift Motes
+      const arrMotes = (geomMotes.attributes.position as THREE.BufferAttribute).array as Float32Array;
+      for (let i = 0; i < countMotes; i++) {
+        arrMotes[i * 3 + 1] += Math.sin(elapsedTime * 0.45 + i * 0.25) * 0.0028 + speedMotes[i * 3 + 1];
+        arrMotes[i * 3] += Math.cos(elapsedTime * 0.35 + i * 0.4) * 0.0022 + speedMotes[i * 3];
 
-      for (let i = 0; i < particleCount; i++) {
-        posArray[i * 3 + 1] +=
-          Math.sin(elapsedTime * 0.4 + i * 0.3) * 0.002 + driftSpeeds[i * 3 + 1];
-        posArray[i * 3] +=
-          Math.cos(elapsedTime * 0.3 + i * 0.5) * 0.0018 + driftSpeeds[i * 3];
-
-        // Wrap around smoothly when ascending out of frustum
-        if (posArray[i * 3 + 1] > 11) {
-          posArray[i * 3 + 1] = -11;
-        }
+        if (arrMotes[i * 3 + 1] > 13) arrMotes[i * 3 + 1] = -13;
+        if (arrMotes[i * 3] > 20) arrMotes[i * 3] = -20;
+        if (arrMotes[i * 3] < -20) arrMotes[i * 3] = 20;
       }
-      posAttr.needsUpdate = true;
+      geomMotes.attributes.position.needsUpdate = true;
+
+      // 2. Drift Stars
+      const arrStars = (geomStars.attributes.position as THREE.BufferAttribute).array as Float32Array;
+      for (let i = 0; i < countStars; i++) {
+        arrStars[i * 3 + 1] += Math.sin(elapsedTime * 0.3 + i * 0.15) * 0.0016 + speedStars[i * 3 + 1];
+        arrStars[i * 3] += Math.cos(elapsedTime * 0.25 + i * 0.2) * 0.0014 + speedStars[i * 3];
+
+        if (arrStars[i * 3 + 1] > 15) arrStars[i * 3 + 1] = -15;
+      }
+      geomStars.attributes.position.needsUpdate = true;
+
+      // 3. Drift Bokeh Orbs
+      const arrBokeh = (geomBokeh.attributes.position as THREE.BufferAttribute).array as Float32Array;
+      for (let i = 0; i < countBokeh; i++) {
+        arrBokeh[i * 3 + 1] += Math.sin(elapsedTime * 0.2 + i * 0.5) * 0.003 + speedBokeh[i * 3 + 1];
+        arrBokeh[i * 3] += Math.cos(elapsedTime * 0.2 + i * 0.3) * 0.0025 + speedBokeh[i * 3];
+
+        if (arrBokeh[i * 3 + 1] > 12) arrBokeh[i * 3 + 1] = -12;
+      }
+      geomBokeh.attributes.position.needsUpdate = true;
+
+      // Subtle twinkling oscillation on motes opacity
+      matMotes.opacity = 0.50 + Math.sin(elapsedTime * 1.5) * 0.08;
 
       renderer.render(scene, camera);
       animId = requestAnimationFrame(animate);
@@ -163,31 +282,37 @@ export const HeroCinematicBackground: React.FC<HeroCinematicBackgroundProps> = (
     animId = requestAnimationFrame(animate);
 
     // -------------------------------------------------------------------------
-    // 5. GSAP LIGHT SWEEP ACROSS REEL WALL (SUBTLE STUDIO LIGHT SHEEN)
+    // 7. GSAP AMBIENT COSMIC LIGHT SWEEP ACROSS REEL WALL
     // -------------------------------------------------------------------------
     let sweepCtx: gsap.Context | undefined;
     if (lightSweepRef.current) {
       sweepCtx = gsap.context(() => {
-        const tl = gsap.timeline({ repeat: -1, repeatDelay: 8.5, delay: 2.0 });
+        const tl = gsap.timeline({ repeat: -1, repeatDelay: 6.5, delay: 1.5 });
         tl.set(lightSweepRef.current, { x: '-60vw', opacity: 0 })
-          .to(lightSweepRef.current, { opacity: 0.12, duration: 0.8, ease: 'sine.in' })
+          .to(lightSweepRef.current, { opacity: 0.18, duration: 1.0, ease: 'sine.in' })
           .to(
             lightSweepRef.current,
-            { x: '120vw', duration: 3.4, ease: 'power1.inOut' },
+            { x: '120vw', duration: 3.8, ease: 'power1.inOut' },
             '-=0.4'
           )
-          .to(lightSweepRef.current, { opacity: 0, duration: 0.7, ease: 'sine.out' }, '-=0.7');
+          .to(lightSweepRef.current, { opacity: 0, duration: 0.8, ease: 'sine.out' }, '-=0.8');
       }, containerRef);
     }
 
     return () => {
+      observer.disconnect();
       cancelAnimationFrame(animId);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('resize', handleResize);
       sweepCtx?.revert();
-      dustTexture.dispose();
-      geometry.dispose();
-      material.dispose();
+      cosmicGlowTexture.dispose();
+      bokehOrbTexture.dispose();
+      geomMotes.dispose();
+      matMotes.dispose();
+      geomStars.dispose();
+      matStars.dispose();
+      geomBokeh.dispose();
+      matBokeh.dispose();
       renderer.dispose();
     };
   }, []);
@@ -197,73 +322,74 @@ export const HeroCinematicBackground: React.FC<HeroCinematicBackgroundProps> = (
       ref={containerRef}
       className={`absolute inset-0 pointer-events-none select-none overflow-hidden z-0 ${className}`}
     >
-      {/* 1. THREE.JS FLOATING 3D DUST MOTE PARTICLES CANVAS */}
+      {/* 1. THREE.JS 3D COSMIC GLOWING DUST MOTE PARTICLES CANVAS */}
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
 
-      {/* 2. PARALLAX-RESPONSIVE ATMOSPHERIC LAYERS */}
+      {/* 2. PARALLAX-RESPONSIVE VOLUMETRIC COSMIC NEBULA LAYERS */}
       <div ref={parallaxGroupRef} className="absolute inset-0 will-change-transform">
-        {/* Soft Electric-Blue Atmospheric Glow Behind Center of Reel Wall */}
+        {/* Core Volumetric Cosmic Electric-Blue & Cyan Nebula Aura (Grand, Expansive Atmosphere) */}
         <div
-          className="absolute top-[52%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[75vw] max-w-[850px] h-[45vh] max-h-[460px] pointer-events-none opacity-85"
+          className="absolute top-[48%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[125vw] max-w-[1700px] h-[80vh] max-h-[850px] pointer-events-none"
           style={{
             background:
-              'radial-gradient(ellipse 65% 55% at 50% 50%, rgba(0, 140, 255, 0.15) 0%, rgba(0, 100, 230, 0.06) 40%, rgba(0, 50, 160, 0.015) 65%, transparent 80%)',
-            filter: 'blur(54px)',
+              'radial-gradient(ellipse 80% 70% at 50% 50%, rgba(0, 195, 255, 0.28) 0%, rgba(0, 120, 255, 0.18) 35%, rgba(10, 30, 140, 0.06) 65%, transparent 85%)',
+            filter: 'blur(75px)',
           }}
         />
 
-        {/* Very Thin, Elegant Blue Curved Arc Behind Title */}
+        {/* Secondary Radiant Cosmic Cyan Starburst Aura (Behind Center of BRANDSHOOTS Logo and Navbar) */}
+        <div
+          className="absolute top-[18vh] sm:top-[20vh] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[1300px] h-[42vh] max-h-[400px] pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(ellipse 75% 55% at 50% 45%, rgba(120, 225, 255, 0.24) 0%, rgba(0, 150, 255, 0.12) 42%, transparent 75%)',
+            filter: 'blur(55px)',
+          }}
+        />
+
+        {/* Grand Curved Celestial Arc Behind Title and Extending Up Behind Navbar */}
         <svg
-          className="absolute top-[2.5vh] sm:top-[3vh] left-1/2 -translate-x-1/2 w-[86vw] max-w-[1100px] h-[20vh] max-h-[180px] pointer-events-none overflow-visible opacity-55"
+          className="absolute top-[1vh] sm:top-[1.5vh] left-1/2 -translate-x-1/2 w-[98vw] max-w-[1550px] h-[28vh] max-h-[280px] pointer-events-none overflow-visible opacity-90"
           viewBox="0 0 1100 200"
           fill="none"
         >
           <path
-            d="M 60 170 C 350 70, 750 70, 1040 170"
+            d="M 20 185 C 320 40, 780 40, 1080 185"
             stroke="url(#cinematicTitleArc)"
-            strokeWidth="1.2"
+            strokeWidth="1.8"
             strokeLinecap="round"
           />
           <defs>
             <linearGradient id="cinematicTitleArc" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#008CFF" stopOpacity="0" />
-              <stop offset="25%" stopColor="#008CFF" stopOpacity="0.45" />
-              <stop offset="50%" stopColor="#80C8FF" stopOpacity="0.85" />
-              <stop offset="75%" stopColor="#008CFF" stopOpacity="0.45" />
+              <stop offset="20%" stopColor="#008CFF" stopOpacity="0.65" />
+              <stop offset="50%" stopColor="#A0E5FF" stopOpacity="1" />
+              <stop offset="80%" stopColor="#008CFF" stopOpacity="0.65" />
               <stop offset="100%" stopColor="#008CFF" stopOpacity="0" />
             </linearGradient>
           </defs>
         </svg>
 
-        {/* Very Faint Blue Floor Plane / Reflection Beneath Reel Wall */}
+        {/* Luminous Cosmic Floor Reflection Beneath Reel Wall */}
         <div
-          className="absolute bottom-[4vh] sm:bottom-[5vh] left-1/2 -translate-x-1/2 w-[85vw] max-w-[1250px] h-[160px] sm:h-[190px] pointer-events-none"
+          className="absolute bottom-[2vh] sm:bottom-[3vh] left-1/2 -translate-x-1/2 w-[98vw] max-w-[1600px] h-[250px] sm:h-[320px] pointer-events-none"
           style={{
             background:
-              'radial-gradient(ellipse 55% 45% at 50% 50%, rgba(0, 140, 255, 0.08) 0%, rgba(0, 80, 200, 0.025) 45%, transparent 75%)',
-            filter: 'blur(30px)',
-            transform: 'rotateX(66deg)',
+              'radial-gradient(ellipse 65% 55% at 50% 50%, rgba(0, 175, 255, 0.18) 0%, rgba(0, 95, 230, 0.07) 45%, transparent 80%)',
+            filter: 'blur(45px)',
+            transform: 'rotateX(68deg)',
             transformOrigin: 'bottom center',
-          }}
-        />
-
-        {/* Subtle Floor Ground Horizon Accent */}
-        <div
-          className="absolute bottom-[13vh] sm:bottom-[14vh] left-1/2 -translate-x-1/2 w-[60vw] max-w-[850px] h-[1px] pointer-events-none opacity-40"
-          style={{
-            background:
-              'linear-gradient(90deg, transparent 0%, rgba(0, 140, 255, 0.35) 50%, transparent 100%)',
           }}
         />
       </div>
 
-      {/* 3. EXTREMELY SUBTLE GSAP BLUE LIGHT SWEEP ACROSS REEL WALL */}
+      {/* 3. CINEMATIC AMBIENT LIGHT SWEEP ACROSS REEL WALL */}
       <div
         ref={lightSweepRef}
-        className="absolute top-[35%] bottom-[30%] w-[38vw] max-w-[500px] pointer-events-none z-10 opacity-0"
+        className="absolute top-[30%] bottom-[25%] w-[42vw] max-w-[550px] pointer-events-none z-10 opacity-0"
         style={{
           background:
-            'linear-gradient(105deg, transparent 0%, rgba(0, 140, 255, 0.03) 25%, rgba(140, 215, 255, 0.09) 50%, rgba(0, 140, 255, 0.03) 75%, transparent 100%)',
+            'linear-gradient(105deg, transparent 0%, rgba(0, 160, 255, 0.05) 25%, rgba(160, 230, 255, 0.15) 50%, rgba(0, 160, 255, 0.05) 75%, transparent 100%)',
           transform: 'skewX(-22deg)',
           mixBlendMode: 'screen',
         }}

@@ -1,61 +1,17 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
+import { useCMSContent } from '../../lib/cms/useCMSContent';
+import { INITIAL_HERO_REELS } from '../../lib/cms/seedData';
+import { CMSHeroReel } from '../../types/cms';
 
 export interface ReelWall3DProps {
   onLoaded?: () => void;
+  isPreloaderActive?: boolean;
 }
-
-// 10 Real BrandShoots Video Reels with their verified posters
-const REEL_VIDEOS = [
-  {
-    src: '/reels/wearebrandshoots_1777444216_3885805244420742638_77785749886.mp4',
-    poster: '/reels/posters/wearebrandshoots_1777444216_3885805244420742638_77785749886.jpg'
-  },
-  {
-    src: '/reels/wearebrandshoots_1786454245_3961387117295433628_77785749886.mp4',
-    poster: '/reels/posters/wearebrandshoots_1786454245_3961387117295433628_77785749886.jpg'
-  },
-  {
-    src: '/reels/viswatuff.glass_rjy_1791174653_4000984496274606409_78432309239.mp4',
-    poster: '/reels/posters/viswatuff.glass_rjy_1791174653_4000984496274606409_78432309239.jpg'
-  },
-  {
-    src: '/reels/wearebrandshoots_1788094941_3975150238988110104_77785749886.mp4',
-    poster: '/reels/posters/wearebrandshoots_1788094941_3975150238988110104_77785749886.jpg'
-  },
-  {
-    src: '/reels/santhi.pipes_rjy_1783494112_3936556116926232206_48644092133.mp4',
-    poster: '/reels/posters/santhi.pipes_rjy_1783494112_3936556116926232206_48644092133.jpg'
-  },
-  {
-    src: '/reels/wearebrandshoots_1789108387_3983651808436403394_77785749886.mp4',
-    poster: '/reels/posters/wearebrandshoots_1789108387_3983651808436403394_77785749886.jpg'
-  },
-  {
-    src: '/reels/wearebrandshoots_1790170837_3992564060770112832_77785749886.mp4',
-    poster: '/reels/posters/wearebrandshoots_1790170837_3992564060770112832_77785749886.jpg'
-  },
-  {
-    src: '/reels/wearebrandshoots_1786854627_3964745654666992928_77785749886.mp4',
-    poster: '/reels/posters/wearebrandshoots_1786854627_3964745654666992928_77785749886.jpg'
-  },
-  {
-    src: '/reels/wearebrandshoots_1789541302_3987282906831722378_77785749886.mp4',
-    poster: '/reels/posters/wearebrandshoots_1789541302_3987282906831722378_77785749886.jpg'
-  },
-  {
-    src: '/reels/wearebrandshoots_1787252706_3968084628303865353_77785749886.mp4',
-    poster: '/reels/posters/wearebrandshoots_1787252706_3968084628303865353_77785749886.jpg'
-  }
-];
 
 // 14 slots for a seamless 360-degree cylinder
 const TOTAL_SLOTS = 14;
-const CYLINDER_ITEMS = Array.from({ length: TOTAL_SLOTS }, (_, i) => ({
-  ...REEL_VIDEOS[i % REEL_VIDEOS.length],
-  index: i
-}));
 
-const HeroCylinderVideo: React.FC<{ src: string; poster: string }> = React.memo(({ src, poster }) => {
+const HeroCylinderVideo: React.FC<{ src: string; poster?: string }> = React.memo(({ src, poster }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -115,6 +71,25 @@ HeroCylinderVideo.displayName = 'HeroCylinderVideo';
 export const ReelWall3D: React.FC<ReelWall3DProps> = ({ onLoaded }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const rotGroupRef = useRef<HTMLDivElement>(null);
+
+  // Read live CMS reels synced across tabs & Firebase
+  const { heroReels } = useCMSContent();
+
+  const activeReels: CMSHeroReel[] = useMemo(() => {
+    if (heroReels && heroReels.length > 0) {
+      const visible = heroReels.filter((r) => r.visible !== false);
+      if (visible.length > 0) return visible;
+    }
+    return INITIAL_HERO_REELS;
+  }, [heroReels]);
+
+  // Seamless 14-slot cylinder arrangement
+  const cylinderItems = useMemo(() => {
+    return Array.from({ length: TOTAL_SLOTS }, (_, i) => ({
+      ...activeReels[i % activeReels.length],
+      slotIndex: i,
+    }));
+  }, [activeReels]);
 
   useEffect(() => {
     if (onLoaded) {
@@ -181,7 +156,7 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({ onLoaded }) => {
           WebkitMaskImage:
             'linear-gradient(90deg, transparent 0%, black 5%, black 95%, transparent 100%)',
           maskImage:
-            'linear-gradient(90deg, transparent 0%, black 5%, black 95%, transparent 100%)'
+            'linear-gradient(90deg, transparent 0%, black 5%, black 95%, transparent 100%)',
         }}
       >
         <div
@@ -191,16 +166,16 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({ onLoaded }) => {
             display: 'grid',
             placeSelf: 'center',
             transformStyle: 'preserve-3d',
-            willChange: 'transform'
+            willChange: 'transform',
           }}
         >
-          {CYLINDER_ITEMS.map((item) => (
+          {cylinderItems.map((item) => (
             <div
-              key={item.index}
+              key={`${item.id}-${item.slotIndex}-${item.src}`}
               className="cylinder-card group"
               style={{
-                ['--i' as string]: item.index,
-                ['--n' as string]: TOTAL_SLOTS
+                ['--i' as string]: item.slotIndex,
+                ['--n' as string]: TOTAL_SLOTS,
               }}
             >
               <div className="relative w-full h-full rounded-[16px] overflow-hidden bg-[#07090E] border border-white/10 ring-1 ring-black/80 shadow-[0_16px_50px_rgba(0,0,0,0.95)]">
@@ -216,7 +191,7 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({ onLoaded }) => {
       </div>
 
       {/* ======================================================== */}
-      {/* 3. MATHEMATICALLY FORMULATED CYLINDER CSS                */}
+      {/* 2. MATHEMATICALLY FORMULATED CYLINDER CSS                */}
       {/* ======================================================== */}
       <style>{`
         .cylinder-rotator {

@@ -48,6 +48,26 @@ export const MobileCinematicHero: React.FC = () => {
       });
     }, container);
 
+    // Viewport IntersectionObserver: pause video when user scrolls down to conserve mobile decoders & battery
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const v = videoRef.current;
+          if (!v) return;
+          if (entry.isIntersecting) {
+            v.play().catch(() => {});
+          } else {
+            v.pause();
+          }
+        });
+      },
+      { threshold: 0.05 }
+    );
+
+    if (container) {
+      observer.observe(container);
+    }
+
     // Ensure video plays continuously on mobile (handling mobile battery saver / low power policies)
     const video = videoRef.current;
     if (video) {
@@ -65,7 +85,10 @@ export const MobileCinematicHero: React.FC = () => {
       }
     }
 
-    return () => ctx.revert();
+    return () => {
+      observer.disconnect();
+      ctx.revert();
+    };
   }, []);
 
   const scrollToNextSection = () => {
@@ -90,16 +113,24 @@ export const MobileCinematicHero: React.FC = () => {
         ref={videoWrapperRef}
         className="absolute inset-0 w-full h-full will-change-transform overflow-hidden pointer-events-none"
       >
+        {/* Crystal-clear poster sits behind video so there's never a black frame */}
+        <img
+          src="/reels/thumbnails/wearebrandshoots_2025-10-16_15-04-28_3744567634965812934_77785749886.jpg"
+          alt="BrandShoots Master Reel"
+          loading="eager"
+          decoding="async"
+          className="absolute inset-0 w-full h-full object-cover object-center scale-[1.04] pointer-events-none"
+        />
         <video
           ref={videoRef}
-          src="/reels/wearebrandshoots_1777444216_3885805244420742638_77785749886.mp4"
-          poster="/reels/posters/wearebrandshoots_1777444216_3885805244420742638_77785749886.jpg"
+          src="/reels/wearebrandshoots/wearebrandshoots_2025-10-16_15-04-28_3744567634965812934_77785749886.mp4"
+          poster="/reels/thumbnails/wearebrandshoots_2025-10-16_15-04-28_3744567634965812934_77785749886.jpg"
           autoPlay
           loop
           muted
           playsInline
           preload="auto"
-          className="w-full h-full object-cover object-center scale-[1.04]"
+          className="relative w-full h-full object-cover object-center scale-[1.04]"
         />
       </div>
 

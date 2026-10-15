@@ -12,7 +12,8 @@ interface MissionData {
   category: string;
   description: string;
   imageUrl: string;
-  aspectRatio: 'portrait' | 'cinematic';
+  videoUrl: string;
+  aspectRatio: 'portrait';
   tag: string;
 }
 
@@ -23,8 +24,9 @@ const MISSIONS: MissionData[] = [
     titleLines: ['VIDEO', 'PRODUCTION'],
     category: 'CINEMATIC PRODUCTION',
     description: 'Commercials, brand films, product films, corporate films, and high-stakes campaign productions crafted with high-end cinematic lenses.',
-    imageUrl: '/reels/posters/santhi.pipes_rjy_1783494112_3936556116926232206_48644092133.jpg',
-    aspectRatio: 'cinematic',
+    imageUrl: '/Reels Folder/thumbnails/santhi.pipes_rjy_2026-09-06_10-01-41_3979966688738161477_48644092133.jpg',
+    videoUrl: '/Reels Folder/santhi.pipes_rjy/santhi.pipes_rjy_2026-09-06_10-01-41_3979966688738161477_48644092133.mp4',
+    aspectRatio: 'portrait',
     tag: 'CINEMATOGRAPHY & DIRECTION',
   },
   {
@@ -33,7 +35,8 @@ const MISSIONS: MissionData[] = [
     titleLines: ['BRAND &', 'CREATIVE'],
     category: 'CREATIVE STRATEGY',
     description: 'Concept development, campaign thinking, visual direction, world-building and narrative strategy designed to position brands at the apex.',
-    imageUrl: '/reels/posters/wearebrandshoots_1786454245_3961387117295433628_77785749886.jpg',
+    imageUrl: '/Reels Folder/thumbnails/aabharan_womens_accessories_2026-05-30_10-01-21_3908213461611903133_45301478774.jpg',
+    videoUrl: '/Reels Folder/aabharan_womens_accessories/aabharan_womens_accessories_2026-05-30_10-01-21_3908213461611903133_45301478774.mp4',
     aspectRatio: 'portrait',
     tag: 'DIRECTION & IDENTITY',
   },
@@ -43,7 +46,8 @@ const MISSIONS: MissionData[] = [
     titleLines: ['SHORT-FORM', 'CONTENT'],
     category: 'VERTICAL STORYTELLING',
     description: 'Reels, social-first films, vertical storytelling, high-retention hooks and viral retention systems that captivate algorithmic feeds.',
-    imageUrl: '/reels/posters/wearebrandshoots_1777444216_3885805244420742638_77785749886.jpg',
+    imageUrl: '/Reels Folder/thumbnails/wearebrandshoots_2025-10-16_15-04-28_3744567634965812934_77785749886.jpg',
+    videoUrl: '/Reels Folder/wearebrandshoots/wearebrandshoots_2025-10-16_15-04-28_3744567634965812934_77785749886.mp4',
     aspectRatio: 'portrait',
     tag: 'HIGH-RETENTION HOOKS',
   },
@@ -53,7 +57,8 @@ const MISSIONS: MissionData[] = [
     titleLines: ['EDITING', '& POST'],
     category: 'FINISHING & MOTION',
     description: 'Precision editing, luxury Hollywood color grading, immersive spatial sound design, and bespoke motion graphics finishing.',
-    imageUrl: '/reels/posters/wearebrandshoots_1789108387_3983651808436403394_77785749886.jpg',
+    imageUrl: '/Reels Folder/thumbnails/sbventures_official_2026-09-15_17-10-21_3986704799434897519_5720346010.jpg',
+    videoUrl: '/Reels Folder/sbventures_official/sbventures_official_2026-09-15_17-10-21_3986704799434897519_5720346010.mp4',
     aspectRatio: 'portrait',
     tag: 'PRECISION FINISHING',
   },
@@ -63,7 +68,8 @@ const MISSIONS: MissionData[] = [
     titleLines: ['SOCIAL', 'CONTENT'],
     category: 'GROWTH SYSTEMS',
     description: 'Consistent visual storytelling architectures designed for rapid audience scaling, brand authority, and sustained engagement.',
-    imageUrl: '/reels/posters/wearebrandshoots_1786854627_3964745654666992928_77785749886.jpg',
+    imageUrl: '/Reels Folder/thumbnails/sahana.dryfruits_rjy_2026-07-05_17-57-04_3934543118156154206_38485858909.jpg',
+    videoUrl: '/Reels Folder/sahana.dryfruits_rjy/sahana.dryfruits_rjy_2026-07-05_17-57-04_3934543118156154206_38485858909.mp4',
     aspectRatio: 'portrait',
     tag: 'GROWTH ARCHITECTURE',
   },
@@ -73,24 +79,80 @@ const MISSIONS: MissionData[] = [
     titleLines: ['DIGITAL', 'GROWTH'],
     category: 'BRAND SCALE',
     description: 'Full-funnel digital creative systems, visual campaigns and long-term brand momentum engineered to convert viewers into advocates.',
-    imageUrl: '/reels/posters/viswatuff.glass_rjy_1791174653_4000984496274606409_78432309239.jpg',
-    aspectRatio: 'cinematic',
+    imageUrl: '/Reels Folder/thumbnails/viswatuff.glass_rjy_2026-05-28_18-00-28_3907005057329571857_78432309239.jpg',
+    videoUrl: '/Reels Folder/viswatuff.glass_rjy/viswatuff.glass_rjy_2026-05-28_18-00-28_3907005057329571857_78432309239.mp4',
+    aspectRatio: 'portrait',
     tag: 'CATEGORY LEADERSHIP',
   },
 ];
+
+const ReelPlayer: React.FC<{
+  videoUrl: string;
+  posterUrl: string;
+  isActive: boolean;
+  className?: string;
+}> = React.memo(({ videoUrl, posterUrl, isActive, className }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
+  const safeVideoUrl = encodeURI(videoUrl);
+  const safePosterUrl = encodeURI(posterUrl);
+
+  useEffect(() => {
+    if (isActive && !hasLoaded) {
+      setHasLoaded(true);
+    }
+  }, [isActive, hasLoaded]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+
+    if (isActive) {
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+      }
+    } else {
+      video.pause();
+    }
+  }, [isActive, hasLoaded]);
+
+  return (
+    <video
+      ref={videoRef}
+      src={hasLoaded ? safeVideoUrl : undefined}
+      poster={safePosterUrl}
+      data-active={isActive ? 'true' : 'false'}
+      autoPlay={isActive}
+      loop
+      muted
+      playsInline
+      preload={isActive ? 'metadata' : 'none'}
+      className={className}
+    />
+  );
+});
+ReelPlayer.displayName = 'ReelPlayer';
 
 export const WhatWeDoSection: React.FC = () => {
   const { services } = useCMSContent();
   const activeMissions: MissionData[] =
     services && services.length >= 6
-      ? services.slice(0, 6).map((s) => ({
+      ? services.slice(0, 6).map((s, idx) => ({
           id: s.id,
           number: s.number,
           titleLines: s.titleLines,
           category: s.category,
           description: s.description,
-          imageUrl: s.imageUrl,
-          aspectRatio: s.aspectRatio,
+          imageUrl: s.imageUrl || MISSIONS[idx]?.imageUrl,
+          videoUrl: s.videoUrl || MISSIONS[idx]?.videoUrl || s.imageUrl.replace(/\.(jpg|png|jpeg)$/i, '.mp4'),
+          aspectRatio: 'portrait' as const,
           tag: s.tag,
         }))
       : MISSIONS;
@@ -103,19 +165,22 @@ export const WhatWeDoSection: React.FC = () => {
   const introLine1Ref = useRef<HTMLSpanElement>(null);
   const introLine2Ref = useRef<HTMLSpanElement>(null);
   const introLine3Ref = useRef<HTMLSpanElement>(null);
-  const introSubcopyRef = useRef<HTMLParagraphElement>(null);
 
   // Scenes 1..6: The Six Capabilities
   const missionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const typoRefs = useRef<(HTMLDivElement | null)[]>([]);
   const mediaContainerRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Scene 7: Closer
+  // Scene 7: 3D Climax - CREATE. SHOOT. GROW.
   const finalLayerRef = useRef<HTMLDivElement>(null);
   const finalHeadingRef = useRef<HTMLHeadingElement>(null);
+  const finalWord1Ref = useRef<HTMLSpanElement>(null);
+  const finalWord2Ref = useRef<HTMLSpanElement>(null);
+  const finalWord3Ref = useRef<HTMLSpanElement>(null);
 
   // Active state
   const [activeChapterIndex, setActiveChapterIndex] = useState<number>(0);
+  const activeChapterRef = useRef<number>(0);
 
   // Subtle pointer spatial parallax on desktop
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -150,6 +215,14 @@ export const WhatWeDoSection: React.FC = () => {
           overwrite: 'auto',
         });
       }
+    } else if (activeChapterIndex === 7 && finalLayerRef.current) {
+      gsap.to(finalLayerRef.current, {
+        rotateY: nx * 14,
+        rotateX: -ny * 12,
+        duration: 0.8,
+        ease: 'power2.out',
+        overwrite: 'auto',
+      });
     }
   };
 
@@ -163,161 +236,213 @@ export const WhatWeDoSection: React.FC = () => {
       if (activeTypo) {
         gsap.to(activeTypo, { x: 0, y: 0, duration: 1.0, ease: 'power3.out', overwrite: 'auto' });
       }
+    } else if (activeChapterIndex === 7 && finalLayerRef.current) {
+      gsap.to(finalLayerRef.current, { rotateY: 0, rotateX: 0, duration: 1.0, ease: 'power3.out', overwrite: 'auto' });
     }
   };
 
-  // GSAP SCROLL ENGINES (Desktop Pinning with Camera Progression + Mobile Smooth Reveal)
+  // User interaction unlock listener for iOS & Android autoplay policies
+  useEffect(() => {
+    const handleUserUnlock = () => {
+      const vids = stageRef.current?.querySelectorAll('video');
+      vids?.forEach((v) => {
+        v.muted = true;
+        v.defaultMuted = true;
+      });
+      const activeVideo = stageRef.current?.querySelector('video[data-active="true"]') as HTMLVideoElement | null;
+      if (activeVideo && activeVideo.paused) {
+        activeVideo.play().catch(() => {});
+      }
+    };
+
+    window.addEventListener('touchstart', handleUserUnlock, { once: true, passive: true });
+    window.addEventListener('pointerdown', handleUserUnlock, { once: true, passive: true });
+
+    return () => {
+      window.removeEventListener('touchstart', handleUserUnlock);
+      window.removeEventListener('pointerdown', handleUserUnlock);
+    };
+  }, []);
+
+  // GSAP SCROLL ENGINES (Unified Pinned 3D Stage on Mobile & Desktop)
   useEffect(() => {
     const ctx = gsap.context(() => {
-      const mm = gsap.matchMedia();
+      if (!sectionRef.current || !stageRef.current) return;
 
-      // DESKTOP: Continuous Camera & Depth Pinning
-      mm.add('(min-width: 1024px)', () => {
-        if (!sectionRef.current || !stageRef.current) return;
+      const masterTl = gsap.timeline({ defaults: { ease: 'none' } });
 
-        const masterTl = gsap.timeline({ defaults: { ease: 'none' } });
+      // Initial setup
+      if (introLayerRef.current) {
+        gsap.set(introLayerRef.current, { autoAlpha: 1, y: 0, scale: 1 });
+      }
 
-        // Initial setup
-        if (introLayerRef.current) {
-          gsap.set(introLayerRef.current, { autoAlpha: 1, y: 0, scale: 1 });
-        }
+      missionRefs.current.forEach((mission) => {
+        if (!mission) return;
+        gsap.set(mission, { autoAlpha: 0, pointerEvents: 'none', y: 0, scale: 1 });
+      });
 
-        missionRefs.current.forEach((mission) => {
-          if (!mission) return;
-          gsap.set(mission, { autoAlpha: 0, pointerEvents: 'none', y: 0, scale: 1 });
-        });
+      if (finalLayerRef.current) {
+        gsap.set(finalLayerRef.current, { autoAlpha: 0 });
+      }
+      if (finalWord1Ref.current) gsap.set(finalWord1Ref.current, { autoAlpha: 0, z: -320, rotateX: 32, scale: 0.65 });
+      if (finalWord2Ref.current) gsap.set(finalWord2Ref.current, { autoAlpha: 0, z: -320, rotateX: 32, scale: 0.65 });
+      if (finalWord3Ref.current) gsap.set(finalWord3Ref.current, { autoAlpha: 0, z: -320, rotateX: 32, scale: 0.65 });
 
-        if (finalLayerRef.current) {
-          gsap.set(finalLayerRef.current, { autoAlpha: 0, y: 50, scale: 0.95 });
-        }
+      // Scene 0: Intro transition (Camera glides into depth)
+      if (introLayerRef.current) {
+        masterTl.to(
+          [introLine1Ref.current, introLine2Ref.current, introLine3Ref.current],
+          { y: -50, opacity: 0, scale: 0.92, duration: 0.65, stagger: 0.08, ease: 'power2.inOut' },
+          0.6
+        );
+        masterTl.to(introLayerRef.current, { autoAlpha: 0, duration: 0.4 }, 0.95);
+        masterTl.set(introLayerRef.current, { autoAlpha: 0, pointerEvents: 'none' }, 1.0);
+      }
 
-        // Scene 0: Intro transition (Camera glides into depth)
-        if (introLayerRef.current) {
-          masterTl.to(
-            [introLine1Ref.current, introLine2Ref.current, introLine3Ref.current],
-            { y: -60, opacity: 0, scale: 0.92, duration: 0.65, stagger: 0.08, ease: 'power2.inOut' },
-            0.6
+      // Scenes 1..6: Immersive Media Presentations
+      activeMissions.forEach((_, idx) => {
+        const m = missionRefs.current[idx];
+        const t = typoRefs.current[idx];
+        const media = mediaContainerRefs.current[idx];
+        const startTime = 1.0 + idx * 1.8;
+
+        if (m) {
+          // Enter from depth with 3D scale and camera emergence
+          masterTl.fromTo(
+            m,
+            { autoAlpha: 0, scale: 0.92, z: -100 },
+            { autoAlpha: 1, scale: 1, z: 0, duration: 0.55, ease: 'power2.out' },
+            startTime
           );
-          if (introSubcopyRef.current) {
-            masterTl.to(introSubcopyRef.current, { opacity: 0, y: -30, duration: 0.45 }, 0.6);
-          }
-          masterTl.to(introLayerRef.current, { autoAlpha: 0, duration: 0.4 }, 0.95);
-          masterTl.set(introLayerRef.current, { autoAlpha: 0, pointerEvents: 'none' }, 1.0);
-        }
 
-        // Scenes 1..6: Immersive Media Presentations
-        activeMissions.forEach((_, idx) => {
-          const m = missionRefs.current[idx];
-          const t = typoRefs.current[idx];
-          const media = mediaContainerRefs.current[idx];
-          const startTime = 1.0 + idx * 1.8;
-
-          if (m) {
-            // Enter from depth with 3D scale and camera emergence
+          if (media) {
             masterTl.fromTo(
-              m,
-              { autoAlpha: 0, scale: 0.92, z: -100 },
-              { autoAlpha: 1, scale: 1, z: 0, duration: 0.55, ease: 'power2.out' },
+              media,
+              { scale: 1.1, opacity: 0.7, rotateX: 5 },
+              { scale: 1.0, opacity: 1, rotateX: 0, duration: 0.7, ease: 'power2.out' },
               startTime
             );
-
-            if (media) {
-              masterTl.fromTo(
-                media,
-                { scale: 1.12, opacity: 0.7, rotateX: 6 },
-                { scale: 1.0, opacity: 1, rotateX: 0, duration: 0.7, ease: 'power2.out' },
-                startTime
-              );
-            }
-
-            if (t) {
-              masterTl.fromTo(
-                t,
-                { y: 35, opacity: 0 },
-                { y: 0, opacity: 1, duration: 0.55, ease: 'power3.out' },
-                startTime + 0.1
-              );
-            }
-
-            // Exit toward camera / depth before next chapter
-            masterTl.to(
-              t,
-              { y: -45, opacity: 0, duration: 0.45, ease: 'power2.in' },
-              startTime + 1.35
-            );
-            masterTl.to(
-              media,
-              { scale: 1.06, opacity: 0, y: -40, duration: 0.5, ease: 'power2.in' },
-              startTime + 1.35
-            );
-            masterTl.set(m, { autoAlpha: 0, pointerEvents: 'none' }, startTime + 1.8);
           }
-        });
 
-        // Scene 7: Final Manifesto
-        if (finalLayerRef.current) {
-          masterTl.fromTo(
-            finalLayerRef.current,
-            { autoAlpha: 0, y: 60, scale: 0.94 },
-            { autoAlpha: 1, y: 0, scale: 1, duration: 0.65, ease: 'power3.out' },
-            11.8
+          if (t) {
+            masterTl.fromTo(
+              t,
+              { y: 30, opacity: 0 },
+              { y: 0, opacity: 1, duration: 0.55, ease: 'power3.out' },
+              startTime + 0.1
+            );
+          }
+
+          // Exit toward camera / depth before next chapter
+          masterTl.to(
+            t,
+            { y: -35, opacity: 0, duration: 0.45, ease: 'power2.in' },
+            startTime + 1.35
           );
-          masterTl.to(finalLayerRef.current, { duration: 2.2 }, 12.45);
+          masterTl.to(
+            media,
+            { scale: 1.05, opacity: 0, y: -35, duration: 0.5, ease: 'power2.in' },
+            startTime + 1.35
+          );
+          masterTl.set(m, { autoAlpha: 0, pointerEvents: 'none' }, startTime + 1.8);
+        }
+      });
+
+      // Scene 7: 3D Climax - CREATE. SHOOT. GROW.
+      if (finalLayerRef.current) {
+        masterTl.set(finalLayerRef.current, { autoAlpha: 1 }, 11.6);
+
+        if (finalWord1Ref.current) {
+          masterTl.fromTo(
+            finalWord1Ref.current,
+            { autoAlpha: 0, scale: 0.65, z: -320, rotateX: 32, y: 35 },
+            { autoAlpha: 1, scale: 1, z: 0, rotateX: 0, y: 0, duration: 0.65, ease: 'power3.out' },
+            11.7
+          );
         }
 
-        ScrollTrigger.create({
-          id: 'what-we-do-scrolltrigger',
-          trigger: sectionRef.current,
-          start: 'top top',
-          end: '+=4400',
-          pin: true,
-          anticipatePin: 1,
-          scrub: 1.1,
-          animation: masterTl,
-          onUpdate: (self) => {
-            const p = self.progress;
-            let chapter = 0;
-            if (p < 0.08) chapter = 0;
-            else if (p < 0.22) chapter = 1;
-            else if (p < 0.36) chapter = 2;
-            else if (p < 0.50) chapter = 3;
-            else if (p < 0.64) chapter = 4;
-            else if (p < 0.78) chapter = 5;
-            else if (p < 0.90) chapter = 6;
-            else chapter = 7;
+        if (finalWord2Ref.current) {
+          masterTl.fromTo(
+            finalWord2Ref.current,
+            { autoAlpha: 0, scale: 0.65, z: -320, rotateX: 32, y: 35 },
+            { autoAlpha: 1, scale: 1, z: 0, rotateX: 0, y: 0, duration: 0.65, ease: 'power3.out' },
+            12.05
+          );
+        }
+
+        if (finalWord3Ref.current) {
+          masterTl.fromTo(
+            finalWord3Ref.current,
+            { autoAlpha: 0, scale: 0.65, z: -320, rotateX: 32, y: 35 },
+            { autoAlpha: 1, scale: 1, z: 0, rotateX: 0, y: 0, duration: 0.7, ease: 'power3.out' },
+            12.4
+          );
+        }
+
+        // Climax hold and forward 3D presence
+        masterTl.to(finalLayerRef.current, { z: 40, duration: 1.0 }, 12.8);
+      }
+
+      const isMobile = window.innerWidth < 1024;
+      ScrollTrigger.create({
+        id: 'what-we-do-scrolltrigger',
+        trigger: sectionRef.current,
+        start: 'top top',
+        end: isMobile ? '+=2400' : '+=3200',
+        pin: true,
+        anticipatePin: 1,
+        scrub: isMobile ? 0.8 : 1.0,
+        animation: masterTl,
+        onUpdate: (self) => {
+          const p = self.progress;
+          let chapter = 0;
+          if (p < 0.08) chapter = 0;
+          else if (p < 0.22) chapter = 1;
+          else if (p < 0.36) chapter = 2;
+          else if (p < 0.50) chapter = 3;
+          else if (p < 0.64) chapter = 4;
+          else if (p < 0.78) chapter = 5;
+          else if (p < 0.90) chapter = 6;
+          else chapter = 7;
+
+          if (chapter !== activeChapterRef.current) {
+            activeChapterRef.current = chapter;
             setActiveChapterIndex(chapter);
-          },
-        });
+          }
+        },
       });
 
-      // MOBILE: Natural continuous scroll with viewport-proportional media
-      mm.add('(max-width: 1023px)', () => {
-        const cards = document.querySelectorAll('.mobile-mission-card');
-        cards.forEach((card) => {
-          gsap.fromTo(
-            card,
-            { opacity: 0, y: 35 },
-            {
-              opacity: 1,
-              y: 0,
-              duration: 0.7,
-              ease: 'power3.out',
-              scrollTrigger: {
-                trigger: card,
-                start: 'top 85%',
-                toggleActions: 'play none none none',
-              },
+      // Viewport IntersectionObserver: pause capabilities video when section leaves viewport
+      const sectionObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) {
+              const vids = stageRef.current?.querySelectorAll('video');
+              vids?.forEach((v) => {
+                if (!v.paused) v.pause();
+              });
+            } else {
+              const activeVideo = stageRef.current?.querySelector('video[data-active="true"]') as HTMLVideoElement | null;
+              if (activeVideo && activeVideo.paused) {
+                activeVideo.play().catch(() => {});
+              }
             }
-          );
-        });
-      });
+          });
+        },
+        { threshold: 0.05 }
+      );
+
+      if (sectionRef.current) {
+        sectionObserver.observe(sectionRef.current);
+      }
+
+      return () => {
+        sectionObserver.disconnect();
+      };
     }, sectionRef);
 
     return () => ctx.revert();
   }, []);
-
-  const currentMission =
-    activeChapterIndex >= 1 && activeChapterIndex <= 6 ? activeMissions[activeChapterIndex - 1] : null;
 
   return (
     <section
@@ -335,100 +460,30 @@ export const WhatWeDoSection: React.FC = () => {
             filter: 'blur(100px)',
           }}
         />
-        <div className="absolute inset-0 opacity-[0.025] bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:4rem_4rem]" />
+        <div
+          className="absolute inset-0 opacity-[0.025] bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:4rem_4rem]"
+          style={{
+            maskImage:
+              'linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%)',
+            WebkitMaskImage:
+              'linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%)',
+          }}
+        />
       </div>
 
-      {/* ========================================================= */}
-      {/* 1. DEDICATED MOBILE COMPOSITION (Clean, Large Media)       */}
-      {/* ========================================================= */}
-      <div className="block lg:hidden relative z-10 w-full px-5 py-16 sm:py-24 max-w-xl mx-auto">
-        {/* Mobile Section Intro */}
-        <div className="text-center mb-12 sm:mb-16">
-          <div className="inline-flex items-center gap-2 font-mono text-[10px] xs:text-[11px] tracking-[0.28em] uppercase text-[#008CFF] font-semibold mb-3">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
-            <span>01 // VIDEO PRODUCTION</span>
-          </div>
-          <h2 className="font-sans font-black uppercase text-3xl xs:text-4xl leading-[0.92] text-white tracking-[-0.03em]">
-            WE CRAFT FILMS THAT <span className="text-[#008CFF]">DEFINE BRANDS.</span>
-          </h2>
-          <p className="mt-3.5 font-sans text-xs xs:text-sm text-white/60 font-medium tracking-wide max-w-sm mx-auto leading-relaxed">
-            COMMERCIALS. BRAND FILMS. REELS. NARRATIVE MOMENTUM.
-          </p>
-        </div>
-
-        {/* The 6 Capabilities: Dominant mobile media cards */}
-        <div className="flex flex-col gap-10">
-          {activeMissions.map((mission) => (
-            <div
-              key={`mobile-${mission.id}`}
-              className="mobile-mission-card flex flex-col bg-[#070B12]/85 backdrop-blur-xl rounded-2xl p-5 sm:p-6 border border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.85)]"
-            >
-              {/* Eyebrow Label */}
-              <div className="flex items-center gap-2 mb-2">
-                <span className="font-mono text-xs font-bold tracking-[0.24em] text-[#008CFF]">
-                  {mission.number}
-                </span>
-                <span className="w-1 h-1 rounded-full bg-[#008CFF]" />
-                <span className="font-mono text-[10px] tracking-[0.24em] uppercase text-white/50 font-semibold">
-                  {mission.category}
-                </span>
-              </div>
-
-              {/* Dominant Heading */}
-              <h3 className="font-sans font-black uppercase text-2xl xs:text-3xl leading-[0.95] tracking-[-0.03em] text-white">
-                {mission.titleLines.join(' ')}
-              </h3>
-
-              {/* Description */}
-              <p className="mt-2 text-xs xs:text-sm text-white/70 leading-[1.55] font-normal">
-                {mission.description}
-              </p>
-
-              {/* Large Immersive Media Canvas */}
-              <div className="relative w-full aspect-[16/10] rounded-xl overflow-hidden bg-black/60 border border-white/15 my-4 shadow-[0_10px_30px_rgba(0,0,0,0.6)]">
-                <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#008CFF] to-transparent z-10" />
-                <img
-                  src={mission.imageUrl}
-                  alt={`${mission.number} - ${mission.category}`}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-                <div className="absolute bottom-2.5 left-2.5 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded bg-black/75 backdrop-blur-md text-white font-mono text-[8px] tracking-wider uppercase border border-white/10">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] animate-pulse" />
-                  <span>BRANDSHOOTS CINEMATIC</span>
-                </div>
-                <div className="absolute top-2.5 right-2.5 z-10 font-mono text-[8px] tracking-widest text-white/90 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded border border-white/10 uppercase">
-                  CH {mission.number}
-                </div>
-              </div>
-
-              {/* Category Pill */}
-              <div className="self-start">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#008CFF]/15 text-[#008CFF] border border-[#008CFF]/30 font-mono text-[10px] tracking-[0.2em] uppercase font-semibold">
-                  <span className="w-1 h-1 rounded-full bg-[#008CFF]" />
-                  <span>{mission.tag}</span>
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Mobile Closer */}
-        <div className="text-center mt-16 pt-10 border-t border-white/10">
-          <div className="font-mono text-[10px] tracking-[0.28em] uppercase text-[#008CFF] font-semibold mb-2">
-            THE BRANDSHOOTS STANDARD
-          </div>
-          <h3 className="font-sans font-black uppercase text-2xl xs:text-3xl leading-[0.95] text-white">
-            WE DON'T JUST MAKE CONTENT.<br />
-            <span className="text-[#008CFF]">WE MAKE IT COMMAND.</span>
-          </h3>
-        </div>
-      </div>
+      {/* Top Edge Gentle Gradient Fade (Seamless Blend with Hero) */}
+      <div
+        className="absolute inset-x-0 top-0 h-20 pointer-events-none z-10"
+        style={{
+          background:
+            'linear-gradient(to bottom, #04060A 0%, rgba(4,6,10,0.6) 50%, transparent 100%)',
+        }}
+      />
 
       {/* ========================================================= */}
-      {/* 2. DESKTOP 3D PINNED STAGE (Large Immersive Media Journey) */}
+      {/* CINEMATIC 3D PINNED STAGE (Responsive Mobile & Desktop)   */}
       {/* ========================================================= */}
-      <div className="hidden lg:block relative w-full">
+      <div className="relative w-full">
         <div
           ref={stageRef}
           onPointerMove={handlePointerMove}
@@ -436,33 +491,26 @@ export const WhatWeDoSection: React.FC = () => {
           className="relative w-full h-[100dvh] max-h-[100dvh] overflow-hidden flex items-center justify-center z-20"
           style={{ perspective: '1400px' }}
         >
-          <div className="relative w-full h-full max-w-[1680px] mx-auto flex items-center justify-center px-10">
-            {/* Scene 0: Desktop Intro */}
+          <div className="relative w-full h-full max-w-[1680px] mx-auto flex items-center justify-center px-4 sm:px-8 lg:px-10">
+            {/* Scene 0: Intro */}
             <div
               ref={introLayerRef}
-              className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-30"
+              className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 sm:px-6 z-30 pointer-events-none"
             >
-              <div className="inline-flex items-center gap-2.5 font-mono text-xs tracking-[0.32em] uppercase text-[#008CFF] font-semibold mb-6">
-                <span className="w-2 h-2 rounded-full bg-[#008CFF] shadow-[0_0_10px_#008CFF]" />
-                <span>01 // VIDEO PRODUCTION & CAPABILITIES</span>
-              </div>
               <h2 className="font-sans font-black uppercase text-center tracking-[-0.04em] text-white">
-                <span ref={introLine1Ref} className="block text-[86px] xl:text-[106px] leading-[0.9] text-white/90">
+                <span ref={introLine1Ref} className="block text-4xl xs:text-5xl sm:text-7xl lg:text-[86px] xl:text-[106px] leading-[0.92] text-white/90">
                   WE CRAFT
                 </span>
-                <span ref={introLine2Ref} className="block text-[106px] xl:text-[130px] leading-[0.88] text-white font-black">
+                <span ref={introLine2Ref} className="block text-5xl xs:text-6xl sm:text-8xl lg:text-[106px] xl:text-[130px] leading-[0.9] text-white font-black">
                   FILMS THAT
                 </span>
-                <span ref={introLine3Ref} className="block text-[106px] xl:text-[130px] leading-[0.88] text-[#008CFF]">
+                <span ref={introLine3Ref} className="block text-5xl xs:text-6xl sm:text-8xl lg:text-[106px] xl:text-[130px] leading-[0.9] text-[#008CFF]">
                   DEFINE BRANDS<span className="text-white">.</span>
                 </span>
               </h2>
-              <p ref={introSubcopyRef} className="mt-8 max-w-2xl font-mono text-base tracking-[0.2em] uppercase text-white/60 font-semibold px-4">
-                STRATEGY. PRODUCTION. EDITING. HOLLYWOOD FINISHING.
-              </p>
             </div>
 
-            {/* Scenes 1..6: Desktop Immersive Chapters */}
+            {/* Scenes 1..6: Immersive Chapters */}
             {activeMissions.map((mission, idx) => {
               const isEven = idx % 2 === 1;
               const isCurrentActive = activeChapterIndex === idx + 1;
@@ -476,25 +524,27 @@ export const WhatWeDoSection: React.FC = () => {
                   }`}
                   style={{ transformStyle: 'preserve-3d' }}
                 >
-                  <div className="w-full h-full max-w-7xl mx-auto px-8 flex flex-row items-center justify-between gap-12 xl:gap-16 z-10">
+                  <div className="w-full h-full max-w-7xl mx-auto px-4 sm:px-8 flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-4 xs:gap-6 lg:gap-12 xl:gap-16 z-10 py-4 lg:py-0">
                     {/* Typography Column */}
                     <div
                       ref={(el) => (typoRefs.current[idx] = el)}
-                      className={`w-[46%] flex flex-col justify-center text-left ${
-                        isEven ? 'order-2 pl-8' : 'order-1 pr-8'
+                      className={`w-full lg:w-[46%] flex flex-col justify-center text-center lg:text-left shrink-0 ${
+                        isEven ? 'lg:order-2 lg:pl-8' : 'lg:order-1 lg:pr-8'
                       }`}
                     >
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="font-mono text-lg font-bold tracking-[0.28em] text-[#008CFF]">
-                          {mission.number}
+                      {/* Chapter Eyebrow Hierarchy */}
+                      <div className="flex items-center justify-center lg:justify-start gap-2.5 mb-2.5 sm:mb-3.5">
+                        <span className="font-mono text-xs sm:text-[13px] tracking-[0.28em] text-[#008CFF] font-bold">
+                          {mission.number} / 06
                         </span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
-                        <span className="font-mono text-xs tracking-[0.3em] uppercase text-white/50 font-semibold">
+                        <span className="w-1 h-1 rounded-full bg-white/40" />
+                        <span className="font-mono text-[10px] sm:text-xs tracking-[0.22em] uppercase text-white/60 font-medium">
                           {mission.category}
                         </span>
                       </div>
 
-                      <h3 className="font-sans font-black uppercase text-6xl xl:text-7xl leading-[0.92] tracking-[-0.035em] text-white">
+                      {/* Editorial Monumental Heading */}
+                      <h3 className="font-sans font-black uppercase text-2xl xs:text-3xl sm:text-4xl lg:text-6xl xl:text-7xl leading-[0.92] tracking-[-0.035em] text-white">
                         {mission.titleLines.map((line, lIdx) => (
                           <span key={lIdx} className="block">
                             {line}
@@ -502,52 +552,34 @@ export const WhatWeDoSection: React.FC = () => {
                         ))}
                       </h3>
 
-                      <p className="mt-6 max-w-lg font-sans text-base lg:text-lg leading-[1.65] text-white/70 font-normal">
+                      {/* Descriptive Narrative */}
+                      <p className="mt-2.5 sm:mt-4 lg:mt-6 max-w-xs xs:max-w-sm sm:max-w-md lg:max-w-lg mx-auto lg:mx-0 font-sans text-xs xs:text-sm sm:text-base lg:text-lg leading-[1.5] lg:leading-[1.65] text-white/70 font-normal">
                         {mission.description}
                       </p>
 
-                      <div className="mt-6 inline-flex items-center gap-2 self-start px-4 py-1.5 rounded-full bg-[#008CFF]/15 text-[#008CFF] border border-[#008CFF]/30 font-mono text-xs tracking-[0.22em] uppercase font-semibold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF]" />
-                        <span>{mission.tag}</span>
+                      {/* Intentional Tag Chip */}
+                      <div className="mt-4 sm:mt-5 lg:mt-6 flex justify-center lg:justify-start">
+                        <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.06] border border-white/12 text-[10px] sm:text-[11px] font-mono tracking-[0.2em] uppercase text-white/75">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
+                          <span>{mission.tag}</span>
+                        </span>
                       </div>
                     </div>
 
                     {/* Dominant Immersive Media Canvas */}
                     <div
                       ref={(el) => (mediaContainerRefs.current[idx] = el)}
-                      className={`w-[54%] flex items-center justify-center ${
-                        isEven ? 'order-1' : 'order-2'
+                      className={`w-full lg:w-[54%] flex items-center justify-center shrink-0 ${
+                        isEven ? 'lg:order-1' : 'lg:order-2'
                       }`}
                     >
-                      <div
-                        className={`relative rounded-2xl overflow-hidden border border-white/20 shadow-[0_30px_90px_rgba(0,0,0,0.95),0_0_40px_rgba(0,140,255,0.2)] bg-black/80 transition-transform ${
-                          mission.aspectRatio === 'portrait'
-                            ? 'w-[360px] xl:w-[410px] aspect-[9/15] max-h-[72dvh]'
-                            : 'w-full max-w-2xl aspect-[16/10] max-h-[60dvh]'
-                        }`}
-                      >
-                        {/* Glowing Specular Top Line */}
-                        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#008CFF] to-transparent pointer-events-none z-20" />
-                        
-                        <img
-                          src={mission.imageUrl}
-                          alt={`${mission.number} - ${mission.category}`}
-                          className="w-full h-full object-cover filter brightness-[0.96] contrast-[1.05]"
+                      <div className="relative rounded-2xl overflow-hidden border border-white/20 shadow-[0_20px_60px_rgba(0,0,0,0.85)] bg-black transition-transform aspect-[9/16] h-[48vh] xs:h-[52vh] sm:h-[58vh] lg:h-[68vh] xl:h-[72vh] max-h-[720px] w-auto max-w-[calc(100vw-3rem)] flex items-center justify-center">
+                        <ReelPlayer
+                          videoUrl={mission.videoUrl}
+                          posterUrl={mission.imageUrl}
+                          isActive={isCurrentActive}
+                          className="w-full h-full object-contain bg-black"
                         />
-
-                        {/* Subtle Cinematic Vignette */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 pointer-events-none" />
-
-                        {/* Media Badges */}
-                        <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2 px-3 py-1.5 rounded-md bg-black/75 backdrop-blur-md text-white border border-white/15">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] animate-pulse" />
-                          <span className="font-mono text-[9px] tracking-widest uppercase font-semibold">
-                            BRANDSHOOTS CINEMATIC
-                          </span>
-                        </div>
-                        <div className="absolute top-4 right-4 z-20 font-mono text-[9px] tracking-[0.2em] text-white/90 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded border border-white/15 uppercase">
-                          CHAPTER {mission.number}
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -555,45 +587,68 @@ export const WhatWeDoSection: React.FC = () => {
               );
             })}
 
-            {/* Scene 7: Desktop Final */}
+            {/* Scene 7: 3D Climax - CREATE. SHOOT. GROW. */}
             <div
               ref={finalLayerRef}
-              className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-30 pointer-events-none"
+              className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 sm:px-6 z-30 pointer-events-none"
+              style={{ transformStyle: 'preserve-3d', perspective: '1200px' }}
             >
-              <div className="inline-flex items-center gap-2.5 font-mono text-xs tracking-[0.28em] uppercase text-[#008CFF] font-semibold mb-6">
-                <span className="w-2 h-2 rounded-full bg-[#008CFF] shadow-[0_0_10px_#008CFF]" />
-                <span>THE BRANDSHOOTS CREED</span>
-              </div>
               <h2
                 ref={finalHeadingRef}
-                className="font-sans font-black uppercase text-center tracking-[-0.04em] text-white"
+                className="font-sans font-black uppercase text-center tracking-[-0.04em] select-none flex flex-col items-center justify-center"
+                style={{ transformStyle: 'preserve-3d' }}
               >
-                <span className="block text-[72px] xl:text-[88px] leading-[0.92] text-white/80">
-                  WE DON'T JUST
+                <span
+                  ref={finalWord1Ref}
+                  className="block text-5xl xs:text-6xl sm:text-7xl md:text-8xl lg:text-[110px] xl:text-[136px] leading-[0.88] text-white tracking-[-0.03em]"
+                  style={{
+                    textShadow: '0 4px 20px rgba(0,0,0,0.9), 0 10px 40px rgba(255,255,255,0.08)',
+                  }}
+                >
+                  CREATE
                 </span>
-                <span className="block text-[72px] xl:text-[88px] leading-[0.92] text-white/80">
-                  MAKE CONTENT.
+                <span
+                  ref={finalWord2Ref}
+                  className="block text-5xl xs:text-6xl sm:text-7xl md:text-8xl lg:text-[110px] xl:text-[136px] leading-[0.88] text-white/90 tracking-[-0.03em] my-1 sm:my-2"
+                  style={{
+                    textShadow: '0 4px 20px rgba(0,0,0,0.9), 0 10px 40px rgba(255,255,255,0.08)',
+                  }}
+                >
+                  SHOOT
                 </span>
-                <span className="block mt-6 text-[94px] xl:text-[116px] leading-[0.9] text-white font-black">
-                  WE MAKE IT COMMAND<span className="text-[#008CFF]">.</span>
+                <span
+                  ref={finalWord3Ref}
+                  className="block text-6xl xs:text-7xl sm:text-8xl md:text-9xl lg:text-[124px] xl:text-[150px] leading-[0.86] text-[#008CFF] font-black tracking-[-0.03em]"
+                  style={{
+                    textShadow: '0 0 50px rgba(0,140,255,0.7), 0 10px 30px rgba(0,0,0,0.9)',
+                  }}
+                >
+                  GROW<span className="text-white">.</span>
                 </span>
               </h2>
             </div>
-          </div>
 
-          {/* Desktop Floating Navigation Progress Pill */}
-          <div className="absolute bottom-8 left-10 z-40 flex items-center gap-3 px-4 py-2 rounded-full bg-[#070B12]/85 backdrop-blur-xl border border-white/15 shadow-[0_12px_36px_rgba(0,0,0,0.8)] text-white font-mono text-[11px] pointer-events-none">
-            <span className="font-bold tracking-[0.2em] text-[#008CFF]">
-              {activeChapterIndex >= 1 && activeChapterIndex <= 6
-                ? `0${activeChapterIndex} / 06`
-                : activeChapterIndex === 0
-                ? 'OVERVIEW'
-                : 'COMMAND'}
-            </span>
-            <span className="w-1 h-1 rounded-full bg-white/30" />
-            <span className="tracking-[0.16em] uppercase text-white/70 font-medium">
-              {currentMission ? currentMission.category : 'VIDEO PRODUCTION'}
-            </span>
+            {/* Simple Minimalist Progress Bar */}
+            <div
+              className={`absolute bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 pointer-events-none transition-all duration-300 ${
+                activeChapterIndex >= 1 && activeChapterIndex <= 6
+                  ? 'opacity-100 translate-y-0'
+                  : 'opacity-0 translate-y-2 pointer-events-none'
+              }`}
+            >
+              <span className="font-mono text-[10px] sm:text-[11px] font-semibold text-[#008CFF] tracking-widest drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+                0{activeChapterIndex}
+              </span>
+              <div className="w-24 sm:w-36 h-[2px] bg-white/20 rounded-full overflow-hidden backdrop-blur-sm shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
+                <div
+                  className="h-full bg-gradient-to-r from-[#008CFF] to-[#52B2FF] transition-all duration-300 rounded-full shadow-[0_0_8px_#008CFF]"
+                  style={{ width: `${(activeChapterIndex / 6) * 100}%` }}
+                />
+              </div>
+              <span className="font-mono text-[10px] sm:text-[11px] text-white/40 tracking-widest drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+                06
+              </span>
+            </div>
           </div>
         </div>
       </div>

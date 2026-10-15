@@ -7,6 +7,7 @@ import { StrokeRevealPreloader } from '../components/about/StrokeRevealPreloader
 import { PortfolioNavbar } from '../components/portfolio/PortfolioNavbar';
 import { PortfolioWormhole3D } from '../components/portfolio/PortfolioWormhole3D';
 import { PortfolioClienteleSection } from '../components/portfolio/PortfolioClienteleSection';
+import { FinalCtaSection } from '../components/cta/FinalCtaSection';
 import { BrandShootsFooter } from '../components/footer/BrandShootsFooter';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -21,7 +22,7 @@ export const PortfolioPage: React.FC = () => {
 
   // Set document title and scroll to top on mount
   useEffect(() => {
-    document.title = 'Portfolio | BRANDSHOOTS — Cinematic Showcase';
+    document.title = 'Portfolio | BRANDSHOOTS — Create. Shoot. Grow.';
     window.scrollTo(0, 0);
   }, []);
 
@@ -54,8 +55,13 @@ export const PortfolioPage: React.FC = () => {
       ScrollTrigger.refresh();
     }, 250);
 
+    const timer2 = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 600);
+
     return () => {
       clearTimeout(timer);
+      clearTimeout(timer2);
       delete (window as any).__lenis;
       gsap.ticker.remove(ticker);
       lenis.destroy();
@@ -63,7 +69,7 @@ export const PortfolioPage: React.FC = () => {
   }, [preloaderActive]);
 
   return (
-    <main className="relative w-full min-h-screen bg-[#020306] text-white select-none">
+    <main className="relative w-full min-h-screen bg-[#020306] text-white overflow-x-hidden">
       {/* Page Preloader */}
       {preloaderActive && (
         <StrokeRevealPreloader onComplete={() => setPreloaderActive(false)} />
@@ -78,7 +84,10 @@ export const PortfolioPage: React.FC = () => {
       {/* 3. EDITORIAL CLIENTELE SECTION */}
       <PortfolioClienteleSection />
 
-      {/* 4. FINAL BRANDSHOOTS CINEMATIC FOOTER */}
+      {/* 4. CLIMAX CALL-TO-ACTION SECTION */}
+      <FinalCtaSection />
+
+      {/* 5. FINAL BRANDSHOOTS CINEMATIC FOOTER */}
       <BrandShootsFooter />
     </main>
   );

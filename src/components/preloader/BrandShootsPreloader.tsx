@@ -5,6 +5,7 @@ import { BrandLogoOverlay } from './BrandLogoOverlay';
 import { CameraFlash } from './CameraFlash';
 import { PRELOADER_CONFIG } from '../../config/preloaderConfig';
 import { createPreloaderTimeline } from '../../animations/preloaderTimeline';
+import { preloadAllHeroReels } from '../../config/heroReels';
 
 interface BrandShootsPreloaderProps {
   onComplete?: () => void;
@@ -31,6 +32,11 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
   const [logoStage, setLogoStage] = useState<'hidden' | 'focus' | 'shutter' | 'snap' | 'locked' | 'expand'>('hidden');
   const [isColorRevealed, setIsColorRevealed] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+
+  // Forcefully warm up and buffer all hero cylinder videos in the background while the preloader sequence plays
+  useEffect(() => {
+    preloadAllHeroReels();
+  }, []);
 
   const handleSequenceComplete = useCallback(() => {
     setIsCompleted(true);

@@ -1,25 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import React, { useState } from 'react';
 import {
   ArrowRight,
   ArrowUpRight,
-  MessageSquare,
   MapPin,
-  Mail,
   Copy,
   Check,
-  ExternalLink,
-  Instagram,
-  Youtube,
-  Facebook,
+  X,
 } from 'lucide-react';
 import { createLead } from '../../lib/cms/cmsService';
-import { BrandShootsLogo3D } from './BrandShootsLogo3D';
+import { useCMSContent } from '../../lib/cms/useCMSContent';
 
-gsap.registerPlugin(ScrollTrigger);
-
-const PROJECT_TYPES = [
+const DEFAULT_PROJECT_TYPES = [
   'Commercial Production',
   'Brand Film',
   'Social Media Content',
@@ -28,59 +19,51 @@ const PROJECT_TYPES = [
   'Other',
 ];
 
-const WHATSAPP_PHONE = '917075960672';
-const DISPLAY_PHONE = '+91 70759 60672';
-const STUDIO_EMAIL = 'contact@brandshoots.com';
-const STUDIO_FULL_ADDRESS =
-  '26-2-7/2, Jayakrishnapuram, near kambala cheruvu, Rajamahendravaram 533105, Andhra Pradesh, India';
-const GOOGLE_MAPS_EMBED_URL =
-  'https://maps.google.com/maps?q=26-2-7%2F2%2C%20Jayakrishnapuram%2C%20near%20kambala%20cheruvu%2C%20Rajamahendravaram%20533105%2C%20Andhra%20Pradesh%2C%20India&t=&z=16&ie=UTF8&iwloc=&output=embed';
-const GOOGLE_MAPS_SEARCH_URL =
-  'https://www.google.com/maps/search/?api=1&query=26-2-7%2F2%2C+Jayakrishnapuram%2C+near+kambala+cheruvu%2C+Rajamahendravaram+533105%2C+Andhra+Pradesh%2C+India';
-
-// Custom Crisp WhatsApp Vector Icon
-const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) => (
-  <svg viewBox="0 0 24 24" className={`fill-current ${className}`}>
-    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
-  </svg>
-);
-
-const SOCIAL_TILES = [
-  {
-    id: 'whatsapp',
-    name: 'WhatsApp',
-    handle: '+91 70759 60672',
-    url: `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent('Hi BRANDSHOOTS, I would like to discuss a project.')}`,
-    brandColor: '#25D366',
-    icon: WhatsAppIcon,
-  },
-  {
-    id: 'instagram',
-    name: 'Instagram',
-    handle: '@wearebrandshoots',
-    url: 'https://instagram.com/wearebrandshoots',
-    brandColor: '#E1306C',
-    icon: Instagram,
-  },
-  {
-    id: 'youtube',
-    name: 'YouTube',
-    handle: '@wearebrandshoots',
-    url: 'https://youtube.com/@wearebrandshoots',
-    brandColor: '#FF0000',
-    icon: Youtube,
-  },
-  {
-    id: 'facebook',
-    name: 'Facebook',
-    handle: '@wearebrandshoots',
-    url: 'https://facebook.com/wearebrandshoots',
-    brandColor: '#1877F2',
-    icon: Facebook,
-  },
-];
-
 export const ContactFormSection: React.FC = () => {
+  const { contact } = useCMSContent();
+
+  const whatsappPhone = contact?.whatsappPhone || '917075960672';
+  const displayPhone = contact?.displayPhone || '+91 70759 60672';
+  const studioEmail = contact?.email || 'contact@brandshoots.com';
+  const studioCityState = contact?.cityState || 'Rajamahendravaram, Andhra Pradesh, India';
+  const studioFullAddress =
+    contact?.fullAddress ||
+    '26-2-7/2, Jayakrishnapuram, near Kambala Cheruvu, Rajamahendravaram, Andhra Pradesh, India';
+  const googleMapsEmbedUrl =
+    contact?.googleMapsEmbedUrl ||
+    'https://maps.google.com/maps?q=26-2-7%2F2%2C%20Jayakrishnapuram%2C%20near%20kambala%20cheruvu%2C%20Rajamahendravaram%20533105%2C%20Andhra%20Pradesh%2C%20India&t=&z=16&ie=UTF8&iwloc=&output=embed';
+  const googleMapsSearchUrl =
+    contact?.googleMapsSearchUrl ||
+    'https://www.google.com/maps/search/?api=1&query=26-2-7%2F2%2C+Jayakrishnapuram%2C+near+kambala+cheruvu%2C+Rajamahendravaram+533105%2C+Andhra+Pradesh%2C+India';
+
+  const heroTitle = contact?.heroTitle || "LET'S MAKE SOMETHING";
+  const heroHighlight = contact?.heroHighlight || 'WORTH WATCHING.';
+  const heroSubtitle =
+    contact?.heroSubtitle ||
+    "Tell us what you're building, what you need, and where you want to take it.";
+  const heroCtaText = contact?.heroCtaText || 'START A CONVERSATION';
+
+  const siteVisitTag = contact?.siteVisitTag || 'ON-LOCATION RECCE';
+  const siteVisitTitle = contact?.siteVisitTitle || 'SITE VISIT.';
+  const siteVisitDescription =
+    contact?.siteVisitDescription ||
+    'Need our team to inspect your factory, showroom, outdoor estate, or shoot location in person? We conduct comprehensive spatial recces, camera framing tests, and lighting assessments before production begins.';
+  const siteVisitPrice = contact?.siteVisitPrice || '₹2,000';
+  const siteVisitPriceUnit = contact?.siteVisitPriceUnit || '/ visit';
+  const siteVisitCtaText = contact?.siteVisitCtaText || 'BOOK A SITE VISIT';
+
+  const instagramHandle = contact?.instagramHandle || '@wearebrandshoots';
+  const instagramUrl = contact?.instagramUrl || 'https://instagram.com/wearebrandshoots';
+  const youtubeHandle = contact?.youtubeHandle || '@wearebrandshoots';
+  const youtubeUrl = contact?.youtubeUrl || 'https://youtube.com/@wearebrandshoots';
+  const facebookHandle = contact?.facebookHandle || '@wearebrandshoots';
+  const facebookUrl = contact?.facebookUrl || 'https://facebook.com/wearebrandshoots';
+
+  const projectTypes =
+    contact?.projectTypes && contact.projectTypes.length > 0
+      ? contact.projectTypes
+      : DEFAULT_PROJECT_TYPES;
+
   // Inquiry form state
   const [formData, setFormData] = useState({
     name: '',
@@ -91,133 +74,32 @@ export const ContactFormSection: React.FC = () => {
     message: '',
   });
 
-  // Site visit state (simple & fast to fill)
+  // Site visit modal state
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [siteVisitData, setSiteVisitData] = useState({
+    name: '',
+    phone: '',
     location: '',
     date: '',
-    name: '',
   });
 
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [siteVisitSubmitted, setSiteVisitSubmitted] = useState(false);
   const [copiedAddress, setCopiedAddress] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // GSAP animation refs
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const headlineLine1Ref = useRef<HTMLSpanElement>(null);
-  const headlineLine2Ref = useRef<HTMLSpanElement>(null);
-  const headlineLine3Ref = useRef<HTMLSpanElement>(null);
-  const subtitleRef = useRef<HTMLParagraphElement>(null);
-  const siteVisitSectionRef = useRef<HTMLDivElement>(null);
-  const contactCompositionRef = useRef<HTMLDivElement>(null);
-  const mapsSectionRef = useRef<HTMLDivElement>(null);
-  const socialTilesRef = useRef<HTMLDivElement>(null);
+  // Smooth scroll helper
+  const handleScrollToForm = () => {
+    const el = document.getElementById('contact-form');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-
-      // Initial states
-      gsap.set(
-        [
-          headlineLine1Ref.current,
-          headlineLine2Ref.current,
-          headlineLine3Ref.current,
-        ],
-        { yPercent: 100, opacity: 0 }
-      );
-      gsap.set(subtitleRef.current, { y: 20, opacity: 0 });
-      gsap.set(siteVisitSectionRef.current, { y: 25, opacity: 0 });
-      gsap.set(contactCompositionRef.current, { y: 25, opacity: 0 });
-
-      // Cinematic staggered entrance
-      tl.to(
-        [
-          headlineLine1Ref.current,
-          headlineLine2Ref.current,
-          headlineLine3Ref.current,
-        ],
-        {
-          yPercent: 0,
-          opacity: 1,
-          duration: 0.85,
-          stagger: 0.12,
-        },
-        0.1
-      )
-        .to(
-          subtitleRef.current,
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.65,
-          },
-          '-=0.45'
-        )
-        .to(
-          siteVisitSectionRef.current,
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.7,
-          },
-          '-=0.35'
-        )
-        .to(
-          contactCompositionRef.current,
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.7,
-          },
-          '-=0.25'
-        );
-
-      // ScrollTrigger for Maps & Social sections
-      if (mapsSectionRef.current) {
-        gsap.fromTo(
-          mapsSectionRef.current,
-          { y: 35, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.8,
-            ease: 'power2.out',
-            scrollTrigger: {
-              trigger: mapsSectionRef.current,
-              start: 'top 85%',
-              once: true,
-            },
-          }
-        );
-      }
-
-      if (socialTilesRef.current) {
-        gsap.fromTo(
-          socialTilesRef.current,
-          { y: 35, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.8,
-            ease: 'power2.out',
-            scrollTrigger: {
-              trigger: socialTilesRef.current,
-              start: 'top 85%',
-              once: true,
-            },
-          }
-        );
-      }
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
-
-  // Primary form submission: saves to Firebase RTDB leads
+  // Primary form submission -> Firebase RTDB leads
   const handlePrimarySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormSubmitted(true);
+    setIsSubmitting(true);
 
     try {
       await createLead({
@@ -231,359 +113,163 @@ export const ContactFormSection: React.FC = () => {
         status: 'new',
       });
     } catch (err) {
-      console.error('Firebase lead push note:', err);
+      console.error('Lead submission note:', err);
+    } finally {
+      setIsSubmitting(false);
+      setFormSubmitted(true);
     }
   };
 
-  // Site visit submission: saves to Firebase RTDB and redirects to WhatsApp 7075960672
+  // Site visit submission -> Firebase RTDB lead + WhatsApp redirect
   const handleSiteVisitSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSiteVisitSubmitted(true);
 
     try {
       await createLead({
-        name: siteVisitData.name || 'Client Site Visit',
-        phone: siteVisitData.name || '',
-        message: `Booked Site Visit (₹2,000) for Location: ${siteVisitData.location || 'N/A'}, Preferred Date: ${siteVisitData.date || 'Flexible'}`,
+        name: siteVisitData.name || 'Site Visit Client',
+        phone: siteVisitData.phone || '',
+        message: `Booked On-Location Site Visit (₹2,000). Site/Factory: ${
+          siteVisitData.location || 'Location'
+        }, Preferred Date: ${siteVisitData.date || 'Flexible'}`,
         type: 'site_visit',
         status: 'new',
       });
     } catch (err) {
-      console.error('Firebase site visit lead push note:', err);
+      console.error('Site visit lead note:', err);
     }
 
     const messageLines = [
       'Hi BRANDSHOOTS,',
       '',
-      'I would like to book a Site Visit (₹2,000) for my project.',
+      'I would like to book an On-Location Site Visit (₹2,000) for our project.',
       '',
-      `Location / City: ${siteVisitData.location || 'Not provided'}`,
+      `Name: ${siteVisitData.name || 'Client'}`,
+      `Phone: ${siteVisitData.phone || 'Provided via form'}`,
+      `Shoot Location / Site: ${siteVisitData.location || 'Location'}`,
       `Preferred Date: ${siteVisitData.date || 'Flexible'}`,
-      `Name / Phone: ${siteVisitData.name || 'Client'}`,
       '',
-      'Please confirm availability for the site visit. Thank you!',
+      'Please let us know your availability. Thank you!',
     ];
 
-    const waUrl = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(messageLines.join('\n'))}`;
+    const waUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
+      messageLines.join('\n')
+    )}`;
     window.open(waUrl, '_blank', 'noopener,noreferrer');
+
+    setSiteVisitSubmitted(true);
   };
 
   // Copy address to clipboard
   const handleCopyAddress = () => {
-    navigator.clipboard.writeText(STUDIO_FULL_ADDRESS);
+    navigator.clipboard.writeText(studioFullAddress);
     setCopiedAddress(true);
     setTimeout(() => setCopiedAddress(false), 2500);
   };
 
   return (
-    <section
-      id="contact-form"
-      ref={sectionRef}
-      className="relative w-full min-h-screen bg-[#04060A] text-white pt-28 sm:pt-36 md:pt-40 lg:pt-44 pb-20 sm:pb-28 px-5 sm:px-8 md:px-12 lg:px-16"
-    >
-      <div className="relative z-10 max-w-[1400px] mx-auto">
-        {/* ============================================================== */}
-        {/* 1. HERO / OPENING (REDUCED HEADING + INTERACTIVE 3D LOGO)      */}
-        {/* ============================================================== */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center mb-14 sm:mb-20 md:mb-24">
-          {/* Left Column: Refined, Scaled-Down Editorial Heading */}
-          <div className="lg:col-span-7 flex flex-col justify-center text-left">
-            <div className="inline-flex items-center gap-2 mb-3.5 font-mono text-[11px] tracking-[0.24em] text-[#008CFF] uppercase font-semibold">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
-              <span>START YOUR PRODUCTION // CONTACT</span>
-            </div>
-
-            <h1 className="font-editorial font-black uppercase text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-[62px] xl:text-[68px] tracking-tight leading-[0.95] text-white select-none">
-              <div className="overflow-hidden">
-                <span ref={headlineLine1Ref} className="block">
-                  LET'S MAKE
-                </span>
-              </div>
-              <div className="overflow-hidden">
-                <span ref={headlineLine2Ref} className="block text-white/95">
-                  SOMETHING
-                </span>
-              </div>
-              <div className="overflow-hidden">
-                <span ref={headlineLine3Ref} className="block text-[#008CFF]">
-                  WORTH WATCHING.
-                </span>
-              </div>
+    <div className="w-full bg-[#04060A] text-white">
+      {/* ============================================================== */}
+      {/* 1. HERO — COMPACT, CONFIDENT, REFINED SCALE (OBSIDIAN DARK)     */}
+      {/* ============================================================== */}
+      <section className="relative w-full pt-28 sm:pt-32 md:pt-36 pb-12 sm:pb-16 px-6 sm:px-10 md:px-14 lg:px-20 border-b border-white/[0.08]">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-8">
+          <div>
+            <h1 className="font-sans font-black uppercase text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] tracking-[-0.03em] leading-[1.02] text-white">
+              {heroTitle}<br />
+              <span className="text-[#008CFF]">{heroHighlight}</span>
             </h1>
 
-            {/* User's explicitly preserved one-line sentence */}
-            <p
-              ref={subtitleRef}
-              className="mt-5 sm:mt-6 max-w-xl text-white/70 text-sm sm:text-base md:text-lg font-light leading-relaxed"
-            >
-              Have a project, campaign, product, or story that deserves more than ordinary content? Tell us what you're building.
+            <p className="mt-4 sm:mt-5 text-white/70 text-sm sm:text-base md:text-lg font-light leading-relaxed max-w-xl">
+              {heroSubtitle}
             </p>
           </div>
 
-          {/* Right Column: Interactive 3D BrandShoots Logo (Extruded .svg) */}
-          <div className="lg:col-span-5 flex items-center justify-center relative w-full h-[280px] xs:h-[320px] sm:h-[360px] md:h-[400px] lg:h-[420px]">
-            <BrandShootsLogo3D />
+          <div className="shrink-0">
+            <button
+              type="button"
+              onClick={handleScrollToForm}
+              className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-full bg-[#008CFF] hover:bg-[#1a97ff] text-white font-sans text-xs sm:text-sm font-bold tracking-[0.16em] uppercase transition-all duration-200 active:scale-95 cursor-pointer shadow-lg shadow-[#008CFF]/25"
+            >
+              <span>{heroCtaText}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
+      </section>
 
-        {/* ============================================================== */}
-        {/* 2. SITE VISIT // ON-LOCATION (BROUGHT TO THE TOP!)             */}
-        {/* ============================================================== */}
-        <div
-          ref={siteVisitSectionRef}
-          id="site-visit"
-          className="pb-16 sm:pb-24 border-b border-white/[0.08]"
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
-            {/* Left Context: Editorial Introduction */}
-            <div className="lg:col-span-6 flex flex-col justify-center">
-              <span className="block font-mono text-xs tracking-[0.24em] uppercase text-[#008CFF] mb-2 font-semibold">
-                SITE VISIT // ON-LOCATION
-              </span>
-              <h2 className="font-editorial font-bold uppercase text-3xl sm:text-4xl md:text-5xl tracking-tight text-white mb-4 leading-tight">
-                LET'S MEET WHERE THE WORK HAPPENS.
+      {/* ============================================================== */}
+      {/* 2. CONTACT DETAILS & INQUIRY FORM (UNIFIED DARK THEME)         */}
+      {/* ============================================================== */}
+      <section
+        id="contact-form"
+        className="relative w-full py-16 sm:py-20 md:py-24 px-6 sm:px-10 md:px-14 lg:px-20"
+      >
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+            {/* ========================================================== */}
+            {/* LEFT: DIRECT CONTACT DETAILS                               */}
+            {/* ========================================================== */}
+            <div className="lg:col-span-5 flex flex-col">
+              <h2 className="font-sans font-black uppercase text-2xl sm:text-3xl text-white tracking-tight mb-8 sm:mb-10">
+                CONTACT
               </h2>
-              <p className="text-white/70 text-sm sm:text-base font-light leading-relaxed mb-6">
-                Need us to inspect your factory, showroom, outdoor estate, or shoot location in person?
-                Our team conducts comprehensive on-location spatial recces, camera framing tests, and lighting assessments before shooting begins.
-              </p>
 
-              {/* High-value Checkpoints */}
-              <div className="space-y-3 pt-2 text-xs sm:text-sm text-white/80 font-mono tracking-wide">
-                <div className="flex items-center gap-3">
-                  <span className="w-5 h-5 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/30 flex items-center justify-center text-[#008CFF] text-xs font-bold shrink-0">
-                    ✓
+              <div className="space-y-8 sm:space-y-10">
+                {/* WhatsApp */}
+                <div>
+                  <span className="block text-xs uppercase tracking-wider text-white/50 font-semibold mb-1.5">
+                    WhatsApp
                   </span>
-                  <span>Director & Cinematographer on-site recce</span>
+                  <a
+                    href={`https://wa.me/${whatsappPhone}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-2xl sm:text-3xl font-bold text-white hover:text-[#008CFF] transition-colors tracking-tight inline-block"
+                  >
+                    {displayPhone}
+                  </a>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="w-5 h-5 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/30 flex items-center justify-center text-[#008CFF] text-xs font-bold shrink-0">
-                    ✓
+
+                {/* Email */}
+                <div>
+                  <span className="block text-xs uppercase tracking-wider text-white/50 font-semibold mb-1.5">
+                    Email
                   </span>
-                  <span>Lighting angles, acoustics & power check</span>
+                  <a
+                    href={`mailto:${studioEmail}`}
+                    className="text-xl sm:text-2xl font-bold text-white hover:text-[#008CFF] transition-colors tracking-tight inline-block break-all"
+                  >
+                    {studioEmail}
+                  </a>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="w-5 h-5 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/30 flex items-center justify-center text-[#008CFF] text-xs font-bold shrink-0">
-                    ✓
+
+                {/* Location */}
+                <div>
+                  <span className="block text-xs uppercase tracking-wider text-white/50 font-semibold mb-1.5">
+                    Location
                   </span>
-                  <span>Shot feasibility & production schedule planning</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Right: The Vertical Rectangle Price Tile Card */}
-            <div className="lg:col-span-6 flex justify-start lg:justify-end">
-              <div className="w-full max-w-md p-6 sm:p-8 rounded-2xl bg-[#070A0F] border border-white/15 hover:border-[#008CFF]/40 transition-all duration-300 shadow-[0_20px_50px_rgba(0,0,0,0.7)] flex flex-col justify-between relative overflow-hidden">
-                {/* Subtle top rim light */}
-                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#008CFF]/50 to-transparent" />
-
-                {/* Card Header & Price Tag */}
-                <div className="pb-5 border-b border-white/10 mb-5">
-                  <div className="flex items-center justify-between gap-3 mb-3">
-                    <span className="font-mono text-[10px] sm:text-[11px] tracking-[0.24em] uppercase text-white/50 font-semibold">
-                      LOCATION VISIT TILE
-                    </span>
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#008CFF]/15 border border-[#008CFF]/30 text-[10px] font-mono tracking-widest text-[#008CFF] uppercase font-bold">
-                      FIXED FEE
-                    </span>
-                  </div>
-
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-editorial text-4xl sm:text-5xl font-black text-white tracking-tight">
-                      ₹2,000
-                    </span>
-                    <span className="font-mono text-xs text-white/50 tracking-widest uppercase">
-                      / VISIT
-                    </span>
-                  </div>
-                  <p className="mt-1.5 text-xs text-white/60 font-light leading-relaxed">
-                    Direct on-site consultation & camera recce by BrandShoots core team.
+                  <p className="text-lg sm:text-xl font-bold text-white/90 tracking-tight leading-snug">
+                    {studioCityState}
                   </p>
                 </div>
-
-                {/* Quick & Simple Booking Form */}
-                {siteVisitSubmitted ? (
-                  <div className="py-6 px-4 border border-[#008CFF]/30 rounded-xl bg-[#008CFF]/10 text-center animate-fadeIn">
-                    <p className="font-mono text-xs tracking-wider uppercase text-white font-semibold">
-                      INQUIRY OPENED IN WHATSAPP
-                    </p>
-                    <p className="text-xs text-white/70 mt-1">
-                      Target: +91 70759 60672. Confirming schedule with our team.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setSiteVisitSubmitted(false)}
-                      className="mt-4 font-mono text-xs uppercase tracking-widest text-[#008CFF] hover:text-white transition-colors underline underline-offset-4 cursor-pointer"
-                    >
-                      Book Another Site Visit
-                    </button>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSiteVisitSubmit} className="space-y-3.5">
-                    {/* Location / City */}
-                    <div>
-                      <label className="block text-[11px] font-mono tracking-wider uppercase text-white/70 mb-1.5">
-                        LOCATION / CITY <span className="text-[#008CFF]">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. Hyderabad, Factory, Studio..."
-                        value={siteVisitData.location}
-                        onChange={(e) =>
-                          setSiteVisitData({ ...siteVisitData, location: e.target.value })
-                        }
-                        className="w-full px-3.5 py-2.5 rounded-lg bg-white/[0.04] border border-white/15 text-white placeholder-white/25 text-xs sm:text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
-                      />
-                    </div>
-
-                    {/* Preferred Date & Name/Phone */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-[11px] font-mono tracking-wider uppercase text-white/70 mb-1.5">
-                          PREFERRED DATE
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="e.g. Next week, Oct 20"
-                          value={siteVisitData.date}
-                          onChange={(e) =>
-                            setSiteVisitData({ ...siteVisitData, date: e.target.value })
-                          }
-                          className="w-full px-3.5 py-2.5 rounded-lg bg-white/[0.04] border border-white/15 text-white placeholder-white/25 text-xs sm:text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-mono tracking-wider uppercase text-white/70 mb-1.5">
-                          NAME / PHONE
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Your name or phone"
-                          value={siteVisitData.name}
-                          onChange={(e) =>
-                            setSiteVisitData({ ...siteVisitData, name: e.target.value })
-                          }
-                          className="w-full px-3.5 py-2.5 rounded-lg bg-white/[0.04] border border-white/15 text-white placeholder-white/25 text-xs sm:text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
-                        />
-                      </div>
-                    </div>
-
-                    {/* CTA Button: Redirects to WhatsApp 7075960672 */}
-                    <div className="pt-2">
-                      <button
-                        type="submit"
-                        className="w-full py-3.5 px-5 rounded-full bg-[#008CFF] hover:bg-[#209CFF] text-white font-mono text-xs uppercase tracking-[0.2em] font-bold flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer shadow-[0_0_24px_rgba(0,140,255,0.4)] active:scale-98"
-                      >
-                        <span>BOOK SITE VISIT (₹2,000)</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-
-                    {/* Direct One-Click WhatsApp Link */}
-                    <div className="text-center pt-2">
-                      <a
-                        href={`https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(
-                          'Hi BRANDSHOOTS, I would like to book a Site Visit (₹2,000) for my project. Please share available dates.'
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-white/50 hover:text-[#25D366] transition-colors"
-                      >
-                        <MessageSquare className="w-3.5 h-3.5 text-[#25D366]" />
-                        <span>Or Inquire directly on WhatsApp (7075960672) →</span>
-                      </a>
-                    </div>
-                  </form>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ============================================================== */}
-        {/* 3. START A CONVERSATION + DIRECT STUDIO REACH (PLACED BELOW)    */}
-        {/* ============================================================== */}
-        <div
-          ref={contactCompositionRef}
-          className="pt-16 sm:pt-24 pb-16 sm:pb-24 border-b border-white/[0.08]"
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 xl:gap-24 items-start">
-            {/* ============================================================ */}
-            {/* LEFT: DIRECT STUDIO REACH                                    */}
-            {/* ============================================================ */}
-            <div className="lg:col-span-5 flex flex-col gap-10">
-              <div>
-                <span className="block font-mono text-xs tracking-[0.24em] uppercase text-[#008CFF] mb-2 font-semibold">
-                  CONNECT DIRECTLY
-                </span>
-                <h2 className="font-editorial font-bold uppercase text-2xl sm:text-3xl md:text-4xl tracking-tight text-white mb-6">
-                  DIRECT STUDIO REACH
-                </h2>
-
-                <div className="flex flex-col gap-8">
-                  {/* WHATSAPP */}
-                  <div>
-                    <span className="block font-mono text-[11px] tracking-[0.2em] uppercase text-white/40 mb-1.5 flex items-center gap-1.5">
-                      <WhatsAppIcon className="w-3.5 h-3.5 text-[#25D366]" />
-                      <span>WHATSAPP (DIRECT)</span>
-                    </span>
-                    <a
-                      href={`https://wa.me/${WHATSAPP_PHONE}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block text-white hover:text-[#25D366] text-lg sm:text-xl md:text-2xl font-medium tracking-wide transition-colors"
-                    >
-                      {DISPLAY_PHONE}
-                    </a>
-                  </div>
-
-                  {/* EMAIL */}
-                  <div>
-                    <span className="block font-mono text-[11px] tracking-[0.2em] uppercase text-white/40 mb-1.5 flex items-center gap-1.5">
-                      <Mail className="w-3.5 h-3.5 text-[#008CFF]" />
-                      <span>EMAIL</span>
-                    </span>
-                    <a
-                      href={`mailto:${STUDIO_EMAIL}`}
-                      className="inline-block text-white hover:text-[#008CFF] text-lg sm:text-xl md:text-2xl font-medium tracking-wide transition-colors"
-                    >
-                      {STUDIO_EMAIL}
-                    </a>
-                  </div>
-
-                  {/* PHYSICAL ADDRESS */}
-                  <div>
-                    <span className="block font-mono text-[11px] tracking-[0.2em] uppercase text-white/40 mb-1.5 flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-[#008CFF]" />
-                      <span>STUDIO ADDRESS</span>
-                    </span>
-                    <span className="block text-white text-sm sm:text-base font-medium leading-relaxed max-w-sm">
-                      {STUDIO_FULL_ADDRESS}
-                    </span>
-                  </div>
-                </div>
               </div>
             </div>
 
-            {/* ============================================================ */}
-            {/* RIGHT: PROJECT INQUIRY FORM                                  */}
-            {/* ============================================================ */}
+            {/* ========================================================== */}
+            {/* RIGHT: CONTACT INQUIRY FORM (DARK THEME)                   */}
+            {/* ========================================================== */}
             <div className="lg:col-span-7">
-              <span className="block font-mono text-xs tracking-[0.24em] uppercase text-[#008CFF] mb-2 font-semibold">
-                PROJECT INQUIRY
-              </span>
-              <h2 className="font-editorial font-bold uppercase text-2xl sm:text-3xl md:text-4xl tracking-tight text-white mb-6">
+              <h2 className="font-sans font-black uppercase text-2xl sm:text-3xl text-white tracking-tight mb-8 sm:mb-10">
                 START A CONVERSATION
               </h2>
 
               {formSubmitted ? (
-                <div className="py-12 px-6 sm:px-8 border border-white/[0.08] rounded-xl bg-white/[0.02] text-left">
-                  <h3 className="font-editorial text-2xl sm:text-3xl font-bold uppercase tracking-tight text-white mb-2">
+                <div className="p-8 sm:p-10 rounded-2xl bg-[#080D17] border border-white/10 text-left">
+                  <h3 className="font-sans font-black text-2xl uppercase tracking-tight text-white mb-2">
                     THANK YOU.
                   </h3>
-                  <p className="font-mono text-xs sm:text-sm tracking-wider uppercase text-white/70">
-                    WE'LL BE IN TOUCH.
+                  <p className="text-white/70 text-sm sm:text-base leading-relaxed mb-6">
+                    We've received your inquiry and our team will get in touch with you shortly.
                   </p>
                   <button
                     type="button"
@@ -598,32 +284,36 @@ export const ContactFormSection: React.FC = () => {
                         message: '',
                       });
                     }}
-                    className="mt-8 font-mono text-xs uppercase tracking-widest text-white/50 hover:text-white transition-colors underline underline-offset-4 cursor-pointer"
+                    className="font-sans text-xs uppercase tracking-wider font-bold text-[#008CFF] hover:underline cursor-pointer"
                   >
-                    Send another message
+                    Send another message →
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handlePrimarySubmit} className="space-y-5 sm:space-y-6">
-                  {/* 1. Name & Email */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                    <div>
-                      <label className="block text-xs font-mono tracking-wider uppercase text-white/60 mb-2">
-                        NAME <span className="text-[#008CFF]">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Your name"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-4 py-3 sm:py-3.5 rounded-lg bg-white/[0.03] border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
-                      />
-                    </div>
+                <form
+                  onSubmit={handlePrimarySubmit}
+                  className="p-6 sm:p-9 rounded-2xl bg-[#070B13] border border-white/10 space-y-5 shadow-2xl"
+                >
+                  {/* Name */}
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider font-semibold text-white/70 mb-1.5">
+                      Name <span className="text-[#008CFF]">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Your full name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/12 text-white placeholder:text-white/25 text-sm focus:outline-none focus:bg-white/[0.07] focus:border-[#008CFF] focus:ring-1 focus:ring-[#008CFF] transition-all"
+                    />
+                  </div>
 
+                  {/* Email & Phone */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-mono tracking-wider uppercase text-white/60 mb-2">
-                        EMAIL <span className="text-[#008CFF]">*</span>
+                      <label className="block text-xs uppercase tracking-wider font-semibold text-white/70 mb-1.5">
+                        Email <span className="text-[#008CFF]">*</span>
                       </label>
                       <input
                         type="email"
@@ -631,16 +321,13 @@ export const ContactFormSection: React.FC = () => {
                         placeholder="your@email.com"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full px-4 py-3 sm:py-3.5 rounded-lg bg-white/[0.03] border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
+                        className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/12 text-white placeholder:text-white/25 text-sm focus:outline-none focus:bg-white/[0.07] focus:border-[#008CFF] transition-all"
                       />
                     </div>
-                  </div>
 
-                  {/* 2. Phone / WhatsApp & Company */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     <div>
-                      <label className="block text-xs font-mono tracking-wider uppercase text-white/60 mb-2">
-                        PHONE / WHATSAPP <span className="text-[#008CFF]">*</span>
+                      <label className="block text-xs uppercase tracking-wider font-semibold text-white/70 mb-1.5">
+                        Phone / WhatsApp <span className="text-[#008CFF]">*</span>
                       </label>
                       <input
                         type="tel"
@@ -648,88 +335,88 @@ export const ContactFormSection: React.FC = () => {
                         placeholder="+91 00000 00000"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="w-full px-4 py-3 sm:py-3.5 rounded-lg bg-white/[0.03] border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
+                        className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/12 text-white placeholder:text-white/25 text-sm focus:outline-none focus:bg-white/[0.07] focus:border-[#008CFF] transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Company / Brand & Project Type */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs uppercase tracking-wider font-semibold text-white/70 mb-1.5">
+                        Company / Brand
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Your company or brand"
+                        value={formData.company}
+                        onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/12 text-white placeholder:text-white/25 text-sm focus:outline-none focus:bg-white/[0.07] focus:border-[#008CFF] transition-all"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-mono tracking-wider uppercase text-white/60 mb-2">
-                        COMPANY / BRAND
+                      <label className="block text-xs uppercase tracking-wider font-semibold text-white/70 mb-1.5">
+                        Project Type
                       </label>
-                      <input
-                        type="text"
-                        placeholder="Company or brand name"
-                        value={formData.company}
-                        onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                        className="w-full px-4 py-3 sm:py-3.5 rounded-lg bg-white/[0.03] border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#008CFF] transition-colors"
-                      />
-                    </div>
-                  </div>
-
-                  {/* 3. Project Type Dropdown */}
-                  <div>
-                    <label className="block text-xs font-mono tracking-wider uppercase text-white/60 mb-2">
-                      PROJECT TYPE
-                    </label>
-                    <div className="relative">
-                      <select
-                        value={formData.projectType}
-                        onChange={(e) =>
-                          setFormData({ ...formData, projectType: e.target.value })
-                        }
-                        className="w-full px-4 py-3 sm:py-3.5 rounded-lg bg-[#070A0F] border border-white/10 text-white text-sm focus:outline-none focus:border-[#008CFF] transition-colors appearance-none cursor-pointer"
-                      >
-                        {PROJECT_TYPES.map((type) => (
-                          <option key={type} value={type} className="bg-[#070A0F] text-white">
-                            {type}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-white/50">
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                          <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                        </svg>
+                      <div className="relative">
+                        <select
+                          value={formData.projectType}
+                          onChange={(e) =>
+                            setFormData({ ...formData, projectType: e.target.value })
+                          }
+                          className="w-full px-4 py-3 rounded-xl bg-[#080D17] border border-white/12 text-white text-sm focus:outline-none focus:border-[#008CFF] focus:ring-1 focus:ring-[#008CFF] transition-all appearance-none cursor-pointer"
+                        >
+                          {projectTypes.map((type) => (
+                            <option key={type} value={type} className="bg-[#080D17] text-white">
+                              {type}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-white/50">
+                          <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                            <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                          </svg>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* 4. Message */}
+                  {/* Message */}
                   <div>
-                    <label className="block text-xs font-mono tracking-wider uppercase text-white/60 mb-2">
-                      TELL US ABOUT YOUR PROJECT
+                    <label className="block text-xs uppercase tracking-wider font-semibold text-white/70 mb-1.5">
+                      Tell us about your project
                     </label>
                     <textarea
                       rows={3}
                       placeholder="Tell us what you're building, what you need, and where you want to take it."
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      className="w-full px-4 py-3 sm:py-3.5 rounded-lg bg-white/[0.03] border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#008CFF] transition-colors resize-none leading-relaxed"
+                      className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/12 text-white placeholder:text-white/25 text-sm focus:outline-none focus:bg-white/[0.07] focus:border-[#008CFF] transition-all resize-none leading-relaxed"
                     />
                   </div>
 
-                  {/* 5. Two Clear Actions: Primary + Secondary WhatsApp */}
+                  {/* Actions */}
                   <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-                    {/* Primary Submit */}
                     <button
                       type="submit"
-                      className="py-3.5 px-8 rounded-full bg-[#008CFF] hover:bg-[#209CFF] text-white font-mono text-xs uppercase tracking-[0.2em] font-bold flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer active:scale-98"
+                      disabled={isSubmitting}
+                      className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-full bg-[#008CFF] hover:bg-[#1a97ff] text-white font-sans text-xs sm:text-sm font-bold tracking-[0.16em] uppercase transition-all duration-200 active:scale-95 cursor-pointer shadow-lg shadow-[#008CFF]/25 disabled:opacity-50"
                     >
-                      <span>START A CONVERSATION</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
+                      <span>{isSubmitting ? 'SENDING...' : 'START A CONVERSATION'}</span>
+                      <ArrowRight className="w-4 h-4" />
                     </button>
 
-                    {/* Secondary Understated WhatsApp Action */}
                     <a
-                      href={`https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(
+                      href={`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
                         'Hi BRANDSHOOTS, I would like to discuss a project.'
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-mono text-xs uppercase tracking-widest text-white/60 hover:text-[#25D366] transition-colors flex items-center justify-center gap-1.5 py-2"
+                      className="text-xs uppercase tracking-wider font-bold text-white/60 hover:text-[#008CFF] transition-colors inline-flex items-center justify-center gap-1.5 py-2"
                     >
-                      <WhatsAppIcon className="w-3.5 h-3.5 text-[#25D366]" />
-                      <span>INQUIRE ON WHATSAPP</span>
-                      <span>→</span>
+                      <span>Or chat on WhatsApp</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </a>
                   </div>
                 </form>
@@ -737,50 +424,101 @@ export const ContactFormSection: React.FC = () => {
             </div>
           </div>
         </div>
+      </section>
 
-        {/* ============================================================== */}
-        {/* 4. GOOGLE MAPS EMBED IFRAME SECTION                            */}
-        {/* ============================================================== */}
-        <div
-          ref={mapsSectionRef}
-          id="studio-map"
-          className="pt-16 sm:pt-24 pb-16 sm:pb-24 border-b border-white/[0.08]"
-        >
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8 sm:mb-10">
-            <div>
-              <span className="block font-mono text-xs tracking-[0.24em] uppercase text-[#008CFF] mb-2 font-semibold">
-                • LOCATION // PHYSICAL STUDIO RECCE
+      {/* ============================================================== */}
+      {/* 3. SITE VISIT — DEDICATED SEPARATE SECTION                     */}
+      {/* ============================================================== */}
+      <section
+        id="site-visit"
+        className="relative w-full py-16 sm:py-20 px-6 sm:px-10 md:px-14 lg:px-20 border-t border-white/[0.08]"
+      >
+        <div className="max-w-6xl mx-auto">
+          <div className="p-7 sm:p-10 md:p-12 rounded-3xl bg-[#070B13] border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-8 relative overflow-hidden shadow-2xl">
+            {/* Ambient subtle blue backlight glow */}
+            <div
+              className="absolute -top-24 -right-24 w-80 h-80 rounded-full pointer-events-none opacity-25"
+              style={{
+                background: 'radial-gradient(circle, rgba(0, 140, 255, 0.25) 0%, transparent 70%)',
+                filter: 'blur(60px)',
+              }}
+            />
+
+            <div className="relative z-10 max-w-2xl">
+              <span className="block text-xs uppercase tracking-[0.2em] font-mono text-[#008CFF] font-semibold mb-2">
+                {siteVisitTag}
               </span>
-              <h2 className="font-editorial font-bold uppercase text-3xl sm:text-4xl md:text-5xl tracking-tight text-white leading-tight">
-                VISIT OUR PHYSICAL STUDIO.
+              <h2 className="font-sans font-black uppercase text-2xl sm:text-3xl md:text-4xl text-white tracking-tight leading-tight">
+                {siteVisitTitle}
               </h2>
-              <p className="mt-3 text-white/70 text-sm sm:text-base font-light max-w-2xl leading-relaxed">
-                {STUDIO_FULL_ADDRESS}
+              <p className="mt-3 text-white/70 text-sm sm:text-base leading-relaxed font-light">
+                {siteVisitDescription}
               </p>
             </div>
 
-            {/* Direct Directions & Copy Address Controls */}
+            <div className="relative z-10 flex flex-col sm:flex-row md:flex-col items-start sm:items-center md:items-end justify-between gap-4 shrink-0">
+              <div className="text-left md:text-right">
+                <span className="block text-xs text-white/50 uppercase tracking-wider font-mono">Fixed Fee</span>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-3xl sm:text-4xl font-sans font-black text-white">{siteVisitPrice}</span>
+                  <span className="text-sm text-white/50 font-medium">{siteVisitPriceUnit}</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSiteVisitSubmitted(false);
+                  setIsBookingModalOpen(true);
+                }}
+                className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-[#008CFF] hover:bg-[#1a97ff] text-white font-sans text-xs sm:text-sm font-bold tracking-[0.16em] uppercase transition-all duration-200 active:scale-95 cursor-pointer shadow-lg shadow-[#008CFF]/25"
+              >
+                <span>{siteVisitCtaText}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================== */}
+      {/* 4. STUDIO LOCATION & MAP (DARK STUDIO SECTION)                 */}
+      {/* ============================================================== */}
+      <section className="relative w-full py-16 sm:py-20 px-6 sm:px-10 md:px-14 lg:px-20 border-t border-white/[0.08]">
+        <div className="max-w-6xl mx-auto">
+          {/* Header & Controls */}
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-7 sm:mb-8">
+            <div>
+              <h2 className="font-sans font-black uppercase text-2xl sm:text-3xl text-white tracking-tight">
+                STUDIO LOCATION
+              </h2>
+
+              <p className="mt-2 text-white/70 text-sm sm:text-base max-w-xl leading-relaxed whitespace-pre-line">
+                {studioFullAddress}
+              </p>
+            </div>
+
             <div className="flex flex-wrap items-center gap-3">
               <a
-                href={GOOGLE_MAPS_SEARCH_URL}
+                href={googleMapsSearchUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="py-3 px-5 rounded-full bg-[#008CFF] hover:bg-[#209CFF] text-white font-mono text-xs uppercase tracking-wider font-bold inline-flex items-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[#008CFF] hover:bg-[#1a97ff] text-white font-sans text-xs font-bold tracking-[0.16em] uppercase transition-all duration-200 active:scale-95 shadow-sm"
               >
                 <MapPin className="w-3.5 h-3.5" />
                 <span>GET DIRECTIONS</span>
-                <ExternalLink className="w-3.5 h-3.5" />
+                <ArrowRight className="w-3.5 h-3.5" />
               </a>
 
               <button
                 type="button"
                 onClick={handleCopyAddress}
-                className="py-3 px-5 rounded-full bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-white font-mono text-xs uppercase tracking-wider font-semibold inline-flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-white font-sans text-xs font-bold tracking-[0.16em] uppercase transition-all duration-200 active:scale-95 cursor-pointer"
               >
                 {copiedAddress ? (
                   <>
-                    <Check className="w-3.5 h-3.5 text-[#25D366]" />
-                    <span className="text-[#25D366]">COPIED TO CLIPBOARD</span>
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-emerald-400">COPIED ADDRESS</span>
                   </>
                 ) : (
                   <>
@@ -792,14 +530,11 @@ export const ContactFormSection: React.FC = () => {
             </div>
           </div>
 
-          {/* Responsive Google Maps Iframe Container */}
-          <div className="w-full h-[380px] sm:h-[450px] md:h-[500px] rounded-2xl sm:rounded-3xl border border-white/15 bg-[#070A0F] overflow-hidden relative shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
-            {/* Top ambient blue light rim */}
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#008CFF]/60 to-transparent z-10 pointer-events-none" />
-
+          {/* Clean Google Maps Embed */}
+          <div className="w-full h-[320px] sm:h-[400px] md:h-[450px] rounded-2xl sm:rounded-3xl border border-white/12 overflow-hidden shadow-2xl bg-[#070B13]">
             <iframe
               title="BrandShoots Studio Location Map"
-              src={GOOGLE_MAPS_EMBED_URL}
+              src={googleMapsEmbedUrl}
               className="w-full h-full border-0 filter contrast-[1.05]"
               loading="lazy"
               allowFullScreen
@@ -807,70 +542,224 @@ export const ContactFormSection: React.FC = () => {
             />
           </div>
         </div>
+      </section>
 
-        {/* ============================================================== */}
-        {/* 5. MINIMAL SOCIAL TILES (COLOR / HOVER B&W)                     */}
-        {/* ============================================================== */}
-        <div ref={socialTilesRef} className="pt-12 sm:pt-16 pb-6">
-          <div className="mb-6 sm:mb-8 text-left">
-            <span className="block font-mono text-[11px] tracking-[0.24em] uppercase text-[#008CFF] mb-1.5 font-medium">
-              • DIRECT CHANNELS
-            </span>
-            <h2 className="font-editorial font-bold uppercase text-2xl sm:text-3xl tracking-tight text-white">
-              CONNECT WITH US.
-            </h2>
-          </div>
+      {/* ============================================================== */}
+      {/* 5. SOCIAL / DIRECT CHANNELS (DARK GLASS TILES)                  */}
+      {/* ============================================================== */}
+      <section className="relative w-full py-12 sm:py-16 px-6 sm:px-10 md:px-14 lg:px-20 border-t border-white/[0.08]">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {/* WhatsApp */}
+            <a
+              href={`https://wa.me/${whatsappPhone}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group p-5 rounded-2xl bg-[#070B13] border border-white/10 hover:border-[#008CFF]/50 transition-all duration-200 flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between text-white/50 group-hover:text-[#008CFF] transition-colors mb-2">
+                <span className="text-xs uppercase tracking-wider font-bold">
+                  WhatsApp
+                </span>
+                <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </div>
+              <span className="text-base sm:text-lg font-bold text-white tracking-tight group-hover:text-[#008CFF] transition-colors">
+                {displayPhone}
+              </span>
+            </a>
 
-          {/* Minimal 4 Tiles Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-            {SOCIAL_TILES.map((tile) => {
-              const IconComponent = tile.icon;
-              return (
-                <a
-                  key={tile.id}
-                  href={tile.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group relative p-4 sm:p-5 rounded-2xl bg-[#070A0F] border border-white/10 hover:border-white/30 transition-all duration-300 flex flex-col justify-between min-h-[130px] sm:min-h-[145px] overflow-hidden hover:-translate-y-1 cursor-pointer"
-                >
-                  {/* Subtle top rim light in brand color */}
-                  <div
-                    className="absolute top-0 left-0 right-0 h-[2px] opacity-70 group-hover:opacity-100 transition-opacity"
-                    style={{ backgroundColor: tile.brandColor }}
-                  />
+            {/* Instagram */}
+            <a
+              href={instagramUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group p-5 rounded-2xl bg-[#070B13] border border-white/10 hover:border-[#008CFF]/50 transition-all duration-200 flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between text-white/50 group-hover:text-[#008CFF] transition-colors mb-2">
+                <span className="text-xs uppercase tracking-wider font-bold">
+                  Instagram
+                </span>
+                <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </div>
+              <span className="text-base sm:text-lg font-bold text-white tracking-tight group-hover:text-[#008CFF] transition-colors">
+                {instagramHandle}
+              </span>
+            </a>
 
-                  {/* Top: Icon (color -> hover B&W) + Arrow */}
-                  <div className="flex items-center justify-between">
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:grayscale group-hover:contrast-125"
-                      style={{
-                        backgroundColor: `${tile.brandColor}18`,
-                        color: tile.brandColor,
-                        border: `1px solid ${tile.brandColor}35`,
-                      }}
-                    >
-                      <IconComponent className="w-5 h-5" />
-                    </div>
+            {/* YouTube */}
+            <a
+              href={youtubeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group p-5 rounded-2xl bg-[#070B13] border border-white/10 hover:border-[#008CFF]/50 transition-all duration-200 flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between text-white/50 group-hover:text-[#008CFF] transition-colors mb-2">
+                <span className="text-xs uppercase tracking-wider font-bold">
+                  YouTube
+                </span>
+                <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </div>
+              <span className="text-base sm:text-lg font-bold text-white tracking-tight group-hover:text-[#008CFF] transition-colors">
+                {youtubeHandle}
+              </span>
+            </a>
 
-                    <ArrowUpRight className="w-4 h-4 text-white/30 group-hover:text-white transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                  </div>
-
-                  {/* Bottom: Name & Handle */}
-                  <div className="mt-4">
-                    <span className="block font-mono text-[10px] sm:text-[11px] tracking-wider uppercase text-white/50 mb-0.5 group-hover:text-white/70 transition-colors">
-                      {tile.name}
-                    </span>
-                    <span className="block font-semibold text-xs sm:text-sm text-white tracking-tight truncate">
-                      {tile.handle}
-                    </span>
-                  </div>
-                </a>
-              );
-            })}
+            {/* Facebook */}
+            <a
+              href={facebookUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group p-5 rounded-2xl bg-[#070B13] border border-white/10 hover:border-[#008CFF]/50 transition-all duration-200 flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between text-white/50 group-hover:text-[#008CFF] transition-colors mb-2">
+                <span className="text-xs uppercase tracking-wider font-bold">
+                  Facebook
+                </span>
+                <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </div>
+              <span className="text-base sm:text-lg font-bold text-white tracking-tight group-hover:text-[#008CFF] transition-colors">
+                {facebookHandle}
+              </span>
+            </a>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* ============================================================== */}
+      {/* 6. SITE VISIT BOOKING MODAL (DARK THEME)                       */}
+      {/* ============================================================== */}
+      {isBookingModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => setIsBookingModalOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-lg bg-[#070B14] rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/15"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-start justify-between pb-4 border-b border-white/10">
+              <div>
+                <h3 className="font-sans font-black uppercase text-2xl text-white tracking-tight">
+                  BOOK A SITE VISIT
+                </h3>
+                <p className="text-sm text-white/60 mt-1">
+                  On-location spatial recce & camera framing check. ₹2,000 / visit.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsBookingModalOpen(false)}
+                className="w-9 h-9 rounded-full bg-white/[0.08] hover:bg-white/[0.16] text-white flex items-center justify-center transition-all cursor-pointer active:scale-95"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            {siteVisitSubmitted ? (
+              <div className="py-8 text-center">
+                <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
+                  <Check className="w-6 h-6" />
+                </div>
+                <h4 className="font-sans font-bold text-lg text-white">
+                  Inquiry Sent via WhatsApp
+                </h4>
+                <p className="text-sm text-white/60 mt-2 max-w-xs mx-auto">
+                  We've initiated the conversation on WhatsApp ({displayPhone}) to confirm schedule availability for your site visit.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsBookingModalOpen(false)}
+                  className="mt-6 px-6 py-2.5 rounded-full bg-[#008CFF] text-white font-sans text-xs font-bold uppercase tracking-wider"
+                >
+                  Close
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSiteVisitSubmit} className="mt-6 space-y-4">
+                <div>
+                  <label className="block text-xs uppercase tracking-wider font-bold text-white/80 mb-1.5">
+                    Your Name <span className="text-[#008CFF]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Full name"
+                    value={siteVisitData.name}
+                    onChange={(e) =>
+                      setSiteVisitData({ ...siteVisitData, name: e.target.value })
+                    }
+                    className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/12 text-white placeholder:text-white/25 text-sm focus:outline-none focus:bg-white/[0.07] focus:border-[#008CFF] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider font-bold text-white/80 mb-1.5">
+                    Phone / WhatsApp <span className="text-[#008CFF]">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="+91 00000 00000"
+                    value={siteVisitData.phone}
+                    onChange={(e) =>
+                      setSiteVisitData({ ...siteVisitData, phone: e.target.value })
+                    }
+                    className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/12 text-white placeholder:text-white/25 text-sm focus:outline-none focus:bg-white/[0.07] focus:border-[#008CFF] transition-all"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider font-bold text-white/80 mb-1.5">
+                      Shoot Location / Site
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Factory, Showroom, Estate"
+                      value={siteVisitData.location}
+                      onChange={(e) =>
+                        setSiteVisitData({ ...siteVisitData, location: e.target.value })
+                      }
+                      className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/12 text-white placeholder:text-white/25 text-sm focus:outline-none focus:bg-white/[0.07] focus:border-[#008CFF] transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider font-bold text-white/80 mb-1.5">
+                      Preferred Date
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Next week, Oct 25"
+                      value={siteVisitData.date}
+                      onChange={(e) =>
+                        setSiteVisitData({ ...siteVisitData, date: e.target.value })
+                      }
+                      className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/12 text-white placeholder:text-white/25 text-sm focus:outline-none focus:bg-white/[0.07] focus:border-[#008CFF] transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    className="w-full py-3.5 rounded-full bg-[#008CFF] hover:bg-[#1a97ff] text-white font-sans text-xs sm:text-sm font-bold tracking-[0.16em] uppercase flex items-center justify-center gap-2 transition-all duration-200 active:scale-98 cursor-pointer shadow-lg shadow-[#008CFF]/25"
+                  >
+                    <span>CONFIRM & BOOK ON WHATSAPP</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
