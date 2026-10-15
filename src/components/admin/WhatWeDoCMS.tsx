@@ -201,7 +201,7 @@ export const WhatWeDoCMS: React.FC = () => {
         <div className="flex items-center gap-2">
           <div className="px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-white/70 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>CMS 1.3 &bull; Live Synced</span>
+            <span>Live Synced</span>
           </div>
         </div>
       </div>

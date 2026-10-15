@@ -163,9 +163,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
               <span className="text-[#008CFF]">BRAND</span>
               <span className="text-white">SHOOTS</span>
             </div>
-            <span className="hidden sm:inline-block ml-1 px-2 py-0.5 rounded-full bg-[#008CFF]/10 border border-[#008CFF]/30 text-[#008CFF] font-mono text-[10px] font-bold uppercase tracking-wider">
-              CMS 1.3
-            </span>
           </Link>
         </div>
 
@@ -199,12 +196,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                 {flashMessage.type === 'undo' ? 'Restored' : 'Live Synced'}
               </span>
             </div>
-          ) : (
-            <div className="hidden xl:flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.02] border border-white/5 text-[11px] font-mono text-white/30">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/80 animate-pulse" />
-              <span>CMS 1.3 &bull; Realtime Sync Active</span>
-            </div>
-          )}
+          ) : null}
         </div>
 
         {/* Right: Undo, Logged Time, Name, Live Site (_blank), Logout */}
@@ -398,8 +390,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
 
           {/* Sidebar Footer Info */}
           <div className="pt-4 border-t border-white/10 text-xs font-mono text-white/50 flex flex-col gap-1">
-            <span className="text-white font-semibold">CMS Phase 1.1</span>
-            <span>BrandShoots Production Portal</span>
+            <span className="text-white font-semibold">BrandShoots Admin</span>
+            <span>Production Management Console</span>
           </div>
         </aside>
 

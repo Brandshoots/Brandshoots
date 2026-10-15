@@ -169,7 +169,7 @@ export const AdminLoginPage: React.FC = () => {
             <span className="text-white">SHOOTS</span>
           </div>
           <p className="mt-1 font-mono text-[11px] tracking-[0.24em] uppercase text-white/50">
-            CMS 1.0 • Administrator Portal
+            Administrator Portal
           </p>
         </div>
 
@@ -245,7 +245,7 @@ export const AdminLoginPage: React.FC = () => {
             className="w-full mt-2 py-3.5 px-6 rounded-full bg-[#008CFF] hover:bg-[#209CFF] disabled:opacity-50 text-white font-mono text-xs uppercase tracking-[0.2em] font-bold flex items-center justify-center gap-2 transition-all shadow-[0_0_24px_rgba(0,140,255,0.4)] hover:shadow-[0_0_36px_rgba(0,140,255,0.65)] active:scale-98 cursor-pointer"
           >
             {isSubmitting ? (
-              <span>Authenticating CMS 1.0...</span>
+              <span>Authenticating...</span>
             ) : (
               <>
                 <span>Sign In to Admin</span>
@@ -263,7 +263,7 @@ export const AdminLoginPage: React.FC = () => {
             ← Back to Live Site
           </Link>
           <p className="text-[10px] font-mono text-center text-white/30">
-            Protected BrandShoots CMS 1.0 Realtime Console. Authorized personnel only.
+            Protected BrandShoots Management Console. Authorized personnel only.
           </p>
         </div>
       </div>

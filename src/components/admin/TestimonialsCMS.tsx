@@ -188,11 +188,8 @@ export const TestimonialsCMS: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-xs uppercase tracking-[0.2em] text-[#008CFF] font-semibold">
-                  CMS 1.5
-                </span>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                <span className="text-[11px] font-mono uppercase text-white/50">
+                <span className="text-[11px] font-mono uppercase text-white/60 font-semibold tracking-wider">
                   {testimonials.length} Reviews Active
                 </span>
               </div>

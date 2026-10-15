@@ -200,7 +200,7 @@ export const ContactCMS: React.FC = () => {
         <div>
           <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-[#008CFF] mb-2 font-bold">
             <span className="w-2 h-2 rounded-full bg-[#008CFF] shadow-[0_0_8px_#008CFF]" />
-            <span>CMS 1.8 ACTIVE • CONTACT & LEAD CHANNELS</span>
+            <span>CONTACT & LEAD CHANNELS</span>
           </div>
 
           <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-white flex items-center gap-3">
