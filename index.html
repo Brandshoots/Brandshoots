@@ -39,10 +39,16 @@
     <meta name="twitter:image" content="https://brandshoots-2026.vercel.app/og-image.png" />
     <meta name="twitter:image:alt" content="BrandShoots Official Logo & Creative Production Studio" />
 
-    <!-- Official Brand Font: Figtree exclusively -->
+    <!-- Official Brand Font: Figtree exclusively (Zero Render-Blocking Asynchronous Delivery) -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" media="print" onload="this.media='all'">
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap">
+    </noscript>
   </head>
   <body class="bg-[#08090C] text-white selection:bg-[#1497F5] selection:text-white overflow-x-hidden antialiased">
     <div id="root"></div>

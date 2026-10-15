@@ -137,27 +137,29 @@ export const HERO_REEL_VIDEOS: HeroReelVideo[] = [
 ];
 
 /**
- * Forcefully preload hero reel videos and posters during the cinematic preloader sequence.
- * Warms up lightweight streams and poster images so playback starts instantly with zero lag.
+ * Intelligently warm up hero reel posters and only primary hero video stream
+ * during the cinematic preloader, preventing network socket exhaustion.
  */
 export function preloadAllHeroReels(): void {
   if (typeof window === 'undefined') return;
 
-  HERO_REEL_VIDEOS.forEach((reel) => {
-    // 1. Warm up HD poster cache
+  // 1. Warm up HD posters (fast, lightweight image cache)
+  HERO_REEL_VIDEOS.forEach((reel, idx) => {
     const img = new Image();
     img.src = reel.poster;
 
-    // 2. Warm up lightweight video stream buffer
-    try {
-      const v = document.createElement('video');
-      v.preload = 'metadata';
-      v.muted = true;
-      v.playsInline = true;
-      v.src = reel.lightSrc || reel.src;
-      v.load();
-    } catch {
-      // Ignore background warmup exceptions
+    // 2. Only warm up primary hero reel streams (slots 0 and 1) rather than all 14 simultaneously
+    if (idx < 2) {
+      try {
+        const v = document.createElement('video');
+        v.preload = 'metadata';
+        v.muted = true;
+        v.playsInline = true;
+        v.src = reel.lightSrc || reel.src;
+        v.load();
+      } catch {
+        // Ignore background warmup exceptions
+      }
     }
   });
 }

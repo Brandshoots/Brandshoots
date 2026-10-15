@@ -153,6 +153,7 @@
   display: flex;
   width: max-content;
   animation: clientMarquee 32s linear infinite;
+  will-change: transform;
 }
 
 .animate-client-marquee:hover {

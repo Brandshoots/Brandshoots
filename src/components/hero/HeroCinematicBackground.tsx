@@ -222,6 +222,17 @@ export const HeroCinematicBackground: React.FC<HeroCinematicBackgroundProps> = (
       observer.observe(containerRef.current);
     }
 
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(animId);
+      } else if (isVisible) {
+        clock.start();
+        cancelAnimationFrame(animId);
+        animId = requestAnimationFrame(animate);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     const animate = () => {
       if (!isVisible) return;
       const elapsedTime = clock.getElapsedTime();
@@ -301,6 +312,7 @@ export const HeroCinematicBackground: React.FC<HeroCinematicBackgroundProps> = (
 
     return () => {
       observer.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       cancelAnimationFrame(animId);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('resize', handleResize);

@@ -61,7 +61,7 @@ const HeroCylinderVideo: React.FC<{ src: string; poster?: string }> = React.memo
       loop
       muted
       playsInline
-      preload="auto"
+      preload="metadata"
       className="w-full h-full object-cover rounded-[15px]"
     />
   );
@@ -101,9 +101,11 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({ onLoaded }) => {
     let mouseY = 0;
     let currentX = 0;
     let currentY = 0;
-    let rafId: number;
+    let rafId: number | null = null;
+    let isInView = true;
 
     const handleMouseMove = (e: MouseEvent) => {
+      if (!isInView) return;
       const halfW = window.innerWidth / 2;
       const halfH = window.innerHeight / 2;
       mouseX = (e.clientX - halfW) / halfW;
@@ -111,6 +113,10 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({ onLoaded }) => {
     };
 
     const updateParallax = () => {
+      if (!isInView || document.hidden) {
+        rafId = null;
+        return;
+      }
       currentX += (mouseX * 4 - currentX) * 0.05;
       currentY += (-mouseY * 2.5 - currentY) * 0.05;
 
@@ -121,8 +127,70 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({ onLoaded }) => {
       rafId = requestAnimationFrame(updateParallax);
     };
 
+    const startLoop = () => {
+      if (!rafId && isInView && !document.hidden) {
+        rafId = requestAnimationFrame(updateParallax);
+      }
+    };
+
+    const stopLoop = () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+    };
+
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    rafId = requestAnimationFrame(updateParallax);
+    startLoop();
+
+    // IntersectionObserver: Pause cylinder videos & GPU rotation when scrolled out of viewport
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          isInView = entry.isIntersecting;
+          const vids = containerRef.current?.querySelectorAll('video');
+          if (isInView && !document.hidden) {
+            if (rotGroupRef.current) {
+              rotGroupRef.current.style.animationPlayState = 'running';
+            }
+            vids?.forEach((v) => {
+              if (v.paused) v.play().catch(() => {});
+            });
+            startLoop();
+          } else {
+            if (rotGroupRef.current) {
+              rotGroupRef.current.style.animationPlayState = 'paused';
+            }
+            vids?.forEach((v) => {
+              if (!v.paused) v.pause();
+            });
+            stopLoop();
+          }
+        });
+      },
+      { threshold: 0.05 }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    // Visibility change listener: pause decoders when tab is hidden
+    const handleVisibilityChange = () => {
+      const vids = containerRef.current?.querySelectorAll('video');
+      if (document.hidden) {
+        stopLoop();
+        vids?.forEach((v) => {
+          if (!v.paused) v.pause();
+        });
+      } else if (isInView) {
+        vids?.forEach((v) => {
+          if (v.paused) v.play().catch(() => {});
+        });
+        startLoop();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     // Unmute/play on user interaction fallback
     const handleUnlock = () => {
@@ -135,7 +203,9 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({ onLoaded }) => {
     window.addEventListener('pointerdown', handleUnlock, { once: true });
 
     return () => {
-      cancelAnimationFrame(rafId);
+      stopLoop();
+      observer.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('pointerdown', handleUnlock);
     };

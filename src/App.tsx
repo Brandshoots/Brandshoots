@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
@@ -15,10 +15,11 @@ import { TestimonialsSection3D } from './components/testimonials/TestimonialsSec
 import { FinalCtaSection } from './components/cta/FinalCtaSection';
 import { BrandShootsFooter } from './components/footer/BrandShootsFooter';
 
-import { PortfolioPage } from './pages/PortfolioPage';
-import { AboutPage } from './pages/AboutPage';
-import { ContactPage } from './pages/ContactPage';
-import { AdminPage } from './pages/AdminPage';
+// Code-split route-level dynamic imports to keep homepage initial bundle ultra-lean
+const PortfolioPage = lazy(() => import('./pages/PortfolioPage').then(m => ({ default: m.PortfolioPage })));
+const AboutPage = lazy(() => import('./pages/AboutPage').then(m => ({ default: m.AboutPage })));
+const ContactPage = lazy(() => import('./pages/ContactPage').then(m => ({ default: m.ContactPage })));
+const AdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.AdminPage })));
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -135,19 +136,54 @@ export function App() {
         />
 
         {/* PORTFOLIO 3D WORMHOLE EXPERIENCE */}
-        <Route path="/portfolio" element={<PortfolioPage />} />
+        <Route
+          path="/portfolio"
+          element={
+            <Suspense fallback={<div className="min-h-screen bg-[#020306]" />}>
+              <PortfolioPage />
+            </Suspense>
+          }
+        />
         <Route path="/portfolio/:clientSlug" element={<Navigate to="/portfolio" replace />} />
         <Route path="/projects/:clientSlug" element={<Navigate to="/portfolio" replace />} />
 
         {/* ABOUT — always accessible, has its own StrokeRevealPreloader */}
-        <Route path="/about" element={<AboutPage />} />
+        <Route
+          path="/about"
+          element={
+            <Suspense fallback={<div className="min-h-screen bg-[#04060A]" />}>
+              <AboutPage />
+            </Suspense>
+          }
+        />
 
         {/* CONTACT — always accessible, has its own StrokeRevealPreloader */}
-        <Route path="/contact" element={<ContactPage />} />
+        <Route
+          path="/contact"
+          element={
+            <Suspense fallback={<div className="min-h-screen bg-[#05070B]" />}>
+              <ContactPage />
+            </Suspense>
+          }
+        />
 
         {/* ADMIN CMS & PORTAL */}
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/admin/*" element={<AdminPage />} />
+        <Route
+          path="/admin"
+          element={
+            <Suspense fallback={<div className="min-h-screen bg-[#05070B]" />}>
+              <AdminPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/admin/*"
+          element={
+            <Suspense fallback={<div className="min-h-screen bg-[#05070B]" />}>
+              <AdminPage />
+            </Suspense>
+          }
+        />
       </Routes>
     </main>
   );

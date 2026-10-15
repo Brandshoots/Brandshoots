@@ -157,6 +157,8 @@ interface PanelData {
   video: HTMLVideoElement;
   videoTexture: THREE.VideoTexture | null;
   posterTexture: THREE.Texture;
+  videoUrl: string;
+  hasAttachedSource: boolean;
   isPlaying: boolean;
   targetVolume: number;
   currentVolume: number;
@@ -249,6 +251,20 @@ export const PortfolioWormhole3D: React.FC = () => {
           activePanel.targetVolume = 0;
           activePanel.video.pause();
         } else {
+          if (!activePanel.hasAttachedSource) {
+            activePanel.video.src = activePanel.videoUrl;
+            activePanel.video.preload = 'auto';
+            activePanel.video.load();
+            activePanel.hasAttachedSource = true;
+            if (!activePanel.videoTexture) {
+              const vt = new THREE.VideoTexture(activePanel.video);
+              vt.colorSpace = THREE.SRGBColorSpace;
+              vt.minFilter = THREE.LinearFilter;
+              vt.magFilter = THREE.LinearFilter;
+              vt.generateMipmaps = false;
+              activePanel.videoTexture = vt;
+            }
+          }
           activePanel.isPlaying = true;
           activePanel.targetVolume = isMutedRef.current ? 0 : volumeLevelRef.current;
           activePanel.video.play().catch(() => {});
@@ -581,31 +597,39 @@ export const PortfolioWormhole3D: React.FC = () => {
       const posterTexture = textureLoader.load(project.posterUrl);
       posterTexture.colorSpace = THREE.SRGBColorSpace;
 
-      // 4. Video Element for reel footage
+      // 4. Video Element for reel footage (Lazy attached for zero hardware decoder exhaustion)
       const video = document.createElement('video');
-      video.src = project.videoUrl;
       video.crossOrigin = 'anonymous';
       video.loop = true;
       video.playsInline = true;
-      video.autoplay = true;
       video.setAttribute('playsinline', '');
       video.setAttribute('webkit-playsinline', '');
-      video.preload = 'auto';
+      video.preload = i === 0 ? 'auto' : 'none';
 
-      // Active hero (index 0) audio is enabled by default; non-active panels are muted
-      if (i === 0 && !isMutedRef.current) {
-        video.muted = false;
-        video.volume = 0.0;
+      let hasAttachedSource = false;
+      let videoTexture: THREE.VideoTexture | null = null;
+
+      if (i === 0) {
+        video.src = project.videoUrl;
+        hasAttachedSource = true;
+        // Active hero (index 0) audio is enabled by default; non-active panels are muted
+        if (!isMutedRef.current) {
+          video.muted = false;
+          video.volume = 0.0;
+        } else {
+          video.muted = true;
+          video.volume = 0.0;
+        }
+
+        videoTexture = new THREE.VideoTexture(video);
+        videoTexture.colorSpace = THREE.SRGBColorSpace;
+        videoTexture.minFilter = THREE.LinearFilter;
+        videoTexture.magFilter = THREE.LinearFilter;
+        videoTexture.generateMipmaps = false;
       } else {
         video.muted = true;
         video.volume = 0.0;
       }
-
-      const videoTexture = new THREE.VideoTexture(video);
-      videoTexture.colorSpace = THREE.SRGBColorSpace;
-      videoTexture.minFilter = THREE.LinearFilter;
-      videoTexture.magFilter = THREE.LinearFilter;
-      videoTexture.generateMipmaps = false;
 
       // 5. Active Screen Mesh with Rounded Corners
       const screenMat = new THREE.MeshBasicMaterial({
@@ -618,17 +642,18 @@ export const PortfolioWormhole3D: React.FC = () => {
       panelGroup.add(screenMesh);
 
       // Auto-start playback on initial hero reel
-      if (i === 0) {
+      if (i === 0 && videoTexture) {
+        const activeTex = videoTexture;
         const startPromise = video.play();
         if (startPromise !== undefined) {
           startPromise.then(() => {
-            screenMat.map = videoTexture;
+            screenMat.map = activeTex;
             screenMat.needsUpdate = true;
           }).catch(() => {
             // If browser autoplay policy blocks unmuted audio before user interaction, fallback to muted
             video.muted = true;
             video.play().then(() => {
-              screenMat.map = videoTexture;
+              screenMat.map = activeTex;
               screenMat.needsUpdate = true;
             }).catch(() => {});
           });
@@ -661,6 +686,8 @@ export const PortfolioWormhole3D: React.FC = () => {
         video,
         videoTexture,
         posterTexture,
+        videoUrl: project.videoUrl,
+        hasAttachedSource,
         isPlaying: i === 0,
         targetVolume: i === 0 && !isMutedRef.current ? volumeLevelRef.current : 0.0,
         currentVolume: 0.0,
@@ -775,14 +802,30 @@ export const PortfolioWormhole3D: React.FC = () => {
     const handleUserInteraction = () => {
       if (isUserPausedRef.current) return;
       const active = panelsRef.current[activeIndexRef.current];
-      if (active && active.video.paused) {
-        active.video.play().then(() => {
-          active.isPlaying = true;
-          if (active.videoTexture) {
-            (active.screenMesh.material as THREE.MeshBasicMaterial).map = active.videoTexture;
-            (active.screenMesh.material as THREE.MeshBasicMaterial).needsUpdate = true;
+      if (active) {
+        if (!active.hasAttachedSource) {
+          active.video.src = active.videoUrl;
+          active.video.preload = 'auto';
+          active.video.load();
+          active.hasAttachedSource = true;
+          if (!active.videoTexture) {
+            const vt = new THREE.VideoTexture(active.video);
+            vt.colorSpace = THREE.SRGBColorSpace;
+            vt.minFilter = THREE.LinearFilter;
+            vt.magFilter = THREE.LinearFilter;
+            vt.generateMipmaps = false;
+            active.videoTexture = vt;
           }
-        }).catch(() => {});
+        }
+        if (active.video.paused) {
+          active.video.play().then(() => {
+            active.isPlaying = true;
+            if (active.videoTexture) {
+              (active.screenMesh.material as THREE.MeshBasicMaterial).map = active.videoTexture;
+              (active.screenMesh.material as THREE.MeshBasicMaterial).needsUpdate = true;
+            }
+          }).catch(() => {});
+        }
       }
     };
 
@@ -965,6 +1008,7 @@ export const PortfolioWormhole3D: React.FC = () => {
     // Strictly isolate visibility to within transition bounds!
     panels.forEach((p, idx) => {
       const delta = u - idx; // 0 = active hero, < 0 = upcoming (entering), > 0 = exiting
+      const dist = Math.abs(delta);
 
       // Outside immediate active range: Completely hide, mute, and pause video!
       if (delta <= -0.90 || delta >= 0.90) {
@@ -979,7 +1023,36 @@ export const PortfolioWormhole3D: React.FC = () => {
           p.isPlaying = false;
           p.video.pause();
         }
+        // Free hardware decoder contexts when distant (more than 2.2 units away)
+        if (dist >= 2.2 && p.hasAttachedSource) {
+          p.video.pause();
+          p.video.removeAttribute('src');
+          p.video.load();
+          p.hasAttachedSource = false;
+          if (p.videoTexture) {
+            p.videoTexture.dispose();
+            p.videoTexture = null;
+          }
+          (p.screenMesh.material as THREE.MeshBasicMaterial).map = p.posterTexture;
+          (p.screenMesh.material as THREE.MeshBasicMaterial).needsUpdate = true;
+        }
         return;
+      }
+
+      // Pre-attach video source when entering proximity so it's ready for instant play
+      if (dist < 1.05 && !p.hasAttachedSource) {
+        p.video.src = p.videoUrl;
+        p.video.preload = 'auto';
+        p.video.load();
+        p.hasAttachedSource = true;
+        if (!p.videoTexture) {
+          const vt = new THREE.VideoTexture(p.video);
+          vt.colorSpace = THREE.SRGBColorSpace;
+          vt.minFilter = THREE.LinearFilter;
+          vt.magFilter = THREE.LinearFilter;
+          vt.generateMipmaps = false;
+          p.videoTexture = vt;
+        }
       }
 
       // If jumping across multiple projects via drawer: keep intermediate reels quiet
@@ -1035,8 +1108,6 @@ export const PortfolioWormhole3D: React.FC = () => {
       (p.screenMesh.material as THREE.MeshBasicMaterial).opacity = opacity;
       (p.chassisMesh.material as THREE.MeshStandardMaterial).opacity = opacity;
       (p.shadowMesh.material as THREE.MeshBasicMaterial).opacity = opacity * 0.55;
-
-      const dist = Math.abs(delta);
       const activeEmphasis = dist < 0.3 ? (1.0 - dist * 3.3) : 0;
       (p.rimLine.material as THREE.LineBasicMaterial).opacity = (0.35 + activeEmphasis * 0.35) * opacity;
 
@@ -1121,6 +1192,24 @@ export const PortfolioWormhole3D: React.FC = () => {
 
       targetProjectIndexRef.current = clamped;
       isTransitioningRef.current = true;
+
+      // Pre-attach video source for destination project immediately
+      const targetPanel = panelsRef.current[clamped];
+      if (targetPanel && !targetPanel.hasAttachedSource) {
+        targetPanel.video.src = targetPanel.videoUrl;
+        targetPanel.video.preload = 'auto';
+        targetPanel.video.load();
+        targetPanel.hasAttachedSource = true;
+        if (!targetPanel.videoTexture) {
+          const vt = new THREE.VideoTexture(targetPanel.video);
+          vt.colorSpace = THREE.SRGBColorSpace;
+          vt.minFilter = THREE.LinearFilter;
+          vt.magFilter = THREE.LinearFilter;
+          vt.generateMipmaps = false;
+          targetPanel.videoTexture = vt;
+        }
+      }
+
       if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current);
       transitionTimeoutRef.current = setTimeout(() => {
         isTransitioningRef.current = false;
