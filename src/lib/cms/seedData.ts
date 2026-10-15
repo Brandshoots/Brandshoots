@@ -25,8 +25,19 @@ export const INITIAL_PROJECTS: Record<string, CMSProject> = CLIENT_PROJECTS.redu
 }, {} as Record<string, CMSProject>);
 
 export const INITIAL_CLIENTS: Record<string, CMSClientLogo> = ALL_CLIENT_LOGOS.reduce((acc, client, index) => {
+  const proj = CLIENT_PROJECTS.find(
+    (p) =>
+      p.id === client.id ||
+      p.slug === client.slug ||
+      p.name.toLowerCase().trim() === client.name.toLowerCase().trim()
+  );
+  const viewsVal = proj?.metrics?.find((m) => m.label.toLowerCase() === 'views')?.value;
+  const likesVal = proj?.metrics?.find((m) => m.label.toLowerCase() === 'likes')?.value;
+
   acc[client.id] = {
     ...client,
+    views: viewsVal || undefined,
+    likes: likesVal || undefined,
     order: index,
     visible: true,
     updatedAt: Date.now(),

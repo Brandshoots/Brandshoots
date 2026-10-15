@@ -13,8 +13,9 @@ import {
   CMSAnnouncement,
   CMSContactPage,
 } from '../../types/cms';
-import { CLIENT_PROJECTS, ALL_CLIENT_LOGOS } from '../../data/clientsData';
+import { CLIENT_PROJECTS } from '../../data/clientsData';
 import {
+  INITIAL_CLIENTS,
   INITIAL_HERO,
   INITIAL_HERO_REELS,
   INITIAL_SERVICES,
@@ -32,11 +33,7 @@ const fallbackProjects: CMSProject[] = CLIENT_PROJECTS.map((p, idx) => ({
   visible: true,
 }));
 
-const fallbackClients: CMSClientLogo[] = ALL_CLIENT_LOGOS.map((c, idx) => ({
-  ...c,
-  order: idx,
-  visible: true,
-}));
+const fallbackClients: CMSClientLogo[] = Object.values(INITIAL_CLIENTS);
 
 const fallbackServices: CMSService[] = Object.values(INITIAL_SERVICES);
 const fallbackTestimonials: CMSTestimonial[] = Object.values(INITIAL_TESTIMONIALS);
@@ -58,7 +55,16 @@ export function useCMSContent() {
       const cached = localStorage.getItem('brandshoots_clients');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((item: CMSClientLogo) => {
+            const init = INITIAL_CLIENTS[item.id];
+            return {
+              ...item,
+              views: item.views !== undefined ? item.views : init?.views,
+              likes: item.likes !== undefined ? item.likes : init?.likes,
+            };
+          });
+        }
       }
     } catch {}
     return fallbackClients;
@@ -159,7 +165,30 @@ export function useCMSContent() {
                 .filter((c) => c.visible !== false)
                 .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
               if (visibleSorted.length > 0) {
-                setClients(visibleSorted);
+                try {
+                  const cached = localStorage.getItem('brandshoots_clients');
+                  if (cached) {
+                    const parsed = JSON.parse(cached);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                      const localMax = Math.max(...parsed.map((x: any) => x.updatedAt || 0));
+                      const remoteMax = Math.max(...visibleSorted.map((x: any) => x.updatedAt || 0));
+                      if (localMax > remoteMax) {
+                        setClients(parsed.filter((c: any) => c.visible !== false));
+                        return;
+                      }
+                    }
+                  }
+                } catch {}
+
+                const enriched = visibleSorted.map((item) => {
+                  const init = INITIAL_CLIENTS[item.id];
+                  return {
+                    ...item,
+                    views: item.views !== undefined ? item.views : init?.views,
+                    likes: item.likes !== undefined ? item.likes : init?.likes,
+                  };
+                });
+                setClients(enriched);
               }
             }
 
@@ -278,7 +307,7 @@ export function useCMSContent() {
       const handleLocalClientsUpdate = (e: Event) => {
         const customEvent = e as CustomEvent<CMSClientLogo[]>;
         if (customEvent.detail && Array.isArray(customEvent.detail)) {
-          setClients(customEvent.detail);
+          setClients(customEvent.detail.filter((c) => c.visible !== false));
         }
       };
 
@@ -352,7 +381,7 @@ export function useCMSContent() {
           try {
             const parsed = JSON.parse(e.newValue);
             if (Array.isArray(parsed) && parsed.length > 0) {
-              setClients(parsed);
+              setClients(parsed.filter((c: any) => c.visible !== false));
             }
           } catch {}
         }

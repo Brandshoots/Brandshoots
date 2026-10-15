@@ -2,9 +2,8 @@ import React, { useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Eye, Heart } from 'lucide-react';
 import { useCMSContent } from '../../lib/cms/useCMSContent';
-import { getClientSocialStats } from '../../data/clientSocialData';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -14,26 +13,28 @@ interface ClientItem {
   category?: string;
   logo: string;
   slug: string;
+  views?: string;
+  likes?: string;
   scale?: string;
 }
 
 const CLIENTS_LIST: ClientItem[] = [
-  { id: 'santhi-pipes', name: 'Santhi Pipes', category: 'Heavy Infrastructure', logo: '/clients/trimmed/Shanti Pipes.png', slug: 'santhi-pipes', scale: 'scale-105' },
-  { id: 'viswatuff-glass', name: 'Viswatuff Glass', category: 'Architectural Glass', logo: '/clients/trimmed/IMG_4537.PNG', slug: 'viswatuff-glass', scale: 'scale-105' },
-  { id: 'bags-world', name: 'Bags World', category: 'Retail & Fashion', logo: '/clients/trimmed/Bags World Logo.PNG', slug: 'bags-world', scale: 'scale-115' },
-  { id: 'aabharan-jewellers', name: 'Aabharan Jewellers', category: 'Luxury & Heritage', logo: '/clients/trimmed/Aabharan Logo.png', slug: 'aabharan-jewellers', scale: 'scale-105' },
-  { id: 'fresh-fresh', name: 'Fresh & Fresh', category: 'Supermarket & FMCG', logo: '/clients/trimmed/Fresh and Fresh Logo.png', slug: 'fresh-and-fresh', scale: 'scale-95' },
-  { id: 'dayanidhi', name: 'Dayanidhi Creations', category: 'Textiles & Apparel', logo: '/clients/trimmed/Dayanidhi Logo.png', slug: 'dayanidhi-creations', scale: 'scale-105' },
-  { id: 'jain-beauty', name: 'Jain Beauty Studio', category: 'Beauty & Lifestyle', logo: '/clients/trimmed/Jain Beauty Logo.png', slug: 'jain-beauty', scale: 'scale-110' },
-  { id: 'rk-home', name: 'RK Home Living', category: 'Architectural Furnishings', logo: '/clients/trimmed/Rk home.png', slug: 'rk-home-living', scale: 'scale-90' },
-  { id: 'sb-ventures', name: 'SB Ventures', category: 'Real Estate & Land', logo: '/clients/trimmed/SB Ventures Logo.png', slug: 'sb-ventures', scale: 'scale-115' },
-  { id: 'kc-overseas', name: 'KC Overseas', category: 'Global Education', logo: '/clients/trimmed/KC Overseas Logo.PNG', slug: 'kc-overseas', scale: 'scale-115' },
-  { id: 'srk-doors', name: 'SRK Doors World', category: 'Industrial Materials', logo: '/clients/trimmed/SRK Doors World Logo.png', slug: 'srk-doors-world', scale: 'scale-90' },
-  { id: 'jain-enterprises', name: 'Jain Enterprises', category: 'Commercial Trade', logo: '/clients/trimmed/Jain Enterprises Logo.png', slug: 'jain-enterprises', scale: 'scale-115' },
-  { id: 'nirmala', name: 'Nirmala', category: 'Consumer Brands', logo: '/clients/trimmed/Nirmala logo.png', slug: 'nirmala', scale: 'scale-105' },
-  { id: 'rudra', name: 'Rudra', category: 'Hospitality & Dining', logo: '/clients/trimmed/Rudra logo.png', slug: 'rudra', scale: 'scale-100' },
-  { id: 'sahana', name: 'Sahana', category: 'Fine Silks', logo: '/clients/trimmed/Sahana Logo.PNG', slug: 'sahana', scale: 'scale-110' },
-  { id: 't3', name: 'T3 Studio', category: 'Creative Production', logo: '/clients/trimmed/T3 Logo.png', slug: 't3', scale: 'scale-100' },
+  { id: 'santhi-pipes', name: 'Santhi Pipes', category: 'Heavy Infrastructure', logo: '/clients/trimmed/Shanti Pipes.png', slug: 'santhi-pipes', views: '250K+', likes: '34K+', scale: 'scale-105' },
+  { id: 'viswatuff-glass', name: 'Viswatuff Glass', category: 'Architectural Glass', logo: '/clients/trimmed/IMG_4537.PNG', slug: 'viswatuff-glass', views: '320K+', likes: '41K+', scale: 'scale-105' },
+  { id: 'bags-world', name: 'Bags World', category: 'Retail & Fashion', logo: '/clients/trimmed/Bags World Logo.PNG', slug: 'bags-world', views: '480K+', likes: '62K+', scale: 'scale-115' },
+  { id: 'aabharan-jewellers', name: 'Aabharan Jewellers', category: 'Luxury & Heritage', logo: '/clients/trimmed/Aabharan Logo.png', slug: 'aabharan-jewellers', views: '540K+', likes: '68K+', scale: 'scale-105' },
+  { id: 'fresh-fresh', name: 'Fresh & Fresh', category: 'Supermarket & FMCG', logo: '/clients/trimmed/Fresh and Fresh Logo.png', slug: 'fresh-and-fresh', views: '190K+', likes: '26K+', scale: 'scale-95' },
+  { id: 'dayanidhi', name: 'Dayanidhi Creations', category: 'Textiles & Apparel', logo: '/clients/trimmed/Dayanidhi Logo.png', slug: 'dayanidhi-creations', views: '220K+', likes: '31K+', scale: 'scale-105' },
+  { id: 'jain-beauty', name: 'Jain Beauty Studio', category: 'Beauty & Lifestyle', logo: '/clients/trimmed/Jain Beauty Logo.png', slug: 'jain-beauty', views: '360K+', likes: '47K+', scale: 'scale-110' },
+  { id: 'rk-home', name: 'RK Home Living', category: 'Architectural Furnishings', logo: '/clients/trimmed/Rk home.png', slug: 'rk-home-living', views: '280K+', likes: '38K+', scale: 'scale-90' },
+  { id: 'sb-ventures', name: 'SB Ventures', category: 'Real Estate & Land', logo: '/clients/trimmed/SB Ventures Logo.png', slug: 'sb-ventures', views: '310K+', likes: '42K+', scale: 'scale-115' },
+  { id: 'kc-overseas', name: 'KC Overseas', category: 'Global Education', logo: '/clients/trimmed/KC Overseas Logo.PNG', slug: 'kc-overseas', views: '195K+', likes: '27K+', scale: 'scale-115' },
+  { id: 'srk-doors', name: 'SRK Doors World', category: 'Industrial Materials', logo: '/clients/trimmed/SRK Doors World Logo.png', slug: 'srk-doors-world', views: '230K+', likes: '30K+', scale: 'scale-90' },
+  { id: 'jain-enterprises', name: 'Jain Enterprises', category: 'Commercial Trade', logo: '/clients/trimmed/Jain Enterprises Logo.png', slug: 'jain-enterprises', views: '175K+', likes: '24K+', scale: 'scale-115' },
+  { id: 'nirmala', name: 'Nirmala', category: 'Consumer Brands', logo: '/clients/trimmed/Nirmala logo.png', slug: 'nirmala', views: '210K+', likes: '28K+', scale: 'scale-105' },
+  { id: 'rudra', name: 'Rudra', category: 'Hospitality & Dining', logo: '/clients/trimmed/Rudra logo.png', slug: 'rudra', views: '185K+', likes: '25K+', scale: 'scale-100' },
+  { id: 'sahana', name: 'Sahana', category: 'Fine Silks', logo: '/clients/trimmed/Sahana Logo.PNG', slug: 'sahana', views: '290K+', likes: '39K+', scale: 'scale-110' },
+  { id: 't3', name: 'T3 Studio', category: 'Creative Production', logo: '/clients/trimmed/T3 Logo.png', slug: 't3', views: '160K+', likes: '22K+', scale: 'scale-100' },
 ];
 
 export const OurClientsSection: React.FC = () => {
@@ -49,6 +50,8 @@ export const OurClientsSection: React.FC = () => {
           name: c.name,
           logo: c.logoUrl,
           slug: c.slug || c.id,
+          views: c.views,
+          likes: c.likes,
           scale: 'scale-105',
         }))
       : CLIENTS_LIST;
@@ -92,8 +95,8 @@ export const OurClientsSection: React.FC = () => {
   }, []);
 
   const renderClientCard = (item: ClientItem, key: string) => {
-    const social = getClientSocialStats(item.id) || getClientSocialStats(item.slug);
-    const hasSocialCounts = Boolean(social?.followers && social?.posts);
+    const hasViews = Boolean(item.views && item.views.trim());
+    const hasLikes = Boolean(item.likes && item.likes.trim());
 
     return (
       <div
@@ -130,26 +133,33 @@ export const OurClientsSection: React.FC = () => {
           </div>
         </div>
 
-        {/* Editorial Client Name & Social Meta */}
+        {/* Editorial Client Name & Subtle Stats */}
         <div className="flex flex-col items-center text-center max-w-[170px] px-1">
           <span className="text-xs sm:text-[13px] font-bold text-white/90 group-hover:text-[#008CFF] transition-colors duration-200 tracking-wide truncate w-full">
             {item.name}
           </span>
-          {hasSocialCounts && social?.instagramUrl ? (
-            <a
-              href={social.instagramUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="mt-0.5 text-[11px] sm:text-xs font-sans text-white/45 hover:text-[#008CFF] transition-colors tracking-tight text-center truncate max-w-full"
-            >
-              {social?.followers} Followers · {social?.posts} Posts
-            </a>
-          ) : hasSocialCounts && social ? (
-            <span className="mt-0.5 text-[11px] sm:text-xs font-sans text-white/45 tracking-tight text-center truncate max-w-full">
-              {social.followers} Followers · {social.posts} Posts
-            </span>
-          ) : null}
+          {(hasViews || hasLikes) && (
+            <div className="flex items-center justify-center gap-1.5 mt-1">
+              {hasViews && (
+                <span
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-[10px] sm:text-[10.5px] font-mono text-white/75 group-hover:border-[#008CFF]/40 transition-colors shadow-sm"
+                  title={`${item.views} Views`}
+                >
+                  <Eye className="w-2.5 h-2.5 text-[#008CFF] shrink-0" />
+                  <span className="leading-none">{item.views}</span>
+                </span>
+              )}
+              {hasLikes && (
+                <span
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-[10px] sm:text-[10.5px] font-mono text-white/75 group-hover:border-rose-500/40 transition-colors shadow-sm"
+                  title={`${item.likes} Likes`}
+                >
+                  <Heart className="w-2.5 h-2.5 text-rose-400 fill-rose-400/30 shrink-0" />
+                  <span className="leading-none">{item.likes}</span>
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
     );

@@ -33,6 +33,8 @@ export interface CMSClientLogo {
   name: string;
   logoUrl: string;
   slug?: string;
+  views?: string;
+  likes?: string;
   order: number;
   visible: boolean;
   updatedAt?: number;

@@ -181,7 +181,15 @@ export async function fetchPublishedClients(): Promise<CMSClientLogo[]> {
       const val = snapshot.val();
       const list: CMSClientLogo[] = Array.isArray(val) ? val : Object.values(val);
       if (list.length > 0) {
-        return list.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+        const enriched = list.map((item) => {
+          const init = INITIAL_CLIENTS[item.id];
+          return {
+            ...item,
+            views: item.views !== undefined ? item.views : init?.views,
+            likes: item.likes !== undefined ? item.likes : init?.likes,
+          };
+        });
+        return enriched.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
       }
     }
   } catch (err) {
@@ -193,7 +201,15 @@ export async function fetchPublishedClients(): Promise<CMSClientLogo[]> {
     if (cached) {
       const parsed = JSON.parse(cached);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed.sort(
+        const enriched = parsed.map((item: CMSClientLogo) => {
+          const init = INITIAL_CLIENTS[item.id];
+          return {
+            ...item,
+            views: item.views !== undefined ? item.views : init?.views,
+            likes: item.likes !== undefined ? item.likes : init?.likes,
+          };
+        });
+        return enriched.sort(
           (a: CMSClientLogo, b: CMSClientLogo) => (Number(a.order) || 0) - (Number(b.order) || 0)
         );
       }

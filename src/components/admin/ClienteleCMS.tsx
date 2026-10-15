@@ -11,6 +11,7 @@ import {
   Image as ImageIcon,
   Eye,
   EyeOff,
+  Heart,
   Building2,
 } from 'lucide-react';
 import { CMSClientLogo } from '../../types/cms';
@@ -34,6 +35,8 @@ export const ClienteleCMS: React.FC = () => {
   // Form Inputs
   const [formName, setFormName] = useState('');
   const [formLogoUrl, setFormLogoUrl] = useState('');
+  const [formViews, setFormViews] = useState('');
+  const [formLikes, setFormLikes] = useState('');
   const [formVisible, setFormVisible] = useState(true);
 
   // File Upload State
@@ -82,6 +85,8 @@ export const ClienteleCMS: React.FC = () => {
     setEditingIndex(index);
     setFormName(client.name || '');
     setFormLogoUrl(client.logoUrl || '');
+    setFormViews(client.views || '');
+    setFormLikes(client.likes || '');
     setFormVisible(client.visible !== false);
     setUploadError(null);
     setIsModalOpen(true);
@@ -93,6 +98,8 @@ export const ClienteleCMS: React.FC = () => {
     setEditingIndex(null);
     setFormName('');
     setFormLogoUrl('/clients/trimmed/Aabharan Logo.png');
+    setFormViews('');
+    setFormLikes('');
     setFormVisible(true);
     setUploadError(null);
     setIsModalOpen(true);
@@ -149,6 +156,8 @@ export const ClienteleCMS: React.FC = () => {
         ...editingClient,
         name: nameClean,
         logoUrl: formLogoUrl.trim(),
+        views: formViews.trim() || undefined,
+        likes: formLikes.trim() || undefined,
         visible: formVisible,
         updatedAt: Date.now(),
       };
@@ -165,6 +174,8 @@ export const ClienteleCMS: React.FC = () => {
         name: nameClean,
         logoUrl: formLogoUrl.trim(),
         slug: cleanSlug,
+        views: formViews.trim() || undefined,
+        likes: formLikes.trim() || undefined,
         order: clients.length,
         visible: formVisible,
         updatedAt: Date.now(),
@@ -379,6 +390,32 @@ export const ClienteleCMS: React.FC = () => {
                 <span className="text-[10px] font-mono text-white/40 block mt-0.5 truncate">
                   {client.slug || client.id}
                 </span>
+
+                {/* Subtle Circular Stats Indicators */}
+                {(client.views || client.likes) ? (
+                  <div className="flex items-center justify-center gap-1.5 mt-2">
+                    {client.views && (
+                      <span
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/10 border border-white/15 text-[9.5px] font-mono text-white/80"
+                        title={`Views: ${client.views}`}
+                      >
+                        <Eye className="w-2.5 h-2.5 text-[#008CFF]" />
+                        <span>{client.views}</span>
+                      </span>
+                    )}
+                    {client.likes && (
+                      <span
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/10 border border-white/15 text-[9.5px] font-mono text-white/80"
+                        title={`Likes: ${client.likes}`}
+                      >
+                        <Heart className="w-2.5 h-2.5 text-rose-400 fill-rose-400/30" />
+                        <span>{client.likes}</span>
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-[9.5px] font-mono text-white/25 block mt-2">No stats</span>
+                )}
               </div>
             </div>
           );
@@ -496,7 +533,46 @@ export const ClienteleCMS: React.FC = () => {
                 )}
               </div>
 
-              {/* 3. Visibility Toggle */}
+              {/* 3. Client Stats (Views & Likes) */}
+              <div className="pt-2 border-t border-white/10">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-mono uppercase text-white/70 font-bold flex items-center gap-1.5">
+                    <Eye className="w-3.5 h-3.5 text-[#008CFF]" />
+                    <span>Client Stats (Views & Likes)</span>
+                  </label>
+                  <span className="text-[10px] font-mono text-white/40">Optional · Empty = Hidden</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-mono text-white/50 mb-1 flex items-center gap-1">
+                      <Eye className="w-3 h-3 text-[#008CFF]" />
+                      <span>Views</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formViews}
+                      onChange={(e) => setFormViews(e.target.value)}
+                      placeholder="e.g. 250K+ or 1.2M"
+                      className="w-full px-3 py-2 rounded-xl bg-black/70 border border-white/20 text-white text-xs font-mono placeholder:text-white/30 focus:outline-none focus:border-[#008CFF] transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-mono text-white/50 mb-1 flex items-center gap-1">
+                      <Heart className="w-3 h-3 text-rose-400" />
+                      <span>Likes</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formLikes}
+                      onChange={(e) => setFormLikes(e.target.value)}
+                      placeholder="e.g. 34K+ or 85K"
+                      className="w-full px-3 py-2 rounded-xl bg-black/70 border border-white/20 text-white text-xs font-mono placeholder:text-white/30 focus:outline-none focus:border-rose-400 transition-colors"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Visibility Toggle */}
               <div className="flex items-center justify-between p-3.5 bg-black/50 border border-white/10 rounded-xl">
                 <div>
                   <span className="text-xs font-mono font-bold text-white uppercase block">
