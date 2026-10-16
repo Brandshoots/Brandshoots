@@ -28,7 +28,7 @@ import { pushProjectsUndoAction } from '../../lib/cms/cmsHistory';
 
 const PRESET_LOGOS = [
   { label: 'Santhi Pipes', url: '/clients/Shanti Pipes.png' },
-  { label: 'Viswatuff Glass', url: '/clients/IMG_4537.PNG' },
+  { label: 'Viswatuff Glass', url: '/clients/Viswatuff Glass Logo.png' },
   { label: 'Bags World', url: '/clients/Bags World Logo.PNG' },
   { label: 'Aabharan Jewellers', url: '/clients/Aabharan Logo.png' },
   { label: 'Fresh & Fresh', url: '/clients/Fresh and Fresh Logo.png' },

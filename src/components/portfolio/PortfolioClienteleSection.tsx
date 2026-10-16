@@ -12,7 +12,7 @@ interface ClientLogoItem {
 
 const ALL_CLIENTS: ClientLogoItem[] = [
   { name: 'Santhi Pipes', category: 'Industrial & Infrastructure', logo: '/clients/Shanti Pipes.png', views: '250K+', likes: '34K+' },
-  { name: 'Viswatuff Glass', category: 'Architectural Glass', logo: '/clients/IMG_4537.PNG', views: '320K+', likes: '41K+' },
+  { name: 'Viswatuff Glass', category: 'Architectural Glass', logo: '/clients/Viswatuff Glass Logo.png', views: '320K+', likes: '41K+' },
   { name: 'Bags World', category: 'Retail & Fashion', logo: '/clients/Bags World Logo.PNG', views: '480K+', likes: '62K+' },
   { name: 'Aabharan Jewellers', category: 'Luxury & Heritage', logo: '/clients/Aabharan Logo.png', views: '540K+', likes: '68K+' },
   { name: 'Fresh & Fresh', category: 'Supermarket & FMCG', logo: '/clients/Fresh and Fresh Logo.png', views: '190K+', likes: '26K+' },

@@ -20,7 +20,7 @@ interface ClientItem {
 
 const CLIENTS_LIST: ClientItem[] = [
   { id: 'santhi-pipes', name: 'Santhi Pipes', category: 'Heavy Infrastructure', logo: '/clients/trimmed/Shanti Pipes.png', slug: 'santhi-pipes', views: '250K+', likes: '34K+', scale: 'scale-105' },
-  { id: 'viswatuff-glass', name: 'Viswatuff Glass', category: 'Architectural Glass', logo: '/clients/trimmed/IMG_4537.PNG', slug: 'viswatuff-glass', views: '320K+', likes: '41K+', scale: 'scale-105' },
+  { id: 'viswatuff-glass', name: 'Viswatuff Glass', category: 'Architectural Glass', logo: '/clients/trimmed/Viswatuff Glass Logo.png', slug: 'viswatuff-glass', views: '320K+', likes: '41K+', scale: 'scale-105' },
   { id: 'bags-world', name: 'Bags World', category: 'Retail & Fashion', logo: '/clients/trimmed/Bags World Logo.PNG', slug: 'bags-world', views: '480K+', likes: '62K+', scale: 'scale-115' },
   { id: 'aabharan-jewellers', name: 'Aabharan Jewellers', category: 'Luxury & Heritage', logo: '/clients/trimmed/Aabharan Logo.png', slug: 'aabharan-jewellers', views: '540K+', likes: '68K+', scale: 'scale-105' },
   { id: 'fresh-fresh', name: 'Fresh & Fresh', category: 'Supermarket & FMCG', logo: '/clients/trimmed/Fresh and Fresh Logo.png', slug: 'fresh-and-fresh', views: '190K+', likes: '26K+', scale: 'scale-95' },
