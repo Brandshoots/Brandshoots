@@ -308,36 +308,57 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({ onLoaded }) => {
           }
         }
 
-        /* Dedicated Mobile View (< 768px): 4-5 visible 9:16 reels across 75-85% width */
+        /* Dedicated Mobile View (< 768px): Cinematic amphitheater curve */
         @media (max-width: 767px) {
           .cylinder-scene {
-            height: 370px !important;
+            height: 440px !important;
             perspective: 34rem !important;
           }
           .cylinder-rotator {
-            animation: cylinderAutoRotateMobile 32s linear infinite !important;
-            transform: translateZ(-250px) rotateX(var(--mouse-rx, 0deg)) rotateY(var(--mouse-ry, 0deg));
+            animation: cylinderAutoRotateMobile 34s linear infinite !important;
+            transform: translateZ(190px) rotateX(var(--mouse-rx, 0deg)) rotateY(var(--mouse-ry, 0deg)) !important;
           }
           @keyframes cylinderAutoRotateMobile {
             from {
-              transform: translateZ(-250px) rotateX(var(--mouse-rx, 0deg)) rotateY(calc(0deg + var(--mouse-ry, 0deg)));
+              transform: translateZ(190px) rotateX(var(--mouse-rx, 0deg)) rotateY(calc(0deg + var(--mouse-ry, 0deg)));
             }
             to {
-              transform: translateZ(-250px) rotateX(var(--mouse-rx, 0deg)) rotateY(calc(360deg + var(--mouse-ry, 0deg)));
+              transform: translateZ(190px) rotateX(var(--mouse-rx, 0deg)) rotateY(calc(360deg + var(--mouse-ry, 0deg)));
             }
           }
           .cylinder-card {
-            --w: 148px !important;
-            --radius: 255px !important;
-            --ba: calc(360deg / var(--n));
-            grid-area: 1 / 1;
-            width: var(--w);
-            aspect-ratio: 9 / 16;
-            backface-visibility: hidden;
-            will-change: transform;
+            --w: 185px !important;
+            --radius: calc((0.5 * var(--w) + 6px) / 0.22824) !important;
             transform:
               rotateY(calc(var(--i) * var(--ba)))
-              translateZ(var(--radius)) !important;
+              translateZ(calc(-1 * var(--radius))) !important;
+          }
+        }
+
+        /* Compact Mobile View (<= 380px) */
+        @media (max-width: 380px) {
+          .cylinder-scene {
+            height: 400px !important;
+            perspective: 30rem !important;
+          }
+          .cylinder-rotator {
+            animation: cylinderAutoRotateMobileSmall 34s linear infinite !important;
+            transform: translateZ(160px) rotateX(var(--mouse-rx, 0deg)) rotateY(var(--mouse-ry, 0deg)) !important;
+          }
+          @keyframes cylinderAutoRotateMobileSmall {
+            from {
+              transform: translateZ(160px) rotateX(var(--mouse-rx, 0deg)) rotateY(calc(0deg + var(--mouse-ry, 0deg)));
+            }
+            to {
+              transform: translateZ(160px) rotateX(var(--mouse-rx, 0deg)) rotateY(calc(360deg + var(--mouse-ry, 0deg)));
+            }
+          }
+          .cylinder-card {
+            --w: 165px !important;
+            --radius: calc((0.5 * var(--w) + 5px) / 0.22824) !important;
+            transform:
+              rotateY(calc(var(--i) * var(--ba)))
+              translateZ(calc(-1 * var(--radius))) !important;
           }
         }
 

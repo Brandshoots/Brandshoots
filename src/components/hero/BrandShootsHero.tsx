@@ -176,7 +176,7 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
       {/* REAL 3D CYLINDRICAL REEL WALL INSTALLATION (Responsive on all screen sizes) */}
       <div
         ref={reelWallContainerRef}
-        className="absolute top-[56%] left-0 right-0 -translate-y-1/2 w-full h-[430px] sm:h-[470px] md:h-[540px] lg:h-[580px] z-10 pointer-events-none overflow-hidden"
+        className="absolute top-[51.5%] sm:top-[56%] left-0 right-0 -translate-y-1/2 w-full h-[440px] sm:h-[470px] md:h-[540px] lg:h-[580px] z-10 pointer-events-none overflow-hidden"
       >
         <ReelWall3D isPreloaderActive={isPreloaderActive} />
       </div>
