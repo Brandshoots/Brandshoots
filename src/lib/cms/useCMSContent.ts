@@ -33,6 +33,32 @@ const fallbackProjects: CMSProject[] = CLIENT_PROJECTS.map((p, idx) => ({
   visible: true,
 }));
 
+export function sanitizeProjectList(list: CMSProject[]): CMSProject[] {
+  if (
+    !list ||
+    list.length < 12 ||
+    list.some((p) => p.id === 'fresh-and-fresh' || p.id === 'rk-home-living' || p.id === 'dayanidhi-creations')
+  ) {
+    return fallbackProjects;
+  }
+  return list.map((proj) => {
+    const canonical = CLIENT_PROJECTS.find((cp) => cp.id === proj.id || cp.slug === proj.slug);
+    if (!canonical) return proj;
+    const hasWrongPromoVideo = proj.videoUrl && proj.videoUrl.includes('wearebrandshoots') && proj.id !== 'wearebrandshoots';
+    const isOldSanthi = proj.id === 'santhi-pipes' && proj.videoUrl?.includes('2026-09-06');
+    if (hasWrongPromoVideo || isOldSanthi || !proj.videoUrl) {
+      return {
+        ...proj,
+        videoUrl: canonical.videoUrl,
+        posterUrl: canonical.posterUrl,
+        logoUrl: canonical.logoUrl || proj.logoUrl,
+        reels: canonical.reels,
+      };
+    }
+    return proj;
+  });
+}
+
 const fallbackClients: CMSClientLogo[] = Object.values(INITIAL_CLIENTS);
 
 const fallbackServices: CMSService[] = Object.values(INITIAL_SERVICES);
@@ -42,10 +68,14 @@ const fallbackAnnouncements: CMSAnnouncement[] = Object.values(INITIAL_ANNOUNCEM
 export function useCMSContent() {
   const [projects, setProjects] = useState<CMSProject[]>(() => {
     try {
-      const cached = localStorage.getItem('brandshoots_projects');
+      localStorage.removeItem('brandshoots_projects');
+      const cached = localStorage.getItem('brandshoots_projects_v2026');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length >= 12) {
+          const sanitized = sanitizeProjectList(parsed);
+          return sanitized;
+        }
       }
     } catch {}
     return fallbackProjects;
@@ -140,21 +170,24 @@ export function useCMSContent() {
                 .filter((p) => p.visible !== false)
                 .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
               if (visibleSorted.length > 0) {
+                const cleanRemote = sanitizeProjectList(visibleSorted);
                 try {
-                  const cached = localStorage.getItem('brandshoots_projects');
+                  const cached = localStorage.getItem('brandshoots_projects_v2026');
                   if (cached) {
                     const parsed = JSON.parse(cached);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                      const localMax = Math.max(...parsed.map((x: any) => x.updatedAt || 0));
-                      const remoteMax = Math.max(...visibleSorted.map((x: any) => x.updatedAt || 0));
+                    if (Array.isArray(parsed) && parsed.length >= 12) {
+                      const cleanLocal = sanitizeProjectList(parsed);
+                      const localMax = Math.max(...cleanLocal.map((x: any) => x.updatedAt || 0));
+                      const remoteMax = Math.max(...cleanRemote.map((x: any) => x.updatedAt || 0));
                       if (localMax > remoteMax) {
-                        setProjects(parsed.filter((p: any) => p.visible !== false));
+                        setProjects(cleanLocal.filter((p: any) => p.visible !== false));
                         return;
                       }
                     }
                   }
+                  localStorage.setItem('brandshoots_projects_v2026', JSON.stringify(cleanRemote));
                 } catch {}
-                setProjects(visibleSorted);
+                setProjects(cleanRemote);
               }
             }
 

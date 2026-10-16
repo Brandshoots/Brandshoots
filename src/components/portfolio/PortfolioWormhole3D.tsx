@@ -169,12 +169,13 @@ export const PortfolioWormhole3D: React.FC = () => {
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const editorialContentRef = useRef<HTMLDivElement>(null);
+  const videoMountContainerRef = useRef<HTMLDivElement>(null);
 
   const [scrollUnit, setScrollUnit] = useState<number>(0);
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [isIndexDrawerOpen, setIsIndexDrawerOpen] = useState<boolean>(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState<boolean>(false);
-  const [isMuted, setIsMuted] = useState<boolean>(false); // Audio ON by default
+  const [isMuted, setIsMuted] = useState<boolean>(true); // Start muted for instant autoplay across all mobile/desktop browsers
   const [volumeLevel, setVolumeLevel] = useState<number>(1.0); // User-adjustable volume (0.0 to 1.0)
   const [isUserPaused, setIsUserPaused] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth < 1024);
@@ -184,7 +185,7 @@ export const PortfolioWormhole3D: React.FC = () => {
   const activeIndexRef = useRef<number>(0);
   activeIndexRef.current = activeIndex;
 
-  const isMutedRef = useRef<boolean>(false);
+  const isMutedRef = useRef<boolean>(true);
   isMutedRef.current = isMuted;
 
   const volumeLevelRef = useRef<number>(1.0);
@@ -289,6 +290,9 @@ export const PortfolioWormhole3D: React.FC = () => {
       panelsRef.current.forEach((p, idx) => {
         if (next) {
           p.targetVolume = 0;
+          p.currentVolume = 0;
+          p.video.muted = true;
+          p.video.volume = 0;
         } else {
           if (idx === activeIndexRef.current) {
             p.video.muted = false;
@@ -298,12 +302,17 @@ export const PortfolioWormhole3D: React.FC = () => {
               volumeLevelRef.current = 1.0;
             }
             p.targetVolume = restoreVol;
+            p.currentVolume = restoreVol;
+            p.video.volume = restoreVol;
             if (!isUserPausedRef.current) {
               p.isPlaying = true;
               p.video.play().catch(() => {});
             }
           } else {
             p.targetVolume = 0;
+            p.currentVolume = 0;
+            p.video.muted = true;
+            p.video.volume = 0;
           }
         }
       });
@@ -460,8 +469,8 @@ export const PortfolioWormhole3D: React.FC = () => {
     sceneRef.current = scene;
 
     // 2. Camera
-    const camera = new THREE.PerspectiveCamera(mob ? 50 : 42, width / height, 0.1, 100);
-    camera.position.set(0, mob ? 0.35 : 0.0, CAM_Z);
+    const camera = new THREE.PerspectiveCamera(mob ? 48 : 42, width / height, 0.1, 100);
+    camera.position.set(0, 0.0, CAM_Z);
     cameraRef.current = camera;
 
     // 3. WebGL Renderer
@@ -490,7 +499,7 @@ export const PortfolioWormhole3D: React.FC = () => {
     scene.add(studioFillLight);
 
     const pocketPointLight = new THREE.PointLight(0x008cff, 1.6, 16, 1.4);
-    pocketPointLight.position.set(mob ? 0 : -2.42, 0.2, -1.6);
+    pocketPointLight.position.set(mob ? 0 : -2.42, mob ? 1.2 : 0.2, -1.6);
     scene.add(pocketPointLight);
     pocketPointLightRef.current = pocketPointLight;
 
@@ -567,8 +576,8 @@ export const PortfolioWormhole3D: React.FC = () => {
 
       const isLeft = i % 2 === 0;
       const baseX = mob ? 0 : (isLeft ? -2.42 : 2.42);
-      const baseY = mob ? 0.65 : 0.0;
-      const baseRotY = mob ? (isLeft ? 0.12 : -0.12) : (isLeft ? 0.35 : -0.35);
+      const baseY = mob ? 1.08 : 0.0;
+      const baseRotY = mob ? (isLeft ? 0.08 : -0.08) : (isLeft ? 0.35 : -0.35);
 
       panelGroup.position.set(baseX, baseY, 0);
       panelGroup.rotation.y = baseRotY;
@@ -606,20 +615,19 @@ export const PortfolioWormhole3D: React.FC = () => {
       video.setAttribute('webkit-playsinline', '');
       video.preload = i === 0 ? 'auto' : 'none';
 
+      // Attach video element to real DOM container for mobile WebKit & Chrome audio routing
+      if (videoMountContainerRef.current) {
+        videoMountContainerRef.current.appendChild(video);
+      }
+
       let hasAttachedSource = false;
       let videoTexture: THREE.VideoTexture | null = null;
 
       if (i === 0) {
         video.src = project.videoUrl;
         hasAttachedSource = true;
-        // Active hero (index 0) audio is enabled by default; non-active panels are muted
-        if (!isMutedRef.current) {
-          video.muted = false;
-          video.volume = 0.0;
-        } else {
-          video.muted = true;
-          video.volume = 0.0;
-        }
+        video.muted = isMutedRef.current;
+        video.volume = isMutedRef.current ? 0.0 : volumeLevelRef.current;
 
         videoTexture = new THREE.VideoTexture(video);
         videoTexture.colorSpace = THREE.SRGBColorSpace;
@@ -652,6 +660,8 @@ export const PortfolioWormhole3D: React.FC = () => {
           }).catch(() => {
             // If browser autoplay policy blocks unmuted audio before user interaction, fallback to muted
             video.muted = true;
+            setIsMuted(true);
+            isMutedRef.current = true;
             video.play().then(() => {
               screenMat.map = activeTex;
               screenMat.needsUpdate = true;
@@ -840,10 +850,11 @@ export const PortfolioWormhole3D: React.FC = () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
       const isMob = w < 1024;
+      setIsMobile(isMob);
       if (cameraRef.current) {
-        cameraRef.current.fov = isMob ? 50 : 42;
+        cameraRef.current.fov = isMob ? 48 : 42;
         cameraRef.current.aspect = w / h;
-        cameraRef.current.position.y = isMob ? 0.35 : 0.0;
+        cameraRef.current.position.set(0, 0.0, CAM_Z);
         cameraRef.current.updateProjectionMatrix();
       }
       if (rendererRef.current) {
@@ -852,8 +863,8 @@ export const PortfolioWormhole3D: React.FC = () => {
       panels.forEach((p, idx) => {
         const isLeft = idx % 2 === 0;
         p.baseX = isMob ? 0 : (isLeft ? -2.42 : 2.42);
-        p.baseY = isMob ? 0.65 : 0.0;
-        p.baseRotY = isMob ? (isLeft ? 0.12 : -0.12) : (isLeft ? 0.35 : -0.35);
+        p.baseY = isMob ? 1.08 : 0.0;
+        p.baseRotY = isMob ? (isLeft ? 0.08 : -0.08) : (isLeft ? 0.35 : -0.35);
       });
     };
     window.addEventListener('resize', handleResize);
@@ -943,6 +954,7 @@ export const PortfolioWormhole3D: React.FC = () => {
       panels.forEach((p) => {
         p.video.pause();
         p.video.src = '';
+        p.video.remove();
         p.videoTexture?.dispose();
         p.posterTexture.dispose();
       });
@@ -964,7 +976,7 @@ export const PortfolioWormhole3D: React.FC = () => {
     if (panels.length === 0 || !camera) return;
 
     const mobile = window.innerWidth < 1024;
-    const baseScale = mobile ? 0.82 : 1.0;
+    const baseScale = mobile ? 0.65 : 1.0;
 
     const currentChapter = Math.min(panels.length - 1, Math.max(0, Math.floor(u)));
     const nextChapter = Math.min(panels.length - 1, currentChapter + 1);
@@ -985,7 +997,7 @@ export const PortfolioWormhole3D: React.FC = () => {
 
     if (pocketPointLightRef.current) {
       pocketPointLightRef.current.position.x = targetLightX;
-      pocketPointLightRef.current.position.y = mobile ? 0.8 : 0.3;
+      pocketPointLightRef.current.position.y = mobile ? 1.2 : 0.3;
       pocketPointLightRef.current.position.z = -1.4 - 1.2 * midTravelDip;
       pocketPointLightRef.current.intensity = 1.2 + snapFocus * 0.6;
     }
@@ -1000,9 +1012,9 @@ export const PortfolioWormhole3D: React.FC = () => {
     const camLeanX = targetLightX * 0.045 * (1.0 - midTravelDip * 0.5);
 
     camera.position.z = CAM_Z - camPushZ;
-    camera.position.y = (mobile ? 0.35 : 0.0) + camDriftY;
-    camera.position.x = camLeanX;
-    camera.lookAt(camLeanX * 0.3, camera.position.y, 0);
+    camera.position.y = camDriftY;
+    camera.position.x = mobile ? 0 : camLeanX;
+    camera.lookAt(mobile ? 0 : camLeanX * 0.3, mobile ? 1.08 * 0.15 : camera.position.y, 0);
 
     // Panel Transitions Dynamics:
     // Strictly isolate visibility to within transition bounds!
@@ -1485,6 +1497,16 @@ export const PortfolioWormhole3D: React.FC = () => {
           />
 
           {/* ========================================================= */}
+          {/* AUDIO DOM CONTAINER: Attached for iOS/WebKit media audio */}
+          {/* ========================================================= */}
+          <div
+            ref={videoMountContainerRef}
+            className="absolute inset-0 pointer-events-none opacity-0 overflow-hidden w-0 h-0"
+            aria-hidden="true"
+            style={{ zIndex: -1, visibility: 'hidden' }}
+          />
+
+          {/* ========================================================= */}
           {/* 2.5 CENTER CLIENT LOGO REVEAL (SUBTLE 3D DEPTH/ROTATION) */}
           {/* ========================================================= */}
           {centerLogoProject.logoUrl && (
@@ -1518,13 +1540,17 @@ export const PortfolioWormhole3D: React.FC = () => {
           {/* 3. INTEGRATED EDITORIAL LAYOUT (OPPOSITE OF ACTIVE REEL)  */}
           {/* ========================================================= */}
           <div
-            className="relative w-full flex-1 flex items-center px-6 sm:px-10 md:px-12 lg:px-16 xl:px-20 pointer-events-none pt-20 sm:pt-24 pb-20 sm:pb-24"
-            style={{ zIndex: 15 }}
+            className={`w-full pointer-events-none ${
+              isMobile
+                ? 'absolute top-[51%] inset-x-0 bottom-[68px] flex flex-col justify-center items-center px-4 text-center'
+                : 'relative flex-1 flex items-center px-6 sm:px-10 md:px-12 lg:px-16 xl:px-20 pt-20 sm:pt-24 pb-20 sm:pb-24'
+            }`}
+            style={{ zIndex: 20 }}
           >
             <div
               className={`relative w-full flex pointer-events-none ${
                 isMobile
-                  ? 'justify-center items-end text-center mt-auto mb-16 pb-4'
+                  ? 'justify-center items-center text-center'
                   : isLeft
                   ? 'justify-end items-center text-left'
                   : 'justify-start items-center text-left'
@@ -1538,7 +1564,7 @@ export const PortfolioWormhole3D: React.FC = () => {
               <div
                 className={`relative flex flex-col pointer-events-auto ${
                   isMobile
-                    ? 'w-full max-w-sm'
+                    ? 'w-full max-w-sm mx-auto'
                     : isLeft
                     ? 'w-full md:w-[46%] lg:w-[40%] xl:w-[38%] max-w-[460px] ml-auto'
                     : 'w-full md:w-[46%] lg:w-[40%] xl:w-[38%] max-w-[460px] mr-auto'
@@ -1555,14 +1581,26 @@ export const PortfolioWormhole3D: React.FC = () => {
                 />
 
                 {/* Animated Editorial Content Block */}
-                <div ref={editorialContentRef} className="relative z-10 flex flex-col pointer-events-auto">
+                <div ref={editorialContentRef} className="relative z-10 flex flex-col items-center md:items-start pointer-events-auto">
+                  {/* Subtle Client Logo on Mobile */}
+                  {isMobile && currentProject.logoUrl && (
+                    <div className="flex items-center justify-center mb-1 max-h-6">
+                      <img
+                        src={currentProject.logoUrl}
+                        alt={`${currentProject.name} logo`}
+                        className="max-h-5 max-w-[110px] object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]"
+                        loading="eager"
+                      />
+                    </div>
+                  )}
+
                   {/* Monumental Brand Title */}
-                  <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[44px] xl:text-[54px] font-sans font-black tracking-[-0.025em] text-white uppercase leading-[1.0] drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
+                  <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-[44px] xl:text-[54px] font-sans font-black tracking-[-0.025em] text-white uppercase leading-[1.0] drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
                     {currentProject.name}
                   </h2>
 
                   {/* Refined Matter / Story Below */}
-                  <p className="mt-3 sm:mt-3.5 text-xs sm:text-sm md:text-base font-sans font-light text-white/75 leading-relaxed max-w-sm sm:max-w-md">
+                  <p className="mt-1.5 sm:mt-2 md:mt-3.5 text-xs sm:text-sm md:text-base font-sans font-light text-white/75 leading-snug sm:leading-relaxed max-w-xs sm:max-w-md line-clamp-2 md:line-clamp-none">
                     {currentProject.headline}
                   </p>
 
@@ -1580,20 +1618,20 @@ export const PortfolioWormhole3D: React.FC = () => {
 
                     return (
                       <div
-                        className={`mt-4 sm:mt-5 grid grid-cols-3 gap-2 sm:gap-2.5 max-w-[290px] sm:max-w-[330px] ${
+                        className={`mt-2.5 sm:mt-3 md:mt-5 grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-2.5 max-w-[270px] sm:max-w-[300px] md:max-w-[330px] ${
                           isMobile ? 'mx-auto' : ''
                         }`}
                       >
                         {stats.map((metric, idx) => (
                           <div
                             key={idx}
-                            className="animate-glow-blink-slow px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-xl bg-[#008CFF]/[0.04] border border-[#008CFF]/20 hover:border-[#008CFF]/45 backdrop-blur-md flex flex-col items-center justify-center text-center transition-all duration-300 shadow-[0_0_14px_rgba(0,140,255,0.08)]"
+                            className="animate-glow-blink-slow px-2 py-1.5 sm:px-2.5 sm:py-2 md:px-3 md:py-2.5 rounded-lg sm:rounded-xl bg-[#008CFF]/[0.05] border border-[#008CFF]/25 hover:border-[#008CFF]/45 backdrop-blur-md flex flex-col items-center justify-center text-center transition-all duration-300 shadow-[0_0_12px_rgba(0,140,255,0.08)]"
                             style={{ animationDelay: `${idx * 0.28}s` }}
                           >
-                            <span className="text-xs sm:text-sm md:text-base font-sans font-medium text-white tracking-tight leading-none drop-shadow-[0_0_8px_rgba(0,140,255,0.45)]">
+                            <span className="text-xs sm:text-sm md:text-base font-sans font-semibold text-white tracking-tight leading-none drop-shadow-[0_0_8px_rgba(0,140,255,0.45)]">
                               {metric.value}
                             </span>
-                            <span className="mt-1 text-[8px] sm:text-[9px] font-sans font-medium uppercase tracking-[0.14em] text-white/50 leading-none">
+                            <span className="mt-0.5 sm:mt-1 text-[7px] sm:text-[8px] md:text-[9px] font-sans font-medium uppercase tracking-[0.12em] text-white/55 leading-none">
                               {metric.label}
                             </span>
                           </div>
@@ -1603,7 +1641,7 @@ export const PortfolioWormhole3D: React.FC = () => {
                   })()}
 
                   {/* Single Clean Action Button: MORE INFO */}
-                  <div className={`mt-5 sm:mt-6 flex items-center ${isMobile ? 'justify-center' : 'justify-start'} pointer-events-auto relative z-30`}>
+                  <div className={`mt-2.5 sm:mt-3 md:mt-6 flex items-center ${isMobile ? 'justify-center' : 'justify-start'} pointer-events-auto relative z-30`}>
                     <button
                       type="button"
                       onClick={(e) => {
@@ -1617,10 +1655,10 @@ export const PortfolioWormhole3D: React.FC = () => {
                         });
                         setIsDetailModalOpen(true);
                       }}
-                      className="pointer-events-auto relative z-30 group inline-flex items-center gap-2.5 px-6 sm:px-7 py-3 rounded-full bg-[#008CFF] hover:bg-[#1a97ff] text-white font-mono text-xs font-bold tracking-[0.2em] uppercase transition-all duration-300 shadow-[0_0_25px_rgba(0,140,255,0.4)] hover:shadow-[0_0_40px_rgba(0,140,255,0.65)] active:scale-95 cursor-pointer"
+                      className="pointer-events-auto relative z-30 group inline-flex items-center gap-2 px-5 sm:px-6 md:px-7 py-2 sm:py-2.5 md:py-3 rounded-full bg-[#008CFF] hover:bg-[#1a97ff] text-white font-mono text-[10px] sm:text-xs font-bold tracking-[0.18em] uppercase transition-all duration-300 shadow-[0_0_20px_rgba(0,140,255,0.4)] hover:shadow-[0_0_35px_rgba(0,140,255,0.65)] active:scale-95 cursor-pointer"
                     >
                       <span>MORE INFO</span>
-                      <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                      <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                     </button>
                   </div>
                 </div>
@@ -1631,8 +1669,7 @@ export const PortfolioWormhole3D: React.FC = () => {
           {/* 4. BOTTOM MIDDLE DOCK: PLAY/PAUSE, AUDIO & REEL COUNTER   */}
           {/* ========================================================= */}
           <div
-            className="absolute bottom-6 sm:bottom-8 md:bottom-10 left-1/2 -translate-x-1/2 pointer-events-none select-none"
-            style={{ zIndex: 30 }}
+            className="absolute bottom-3 sm:bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 pointer-events-none select-none z-30"
           >
             <div className="flex items-center gap-2.5 sm:gap-3 pointer-events-auto">
               {/* Play / Pause Toggle Button (Borderless) */}
