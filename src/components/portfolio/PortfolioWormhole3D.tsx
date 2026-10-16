@@ -469,7 +469,7 @@ export const PortfolioWormhole3D: React.FC = () => {
     sceneRef.current = scene;
 
     // 2. Camera
-    const camera = new THREE.PerspectiveCamera(mob ? 48 : 42, width / height, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(mob ? 46 : 42, width / height, 0.1, 100);
     camera.position.set(0, 0.0, CAM_Z);
     cameraRef.current = camera;
 
@@ -499,7 +499,7 @@ export const PortfolioWormhole3D: React.FC = () => {
     scene.add(studioFillLight);
 
     const pocketPointLight = new THREE.PointLight(0x008cff, 1.6, 16, 1.4);
-    pocketPointLight.position.set(mob ? 0 : -2.42, mob ? 1.2 : 0.2, -1.6);
+    pocketPointLight.position.set(mob ? 0 : -2.42, mob ? 1.45 : 0.2, -1.6);
     scene.add(pocketPointLight);
     pocketPointLightRef.current = pocketPointLight;
 
@@ -576,7 +576,7 @@ export const PortfolioWormhole3D: React.FC = () => {
 
       const isLeft = i % 2 === 0;
       const baseX = mob ? 0 : (isLeft ? -2.42 : 2.42);
-      const baseY = mob ? 1.08 : 0.0;
+      const baseY = mob ? 1.35 : 0.0;
       const baseRotY = mob ? (isLeft ? 0.08 : -0.08) : (isLeft ? 0.35 : -0.35);
 
       panelGroup.position.set(baseX, baseY, 0);
@@ -852,7 +852,7 @@ export const PortfolioWormhole3D: React.FC = () => {
       const isMob = w < 1024;
       setIsMobile(isMob);
       if (cameraRef.current) {
-        cameraRef.current.fov = isMob ? 48 : 42;
+        cameraRef.current.fov = isMob ? 46 : 42;
         cameraRef.current.aspect = w / h;
         cameraRef.current.position.set(0, 0.0, CAM_Z);
         cameraRef.current.updateProjectionMatrix();
@@ -863,7 +863,7 @@ export const PortfolioWormhole3D: React.FC = () => {
       panels.forEach((p, idx) => {
         const isLeft = idx % 2 === 0;
         p.baseX = isMob ? 0 : (isLeft ? -2.42 : 2.42);
-        p.baseY = isMob ? 1.08 : 0.0;
+        p.baseY = isMob ? 1.35 : 0.0;
         p.baseRotY = isMob ? (isLeft ? 0.08 : -0.08) : (isLeft ? 0.35 : -0.35);
       });
     };
@@ -976,7 +976,7 @@ export const PortfolioWormhole3D: React.FC = () => {
     if (panels.length === 0 || !camera) return;
 
     const mobile = window.innerWidth < 1024;
-    const baseScale = mobile ? 0.65 : 1.0;
+    const baseScale = mobile ? 0.52 : 1.0;
 
     const currentChapter = Math.min(panels.length - 1, Math.max(0, Math.floor(u)));
     const nextChapter = Math.min(panels.length - 1, currentChapter + 1);
@@ -1430,7 +1430,7 @@ export const PortfolioWormhole3D: React.FC = () => {
 
   // Editorial directional drift & smooth opacity during scroll
   const scrollDelta = scrollUnit - activeIndex;
-  const editorialDriftY = scrollDelta * -20;
+  const editorialDriftY = isMobile ? 0 : scrollDelta * -20;
   const editorialOpacity = Math.max(0.15, 1 - Math.abs(scrollDelta) * 1.6);
 
   // Center Client Logo Reveal: continuous 3D depth and rotational transition synced with scroll
@@ -1542,7 +1542,7 @@ export const PortfolioWormhole3D: React.FC = () => {
           <div
             className={`w-full pointer-events-none ${
               isMobile
-                ? 'absolute top-[51%] inset-x-0 bottom-[68px] flex flex-col justify-center items-center px-4 text-center'
+                ? 'absolute top-[46%] inset-x-0 bottom-[64px] flex flex-col justify-center items-center px-4 text-center'
                 : 'relative flex-1 flex items-center px-6 sm:px-10 md:px-12 lg:px-16 xl:px-20 pt-20 sm:pt-24 pb-20 sm:pb-24'
             }`}
             style={{ zIndex: 20 }}
@@ -1584,23 +1584,23 @@ export const PortfolioWormhole3D: React.FC = () => {
                 <div ref={editorialContentRef} className="relative z-10 flex flex-col items-center md:items-start pointer-events-auto">
                   {/* Subtle Client Logo on Mobile */}
                   {isMobile && currentProject.logoUrl && (
-                    <div className="flex items-center justify-center mb-1 max-h-6">
+                    <div className="flex items-center justify-center mb-1 max-h-5">
                       <img
                         src={currentProject.logoUrl}
                         alt={`${currentProject.name} logo`}
-                        className="max-h-5 max-w-[110px] object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]"
+                        className="max-h-5 max-w-[100px] object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]"
                         loading="eager"
                       />
                     </div>
                   )}
 
                   {/* Monumental Brand Title */}
-                  <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-[44px] xl:text-[54px] font-sans font-black tracking-[-0.025em] text-white uppercase leading-[1.0] drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
+                  <h2 className="text-xl sm:text-2xl md:text-5xl lg:text-[44px] xl:text-[54px] font-sans font-black tracking-[-0.025em] text-white uppercase leading-[1.0] drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
                     {currentProject.name}
                   </h2>
 
                   {/* Refined Matter / Story Below */}
-                  <p className="mt-1.5 sm:mt-2 md:mt-3.5 text-xs sm:text-sm md:text-base font-sans font-light text-white/75 leading-snug sm:leading-relaxed max-w-xs sm:max-w-md line-clamp-2 md:line-clamp-none">
+                  <p className="mt-1 sm:mt-2 md:mt-3.5 text-[11px] sm:text-xs md:text-base font-sans font-light text-white/75 leading-tight sm:leading-relaxed max-w-[280px] sm:max-w-xs md:max-w-md line-clamp-1 md:line-clamp-none">
                     {currentProject.headline}
                   </p>
 
@@ -1618,17 +1618,17 @@ export const PortfolioWormhole3D: React.FC = () => {
 
                     return (
                       <div
-                        className={`mt-2.5 sm:mt-3 md:mt-5 grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-2.5 max-w-[270px] sm:max-w-[300px] md:max-w-[330px] ${
+                        className={`mt-2 sm:mt-3 md:mt-5 grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-2.5 max-w-[250px] sm:max-w-[280px] md:max-w-[330px] ${
                           isMobile ? 'mx-auto' : ''
                         }`}
                       >
                         {stats.map((metric, idx) => (
                           <div
                             key={idx}
-                            className="animate-glow-blink-slow px-2 py-1.5 sm:px-2.5 sm:py-2 md:px-3 md:py-2.5 rounded-lg sm:rounded-xl bg-[#008CFF]/[0.05] border border-[#008CFF]/25 hover:border-[#008CFF]/45 backdrop-blur-md flex flex-col items-center justify-center text-center transition-all duration-300 shadow-[0_0_12px_rgba(0,140,255,0.08)]"
+                            className="animate-glow-blink-slow px-1.5 py-1 sm:px-2.5 sm:py-2 md:px-3 md:py-2.5 rounded-lg sm:rounded-xl bg-[#008CFF]/[0.05] border border-[#008CFF]/25 hover:border-[#008CFF]/45 backdrop-blur-md flex flex-col items-center justify-center text-center transition-all duration-300 shadow-[0_0_12px_rgba(0,140,255,0.08)]"
                             style={{ animationDelay: `${idx * 0.28}s` }}
                           >
-                            <span className="text-xs sm:text-sm md:text-base font-sans font-semibold text-white tracking-tight leading-none drop-shadow-[0_0_8px_rgba(0,140,255,0.45)]">
+                            <span className="text-[11px] sm:text-sm md:text-base font-sans font-semibold text-white tracking-tight leading-none drop-shadow-[0_0_8px_rgba(0,140,255,0.45)]">
                               {metric.value}
                             </span>
                             <span className="mt-0.5 sm:mt-1 text-[7px] sm:text-[8px] md:text-[9px] font-sans font-medium uppercase tracking-[0.12em] text-white/55 leading-none">
@@ -1641,7 +1641,7 @@ export const PortfolioWormhole3D: React.FC = () => {
                   })()}
 
                   {/* Single Clean Action Button: MORE INFO */}
-                  <div className={`mt-2.5 sm:mt-3 md:mt-6 flex items-center ${isMobile ? 'justify-center' : 'justify-start'} pointer-events-auto relative z-30`}>
+                  <div className={`mt-2 sm:mt-3 md:mt-6 flex items-center ${isMobile ? 'justify-center' : 'justify-start'} pointer-events-auto relative z-30`}>
                     <button
                       type="button"
                       onClick={(e) => {
@@ -1655,10 +1655,10 @@ export const PortfolioWormhole3D: React.FC = () => {
                         });
                         setIsDetailModalOpen(true);
                       }}
-                      className="pointer-events-auto relative z-30 group inline-flex items-center gap-2 px-5 sm:px-6 md:px-7 py-2 sm:py-2.5 md:py-3 rounded-full bg-[#008CFF] hover:bg-[#1a97ff] text-white font-mono text-[10px] sm:text-xs font-bold tracking-[0.18em] uppercase transition-all duration-300 shadow-[0_0_20px_rgba(0,140,255,0.4)] hover:shadow-[0_0_35px_rgba(0,140,255,0.65)] active:scale-95 cursor-pointer"
+                      className="pointer-events-auto relative z-30 group inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 md:px-7 py-1.5 sm:py-2.5 md:py-3 rounded-full bg-[#008CFF] hover:bg-[#1a97ff] text-white font-mono text-[9px] sm:text-xs font-bold tracking-[0.18em] uppercase transition-all duration-300 shadow-[0_0_20px_rgba(0,140,255,0.4)] hover:shadow-[0_0_35px_rgba(0,140,255,0.65)] active:scale-95 cursor-pointer"
                     >
                       <span>MORE INFO</span>
-                      <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                      <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                     </button>
                   </div>
                 </div>

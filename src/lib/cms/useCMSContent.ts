@@ -44,18 +44,19 @@ export function sanitizeProjectList(list: CMSProject[]): CMSProject[] {
   return list.map((proj) => {
     const canonical = CLIENT_PROJECTS.find((cp) => cp.id === proj.id || cp.slug === proj.slug);
     if (!canonical) return proj;
-    const hasWrongPromoVideo = proj.videoUrl && proj.videoUrl.includes('wearebrandshoots') && proj.id !== 'wearebrandshoots';
-    const isOldSanthi = proj.id === 'santhi-pipes' && proj.videoUrl?.includes('2026-09-06');
-    if (hasWrongPromoVideo || isOldSanthi || !proj.videoUrl) {
-      return {
-        ...proj,
-        videoUrl: canonical.videoUrl,
-        posterUrl: canonical.posterUrl,
-        logoUrl: canonical.logoUrl || proj.logoUrl,
-        reels: canonical.reels,
-      };
-    }
-    return proj;
+    return {
+      ...canonical,
+      ...proj,
+      name: canonical.name,
+      videoUrl: canonical.videoUrl,
+      posterUrl: canonical.posterUrl,
+      logoUrl: canonical.logoUrl || proj.logoUrl,
+      headline: canonical.headline,
+      metrics: canonical.metrics,
+      reels: canonical.reels,
+      visible: proj.visible !== false,
+      order: typeof proj.order === 'number' ? proj.order : (canonical as any).order ?? 0,
+    };
   });
 }
 
@@ -69,14 +70,7 @@ export function useCMSContent() {
   const [projects, setProjects] = useState<CMSProject[]>(() => {
     try {
       localStorage.removeItem('brandshoots_projects');
-      const cached = localStorage.getItem('brandshoots_projects_v2026');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length >= 12) {
-          const sanitized = sanitizeProjectList(parsed);
-          return sanitized;
-        }
-      }
+      localStorage.removeItem('brandshoots_projects_v2026');
     } catch {}
     return fallbackProjects;
   });
