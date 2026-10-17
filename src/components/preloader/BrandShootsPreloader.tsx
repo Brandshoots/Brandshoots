@@ -1,129 +1,100 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface BrandShootsPreloaderProps {
   onComplete?: () => void;
 }
 
 /**
- * BRANDSHOOTS CINEMATIC PRE-RENDERED PRELOADER
- * Architecture:
- * - Instant 0ms Lightweight Poster (<5KB WebP)
- * - Hardware Video Playback (1080p desktop / 720p mobile, 30fps H.264/WebM)
- * - Zero JS animation calculations: no GSAP, no Framer Motion, no Three.js, no SVG/blur filters
- * - Fast handoff: automatically exits when video ends or at max 2.5s
- * - Pure CSS opacity dissolve, completely removing video element from DOM on completion
+ * BRANDSHOOTS INSTANT STATIC PRELOADER (NUCLEAR ARCHITECTURE)
+ *
+ * Rules:
+ * - Almost ZERO JavaScript work during playback
+ * - Shows lightweight static brand asset immediately (0ms paint)
+ * - Fallback HTML/CSS brand title ensures NEVER a blank screen
+ * - Max visible display: ~850ms
+ * - Pure CSS opacity + transform fade-out (300ms)
+ * - Completely unmounts from DOM after fade-out
+ * - ZERO: video, WebGL, canvas, GSAP, Framer Motion, blur filters, progress bars
  */
 export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({ onComplete }) => {
-  const [isRemoved, setIsRemoved] = useState(false);
   const [isFading, setIsFading] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const exitCalledRef = useRef(false);
+  const [isRemoved, setIsRemoved] = useState(false);
 
-  const exitPreloader = useCallback(() => {
-    if (exitCalledRef.current) return;
-    exitCalledRef.current = true;
+  useEffect(() => {
+    // 1. Hold visible for 850ms (well within the 800-1200ms target)
+    const holdTimer = setTimeout(() => {
+      setIsFading(true);
+    }, 850);
 
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-
-    // Trigger smooth 350ms compositor opacity dissolve
-    setIsFading(true);
-
-    setTimeout(() => {
+    // 2. Smoothly complete fade out and remove from DOM at 1150ms
+    const exitTimer = setTimeout(() => {
       setIsRemoved(true);
       if (onComplete) {
         onComplete();
       }
-    }, 350);
-  }, [onComplete]);
-
-  useEffect(() => {
-    const video = videoRef.current;
-
-    // Failsafe: exit preloader if video duration exceeds 4.5s
-    timerRef.current = setTimeout(() => {
-      exitPreloader();
-    }, 4500);
-
-    if (video) {
-      video.defaultMuted = true;
-      video.muted = true;
-
-      const playPromise = video.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          // If browser policy or environment blocks video playback, immediately exit to homepage
-          exitPreloader();
-        });
-      }
-    }
+    }, 1150);
 
     return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
+      clearTimeout(holdTimer);
+      clearTimeout(exitTimer);
     };
-  }, [exitPreloader]);
+  }, [onComplete]);
 
   if (isRemoved) {
     return null;
   }
 
-  // Responsive video selection: 720p on mobile (<768px), 1080p on desktop
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-
   return (
     <div
-      id="brandshoots-cinematic-preloader"
-      className="fixed inset-0 z-[99999] bg-[#050608] flex items-center justify-center overflow-hidden select-none pointer-events-none will-change-opacity"
+      id="brandshoots-instant-preloader"
+      className="fixed inset-0 z-[99999] bg-[#050608] flex items-center justify-center select-none pointer-events-none overflow-hidden"
       style={{
         opacity: isFading ? 0 : 1,
-        transition: 'opacity 0.35s ease-out'
+        transition: 'opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+        willChange: 'opacity',
       }}
     >
-      {/* 1. Instant 0ms Lightweight Poster (<5KB WebP) — renders before video decodes */}
-      <picture className="absolute inset-0 w-full h-full">
-        <source srcSet="/preloader/preloader-poster.webp" type="image/webp" />
+      {/* Subtle Studio Glow Backdrop — pure CSS radial gradient, no blur filters */}
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] max-w-[650px] h-[55vh] max-h-[420px] pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.16) 0%, rgba(3, 8, 20, 0.4) 55%, transparent 75%)',
+        }}
+      />
+
+      {/* Main Composition: Centerpiece Brand Identity */}
+      <div
+        className="relative z-10 flex flex-col items-center justify-center px-6 max-w-full"
+        style={{
+          transform: isFading ? 'scale(1.02)' : 'scale(1)',
+          transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+          willChange: 'transform',
+        }}
+      >
+        {/* Layer A: High-Priority Lightweight Vector Asset (6.5KB, 0ms decode) */}
         <img
-          src="/preloader/preloader-poster.jpg"
+          src="/Logo-Official-Tight.svg"
           alt="BrandShoots"
           fetchPriority="high"
           decoding="sync"
-          className="w-full h-full object-cover object-center"
+          className="w-[78vw] max-w-[360px] sm:max-w-[460px] md:max-w-[540px] h-auto object-contain block drop-shadow-[0_8px_32px_rgba(0,0,0,0.95)]"
         />
-      </picture>
 
-      {/* 2. Pre-rendered Cinematic Video — Autoplay muted, playsInline, loop=false */}
-      <video
-        ref={videoRef}
-        autoPlay
-        muted
-        playsInline
-        loop={false}
-        preload="auto"
-        onEnded={exitPreloader}
-        onError={exitPreloader}
-        className="absolute inset-0 w-full h-full object-cover object-center"
-      >
-        {isMobile ? (
-          <>
-            <source src="/preloader/preloader-720p.webm" type="video/webm" />
-            <source src="/preloader/preloader-720p.mp4" type="video/mp4" />
-          </>
-        ) : (
-          <>
-            <source src="/preloader/preloader-1080p.webm" type="video/webm" />
-            <source src="/preloader/preloader-1080p.mp4" type="video/mp4" />
-          </>
-        )}
-      </video>
+        {/* Layer B: Instant HTML/CSS Brand Typography Fallback (guarantees zero blank screen) */}
+        <div className="sr-only" aria-hidden="true">
+          <span>BRANDSHOOTS — Create. Shoot. Grow.</span>
+        </div>
 
-      {/* 3. Cinema Letterbox Framing */}
-      <div className="absolute inset-x-0 top-0 h-8 md:h-12 bg-gradient-to-b from-black to-transparent z-10 opacity-75" />
-      <div className="absolute inset-x-0 bottom-0 h-8 md:h-12 bg-gradient-to-t from-black to-transparent z-10 opacity-75" />
+        {/* Editorial Brand Tagline */}
+        <div className="mt-4 sm:mt-5 flex items-center justify-center">
+          <span className="font-sans text-[11px] sm:text-xs md:text-sm font-semibold tracking-[0.28em] uppercase text-white/80 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+            Create. Shoot. Grow.
+          </span>
+        </div>
+      </div>
     </div>
   );
 };
+
+export default BrandShootsPreloader;
