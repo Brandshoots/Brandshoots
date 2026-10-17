@@ -5,6 +5,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { CLIENT_PROJECTS, ClientProject } from '../../data/clientsData';
 import { useCMSContent } from '../../lib/cms/useCMSContent';
 import { ProjectDetailModal } from './ProjectDetailModal';
+import { PortfolioMobileShowcase } from './PortfolioMobileShowcase';
 import { ArrowUpRight, X, ChevronRight, Volume2, Volume1, VolumeX, Play, Pause } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -181,6 +182,7 @@ export const PortfolioWormhole3D: React.FC = () => {
   const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth < 1024);
   const [isVolumeHovered, setIsVolumeHovered] = useState<boolean>(false);
   const [isDraggingVolume, setIsDraggingVolume] = useState<boolean>(false);
+  const [selectedMobileProject, setSelectedMobileProject] = useState<ClientProject | null>(null);
 
   const activeIndexRef = useRef<number>(0);
   activeIndexRef.current = activeIndex;
@@ -442,6 +444,7 @@ export const PortfolioWormhole3D: React.FC = () => {
 
   // GSAP Editorial Stagger Reveal on Project Change
   useEffect(() => {
+    if (isMobile) return;
     const el = editorialContentRef.current;
     if (el) {
       gsap.killTweensOf(el.children);
@@ -451,10 +454,11 @@ export const PortfolioWormhole3D: React.FC = () => {
         { opacity: 1, y: 0, duration: 0.38, stagger: 0.04, ease: 'power2.out' }
       );
     }
-  }, [activeIndex]);
+  }, [activeIndex, isMobile]);
 
   // Setup Three.js Wormhole Corridor Engine
   useEffect(() => {
+    if (isMobile) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -967,7 +971,7 @@ export const PortfolioWormhole3D: React.FC = () => {
       dustParticleTexture.dispose();
       renderer.dispose();
     };
-  }, [projects3DKey]);
+  }, [projects3DKey, isMobile]);
 
   // Update Three.js Wormhole Motion & Dark Space based on Scroll Unit
   const updateThreeScene = useCallback((u: number) => {
@@ -1251,6 +1255,7 @@ export const PortfolioWormhole3D: React.FC = () => {
 
   // GSAP ScrollTrigger: High-Performance 1:1 Scrub with Lenis (No jitter, no competing snap tweens)
   useEffect(() => {
+    if (isMobile) return;
     const container = containerRef.current;
     const stage = stageRef.current;
     if (!container || !stage) return;
@@ -1296,10 +1301,11 @@ export const PortfolioWormhole3D: React.FC = () => {
       if (debouncedSnapRef.current) clearTimeout(debouncedSnapRef.current);
       if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current);
     };
-  }, [totalProjects, updateThreeScene, scrollToProject]);
+  }, [totalProjects, updateThreeScene, scrollToProject, isMobile]);
 
   // Controlled Wheel Navigation: Decisive, instantaneous reel advancement (no dead space)
   useEffect(() => {
+    if (isMobile) return;
     let wheelAccumulator = 0;
     let wheelResetTimer: NodeJS.Timeout | null = null;
 
@@ -1351,10 +1357,11 @@ export const PortfolioWormhole3D: React.FC = () => {
       window.removeEventListener('wheel', handleWheel);
       if (wheelResetTimer) clearTimeout(wheelResetTimer);
     };
-  }, [scrollToProject, totalProjects]);
+  }, [scrollToProject, totalProjects, isMobile]);
 
   // Mobile Touch Swipe Navigation: Fast, native feel reel-by-reel swipe
   useEffect(() => {
+    if (isMobile) return;
     let touchStartY = 0;
     let touchStartX = 0;
 
@@ -1399,10 +1406,11 @@ export const PortfolioWormhole3D: React.FC = () => {
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [scrollToProject, totalProjects]);
+  }, [scrollToProject, totalProjects, isMobile]);
 
   // Keyboard Arrow Up / Arrow Down Reel Stepping
   useEffect(() => {
+    if (isMobile) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       const st = stRef.current;
       if (!st || !st.isActive) return;
@@ -1423,7 +1431,7 @@ export const PortfolioWormhole3D: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [scrollToProject, totalProjects]);
+  }, [scrollToProject, totalProjects, isMobile]);
 
   const currentProject: ClientProject = activeProjects[activeIndex] || activeProjects[0];
   const isLeft = activeIndex % 2 === 0;
@@ -1446,6 +1454,29 @@ export const PortfolioWormhole3D: React.FC = () => {
   const logoRotateY = logoDelta * 24; // subtle 3D rotational tilt
   const logoTranslateZ = -logoAbsDelta * 50; // 3D depth retreat away from camera
   const logoTranslateY = logoDelta * -20; // organic parallax float
+
+  // Dedicated Mobile Responsive Portfolio Showcase (Native vertical scroll, dominant 9:16 reel)
+  if (isMobile) {
+    return (
+      <>
+        <PortfolioMobileShowcase
+          activeProjects={activeProjects}
+          onSelectProject={(project) => {
+            setSelectedMobileProject(project);
+            setIsDetailModalOpen(true);
+          }}
+        />
+
+        <ProjectDetailModal
+          isOpen={isDetailModalOpen}
+          project={selectedMobileProject || activeProjects[0]}
+          onClose={() => {
+            setIsDetailModalOpen(false);
+          }}
+        />
+      </>
+    );
+  }
 
   return (
     <>
