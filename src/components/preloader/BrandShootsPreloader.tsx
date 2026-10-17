@@ -43,10 +43,10 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({ onCo
   useEffect(() => {
     const video = videoRef.current;
 
-    // Hard failsafe: maximum visible duration is strictly 2.5 seconds
+    // Failsafe: exit preloader if video duration exceeds 4.5s
     timerRef.current = setTimeout(() => {
       exitPreloader();
-    }, 2500);
+    }, 4500);
 
     if (video) {
       video.defaultMuted = true;
