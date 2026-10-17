@@ -1,25 +1,26 @@
 import gsap from 'gsap';
+import { Multigrade3DTilesHandle } from '../components/preloader/Multigrade3DTiles';
+import { BrandLogoOverlayHandle } from '../components/preloader/BrandLogoOverlay';
 
 export interface PreloaderTimelineRefs {
   containerRef: React.RefObject<HTMLDivElement>;
   tilesContainerRef: React.RefObject<HTMLDivElement>;
-  logoOverlayRef: React.RefObject<HTMLDivElement>;
+  tilesRef: React.RefObject<Multigrade3DTilesHandle | null>;
+  logoOverlayRef: React.RefObject<BrandLogoOverlayHandle | null>;
+  atmosphereRef: React.RefObject<HTMLDivElement>;
   flashRef: React.RefObject<HTMLDivElement>;
   backdropHazeRef: React.RefObject<HTMLDivElement>;
 }
 
 export interface PreloaderTimelineCallbacks {
-  onCollectStateChange: (collecting: boolean) => void;
-  onLogoStageChange: (stage: 'hidden' | 'focus' | 'shutter' | 'snap' | 'locked' | 'expand') => void;
-  onColorReveal: (revealed: boolean) => void;
-  onFocusStateChange: (focusing: boolean, locked: boolean) => void;
   onComplete: () => void;
 }
 
 /**
- * Creates and runs the master GSAP cinematic preloader timeline.
- * Orchestrates 3D multigrade scrolling tiles, convergence ("collecting"),
- * shutter snap, white flash, and seamless expansion into the hero.
+ * MASTER HARDWARE-ACCELERATED PRELOADER TIMELINE
+ * Orchestrates 3D multigrade streaming, convergence, shutter snap,
+ * white xenon camera flash, color bloom, and seamless dissolve handoff into the hero.
+ * 100% hardware-accelerated compositor operations, ZERO React state updates during playback.
  */
 export function createPreloaderTimeline(
   refs: PreloaderTimelineRefs,
@@ -28,7 +29,9 @@ export function createPreloaderTimeline(
   const {
     containerRef,
     tilesContainerRef,
+    tilesRef,
     logoOverlayRef,
+    atmosphereRef,
     flashRef,
     backdropHazeRef
   } = refs;
@@ -36,14 +39,18 @@ export function createPreloaderTimeline(
   const tl = gsap.timeline({
     paused: true,
     onComplete: () => {
+      if (tilesRef.current) {
+        tilesRef.current.exit();
+      }
       callbacks.onComplete();
     }
   });
 
-  // Initial State Setup
+  // Initial State Setup - Compositor transforms only
   tl.set(containerRef.current, { opacity: 1, visibility: 'visible' });
   tl.set(tilesContainerRef.current, { opacity: 0, scale: 0.95 });
   tl.set(backdropHazeRef.current, { opacity: 0 });
+  tl.set(atmosphereRef.current, { opacity: 0 });
   tl.set(flashRef.current, { opacity: 0 });
 
   // ----------------------------------------------------
@@ -53,122 +60,157 @@ export function createPreloaderTimeline(
   tl.addLabel('intro', 0.0);
   tl.to(backdropHazeRef.current, {
     opacity: 0.5,
-    duration: 0.8,
+    duration: 0.6,
     ease: 'power2.inOut'
   }, 'intro+=0.1');
 
   tl.to(tilesContainerRef.current, {
     opacity: 1,
     scale: 1,
-    duration: 1.0,
+    duration: 0.7,
     ease: 'power3.out'
-  }, 'intro+=0.2');
+  }, 'intro+=0.15');
 
   // ----------------------------------------------------
-  // LABEL: streaming (0.80s - 2.20s)
+  // LABEL: streaming (0.75s)
   // Rapid 3D multigrade tiles stream across the viewport
   // ----------------------------------------------------
-  tl.addLabel('streaming', 0.8);
+  tl.addLabel('streaming', 0.75);
 
   // Mid-stream camera exposure flash
   tl.to(flashRef.current, {
-    opacity: 0.65,
-    duration: 0.08,
+    opacity: 0.6,
+    duration: 0.07,
     ease: 'power4.in'
-  }, 'streaming+=0.6');
+  }, 'streaming+=0.45');
   tl.to(flashRef.current, {
     opacity: 0,
     duration: 0.1,
     ease: 'power3.out'
-  }, 'streaming+=0.68');
+  }, 'streaming+=0.52');
 
   // ----------------------------------------------------
-  // LABEL: collect (~2.20s)
-  // THE TILES COLLECT! (Camille Mormal inspired convergence)
-  // Scrolling slows down, perspective straightens, tiles pull together
+  // LABEL: collect (~1.80s)
+  // Convergence: tiles gather together, perspective flattens
   // ----------------------------------------------------
-  tl.addLabel('collect', 2.2);
-  tl.call(() => callbacks.onCollectStateChange(true), undefined, 'collect');
+  tl.addLabel('collect', 1.8);
+  tl.call(() => {
+    if (tilesRef.current) {
+      tilesRef.current.collect();
+    }
+  }, undefined, 'collect');
+
+  tl.to(tilesContainerRef.current, {
+    opacity: 0.75,
+    duration: 0.7,
+    ease: 'power2.out'
+  }, 'collect');
+
+  tl.to(atmosphereRef.current, {
+    opacity: 1,
+    duration: 0.6,
+    ease: 'power2.out'
+  }, 'collect');
 
   // ----------------------------------------------------
-  // LABEL: focus (~2.80s)
+  // LABEL: focus (~2.40s)
   // Center autofocus target initiates
   // ----------------------------------------------------
-  tl.addLabel('focus', 2.8);
-  tl.call(() => callbacks.onFocusStateChange(true, false), undefined, 'focus');
-  tl.call(() => callbacks.onLogoStageChange('focus'), undefined, 'focus+=0.1');
+  tl.addLabel('focus', 2.4);
+  tl.call(() => {
+    if (logoOverlayRef.current) {
+      logoOverlayRef.current.setStage('focus');
+    }
+  }, undefined, 'focus');
 
-  // Autofocus locks sharp (~3.15s)
-  tl.call(() => callbacks.onFocusStateChange(true, true), undefined, 'focus+=0.35');
+  tl.to(tilesContainerRef.current, {
+    opacity: 0.55,
+    duration: 0.45,
+    ease: 'power2.out'
+  }, 'focus');
 
   // ----------------------------------------------------
-  // LABEL: shutter & snap (~3.45s)
+  // LABEL: shutter & snap (~2.85s)
   // Shutter iris tightens -> CLICK -> WHITE CAMERA FLASH
   // ----------------------------------------------------
-  tl.addLabel('shutter', 3.45);
-  tl.call(() => callbacks.onLogoStageChange('shutter'), undefined, 'shutter');
-
-  tl.addLabel('snap', 3.6);
+  tl.addLabel('shutter', 2.85);
   tl.call(() => {
-    callbacks.onLogoStageChange('snap');
+    if (logoOverlayRef.current) {
+      logoOverlayRef.current.setStage('shutter');
+    }
+  }, undefined, 'shutter');
+
+  tl.addLabel('snap', 2.96);
+  tl.call(() => {
+    if (logoOverlayRef.current) {
+      logoOverlayRef.current.setStage('snap');
+    }
   }, undefined, 'snap');
 
-  // Emotional Peak: White Camera Flash
-  tl.addLabel('flash', 3.65);
+  // Emotional Peak: White Xenon Camera Flash (~3.02s)
+  tl.addLabel('flash', 3.02);
   tl.to(flashRef.current, {
     opacity: 1,
-    duration: 0.09,
+    duration: 0.08,
     ease: 'expo.in',
     onComplete: () => {
-      // Official Brand Blue blooms at peak flash!
-      callbacks.onColorReveal(true);
-      callbacks.onLogoStageChange('locked');
-      callbacks.onFocusStateChange(false, true);
+      // Official Brand Blue blooms at peak flash behind pure white cover
+      if (tilesRef.current) {
+        tilesRef.current.revealColor();
+      }
+      if (logoOverlayRef.current) {
+        logoOverlayRef.current.setColorRevealed(true);
+        logoOverlayRef.current.setStage('locked');
+      }
     }
   }, 'flash');
 
   // Flash decays into crisp locked identity
   tl.to(flashRef.current, {
     opacity: 0,
-    duration: 0.28,
+    duration: 0.25,
     ease: 'power2.out'
-  }, 'flash+=0.09');
+  }, 'flash+=0.08');
+
+  tl.to(tilesContainerRef.current, {
+    opacity: 0.35,
+    duration: 0.4,
+    ease: 'power2.out'
+  }, 'flash+=0.08');
 
   // ----------------------------------------------------
-  // LABEL: logoLock (~4.00s)
+  // LABEL: logoLock (~3.15s - 3.85s)
   // Hold the official identity with "Create. Shoot. Grow."
   // ----------------------------------------------------
-  tl.addLabel('logoLock', 4.0);
+  tl.addLabel('logoLock', 3.15);
 
   // ----------------------------------------------------
-  // LABEL: expand & exit (~5.50s)
-  // Clean, lightweight dissolve handoff into the Hero
+  // LABEL: expand & exit (~3.85s)
+  // Clean, instantaneous dissolve handoff into the Hero
   // ----------------------------------------------------
-  tl.addLabel('expand', 5.5);
-  tl.call(() => callbacks.onLogoStageChange('expand'), undefined, 'expand');
+  tl.addLabel('expand', 3.85);
+  tl.call(() => {
+    if (logoOverlayRef.current) {
+      logoOverlayRef.current.setStage('expand');
+    }
+    if (tilesRef.current) {
+      tilesRef.current.exit();
+    }
+  }, undefined, 'expand');
 
-  // Clean, instantaneous opacity dissolve into the Hero
+  // Clean dissolve of tiles
   tl.to(tilesContainerRef.current, {
     opacity: 0,
-    duration: 0.5,
+    duration: 0.45,
     ease: 'power2.out'
   }, 'expand');
-
-  if (logoOverlayRef.current) {
-    tl.to(logoOverlayRef.current, {
-      scale: 1.06,
-      opacity: 0,
-      duration: 0.5,
-      ease: 'power2.inOut'
-    }, 'expand');
-  }
 
   // Preloader container background dissolves cleanly into hero
   tl.to(containerRef.current, {
     opacity: 0,
-    duration: 0.45,
+    duration: 0.4,
     ease: 'power2.out'
-  }, 'expand+=0.2');
+  }, 'expand+=0.15');
 
   return tl;
 }

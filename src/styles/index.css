@@ -149,6 +149,29 @@
   }
 }
 
+/* ========================================================= */
+/* ULTRA-SMOOTH COMPOSITOR-DRIVEN PRELOADER LANE SCROLL       */
+/* Runs 100% on GPU Compositor Thread with Zero Main-Thread JS*/
+/* ========================================================= */
+@keyframes preloaderLaneScrollUp {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, -50%, 0);
+  }
+}
+
+@keyframes preloaderLaneScrollDown {
+  0% {
+    transform: translate3d(0, -50%, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+
 .animate-client-marquee {
   display: flex;
   width: max-content;

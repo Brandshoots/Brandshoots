@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import gsap from 'gsap';
-import { Multigrade3DTiles } from './Multigrade3DTiles';
-import { BrandLogoOverlay } from './BrandLogoOverlay';
+import { Multigrade3DTiles, Multigrade3DTilesHandle } from './Multigrade3DTiles';
+import { BrandLogoOverlay, BrandLogoOverlayHandle } from './BrandLogoOverlay';
 import { CameraFlash } from './CameraFlash';
 import { PRELOADER_CONFIG } from '../../config/preloaderConfig';
 import { createPreloaderTimeline } from '../../animations/preloaderTimeline';
@@ -15,7 +15,7 @@ interface BrandShootsPreloaderProps {
 /**
  * BRANDSHOOTS CINEMATIC STARTUP PRELOADER
  * Flow: 3D STREAMING REELS (B/W) -> TILES COLLECT -> FOCUS -> SHUTTER SNAP -> WHITE FLASH -> COLOR BLOOM -> OFFICIAL LOGO REVEAL -> EXIT
- * Pure 60 FPS hardware accelerated performance with zero lag.
+ * Pure 60 FPS hardware accelerated performance with zero lag and zero React re-renders during playback.
  */
 export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
   onComplete,
@@ -23,19 +23,20 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const tilesContainerRef = useRef<HTMLDivElement>(null);
-  const logoOverlayRef = useRef<HTMLDivElement>(null);
+  const tilesRef = useRef<Multigrade3DTilesHandle | null>(null);
+  const logoOverlayRef = useRef<BrandLogoOverlayHandle | null>(null);
+  const atmosphereRef = useRef<HTMLDivElement>(null);
   const flashRef = useRef<HTMLDivElement>(null);
   const backdropHazeRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
 
-  const [isCollecting, setIsCollecting] = useState(false);
-  const [logoStage, setLogoStage] = useState<'hidden' | 'focus' | 'shutter' | 'snap' | 'locked' | 'expand'>('hidden');
-  const [isColorRevealed, setIsColorRevealed] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
 
-  // Forcefully warm up and buffer all hero cylinder videos in the background while the preloader sequence plays
+  // Warm up hero assets and official logo in memory during preloader
   useEffect(() => {
     preloadAllHeroReels();
+    const logoImg = new Image();
+    logoImg.src = '/Logo-Official-Tight.svg';
   }, []);
 
   const handleSequenceComplete = useCallback(() => {
@@ -53,10 +54,12 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
       const quickTl = gsap.timeline({ onComplete: handleSequenceComplete });
       quickTl.to(containerRef.current, { opacity: 1, duration: 0.1 });
       quickTl.call(() => {
-        setLogoStage('locked');
-        setIsColorRevealed(true);
+        if (logoOverlayRef.current) {
+          logoOverlayRef.current.setStage('locked');
+          logoOverlayRef.current.setColorRevealed(true);
+        }
       });
-      quickTl.to(containerRef.current, { opacity: 0, duration: 0.6, delay: 0.7 });
+      quickTl.to(containerRef.current, { opacity: 0, duration: 0.5, delay: 0.6 });
       return;
     }
 
@@ -65,15 +68,13 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
         {
           containerRef,
           tilesContainerRef,
+          tilesRef,
           logoOverlayRef,
+          atmosphereRef,
           flashRef,
           backdropHazeRef
         },
         {
-          onCollectStateChange: (collecting) => setIsCollecting(collecting),
-          onLogoStageChange: (stage) => setLogoStage(stage),
-          onColorReveal: (revealed) => setIsColorRevealed(revealed),
-          onFocusStateChange: () => {},
           onComplete: handleSequenceComplete
         }
       );
@@ -90,6 +91,9 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
 
     return () => {
       clearTimeout(safetyTimer);
+      if (timelineRef.current) {
+        timelineRef.current.kill();
+      }
       ctx.revert();
     };
   }, [forceReducedMotion, handleSequenceComplete, isCompleted]);
@@ -101,7 +105,7 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-[99999] flex items-center justify-center bg-[#050608] overflow-hidden select-none"
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-[#050608] overflow-hidden select-none will-change-opacity"
       style={{
         perspective: '1300px',
         WebkitPerspective: '1300px'
@@ -110,40 +114,24 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
       {/* Studio Backdrop Atmosphere (Pure Obsidian & Film Grain) */}
       <div
         ref={backdropHazeRef}
-        className="pointer-events-none absolute inset-0 opacity-0 z-10"
+        className="pointer-events-none absolute inset-0 opacity-0 z-10 will-change-opacity"
       >
         <div className="absolute inset-0 bg-[#050608]" />
         <div className="absolute inset-0 cinema-grain opacity-25" />
       </div>
 
-      {/* Multidimensional 3D Scrolling Tiles (100% Videos Playing) */}
+      {/* Multidimensional 3D Streaming Tiles */}
       <div
         ref={tilesContainerRef}
-        className="absolute inset-0 w-full h-full z-20 transition-opacity duration-700 ease-out will-change-transform"
-        style={{
-          opacity: isColorRevealed
-            ? 0.35
-            : logoStage !== 'hidden'
-            ? 0.55
-            : isCollecting
-            ? 0.75
-            : 1.0
-        }}
+        className="absolute inset-0 w-full h-full z-20 will-change-transform will-change-opacity opacity-0"
       >
-        <Multigrade3DTiles
-          isCollecting={isCollecting}
-          isColorRevealed={isColorRevealed}
-          isExiting={logoStage === 'expand'}
-        />
+        <Multigrade3DTiles ref={tilesRef} />
       </div>
 
-      {/* CINEMATIC FOCUS ATMOSPHERE WITH DEFOCUS BACKDROP BLUR */}
+      {/* CINEMATIC FOCUS ATMOSPHERE WITH OBSIDIAN RADIAL FALLOFF */}
       <div
-        className={`pointer-events-none absolute inset-0 z-25 transition-all duration-700 ease-out will-change-[opacity,backdrop-filter] ${
-          isCollecting || logoStage !== 'hidden' || isColorRevealed
-            ? 'opacity-100 backdrop-blur-[8px]'
-            : 'opacity-0 backdrop-blur-none'
-        }`}
+        ref={atmosphereRef}
+        className="pointer-events-none absolute inset-0 z-25 opacity-0 will-change-opacity"
       >
         {/* Soft Vignette Mask */}
         <div
@@ -173,12 +161,8 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
         <div className="absolute inset-0 cinema-grain opacity-20" />
       </div>
 
-      {/* Pure Editorial Official BrandShoots Identity with Integrated Cinema Viewfinder */}
-      <BrandLogoOverlay
-        ref={logoOverlayRef}
-        stage={logoStage}
-        isColorRevealed={isColorRevealed}
-      />
+      {/* Pure Editorial Official BrandShoots Identity */}
+      <BrandLogoOverlay ref={logoOverlayRef} />
 
       {/* High-Intensity Xenon Camera Flash */}
       <CameraFlash ref={flashRef} />
