@@ -16,6 +16,8 @@ export interface ClientProject {
   videoUrl: string;
   posterUrl: string;
   logoUrl?: string;
+  instagram?: string;
+  instagramUrl?: string;
   headline: string;
   story: string;
   challenge?: string;
@@ -35,6 +37,8 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     videoUrl: '/reels/santhi.pipes_rjy/santhi.pipes_rjy_2026-05-31_18-02-19_3909180466433077679_48644092133.mp4',
     posterUrl: '/reels/thumbnails/santhi.pipes_rjy_2026-05-31_18-02-19_3909180466433077679_48644092133.jpg',
     logoUrl: '/clients/Shanti Pipes.png',
+    instagram: '@santhi.pipes_rjy',
+    instagramUrl: 'https://www.instagram.com/santhi.pipes_rjy/',
     headline: 'High-Velocity Industrial Cinematography',
     story: 'Engineered commercial filmmaking capturing industrial manufacturing precision, high-speed automated extrusion lines, and large-scale warehouse operations. Our directional lighting and dynamic tracking brought raw PVC engineering into sharp, cinematic focus.',
     challenge: 'Transform raw polymer extrusion manufacturing into a visually compelling, premium narrative that communicates engineering tolerance, scale, and high-volume reliability.',
@@ -77,6 +81,8 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     videoUrl: '/reels/viswatuff.glass_rjy/viswatuff.glass_rjy_2026-05-28_18-00-28_3907005057329571857_78432309239.mp4',
     posterUrl: '/reels/thumbnails/viswatuff.glass_rjy_2026-05-28_18-00-28_3907005057329571857_78432309239.jpg',
     logoUrl: '/clients/Viswatuff Glass Logo.png',
+    instagram: '@viswatuff.glass_rjy',
+    instagramUrl: 'https://www.instagram.com/viswatuff.glass_rjy/',
     headline: 'Architectural Glazing & Commercial Space Showcase',
     story: 'Created high-impact commercial video content showcasing their factory operations, structural toughened glass processing, and architectural installations with clean, cinematic camera movements.',
     challenge: 'Capturing clear, reflective glass without unwanted reflections or distortion while demonstrating optical purity and structural impact resistance.',
@@ -111,6 +117,8 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     videoUrl: '/reels/bags.world_rjy/bags.world_rjy_2025-09-09_09-40-28_3717579195573459823_54511918250.mp4',
     posterUrl: '/reels/thumbnails/bags.world_rjy_2025-09-09_09-40-28_3717579195573459823_54511918250.jpg',
     logoUrl: '/clients/Bags World Logo.PNG',
+    instagram: '@bags.world_rjy',
+    instagramUrl: 'https://www.instagram.com/bags.world_rjy/',
     headline: 'Fast-Cut Luxury Retail Visual Rhythm',
     story: 'Dynamic camera dolly movements, saturated studio lighting, and high-energy pacing designed to captivate mobile attention in the first 2 seconds.',
     challenge: 'Stand out in an ultra-saturated consumer travel accessories market where attention drop-off occurs within the first 1.5 seconds.',
@@ -145,6 +153,8 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     videoUrl: '/reels/aabharan_womens_accessories/aabharan_womens_accessories_2026-05-30_10-01-21_3908213461611903133_45301478774.mp4',
     posterUrl: '/reels/thumbnails/aabharan_womens_accessories_2026-05-30_10-01-21_3908213461611903133_45301478774.jpg',
     logoUrl: '/clients/Aabharan Logo.png',
+    instagram: '@aabharan_womens_accessories',
+    instagramUrl: 'https://www.instagram.com/aabharan_womens_accessories/',
     headline: 'Bespoke Traditional Goldsmithing & Heritage',
     story: 'Intimate macro jewelry cinematography illuminating delicate handcrafted gold details, royal heritage silhouettes, and directional rim lighting.',
     challenge: 'Communicate the intricate micro-craftsmanship of heritage handcrafted jewelry while maintaining emotional reverence and bridal splendor.',
@@ -195,6 +205,8 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     videoUrl: '/reels/sahana.dryfruits_rjy/sahana.dryfruits_rjy_2026-07-05_17-57-04_3934543118156154206_38485858909.mp4',
     posterUrl: '/reels/thumbnails/sahana.dryfruits_rjy_2026-07-05_17-57-04_3934543118156154206_38485858909.jpg',
     logoUrl: '/clients/Sahana Logo.PNG',
+    instagram: '@sahana.dryfruits_rjy',
+    instagramUrl: 'https://www.instagram.com/sahana.dryfruits_rjy/',
     headline: 'Artisanal Packaging & High-Speed Macro Crunch',
     story: 'High-speed food choreography capturing crisp textures, premium dry fruit gift packaging, and vibrant color dynamics tailored for premium retail discovery.',
     challenge: 'Elevate everyday dry fruits into an opulent, gift-worthy luxury experience through vertical video.',
@@ -229,6 +241,8 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     videoUrl: '/reels/tea3_official/tea3_official_2025-10-29_09-54-59_3753833688871293700_76713485685.mp4',
     posterUrl: '/reels/thumbnails/tea3_official_2025-10-29_09-54-59_3753833688871293700_76713485685.jpg',
     logoUrl: '/clients/T3 Logo.png',
+    instagram: '@tea3_official',
+    instagramUrl: 'https://www.instagram.com/tea3_official/',
     headline: 'Modern Beverage Culture & Urban Aesthetics',
     story: 'High-energy beverage cinematography, steam acoustics, and fast-paced aesthetic cuts designed to drive youth engagement and urban café culture.',
     challenge: 'Capture the comforting warmth and kinetic rhythm of modern brewing in a dynamic, high-retention vertical format.',
@@ -263,6 +277,8 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     videoUrl: '/reels/dayanidhi.interiors_rjy/dayanidhi.interiors_rjy_2025-10-07_12-00-25_3737951699329041277_72884206961.mp4',
     posterUrl: '/reels/thumbnails/dayanidhi.interiors_rjy_2025-10-07_12-00-25_3737951699329041277_72884206961.jpg',
     logoUrl: '/clients/Dayanidhi Logo.png',
+    instagram: '@dayanidhi.interiors_rjy',
+    instagramUrl: 'https://www.instagram.com/dayanidhi.interiors_rjy/',
     headline: 'Contemporary Architecture & Luxury Furnishings',
     story: 'Smooth gimbal camera tracking through premium living spaces, capturing bespoke furniture craftsmanship, marble textures, and ambient golden hour light.',
     challenge: 'Convey the sensory physical experience of luxury interior living spaces, wood finishes, and Italian marble surfaces through vertical video.',
@@ -297,6 +313,8 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     videoUrl: '/reels/jain_beauty_concepts/jain_beauty_concepts_2025-10-16_09-55-09_3744410345428741931_48808965364.mp4',
     posterUrl: '/reels/thumbnails/jain_beauty_concepts_2025-10-16_09-55-09_3744410345428741931_48808965364.jpg',
     logoUrl: '/clients/Jain Beauty Logo.png',
+    instagram: '@jain_beauty_concepts',
+    instagramUrl: 'https://www.instagram.com/jain_beauty_concepts/',
     headline: 'Editorial Fashion Portraiture & Chromatic Lighting',
     story: 'Studio beauty cinematography featuring neon rim lights, fluid textile physics, and razor-sharp skin-tone fidelity designed for modern beauty tastemakers.',
     challenge: 'Deliver studio lighting and high-definition beauty textures that preserve natural skin tone while delivering bold avant-garde aesthetics.',
@@ -339,6 +357,8 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     videoUrl: '/reels/sbventures_official/sbventures_official_2026-09-15_17-10-21_3986704799434897519_5720346010.mp4',
     posterUrl: '/reels/thumbnails/sbventures_official_2026-09-15_17-10-21_3986704799434897519_5720346010.jpg',
     logoUrl: '/clients/SB Ventures Logo.png',
+    instagram: '@sbventures_official',
+    instagramUrl: 'https://www.instagram.com/sbventures_official/',
     headline: 'Corporate Vision & Clean Architectural Staging',
     story: 'Sophisticated executive positioning films blending modern office cinematography, dynamic infographics, and confident stakeholder messaging.',
     challenge: 'Overcome corporate video cliches to create an authoritative, magnetic investor film that positions leadership as industry innovators.',
@@ -373,6 +393,8 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     videoUrl: '/reels/kc_overseas_rjy/kc_overseas_rjy_2025-10-28_11-56-25_3753167479003838060_46988266664.mp4',
     posterUrl: '/reels/thumbnails/kc_overseas_rjy_2025-10-28_11-56-25_3753167479003838060_46988266664.jpg',
     logoUrl: '/clients/KC Overseas Logo.PNG',
+    instagram: '@kc_overseas_rjy',
+    instagramUrl: 'https://www.instagram.com/kc_overseas_rjy/',
     headline: 'Inspiring Documentary Student Journeys',
     story: 'Aspirational documentary storytelling following student ambitions across international borders, capturing authentic emotion and institutional credibility.',
     challenge: 'Capture the vulnerability, excitement, and triumph of students embarking on overseas education without feeling staged or commercialized.',
@@ -406,6 +428,8 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     year: '2026',
     videoUrl: '/reels/newplayzone_rjy/newplayzone_rjy_2025-09-23_09-49-41_3727739247089824309_76443365829.mp4',
     posterUrl: '/reels/thumbnails/newplayzone_rjy_2025-09-23_09-49-41_3727739247089824309_76443365829.jpg',
+    instagram: '@newplayzone_rjy',
+    instagramUrl: 'https://www.instagram.com/newplayzone_rjy/',
     headline: 'High-Energy Family Entertainment & Kinetic Flow',
     story: 'Fast-cut dynamic sports and arcade cinematography with saturated colored neon staging and high-speed motion tracking.',
     deliverables: [
@@ -437,6 +461,8 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     year: '2026',
     videoUrl: '/reels/advocate.leela_srinivas/advocate.leela_srinivas_2026-01-21_14-13-22_3814844111292151959_72156082142.mp4',
     posterUrl: '/reels/thumbnails/advocate.leela_srinivas_2026-01-21_14-13-22_3814844111292151959_72156082142.jpg',
+    instagram: '@advocate.leela_srinivas',
+    instagramUrl: 'https://www.instagram.com/advocate.leela_srinivas/',
     headline: 'Authoritative Personal Brand Storytelling',
     story: 'Classic portrait cinematography and authoritative legal storytelling emphasizing institutional trust, human advocacy, and courtroom integrity.',
     deliverables: [

@@ -376,16 +376,17 @@ export const BrandShootsCore3D: React.FC = () => {
     window.addEventListener('touchmove', onTouchMove, { passive: true });
 
     // ========================================================================
-    // 6. GSAP SCROLLTRIGGER TIMELINE (Clean Sequential Progression)
+    // 6. GSAP SCROLLTRIGGER TIMELINE (Fast, Responsive 3-Reel Climax)
     // ========================================================================
     const ctx = gsap.context(() => {
+      const isMobileScreen = window.innerWidth < 768;
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
-          end: '+=450%',
+          end: isMobileScreen ? '+=180%' : '+=220%',
           pin: pinContainerRef.current,
-          scrub: 1.0,
+          scrub: 0.9,
           anticipatePin: 1,
           invalidateOnRefresh: true,
           onUpdate: (self) => {
@@ -404,7 +405,7 @@ export const BrandShootsCore3D: React.FC = () => {
         scrollState,
         {
           entranceZ: 0,
-          duration: 0.5,
+          duration: 0.35,
           ease: 'power2.out',
         },
         0
@@ -413,34 +414,34 @@ export const BrandShootsCore3D: React.FC = () => {
       // Intro hint fades away
       tl.to(
         introHintRef.current,
-        { autoAlpha: 0, duration: 0.15, ease: 'power2.in' },
-        0.04
+        { autoAlpha: 0, duration: 0.12, ease: 'power2.in' },
+        0.03
       );
 
-      // Logo fades out gracefully so it NEVER collides with cards during Chapters 1, 2, 3
+      // Logo fades out gracefully so it NEVER collides with cards during chapters
       tl.to(
         logoWrapperRef.current,
         {
           autoAlpha: 0,
           y: -40,
           scale: 0.92,
-          duration: 0.22,
+          duration: 0.18,
           ease: 'power2.in',
         },
-        0.08
+        0.06
       );
 
       tl.to(
         logoAuraRef.current,
         {
           autoAlpha: 0,
-          duration: 0.2,
+          duration: 0.16,
         },
-        0.08
+        0.06
       );
 
       // ----------------------------------------------------------------------
-      // CHAPTER 01 (0.25 -> 1.15): WE CREATE STORIES. WE MAKE THEM MOVE.
+      // CHAPTER 01 (0.20 -> 0.95): WE CREATE STORIES. WE MAKE THEM MOVE.
       // ----------------------------------------------------------------------
       tl.to(
         scrollState,
@@ -448,7 +449,7 @@ export const BrandShootsCore3D: React.FC = () => {
           cardProgress: 1.0,
           cameraZ: baseCameraZ - 0.15,
           cameraX: 0.08,
-          duration: 1.0,
+          duration: 0.75,
           ease: 'none',
         },
         0.2
@@ -457,79 +458,51 @@ export const BrandShootsCore3D: React.FC = () => {
       tl.fromTo(
         chapter1Ref.current,
         { autoAlpha: 0, y: 25 },
-        { autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out' },
-        0.25
+        { autoAlpha: 1, y: 0, duration: 0.25, ease: 'power2.out' },
+        0.22
       );
 
-      // Exit Chapter 1 (completely faded out before Chapter 2 enters)
+      // Exit Chapter 1
       tl.to(
         chapter1Ref.current,
-        { autoAlpha: 0, y: -20, duration: 0.2, ease: 'power2.in' },
+        { autoAlpha: 0, y: -20, duration: 0.18, ease: 'power2.in' },
+        0.82
+      );
+
+      // ----------------------------------------------------------------------
+      // CHAPTER 02 (0.95 -> 1.70): FROM FIRST FRAME TO FINAL CUT.
+      // Scrolls 3rd reel right into center focus!
+      // ----------------------------------------------------------------------
+      tl.to(
+        scrollState,
+        {
+          cardProgress: 2.0,
+          cameraZ: baseCameraZ - 0.1,
+          cameraX: -0.08,
+          duration: 0.75,
+          ease: 'none',
+        },
         0.95
       );
 
-      // ----------------------------------------------------------------------
-      // CHAPTER 02 (1.25 -> 2.15): FROM FIRST FRAME TO FINAL CUT.
-      // ----------------------------------------------------------------------
-      tl.to(
-        scrollState,
-        {
-          cardProgress: 2.8,
-          cameraZ: baseCameraZ - 0.1,
-          cameraX: -0.1,
-          duration: 1.0,
-          ease: 'none',
-        },
-        1.2
-      );
-
       tl.fromTo(
         chapter2Ref.current,
         { autoAlpha: 0, y: 25 },
-        { autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out' },
-        1.25
+        { autoAlpha: 1, y: 0, duration: 0.25, ease: 'power2.out' },
+        1.0
       );
 
-      // Exit Chapter 2 (completely faded out before Chapter 3 enters)
+      // Exit Chapter 2
       tl.to(
         chapter2Ref.current,
-        { autoAlpha: 0, y: -20, duration: 0.2, ease: 'power2.in' },
-        1.95
+        { autoAlpha: 0, y: -20, duration: 0.18, ease: 'power2.in' },
+        1.55
       );
 
       // ----------------------------------------------------------------------
-      // CHAPTER 03 (2.25 -> 3.15): DIFFERENT BRANDS. ONE CREATIVE VISION.
+      // CLIMAX: RIGHT AFTER 3 REELS SCROLLED (1.70 -> 2.50)
+      // Cards part symmetrically to wings & BRANDSHOOTS logo anthem emerges
       // ----------------------------------------------------------------------
-      tl.to(
-        scrollState,
-        {
-          cardProgress: 4.5,
-          cameraZ: baseCameraZ - 0.15,
-          cameraX: 0.08,
-          duration: 1.0,
-          ease: 'none',
-        },
-        2.2
-      );
-
-      tl.fromTo(
-        chapter3Ref.current,
-        { autoAlpha: 0, y: 25 },
-        { autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out' },
-        2.25
-      );
-
-      // Exit Chapter 3 (completely faded out before Chapter 4 enters)
-      tl.to(
-        chapter3Ref.current,
-        { autoAlpha: 0, y: -20, duration: 0.2, ease: 'power2.in' },
-        2.95
-      );
-
-      // ----------------------------------------------------------------------
-      // CHAPTER 04 CLIMAX (3.25 -> 4.00): WINGS FORMATION & LOGO ANTHEM
-      // ----------------------------------------------------------------------
-      // Cards part symmetrically to the far left and right wings, opening a wide center stage
       tl.to(
         scrollState,
         {
@@ -537,10 +510,10 @@ export const BrandShootsCore3D: React.FC = () => {
           cameraZ: baseCameraZ + (isMobile ? 0.35 : 0.6),
           cameraX: 0,
           cameraY: 0.2,
-          duration: 0.75,
+          duration: 0.65,
           ease: 'power2.inOut',
         },
-        3.25
+        1.7
       );
 
       // BrandShoots Official Logo returns to center dominance with radiant aura
@@ -550,31 +523,31 @@ export const BrandShootsCore3D: React.FC = () => {
           autoAlpha: 1,
           y: isMobile ? -85 : -110,
           scale: 1.0,
-          duration: 0.45,
+          duration: 0.4,
           ease: 'power2.out',
         },
-        3.3
+        1.75
       );
 
       tl.to(
         logoAuraRef.current,
         {
           autoAlpha: 0.95,
-          duration: 0.45,
+          duration: 0.4,
           ease: 'power2.out',
         },
-        3.3
+        1.75
       );
 
       tl.fromTo(
         chapter4Ref.current,
         { autoAlpha: 0, y: 25 },
-        { autoAlpha: 1, y: 0, duration: 0.45, ease: 'power2.out' },
-        3.35
+        { autoAlpha: 1, y: 0, duration: 0.4, ease: 'power2.out' },
+        1.8
       );
 
       // Final gentle hold leading smoothly to Leadership section
-      tl.to({}, { duration: 0.3 }, 3.9);
+      tl.to({}, { duration: 0.25 }, 2.3);
     }, sectionRef);
 
     // ========================================================================

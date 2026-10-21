@@ -1,6 +1,7 @@
 import React from 'react';
-import { Eye, Heart } from 'lucide-react';
+import { Eye, Heart, Instagram } from 'lucide-react';
 import { useCMSContent } from '../../lib/cms/useCMSContent';
+import { getProjectSocialLink } from '../../data/clientSocialData';
 
 interface ClientLogoItem {
   name: string;
@@ -53,6 +54,7 @@ export const PortfolioClienteleSection: React.FC = () => {
   const renderClientCard = (client: ClientLogoItem, key: string) => {
     const hasViews = Boolean(client.views && client.views.trim());
     const hasLikes = Boolean(client.likes && client.likes.trim());
+    const socialLink = getProjectSocialLink({ name: client.name });
 
     return (
       <div
@@ -82,33 +84,44 @@ export const PortfolioClienteleSection: React.FC = () => {
           />
         </div>
 
-        {/* Client Brand Title & Subtle Stats */}
+        {/* Client Brand Title & Subtle Stats / Instagram */}
         <div className="flex flex-col items-center text-center w-full mt-2 sm:mt-2.5 px-1">
           <span className="font-sans text-xs sm:text-[13px] font-bold uppercase tracking-[0.14em] text-white/90 group-hover/card:text-[#008CFF] transition-colors text-center truncate max-w-full">
             {client.name}
           </span>
-          {(hasViews || hasLikes) && (
-            <div className="flex items-center justify-center gap-1.5 mt-1">
-              {hasViews && (
-                <span
-                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-[9.5px] font-mono text-white/75 group-hover/card:border-[#008CFF]/40 transition-colors shadow-sm"
-                  title={`${client.views} Views`}
-                >
-                  <Eye className="w-2.5 h-2.5 text-[#008CFF] shrink-0" />
-                  <span className="leading-none">{client.views}</span>
-                </span>
-              )}
-              {hasLikes && (
-                <span
-                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-[9.5px] font-mono text-white/75 group-hover/card:border-rose-500/40 transition-colors shadow-sm"
-                  title={`${client.likes} Likes`}
-                >
-                  <Heart className="w-2.5 h-2.5 text-rose-400 fill-rose-400/30 shrink-0" />
-                  <span className="leading-none">{client.likes}</span>
-                </span>
-              )}
-            </div>
-          )}
+          <div className="flex items-center justify-center gap-1.5 mt-1 flex-wrap">
+            {hasViews && (
+              <span
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-[9.5px] font-mono text-white/75 group-hover/card:border-[#008CFF]/40 transition-colors shadow-sm"
+                title={`${client.views} Views`}
+              >
+                <Eye className="w-2.5 h-2.5 text-[#008CFF] shrink-0" />
+                <span className="leading-none">{client.views}</span>
+              </span>
+            )}
+            {socialLink && (
+              <a
+                href={socialLink.instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/[0.06] hover:bg-white/[0.14] border border-white/10 hover:border-[#008CFF]/50 text-[9.5px] font-mono text-white/75 hover:text-white transition-all shadow-sm cursor-pointer active:scale-95"
+                title={`Visit ${socialLink.instagram} on Instagram`}
+              >
+                <Instagram className="w-2.5 h-2.5 text-[#008CFF] shrink-0" />
+                <span className="leading-none">{socialLink.instagram}</span>
+              </a>
+            )}
+            {!socialLink && hasLikes && (
+              <span
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-[9.5px] font-mono text-white/75 group-hover/card:border-rose-500/40 transition-colors shadow-sm"
+                title={`${client.likes} Likes`}
+              >
+                <Heart className="w-2.5 h-2.5 text-rose-400 fill-rose-400/30 shrink-0" />
+                <span className="leading-none">{client.likes}</span>
+              </span>
+            )}
+          </div>
         </div>
       </div>
     );

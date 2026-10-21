@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { X, Play, Pause, Volume2, VolumeX, ArrowUpRight, Instagram } from 'lucide-react';
 import { ClientProject, ProjectReelItem } from '../../data/clientsData';
+import { getProjectSocialLink } from '../../data/clientSocialData';
 
 interface ProjectDetailModalProps {
   isOpen: boolean;
@@ -122,6 +123,7 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
 
   const currentReel = clientReels[activeReelIndex] || clientReels[0];
   const hasMultipleReels = clientReels.length > 1;
+  const socialLink = getProjectSocialLink(project);
 
   const togglePlay = () => {
     if (!videoRef.current) return;
@@ -188,9 +190,24 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
           
           {/* MOBILE ONLY: Client Title Above Reel */}
           <div className="w-full lg:hidden text-left mb-2">
-            <h2 className="text-2xl font-sans font-black uppercase text-white tracking-tight leading-tight">
-              {project.name}
-            </h2>
+            <div className="flex items-start justify-between gap-2">
+              <h2 className="text-2xl font-sans font-black uppercase text-white tracking-tight leading-tight">
+                {project.name}
+              </h2>
+              {socialLink && (
+                <a
+                  href={socialLink.instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Visit ${project.name} on Instagram`}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.08] hover:bg-white/[0.16] border border-white/15 text-white font-mono text-[10px] font-semibold tracking-wider shrink-0 mt-0.5 active:scale-95 transition-all"
+                >
+                  <Instagram className="w-3 h-3 text-[#008CFF]" />
+                  <span>{socialLink.instagram}</span>
+                  <ArrowUpRight className="w-2.5 h-2.5 text-white/60" />
+                </a>
+              )}
+            </div>
             {project.headline && (
               <p className="mt-1 text-xs text-white/70 font-sans font-light leading-relaxed">
                 {project.headline}
@@ -262,11 +279,26 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
           {/* RIGHT COLUMN: CLIENT INFORMATION */}
           <div className="flex-1 flex flex-col justify-center w-full text-left min-w-0">
             
-            {/* DESKTOP ONLY: Client Title & Headline */}
+            {/* DESKTOP ONLY: Client Title, Headline & Instagram Link */}
             <div className="hidden lg:block mb-3.5">
-              <h2 className="text-2xl xl:text-[28px] font-sans font-black uppercase text-white tracking-tight leading-[1.08]">
-                {project.name}
-              </h2>
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-2xl xl:text-[28px] font-sans font-black uppercase text-white tracking-tight leading-[1.08]">
+                  {project.name}
+                </h2>
+                {socialLink && (
+                  <a
+                    href={socialLink.instagramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Visit ${project.name} on Instagram`}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.08] hover:bg-white/[0.15] border border-white/15 hover:border-[#008CFF]/60 text-white font-mono text-[11px] font-semibold tracking-wider transition-all duration-200 group/insta shrink-0 active:scale-95 shadow-[0_2px_10px_rgba(0,0,0,0.5)]"
+                  >
+                    <Instagram className="w-3.5 h-3.5 text-[#008CFF] transition-transform group-hover/insta:scale-110" />
+                    <span className="text-white/90 group-hover/insta:text-white">{socialLink.instagram}</span>
+                    <ArrowUpRight className="w-3 h-3 text-white/50 group-hover/insta:text-white transition-transform group-hover/insta:translate-x-0.5 group-hover/insta:-translate-y-0.5" />
+                  </a>
+                )}
+              </div>
               {project.headline && (
                 <p className="mt-1 text-xs xl:text-sm text-white/65 font-sans font-light leading-relaxed">
                   {project.headline}

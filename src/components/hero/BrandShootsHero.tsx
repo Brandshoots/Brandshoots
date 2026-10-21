@@ -115,11 +115,11 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
   // GSAP Entrance Timeline for the Hero (Synchronized with preloader completion)
   useEffect(() => {
     if (isPreloaderActive) {
-      if (titleBrandRef.current) gsap.set(titleBrandRef.current, { y: 35, opacity: 0, scale: 0.96 });
-      if (titleShootsRef.current) gsap.set(titleShootsRef.current, { y: 35, opacity: 0, scale: 0.96 });
+      if (titleBrandRef.current) gsap.set(titleBrandRef.current, { y: 30, opacity: 0, scale: 0.96 });
+      if (titleShootsRef.current) gsap.set(titleShootsRef.current, { y: 30, opacity: 0, scale: 0.96 });
       if (reelWallContainerRef.current) gsap.set(reelWallContainerRef.current, { opacity: 0, scale: 0.94 });
       if (mobileVideoContainerRef.current) gsap.set(mobileVideoContainerRef.current, { opacity: 0 });
-      if (taglineRef.current) gsap.set(taglineRef.current, { y: 16, opacity: 0 });
+      if (taglineRef.current) gsap.set(taglineRef.current, { y: -16, opacity: 0 });
       if (scrollIndicatorRef.current) gsap.set(scrollIndicatorRef.current, { y: 16, opacity: 0 });
       return;
     }
@@ -138,11 +138,11 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
         { opacity: 0 }
       );
 
-      gsap.set(titleBrandRef.current, { y: 35, scale: 0.96 });
-      gsap.set(titleShootsRef.current, { y: 35, scale: 0.96 });
+      gsap.set(titleBrandRef.current, { y: 30, scale: 0.96 });
+      gsap.set(titleShootsRef.current, { y: 30, scale: 0.96 });
       if (reelWallContainerRef.current) gsap.set(reelWallContainerRef.current, { opacity: 0, scale: 0.94 });
       if (mobileVideoContainerRef.current) gsap.set(mobileVideoContainerRef.current, { opacity: 0 });
-      gsap.set(taglineRef.current, { y: 16 });
+      gsap.set(taglineRef.current, { y: -16 });
       gsap.set(scrollIndicatorRef.current, { y: 16 });
 
       // Sequenced cinematic entrance
@@ -162,12 +162,16 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
       }
 
       tl.to(
-        [titleBrandRef.current, titleShootsRef.current],
-        { opacity: 1, y: 0, scale: 1, duration: 0.75, stagger: 0.1, ease: 'power3.out' },
-        0.25
+        taglineRef.current,
+        { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' },
+        0.15
       )
-        .to(taglineRef.current, { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, 0.55)
-        .to(scrollIndicatorRef.current, { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, 0.75);
+        .to(
+          [titleBrandRef.current, titleShootsRef.current],
+          { opacity: 1, y: 0, scale: 1, duration: 0.75, stagger: 0.08, ease: 'power3.out' },
+          0.3
+        )
+        .to(scrollIndicatorRef.current, { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, 0.6);
 
       // Subtle float animation on scroll indicator
       if (scrollIndicatorRef.current) {
@@ -208,16 +212,16 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
           );
         }
 
+        if (taglineRef.current) {
+          exitTl.to(taglineRef.current, { y: -50, opacity: 0, ease: 'power1.out' }, 0);
+        }
+
         if (titleBrandRef.current && titleShootsRef.current) {
           exitTl.to(
             [titleBrandRef.current, titleShootsRef.current],
-            { y: -90, scale: 0.88, opacity: 0, filter: 'blur(10px)', ease: 'power1.out' },
+            { y: -60, scale: 0.92, opacity: 0, filter: 'blur(8px)', ease: 'power1.out' },
             0
           );
-        }
-
-        if (taglineRef.current) {
-          exitTl.to(taglineRef.current, { y: -50, opacity: 0, ease: 'power1.out' }, 0);
         }
 
         if (scrollIndicatorRef.current) {
@@ -307,12 +311,45 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
       </div>
 
       {/* ========================================================= */}
-      {/* 3. CENTERPIECE: 3D TITLE & CYLINDRICAL REEL INSTALLATION */}
+      {/* 3. HEADER: TAGLINE (CREATE. SHOOT. GROW.) ABOVE 3D CAROUSEL */}
       {/* ========================================================= */}
+      <div
+        ref={taglineRef}
+        className="absolute top-[16.5vh] sm:top-[17.5vh] md:top-[18.5vh] lg:top-[19.5vh] left-0 right-0 z-30 font-mono text-[11px] sm:text-[13px] md:text-[14px] lg:text-[15px] tracking-[0.38em] sm:tracking-[0.48em] uppercase font-bold text-center pointer-events-none px-4"
+      >
+        <span className="text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+          {hero?.taglinePrefix || 'CREATE. '}
+        </span>
+        <span className="text-[#008CFF] drop-shadow-[0_0_14px_rgba(0,140,255,0.85)]">
+          {hero?.taglineAccent || 'SHOOT.'}
+        </span>
+        <span className="text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+          {hero?.taglineSuffix || ' GROW.'}
+        </span>
+      </div>
 
-      {/* Massive Central Title: BRANDSHOOTS with Physical Depth */}
-      <div className="absolute top-[16vh] sm:top-[16vh] md:top-[16vh] lg:top-[17vh] left-0 right-0 z-30 text-center select-none pointer-events-none px-4 sm:px-10">
-        <h1 className="font-display font-black tracking-[-0.038em] uppercase text-[12.5vw] sm:text-[10vw] lg:text-[9.2vw] xl:text-[132px] leading-[0.88] flex items-center justify-center">
+      {/* REAL 3D CYLINDRICAL REEL WALL INSTALLATION (Desktop only) */}
+      <div
+        ref={reelWallContainerRef}
+        className="hidden md:block absolute top-[44%] sm:top-[44.5%] md:top-[45%] lg:top-[45.5%] left-0 right-0 -translate-y-1/2 w-full h-[430px] sm:h-[470px] md:h-[520px] lg:h-[550px] z-10 pointer-events-none overflow-hidden"
+      >
+        {!isMobile && <ReelWall3D isPreloaderActive={isPreloaderActive} />}
+      </div>
+
+      {/* Desktop Atmospheric Horizon Gradient Buffer */}
+      <div
+        className="hidden md:block absolute bottom-0 inset-x-0 h-32 sm:h-40 pointer-events-none z-20"
+        style={{
+          background:
+            'linear-gradient(to top, #04060A 0%, rgba(4,6,10,0.92) 35%, rgba(4,6,10,0.4) 70%, transparent 100%)',
+        }}
+      />
+
+      {/* ========================================================= */}
+      {/* 4. CENTRAL TITLE: BRANDSHOOTS BELOW 3D CAROUSEL           */}
+      {/* ========================================================= */}
+      <div className="absolute bottom-[9vh] sm:bottom-[9.5vh] md:bottom-[10vh] lg:bottom-[10.5vh] left-0 right-0 z-30 text-center select-none pointer-events-none px-4 sm:px-10">
+        <h1 className="font-display font-black tracking-[-0.038em] uppercase text-[12.5vw] sm:text-[10vw] lg:text-[8.8vw] xl:text-[124px] 2xl:text-[132px] leading-[0.88] flex items-center justify-center">
           {/* BRAND — clean flat electric blue with glowing shadow */}
           <span
             ref={titleBrandRef}
@@ -333,47 +370,10 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
         </h1>
       </div>
 
-      {/* REAL 3D CYLINDRICAL REEL WALL INSTALLATION (Desktop only) */}
-      <div
-        ref={reelWallContainerRef}
-        className="hidden md:block absolute top-[51.5%] sm:top-[56%] left-0 right-0 -translate-y-1/2 w-full h-[440px] sm:h-[470px] md:h-[540px] lg:h-[580px] z-10 pointer-events-none overflow-hidden"
-      >
-        {!isMobile && <ReelWall3D isPreloaderActive={isPreloaderActive} />}
-      </div>
-
-      {/* Desktop Atmospheric Horizon Gradient Buffer */}
-      <div
-        className="hidden md:block absolute bottom-0 inset-x-0 h-36 sm:h-48 pointer-events-none z-20"
-        style={{
-          background:
-            'linear-gradient(to top, #04060A 0%, rgba(4,6,10,0.92) 35%, rgba(4,6,10,0.4) 70%, transparent 100%)',
-        }}
-      />
-
-      {/* ========================================================= */}
-      {/* 4. FOOTER: TAGLINE & SCROLL INDICATOR                    */}
-      {/* ========================================================= */}
-
-      {/* Tagline: CREATE. SHOOT. GROW. */}
-      <div
-        ref={taglineRef}
-        className="absolute bottom-[13vh] sm:bottom-[15vh] md:bottom-[17.5vh] left-0 right-0 z-30 font-mono text-[11px] sm:text-[13px] lg:text-[14px] tracking-[0.36em] sm:tracking-[0.48em] uppercase font-bold text-center pointer-events-none px-4"
-      >
-        <span className="text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
-          {hero?.taglinePrefix || 'CREATE. '}
-        </span>
-        <span className="text-[#008CFF] drop-shadow-[0_0_14px_rgba(0,140,255,0.85)]">
-          {hero?.taglineAccent || 'SHOOT.'}
-        </span>
-        <span className="text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
-          {hero?.taglineSuffix || ' GROW.'}
-        </span>
-      </div>
-
       {/* Scroll Down Indicator */}
       <div
         ref={scrollIndicatorRef}
-        className="absolute bottom-[4.5vh] sm:bottom-[5vh] md:bottom-[5.5vh] left-0 right-0 z-30 flex flex-col items-center gap-1 cursor-pointer text-white/60 hover:text-white transition-colors duration-200"
+        className="absolute bottom-[2.2vh] sm:bottom-[2.5vh] md:bottom-[2.8vh] left-0 right-0 z-30 flex flex-col items-center gap-1 cursor-pointer text-white/60 hover:text-white transition-colors duration-200"
         onClick={() => {
           scrollToAbout();
         }}

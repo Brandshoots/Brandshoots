@@ -8,6 +8,7 @@ import { StrokeRevealPreloader } from '../components/about/StrokeRevealPreloader
 import { AboutNavbar } from '../components/about/AboutNavbar';
 import { ManifestoScrollSection } from '../components/about/ManifestoScrollSection';
 import { BrandShootsCore3D } from '../components/about/BrandShootsCore3D';
+import { BrandMetricsSection } from '../components/metrics/BrandMetricsSection';
 import { AboutLeadershipSection } from '../components/about/AboutLeadershipSection';
 import { AboutFooter } from '../components/about/AboutFooter';
 import { BrandShootsFooter } from '../components/footer/BrandShootsFooter';
@@ -93,6 +94,9 @@ export const AboutPage: React.FC = () => {
 
       {/* Rebuilt 100vw × 100vh 3D Chapter: THE BRANDSHOOTS CORE */}
       <BrandShootsCore3D />
+
+      {/* Proven Impact Metrics Section */}
+      <BrandMetricsSection />
 
       {/* Leadership: Durgarao Vallepu */}
       <AboutLeadershipSection />

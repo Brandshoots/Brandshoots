@@ -3,10 +3,11 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { CLIENT_PROJECTS, ClientProject } from '../../data/clientsData';
+import { getProjectSocialLink } from '../../data/clientSocialData';
 import { useCMSContent } from '../../lib/cms/useCMSContent';
 import { ProjectDetailModal } from './ProjectDetailModal';
 import { PortfolioMobileShowcase } from './PortfolioMobileShowcase';
-import { ArrowUpRight, X, ChevronRight, Volume2, Volume1, VolumeX, Play, Pause } from 'lucide-react';
+import { ArrowUpRight, X, ChevronRight, Volume2, Volume1, VolumeX, Play, Pause, Instagram } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -1441,20 +1442,6 @@ export const PortfolioWormhole3D: React.FC = () => {
   const editorialDriftY = isMobile ? 0 : scrollDelta * -20;
   const editorialOpacity = Math.max(0.15, 1 - Math.abs(scrollDelta) * 1.6);
 
-  // Center Client Logo Reveal: continuous 3D depth and rotational transition synced with scroll
-  const centerLogoProjectIndex = Math.min(
-    totalProjects - 1,
-    Math.max(0, Math.round(scrollUnit))
-  );
-  const centerLogoProject = activeProjects[centerLogoProjectIndex] || currentProject;
-  const logoDelta = scrollUnit - centerLogoProjectIndex; // -0.5 to +0.5
-  const logoAbsDelta = Math.abs(logoDelta);
-  const logoOpacity = Math.max(0, (1 - logoAbsDelta * 2.0) * 0.95);
-  const logoScale = Math.max(0.75, 1 - logoAbsDelta * 0.16);
-  const logoRotateY = logoDelta * 24; // subtle 3D rotational tilt
-  const logoTranslateZ = -logoAbsDelta * 50; // 3D depth retreat away from camera
-  const logoTranslateY = logoDelta * -20; // organic parallax float
-
   // Dedicated Mobile Responsive Portfolio Showcase (Native vertical scroll, dominant 9:16 reel)
   if (isMobile) {
     return (
@@ -1536,36 +1523,6 @@ export const PortfolioWormhole3D: React.FC = () => {
             aria-hidden="true"
             style={{ zIndex: -1, visibility: 'hidden' }}
           />
-
-          {/* ========================================================= */}
-          {/* 2.5 CENTER CLIENT LOGO REVEAL (SUBTLE 3D DEPTH/ROTATION) */}
-          {/* ========================================================= */}
-          {centerLogoProject.logoUrl && (
-            <div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none hidden md:flex items-center justify-center"
-              style={{
-                zIndex: 11,
-                perspective: '800px',
-              }}
-            >
-              <div
-                style={{
-                  opacity: logoOpacity,
-                  transform: `translate3d(0, ${logoTranslateY}px, ${logoTranslateZ}px) rotateY(${logoRotateY}deg) scale(${logoScale})`,
-                  transformStyle: 'preserve-3d',
-                  transition: 'opacity 0.08s ease-out, transform 0.08s ease-out',
-                }}
-                className="flex items-center justify-center p-2"
-              >
-                <img
-                  src={centerLogoProject.logoUrl}
-                  alt={`${centerLogoProject.name} logo`}
-                  className="max-w-[150px] sm:max-w-[175px] md:max-w-[195px] lg:max-w-[215px] xl:max-w-[235px] max-h-[56px] sm:max-h-[64px] md:max-h-[72px] lg:max-h-[78px] xl:max-h-[84px] w-auto h-auto object-contain filter drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]"
-                  loading="eager"
-                />
-              </div>
-            </div>
-          )}
 
           {/* ========================================================= */}
           {/* 3. INTEGRATED EDITORIAL LAYOUT (OPPOSITE OF ACTIVE REEL)  */}
@@ -1671,27 +1628,48 @@ export const PortfolioWormhole3D: React.FC = () => {
                     );
                   })()}
 
-                  {/* Single Clean Action Button: MORE INFO */}
-                  <div className={`mt-2 sm:mt-3 md:mt-6 flex items-center ${isMobile ? 'justify-center' : 'justify-start'} pointer-events-auto relative z-30`}>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        isDetailModalOpenRef.current = true;
-                        panelsRef.current.forEach((p) => {
-                          p.isPlaying = false;
-                          p.targetVolume = 0;
-                          p.video.pause();
-                          p.video.muted = true;
-                        });
-                        setIsDetailModalOpen(true);
-                      }}
-                      className="pointer-events-auto relative z-30 group inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 md:px-7 py-1.5 sm:py-2.5 md:py-3 rounded-full bg-[#008CFF] hover:bg-[#1a97ff] text-white font-mono text-[9px] sm:text-xs font-bold tracking-[0.18em] uppercase transition-all duration-300 shadow-[0_0_20px_rgba(0,140,255,0.4)] hover:shadow-[0_0_35px_rgba(0,140,255,0.65)] active:scale-95 cursor-pointer"
-                    >
-                      <span>MORE INFO</span>
-                      <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                    </button>
-                  </div>
+                  {/* Action Buttons: MORE INFO + INSTAGRAM */}
+                  {(() => {
+                    const socialLink = getProjectSocialLink(currentProject);
+                    return (
+                      <div className={`mt-2 sm:mt-3 md:mt-6 flex flex-wrap items-center gap-2.5 sm:gap-3 ${isMobile ? 'justify-center' : 'justify-start'} pointer-events-auto relative z-30`}>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            isDetailModalOpenRef.current = true;
+                            panelsRef.current.forEach((p) => {
+                              p.isPlaying = false;
+                              p.targetVolume = 0;
+                              p.video.pause();
+                              p.video.muted = true;
+                            });
+                            setIsDetailModalOpen(true);
+                          }}
+                          className="pointer-events-auto relative z-30 group inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 md:px-7 py-1.5 sm:py-2.5 md:py-3 rounded-full bg-[#008CFF] hover:bg-[#1a97ff] text-white font-mono text-[9px] sm:text-xs font-bold tracking-[0.18em] uppercase transition-all duration-300 shadow-[0_0_20px_rgba(0,140,255,0.4)] hover:shadow-[0_0_35px_rgba(0,140,255,0.65)] active:scale-95 cursor-pointer"
+                        >
+                          <span>MORE INFO</span>
+                          <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                        </button>
+
+                        {socialLink && (
+                          <a
+                            href={socialLink.instagramUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            aria-label={`Visit ${currentProject.name} on Instagram (${socialLink.instagram})`}
+                            title={`Instagram: ${socialLink.instagram}`}
+                            className="pointer-events-auto relative z-30 group inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 md:px-6 py-1.5 sm:py-2.5 md:py-3 rounded-full bg-white/[0.08] hover:bg-white/[0.16] border border-white/20 hover:border-[#008CFF]/60 text-white font-mono text-[9px] sm:text-xs font-bold tracking-[0.12em] uppercase transition-all duration-300 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.5)] hover:shadow-[0_0_20px_rgba(0,140,255,0.35)] active:scale-95 cursor-pointer"
+                          >
+                            <Instagram className="w-3.5 h-3.5 text-[#008CFF] transition-transform group-hover:scale-110" />
+                            <span className="text-white/90 group-hover:text-white transition-colors">{socialLink.instagram}</span>
+                            <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white/50 group-hover:text-white transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                          </a>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

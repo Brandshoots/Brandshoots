@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { ArrowUpRight, Instagram } from 'lucide-react';
 import gsap from 'gsap';
 import { CLIENT_PROJECTS, ClientProject } from '../../data/clientsData';
+import { getProjectSocialLink } from '../../data/clientSocialData';
 import { useCMSContent } from '../../lib/cms/useCMSContent';
 
 export const ClientProjectView: React.FC = () => {
@@ -18,6 +20,7 @@ export const ClientProjectView: React.FC = () => {
   // Find project by slug
   const projectIndex = allProjects.findIndex((p) => p.slug === clientSlug);
   const project = projectIndex !== -1 ? allProjects[projectIndex] : allProjects[0];
+  const socialLink = getProjectSocialLink(project);
 
   const prevProject = allProjects[(projectIndex - 1 + allProjects.length) % allProjects.length];
   const nextProject = allProjects[(projectIndex + 1) % allProjects.length];
@@ -276,6 +279,18 @@ export const ClientProjectView: React.FC = () => {
               >
                 Browse All Clients
               </button>
+              {socialLink && (
+                <a
+                  href={socialLink.instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-6 py-3.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 hover:border-[#008CFF]/50 text-white font-mono text-xs tracking-[0.15em] uppercase font-bold transition-all duration-300 inline-flex items-center gap-2"
+                >
+                  <Instagram className="w-4 h-4 text-[#008CFF]" />
+                  <span>{socialLink.instagram}</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-white/60" />
+                </a>
+              )}
               <a
                 href="#contact"
                 onClick={() => {

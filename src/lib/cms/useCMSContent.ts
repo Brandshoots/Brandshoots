@@ -118,7 +118,7 @@ export function useCMSContent() {
       const cached = localStorage.getItem('brandshoots_services');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length === 3 && parsed[0]?.id === 'creative-content') return parsed;
       }
     } catch {}
     return fallbackServices;

@@ -7,13 +7,16 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { BrandShootsPreloader } from './components/preloader/BrandShootsPreloader';
 import { MainNavbar } from './components/navbar/MainNavbar';
 import { BrandShootsHero } from './components/hero/BrandShootsHero';
+import { BrandStatementSection } from './components/statement/BrandStatementSection';
+import { AnnouncementsSection } from './components/announcements/AnnouncementsSection';
+import { BrandMetricsSection } from './components/metrics/BrandMetricsSection';
 import { WhatWeDoSection } from './components/what-we-do/WhatWeDoSection';
 import { OurClientsSection } from './components/clients/OurClientsSection';
-import { AnnouncementsSection } from './components/announcements/AnnouncementsSection';
 import { TheLeadershipSection } from './components/leadership/TheLeadershipSection';
 import { TestimonialsSection3D } from './components/testimonials/TestimonialsSection3D';
 import { FinalCtaSection } from './components/cta/FinalCtaSection';
 import { BrandShootsFooter } from './components/footer/BrandShootsFooter';
+import { UniversalFloatingActions } from './components/floating/UniversalFloatingActions';
 
 // Code-split route-level dynamic imports to keep homepage initial bundle ultra-lean
 const PortfolioPage = lazy(() => import('./pages/PortfolioPage').then(m => ({ default: m.PortfolioPage })));
@@ -123,10 +126,12 @@ export function App() {
               >
                 <MainNavbar />
                 <BrandShootsHero isPreloaderActive={preloaderActive} />
-                <WhatWeDoSection />
+                <BrandStatementSection />
                 <AnnouncementsSection />
-                <OurClientsSection />
+                <BrandMetricsSection />
+                <WhatWeDoSection />
                 <TheLeadershipSection />
+                <OurClientsSection />
                 <TestimonialsSection3D />
                 <FinalCtaSection />
                 <BrandShootsFooter />
@@ -185,6 +190,9 @@ export function App() {
           }
         />
       </Routes>
+
+      {/* Universal Floating Quick Actions (Book, WhatsApp, Instagram, Back to Top) */}
+      <UniversalFloatingActions />
     </main>
   );
 }

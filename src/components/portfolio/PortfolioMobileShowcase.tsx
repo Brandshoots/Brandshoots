@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { ArrowUpRight, Play, Volume2, VolumeX } from 'lucide-react';
+import { ArrowUpRight, Play, Volume2, VolumeX, Instagram } from 'lucide-react';
 import { ClientProject } from '../../data/clientsData';
+import { getProjectSocialLink } from '../../data/clientSocialData';
 
 interface PortfolioMobileShowcaseProps {
   activeProjects: ClientProject[];
@@ -90,6 +91,7 @@ const MobileReelCard: React.FC<MobileReelCardProps> = ({
   ];
   const stats =
     project.metrics && project.metrics.length > 0 ? project.metrics : fallbackMetrics;
+  const socialLink = getProjectSocialLink(project);
 
   return (
     <article
@@ -197,16 +199,30 @@ const MobileReelCard: React.FC<MobileReelCardProps> = ({
           ))}
         </div>
 
-        {/* 2.5 More Info Action Button */}
-        <div className="mt-3.5 flex justify-center">
+        {/* 2.5 Action Buttons: MORE INFO + INSTAGRAM */}
+        <div className="mt-3.5 flex flex-wrap items-center justify-center gap-2">
           <button
             type="button"
             onClick={() => onSelectProject(project)}
-            className="group inline-flex items-center gap-1.5 px-6 py-2.5 rounded-full bg-[#008CFF] hover:bg-[#1a97ff] active:scale-95 text-white font-mono text-[10px] sm:text-xs font-bold tracking-[0.18em] uppercase transition-all duration-300 shadow-[0_0_20px_rgba(0,140,255,0.4)] hover:shadow-[0_0_35px_rgba(0,140,255,0.65)] cursor-pointer"
+            className="group inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#008CFF] hover:bg-[#1a97ff] active:scale-95 text-white font-mono text-[10px] sm:text-xs font-bold tracking-[0.16em] uppercase transition-all duration-300 shadow-[0_0_20px_rgba(0,140,255,0.4)] hover:shadow-[0_0_35px_rgba(0,140,255,0.65)] cursor-pointer"
           >
             <span>MORE INFO</span>
             <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </button>
+
+          {socialLink && (
+            <a
+              href={socialLink.instagramUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Visit ${project.name} on Instagram`}
+              className="group inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.16] border border-white/15 hover:border-[#008CFF]/60 text-white font-mono text-[10px] sm:text-xs font-bold tracking-[0.12em] uppercase transition-all duration-300 shadow-[0_4px_16px_rgba(0,0,0,0.6)] active:scale-95 cursor-pointer"
+            >
+              <Instagram className="w-3.5 h-3.5 text-[#008CFF]" />
+              <span>{socialLink.instagram}</span>
+              <ArrowUpRight className="w-3 h-3 text-white/60 group-hover:text-white" />
+            </a>
+          )}
         </div>
       </div>
 

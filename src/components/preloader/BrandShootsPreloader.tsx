@@ -1,98 +1,185 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
+import gsap from 'gsap';
+import { Multigrade3DTiles, Multigrade3DTilesHandle } from './Multigrade3DTiles';
+import { BrandLogoOverlay, BrandLogoOverlayHandle } from './BrandLogoOverlay';
+import { CameraFlash } from './CameraFlash';
+import { PRELOADER_CONFIG } from '../../config/preloaderConfig';
+import { createPreloaderTimeline } from '../../animations/preloaderTimeline';
+import { preloadAllHeroReels } from '../../config/heroReels';
 
 interface BrandShootsPreloaderProps {
   onComplete?: () => void;
+  forceReducedMotion?: boolean;
 }
 
 /**
- * BRANDSHOOTS INSTANT STATIC PRELOADER (NUCLEAR ARCHITECTURE)
- *
- * Rules:
- * - Almost ZERO JavaScript work during playback
- * - Shows lightweight static brand asset immediately (0ms paint)
- * - Fallback HTML/CSS brand title ensures NEVER a blank screen
- * - Max visible display: ~850ms
- * - Pure CSS opacity + transform fade-out (300ms)
- * - Completely unmounts from DOM after fade-out
- * - ZERO: video, WebGL, canvas, GSAP, Framer Motion, blur filters, progress bars
+ * BRANDSHOOTS CINEMATIC STARTUP PRELOADER
+ * Flow:
+ * 1. 3D STREAMING REELS (B/W)
+ * 2. MULTIGRADE TILES GATHER & DECELERATE (Collect)
+ * 3. CAMERA AUTOFOCUS
+ * 4. SHUTTER SNAP
+ * 5. HIGH-INTENSITY WHITE XENON FLASH
+ * 6. COLOR REVEAL BLOOM
+ * 7. OFFICIAL BRANDSHOOTS LOGO + "CREATE. SHOOT. GROW."
+ * 8. SMOOTH BUTTER DISSOLVE INTO HOMEPAGE HERO
  */
-export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({ onComplete }) => {
-  const [isFading, setIsFading] = useState(false);
-  const [isRemoved, setIsRemoved] = useState(false);
+export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
+  onComplete,
+  forceReducedMotion = false,
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const tilesContainerRef = useRef<HTMLDivElement>(null);
+  const tilesRef = useRef<Multigrade3DTilesHandle | null>(null);
+  const logoOverlayRef = useRef<BrandLogoOverlayHandle | null>(null);
+  const atmosphereRef = useRef<HTMLDivElement>(null);
+  const flashRef = useRef<HTMLDivElement>(null);
+  const backdropHazeRef = useRef<HTMLDivElement>(null);
+  const timelineRef = useRef<gsap.core.Timeline | null>(null);
 
+  const [isCompleted, setIsCompleted] = useState(false);
+
+  // Warm up hero assets and official logo in memory during preloader
   useEffect(() => {
-    // 1. Hold visible for 850ms (well within the 800-1200ms target)
-    const holdTimer = setTimeout(() => {
-      setIsFading(true);
-    }, 850);
+    preloadAllHeroReels();
+    const logoImg = new Image();
+    logoImg.src = '/Logo-Official-Tight.svg';
+  }, []);
 
-    // 2. Smoothly complete fade out and remove from DOM at 1150ms
-    const exitTimer = setTimeout(() => {
-      setIsRemoved(true);
-      if (onComplete) {
-        onComplete();
-      }
-    }, 1150);
-
-    return () => {
-      clearTimeout(holdTimer);
-      clearTimeout(exitTimer);
-    };
+  const handleSequenceComplete = useCallback(() => {
+    setIsCompleted(true);
+    if (onComplete) {
+      onComplete();
+    }
   }, [onComplete]);
 
-  if (isRemoved) {
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const prefersReduced = mediaQuery.matches || forceReducedMotion;
+
+    if (prefersReduced) {
+      const quickTl = gsap.timeline({ onComplete: handleSequenceComplete });
+      quickTl.to(containerRef.current, { opacity: 1, duration: 0.1 });
+      quickTl.call(() => {
+        if (logoOverlayRef.current) {
+          logoOverlayRef.current.setStage('locked');
+          logoOverlayRef.current.setColorRevealed(true);
+        }
+      });
+      quickTl.to(containerRef.current, { opacity: 0, duration: 0.5, delay: 0.6 });
+      return;
+    }
+
+    const ctx = gsap.context(() => {
+      timelineRef.current = createPreloaderTimeline(
+        {
+          containerRef,
+          tilesContainerRef,
+          tilesRef,
+          logoOverlayRef,
+          atmosphereRef,
+          flashRef,
+          backdropHazeRef,
+        },
+        {
+          onComplete: handleSequenceComplete,
+        }
+      );
+
+      timelineRef.current.play();
+    });
+
+    // Safety timeout failsafe to ensure visitor is never trapped
+    const safetyTimer = setTimeout(() => {
+      if (!isCompleted) {
+        handleSequenceComplete();
+      }
+    }, PRELOADER_CONFIG.safetyTimeoutMs || 5500);
+
+    return () => {
+      clearTimeout(safetyTimer);
+      if (timelineRef.current) {
+        timelineRef.current.kill();
+      }
+      ctx.revert();
+    };
+  }, [forceReducedMotion, handleSequenceComplete, isCompleted]);
+
+  if (isCompleted) {
     return null;
   }
 
   return (
     <div
-      id="brandshoots-instant-preloader"
-      className="fixed inset-0 z-[99999] bg-[#050608] flex items-center justify-center select-none pointer-events-none overflow-hidden"
+      ref={containerRef}
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-[#050608] overflow-hidden select-none will-change-opacity"
       style={{
-        opacity: isFading ? 0 : 1,
-        transition: 'opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-        willChange: 'opacity',
+        perspective: '1300px',
+        WebkitPerspective: '1300px',
       }}
     >
-      {/* Subtle Studio Glow Backdrop — pure CSS radial gradient, no blur filters */}
+      {/* Studio Backdrop Atmosphere (Pure Obsidian & Film Grain) */}
       <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] max-w-[650px] h-[55vh] max-h-[420px] pointer-events-none"
-        style={{
-          background:
-            'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.16) 0%, rgba(3, 8, 20, 0.4) 55%, transparent 75%)',
-        }}
-      />
-
-      {/* Main Composition: Centerpiece Brand Identity */}
-      <div
-        className="relative z-10 flex flex-col items-center justify-center px-6 max-w-full"
-        style={{
-          transform: isFading ? 'scale(1.02)' : 'scale(1)',
-          transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-          willChange: 'transform',
-        }}
+        ref={backdropHazeRef}
+        className="pointer-events-none absolute inset-0 opacity-0 z-10 will-change-opacity"
       >
-        {/* Layer A: High-Priority Lightweight Vector Asset (6.5KB, 0ms decode) */}
-        <img
-          src="/Logo-Official-Tight.svg"
-          alt="BrandShoots"
-          fetchPriority="high"
-          decoding="sync"
-          className="w-[78vw] max-w-[360px] sm:max-w-[460px] md:max-w-[540px] h-auto object-contain block drop-shadow-[0_8px_32px_rgba(0,0,0,0.95)]"
+        <div className="absolute inset-0 bg-[#050608]" />
+        <div className="absolute inset-0 cinema-grain opacity-25" />
+      </div>
+
+      {/* Multidimensional 3D Streaming Tiles */}
+      <div
+        ref={tilesContainerRef}
+        className="absolute inset-0 w-full h-full z-20 will-change-transform will-change-opacity opacity-0"
+      >
+        <Multigrade3DTiles ref={tilesRef} />
+      </div>
+
+      {/* Cinematic Focus Atmosphere with Obsidian Radial Falloff */}
+      <div
+        ref={atmosphereRef}
+        className="pointer-events-none absolute inset-0 z-25 opacity-0 will-change-opacity"
+      >
+        {/* Soft Vignette Mask */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(ellipse 90% 90% at 50% 50%, rgba(5, 6, 8, 0.45) 0%, rgba(5, 6, 8, 0.82) 55%, #050608 100%)',
+          }}
         />
 
-        {/* Layer B: Instant HTML/CSS Brand Typography Fallback (guarantees zero blank screen) */}
-        <div className="sr-only" aria-hidden="true">
-          <span>BRANDSHOOTS — Create. Shoot. Grow.</span>
-        </div>
+        {/* Brand Electric Atmosphere */}
+        <div
+          className="absolute inset-0 opacity-45 mix-blend-screen"
+          style={{
+            background:
+              'radial-gradient(circle at 50% 50%, rgba(20, 151, 245, 0.25) 0%, rgba(7, 11, 51, 0.45) 50%, transparent 80%)',
+          }}
+        />
 
-        {/* Editorial Brand Tagline */}
-        <div className="mt-4 sm:mt-5 flex items-center justify-center">
-          <span className="font-sans text-[11px] sm:text-xs md:text-sm font-semibold tracking-[0.28em] uppercase text-white/80 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-            Create. Shoot. Grow.
-          </span>
-        </div>
+        {/* Subtle Conic Swirl for Cinematic Depth */}
+        <div
+          className="absolute inset-0 opacity-30 mix-blend-screen"
+          style={{
+            background:
+              'conic-gradient(from 135deg at 50% 50%, rgba(20, 151, 245, 0.2) 0deg, transparent 90deg, rgba(20, 151, 245, 0.25) 180deg, transparent 270deg, rgba(20, 151, 245, 0.2) 360deg)',
+          }}
+        />
+
+        {/* Film grain layer over atmospheric swirl */}
+        <div className="absolute inset-0 cinema-grain opacity-20" />
       </div>
+
+      {/* Pure Editorial Official BrandShoots Identity */}
+      <BrandLogoOverlay ref={logoOverlayRef} />
+
+      {/* High-Intensity Xenon Camera Flash */}
+      <CameraFlash ref={flashRef} />
+
+      {/* Cinema Letterbox Framing */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-8 md:h-12 bg-gradient-to-b from-black to-transparent z-40 opacity-75" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 md:h-12 bg-gradient-to-t from-black to-transparent z-40 opacity-75" />
     </div>
   );
 };
