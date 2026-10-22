@@ -373,16 +373,41 @@ export async function resetHeroReelsToDefaults(): Promise<CMSHeroReel[]> {
 }
 
 // ----------------------------------------------------
-// SERVICES CRUD
+// SERVICES CRUD (CMS 1.4 - 3 Core Pillars)
 // ----------------------------------------------------
+export function sanitizeServicesList(list: CMSService[]): CMSService[] {
+  const defaults = Object.values(INITIAL_SERVICES).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  if (!list || !Array.isArray(list) || list.length === 0) return defaults;
+
+  const hasLegacy =
+    list.some((s) => s.id === 'video-production' || s.id === 'brand-creative' || s.id === 'motion-graphics') ||
+    list.length !== 3;
+
+  if (hasLegacy) {
+    return defaults;
+  }
+  return list;
+}
+
 export async function fetchPublishedServices(): Promise<CMSService[]> {
+  const defaults = Object.values(INITIAL_SERVICES).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   try {
     const snapshot = await get(ref(firebaseDb, 'published/services'));
     if (snapshot.exists()) {
       const val = snapshot.val();
       const list: CMSService[] = Array.isArray(val) ? val : Object.values(val);
       if (list.length > 0) {
-        return list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        const sorted = list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        const hasLegacy =
+          sorted.some((s) => s.id === 'video-production' || s.id === 'brand-creative' || s.id === 'motion-graphics') ||
+          sorted.length !== 3;
+
+        if (hasLegacy) {
+          // Auto-migrate database to canonical 3 pillars
+          await saveAllServices(defaults);
+          return defaults;
+        }
+        return sorted;
       }
     }
   } catch (err) {
@@ -393,17 +418,16 @@ export async function fetchPublishedServices(): Promise<CMSService[]> {
     const cached = localStorage.getItem('brandshoots_services');
     if (cached) {
       const parsed = JSON.parse(cached);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed) && parsed.length === 3 && !parsed.some((s) => s.id === 'video-production')) {
         return parsed.sort((a: CMSService, b: CMSService) => (a.order ?? 0) - (b.order ?? 0));
       }
     }
   } catch {}
 
-  const initialList = Object.values(INITIAL_SERVICES).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   try {
-    localStorage.setItem('brandshoots_services', JSON.stringify(initialList));
+    await saveAllServices(defaults);
   } catch {}
-  return initialList;
+  return defaults;
 }
 
 export async function saveAllServices(services: CMSService[]): Promise<void> {
@@ -446,6 +470,14 @@ export async function deleteService(serviceId: string): Promise<void> {
   const current = await fetchPublishedServices();
   const updated = current.filter((s) => s.id !== serviceId);
   await saveAllServices(updated);
+}
+
+export async function resetServicesToDefaults(): Promise<CMSService[]> {
+  const defaults = Object.values(INITIAL_SERVICES).sort(
+    (a, b) => (Number(a.order) || 0) - (Number(b.order) || 0)
+  );
+  await saveAllServices(defaults);
+  return defaults;
 }
 
 // ----------------------------------------------------

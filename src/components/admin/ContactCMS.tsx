@@ -18,6 +18,7 @@ import {
   X,
   Building,
   Compass,
+  ExternalLink,
 } from 'lucide-react';
 import { CMSContactPage, CMSLead } from '../../types/cms';
 import {
@@ -39,6 +40,7 @@ export const ContactCMS: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
+  const [saveToast, setSaveToast] = useState<string | null>(null);
 
   // New project type input state
   const [newProjectType, setNewProjectType] = useState<string>('');
@@ -101,15 +103,22 @@ export const ContactCMS: React.FC = () => {
       pushContactUndoAction(desc, originalData);
     }
 
-    await saveContactPage(contactData);
-    setOriginalData(JSON.parse(JSON.stringify(contactData)));
-    setIsSaving(false);
-    setSaveSuccess(true);
-    triggerNavFlash('Contact settings saved & published to live site', 'action');
-
-    setTimeout(() => {
-      setSaveSuccess(false);
-    }, 3000);
+    try {
+      await saveContactPage(contactData);
+      setOriginalData(JSON.parse(JSON.stringify(contactData)));
+      setSaveSuccess(true);
+      setSaveToast('Contact page settings saved & published live to the website!');
+      triggerNavFlash('Contact settings saved & published to live site', 'action');
+    } catch (err: any) {
+      console.error('Failed to save contact settings:', err);
+      setSaveToast('Error saving contact settings. Please check network connection.');
+    } finally {
+      setIsSaving(false);
+      setTimeout(() => {
+        setSaveSuccess(false);
+        setSaveToast(null);
+      }, 4000);
+    }
   };
 
   // Reset to defaults
@@ -125,7 +134,9 @@ export const ContactCMS: React.FC = () => {
     setContactData(JSON.parse(JSON.stringify(defaults)));
     setOriginalData(JSON.parse(JSON.stringify(defaults)));
     setLoading(false);
+    setSaveToast('Contact page reset to factory defaults & synced to live website.');
     triggerNavFlash('Contact page reset to factory defaults', 'undo');
+    setTimeout(() => setSaveToast(null), 4000);
   };
 
   // Add project type chip
@@ -220,6 +231,24 @@ export const ContactCMS: React.FC = () => {
 
         {/* Action Controls & Tabs */}
         <div className="flex flex-wrap items-center gap-3">
+          {/* Live Synced Indicator */}
+          <div className="px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-mono text-white/70 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Live Synced</span>
+          </div>
+
+          {/* View Live Contact Page Link */}
+          <a
+            href="/contact"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-white font-mono text-xs font-semibold transition-all shadow-sm active:scale-95"
+            title="Preview Live Contact Page"
+          >
+            <span>View Live Page</span>
+            <ExternalLink className="w-3.5 h-3.5 text-[#008CFF]" />
+          </a>
+
           {/* Tab Switcher */}
           <div className="flex items-center bg-[#070B14] border border-white/12 rounded-xl p-1 shadow-inner">
             <button
@@ -278,6 +307,25 @@ export const ContactCMS: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Save Notification Toast Banner */}
+      {saveToast && (
+        <div className="p-4 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-200 text-sm font-mono flex items-center justify-between gap-3 animate-fadeIn shadow-lg">
+          <div className="flex items-center gap-2.5">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            <span className="font-semibold">{saveToast}</span>
+          </div>
+          <a
+            href="/contact"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3.5 py-1.5 rounded-lg bg-emerald-500/25 hover:bg-emerald-500/40 border border-emerald-400/40 text-emerald-100 text-xs font-mono font-bold flex items-center gap-1.5 transition-all"
+          >
+            <span>View Live Page</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
+      )}
 
       {/* =================================================================== */}
       {/* 2. TAB 1: CHANNELS & CONTENT EDITOR                                */}
@@ -808,8 +856,17 @@ export const ContactCMS: React.FC = () => {
             </div>
           </div>
 
-          {/* Bottom Save Button */}
-          <div className="flex items-center justify-end gap-3 pt-4">
+          {/* Bottom Save Button & Live View */}
+          <div className="flex flex-wrap items-center justify-end gap-3 pt-4">
+            <a
+              href="/contact"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-white font-sans text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 cursor-pointer"
+            >
+              <span>View Live Contact Page</span>
+              <ExternalLink className="w-4 h-4 text-[#008CFF]" />
+            </a>
             <button
               type="submit"
               disabled={isSaving}

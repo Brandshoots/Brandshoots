@@ -78,7 +78,19 @@ export function sanitizeClientList(list: CMSClientLogo[]): CMSClientLogo[] {
   });
 }
 
-const fallbackServices: CMSService[] = Object.values(INITIAL_SERVICES);
+const fallbackServices: CMSService[] = Object.values(INITIAL_SERVICES).sort(
+  (a, b) => (Number(a.order) || 0) - (Number(b.order) || 0)
+);
+
+export function sanitizeServicesList(list: CMSService[]): CMSService[] {
+  if (!list || !Array.isArray(list) || list.length !== 3) return fallbackServices;
+  const hasLegacy = list.some(
+    (s) => s.id === 'video-production' || s.id === 'brand-creative' || s.id === 'motion-graphics'
+  );
+  if (hasLegacy) return fallbackServices;
+  return list;
+}
+
 const fallbackTestimonials: CMSTestimonial[] = Object.values(INITIAL_TESTIMONIALS);
 const fallbackAnnouncements: CMSAnnouncement[] = Object.values(INITIAL_ANNOUNCEMENTS);
 
@@ -118,7 +130,7 @@ export function useCMSContent() {
       const cached = localStorage.getItem('brandshoots_services');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length === 3 && parsed[0]?.id === 'creative-content') return parsed;
+        if (Array.isArray(parsed)) return sanitizeServicesList(parsed);
       }
     } catch {}
     return fallbackServices;
@@ -244,14 +256,14 @@ export function useCMSContent() {
               }
             }
 
-            // Services
+            // Services (3 Core Pillars)
             if (data.services) {
               const sList: CMSService[] = Object.values(data.services);
               const visibleSorted = sList
                 .filter((s) => s.visible !== false)
                 .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
               if (visibleSorted.length > 0) {
-                setServices(visibleSorted);
+                setServices(sanitizeServicesList(visibleSorted));
               }
             }
 
@@ -303,7 +315,11 @@ export function useCMSContent() {
 
             // Contact Page (CMS 1.8)
             if (data.contact) {
-              setContact((prev) => ({ ...prev, ...data.contact }));
+              const mergedContact = { ...INITIAL_CONTACT_PAGE, ...data.contact };
+              setContact(mergedContact);
+              try {
+                localStorage.setItem('brandshoots_contact', JSON.stringify(mergedContact));
+              } catch {}
             }
 
             setIsLive(true);

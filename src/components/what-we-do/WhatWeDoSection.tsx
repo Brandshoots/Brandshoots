@@ -110,7 +110,7 @@ ReelPlayer.displayName = 'ReelPlayer';
 export const WhatWeDoSection: React.FC = () => {
   const { services } = useCMSContent();
   const activeMissions: MissionData[] =
-    services && services.length === 3 && services[0]?.id === 'creative-content'
+    services && services.length === 3
       ? services.map((s, idx) => ({
           id: s.id,
           number: s.number || `0${idx + 1}`,
@@ -118,7 +118,7 @@ export const WhatWeDoSection: React.FC = () => {
           category: s.category,
           description: s.description,
           imageUrl: s.imageUrl || MISSIONS[idx]?.imageUrl,
-          videoUrl: s.videoUrl || MISSIONS[idx]?.videoUrl || s.imageUrl.replace(/\.(jpg|png|jpeg)$/i, '.mp4'),
+          videoUrl: s.videoUrl || MISSIONS[idx]?.videoUrl || s.imageUrl?.replace(/\.(jpg|png|jpeg)$/i, '.mp4'),
           aspectRatio: 'portrait' as const,
           tag: s.tag,
         }))

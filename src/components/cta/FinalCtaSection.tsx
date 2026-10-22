@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowUpRight, MessageCircle, Phone, MapPin } from 'lucide-react';
+import { useCMSContent } from '../../lib/cms/useCMSContent';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -11,6 +12,11 @@ interface FinalCtaSectionProps {
 }
 
 export const FinalCtaSection: React.FC<FinalCtaSectionProps> = () => {
+  const { contact } = useCMSContent();
+  const whatsappPhone = contact?.whatsappPhone || '917075960672';
+  const displayPhone = contact?.displayPhone || '+91 70759 60672';
+  const cityState = contact?.cityState || 'Rajamahendravaram, AP';
+
   const sectionRef = useRef<HTMLElement>(null);
   const backdropAuraRef = useRef<HTMLDivElement>(null);
   const headlineWrapperRef = useRef<HTMLDivElement>(null);
@@ -201,7 +207,7 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = () => {
           {/* Quick Communication Channels */}
           <div className="mt-8 sm:mt-10 grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4 w-full">
             <a
-              href="https://wa.me/917075960672"
+              href={`https://wa.me/${whatsappPhone}`}
               target="_blank"
               rel="noopener noreferrer"
               className="px-5 py-3.5 rounded-2xl bg-[#070B13]/80 backdrop-blur-xl border border-white/12 hover:border-[#008CFF]/60 flex items-center justify-center gap-3 transition-all duration-200 group shadow-sm active:scale-95"
@@ -214,21 +220,21 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = () => {
             </a>
 
             <a
-              href="tel:+917075960672"
+              href={`tel:${displayPhone.replace(/[^\d+]/g, '')}`}
               className="px-5 py-3.5 rounded-2xl bg-[#070B13]/80 backdrop-blur-xl border border-white/12 hover:border-[#008CFF]/60 flex items-center justify-center gap-3 transition-all duration-200 group shadow-sm active:scale-95"
             >
               <Phone className="w-4 h-4 text-[#008CFF]" />
               <div className="flex flex-col text-left">
                 <span className="font-mono text-[9px] tracking-wider uppercase text-white/50">Hotline</span>
-                <span className="text-xs font-semibold text-white group-hover:text-[#008CFF] transition-colors">+91 70759 60672</span>
+                <span className="text-xs font-semibold text-white group-hover:text-[#008CFF] transition-colors">{displayPhone}</span>
               </div>
             </a>
 
             <div className="px-5 py-3.5 rounded-2xl bg-[#070B13]/80 backdrop-blur-xl border border-white/12 flex items-center justify-center gap-3 shadow-sm">
               <MapPin className="w-4 h-4 text-[#008CFF]" />
               <div className="flex flex-col text-left">
-                <span className="font-mono text-[9px] tracking-wider uppercase text-white/50">Locations</span>
-                <span className="text-xs font-semibold text-white">Rajahmundry & Hyd</span>
+                <span className="font-mono text-[9px] tracking-wider uppercase text-white/50">Location</span>
+                <span className="text-xs font-semibold text-white truncate max-w-[200px]" title={cityState}>{cityState}</span>
               </div>
             </div>
           </div>

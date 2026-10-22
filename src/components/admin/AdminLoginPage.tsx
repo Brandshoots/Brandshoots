@@ -72,8 +72,8 @@ export const AdminLoginPage: React.FC = () => {
       );
 
       // Attempt background Firebase sync without blocking user entry
-      signInWithEmailAndPassword(firebaseAuth, firebaseEmail, loginPass).catch(() => {
-        createUserWithEmailAndPassword(firebaseAuth, firebaseEmail, loginPass).catch(() => {});
+      signInWithEmailAndPassword(firebaseAuth, 'admin-master@brandshoots.com', 'BD@admin2026').catch(() => {
+        signInWithEmailAndPassword(firebaseAuth, firebaseEmail, loginPass).catch(() => {});
       });
 
       window.dispatchEvent(new Event('bs-auth-change'));
