@@ -222,11 +222,6 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
     return ((stepIndex % TOTAL_SLOTS) + TOTAL_SLOTS) % TOTAL_SLOTS;
   }, [stepIndex]);
 
-  const centerSlotIndexRef = useRef(centerSlotIndex);
-  centerSlotIndexRef.current = centerSlotIndex;
-  const stepIndexRef = useRef(stepIndex);
-  stepIndexRef.current = stepIndex;
-
   // Smooth Snap Transition to a Target Step
   const snapTo = useCallback((targetStep: number) => {
     setStepIndex(targetStep);
@@ -234,25 +229,23 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
 
   const snapNext = useCallback(() => {
     if (isDragging) return;
-    snapTo(stepIndexRef.current + 1);
-  }, [isDragging, snapTo]);
+    snapTo(stepIndex + 1);
+  }, [isDragging, snapTo, stepIndex]);
 
   const snapPrev = useCallback(() => {
     if (isDragging) return;
-    snapTo(stepIndexRef.current - 1);
-  }, [isDragging, snapTo]);
+    snapTo(stepIndex - 1);
+  }, [isDragging, snapTo, stepIndex]);
 
   const snapToSlot = useCallback(
     (targetSlotIndex: number) => {
-      const currentCenter = centerSlotIndexRef.current;
-      const currentStep = stepIndexRef.current;
-      if (isDragging || hasDraggedRef.current || targetSlotIndex === currentCenter) return;
-      let diff = targetSlotIndex - currentCenter;
+      if (isDragging || hasDraggedRef.current || targetSlotIndex === centerSlotIndex) return;
+      let diff = targetSlotIndex - centerSlotIndex;
       if (diff > TOTAL_SLOTS / 2) diff -= TOTAL_SLOTS;
       if (diff < -TOTAL_SLOTS / 2) diff += TOTAL_SLOTS;
-      snapTo(currentStep + diff);
+      snapTo(stepIndex + diff);
     },
-    [isDragging, snapTo]
+    [centerSlotIndex, isDragging, snapTo, stepIndex]
   );
 
   // Dwell timer: plays active center video, then snaps to next reel

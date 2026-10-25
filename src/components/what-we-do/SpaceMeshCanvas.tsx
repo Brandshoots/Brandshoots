@@ -45,42 +45,14 @@ export const SpaceMeshCanvas: React.FC<SpaceMeshCanvasProps> = ({
       targetMouseX = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
       targetMouseY = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
     };
-    window.addEventListener('mousemove', handlePointerMove, { passive: true });
+    window.addEventListener('mousemove', handlePointerMove);
 
     // Grid configuration: spans 100% full screen with margin bleed
     const cols = 32;
     const rows = 28;
     const margin = 70;
 
-    let isVisible = false;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const wasVisible = isVisible;
-        isVisible = entry.isIntersecting;
-        if (isVisible && !wasVisible) {
-          cancelAnimationFrame(animId);
-          animId = requestAnimationFrame(render);
-        } else if (!isVisible && wasVisible) {
-          cancelAnimationFrame(animId);
-        }
-      },
-      { threshold: 0.02 }
-    );
-    observer.observe(canvas);
-
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        cancelAnimationFrame(animId);
-      } else if (isVisible) {
-        cancelAnimationFrame(animId);
-        animId = requestAnimationFrame(render);
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
     const render = () => {
-      if (!isVisible || document.hidden) return;
-
       time += 0.015;
       mouseX += (targetMouseX - mouseX) * 0.05;
       mouseY += (targetMouseY - mouseY) * 0.05;
@@ -172,8 +144,6 @@ export const SpaceMeshCanvas: React.FC<SpaceMeshCanvasProps> = ({
     animId = requestAnimationFrame(render);
 
     return () => {
-      observer.disconnect();
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', resize);
       window.removeEventListener('mousemove', handlePointerMove);

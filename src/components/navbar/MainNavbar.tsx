@@ -21,33 +21,20 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
 
   // Scroll detection linked directly with Lenis and native window scroll
   useEffect(() => {
-    let ticking = false;
-    const updateScrolled = (scrollY: number) => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        ticking = false;
-        const next = scrollY > 40;
-        setIsScrolled((prev) => (prev !== next ? next : prev));
-      });
-    };
-
     const handleScroll = () => {
-      updateScrolled(window.scrollY || document.documentElement.scrollTop);
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+      setIsScrolled(scrollY > 40);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
 
-    let lenisHandler: ((e: { scroll: number }) => void) | null = null;
-    let registeredLenis: any = null;
-
     const checkLenis = () => {
       const lenis = (window as any).__lenis;
-      if (lenis && !lenisHandler) {
-        lenisHandler = (e: { scroll: number }) => updateScrolled(e.scroll);
-        lenis.on('scroll', lenisHandler);
-        registeredLenis = lenis;
+      if (lenis) {
+        lenis.on('scroll', (e: { scroll: number }) => {
+          setIsScrolled(e.scroll > 40);
+        });
       }
     };
     checkLenis();
@@ -56,9 +43,6 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
     return () => {
       window.removeEventListener('scroll', handleScroll);
       clearTimeout(lenisTimer);
-      if (registeredLenis && lenisHandler) {
-        registeredLenis.off('scroll', lenisHandler);
-      }
     };
   }, []);
 

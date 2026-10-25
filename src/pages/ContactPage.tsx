@@ -48,18 +48,14 @@ export const ContactPage: React.FC = () => {
     gsap.ticker.add(ticker);
     gsap.ticker.lagSmoothing(0);
 
-    (window as any).__lenis = lenis;
-
     const timer = setTimeout(() => {
       ScrollTrigger.refresh();
     }, 250);
 
     return () => {
       clearTimeout(timer);
-      delete (window as any).__lenis;
       gsap.ticker.remove(ticker);
       lenis.destroy();
-      ScrollTrigger.getAll().forEach((t) => t.kill());
     };
   }, [preloaderActive]);
 

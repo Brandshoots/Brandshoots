@@ -153,7 +153,28 @@ export const WhatWeDoSection: React.FC = () => {
     }
   };
 
+  // User interaction unlock listener for iOS & Android autoplay policies
+  useEffect(() => {
+    const handleUserUnlock = () => {
+      const vids = stageRef.current?.querySelectorAll('video');
+      vids?.forEach((v) => {
+        v.muted = true;
+        v.defaultMuted = true;
+      });
+      const activeVideo = stageRef.current?.querySelector('video[data-active="true"]') as HTMLVideoElement | null;
+      if (activeVideo && activeVideo.paused) {
+        activeVideo.play().catch(() => {});
+      }
+    };
 
+    window.addEventListener('touchstart', handleUserUnlock, { once: true, passive: true });
+    window.addEventListener('pointerdown', handleUserUnlock, { once: true, passive: true });
+
+    return () => {
+      window.removeEventListener('touchstart', handleUserUnlock);
+      window.removeEventListener('pointerdown', handleUserUnlock);
+    };
+  }, []);
 
   // GSAP SCROLL ENGINES (Unified Pinned 3D Stage on Mobile & Desktop)
   useEffect(() => {

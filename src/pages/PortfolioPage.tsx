@@ -65,7 +65,6 @@ export const PortfolioPage: React.FC = () => {
       delete (window as any).__lenis;
       gsap.ticker.remove(ticker);
       lenis.destroy();
-      ScrollTrigger.getAll().forEach((t) => t.kill());
     };
   }, [preloaderActive]);
 

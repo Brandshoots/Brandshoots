@@ -874,28 +874,12 @@ export const PortfolioWormhole3D: React.FC = () => {
     };
     window.addEventListener('resize', handleResize);
 
-    // Viewport & Tab visibility gating to pause WebGL rendering and video texture uploads when offscreen
-    let isSectionVisible = true;
-    const visibilityObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          isSectionVisible = entry.isIntersecting;
-        });
-      },
-      { threshold: 0.02 }
-    );
-    if (containerRef.current) {
-      visibilityObserver.observe(containerRef.current);
-    }
-
     // Animation Loop with Organic Dust Drift, Interactive Cursor Parallax, and Audio Fade Engine
     let animId: number;
     let lastTime = performance.now();
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
-
-      if (document.hidden || !isSectionVisible) return;
 
       const now = performance.now();
       const dt = Math.min(0.1, (now - lastTime) / 1000);
@@ -965,7 +949,6 @@ export const PortfolioWormhole3D: React.FC = () => {
     animate();
 
     return () => {
-      visibilityObserver.disconnect();
       cancelAnimationFrame(animId);
       window.removeEventListener('mousemove', handlePointerMove);
       window.removeEventListener('pointerdown', handlePointerDown);

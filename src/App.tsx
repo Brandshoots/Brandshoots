@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
@@ -45,15 +45,9 @@ export function App() {
     return true;
   });
 
-  // Always reset scroll to top on page navigation and purge stale ScrollTriggers across route hops
-  const isFirstMount = useRef(true);
+  // Always reset scroll to top on page navigation and set homepage title
   useEffect(() => {
     window.scrollTo(0, 0);
-    if (isFirstMount.current) {
-      isFirstMount.current = false;
-    } else {
-      ScrollTrigger.getAll().forEach((t) => t.kill());
-    }
     if (location.pathname === '/') {
       document.title = 'BRANDSHOOTS | Create. Shoot. Grow.';
     }
@@ -105,7 +99,6 @@ export function App() {
       delete (window as any).__lenis;
       gsap.ticker.remove(ticker);
       lenis.destroy();
-      ScrollTrigger.getAll().forEach((t) => t.kill());
     };
   }, [preloaderActive, location.pathname]);
 

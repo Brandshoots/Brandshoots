@@ -137,15 +137,29 @@ export const HERO_REEL_VIDEOS: HeroReelVideo[] = [
 ];
 
 /**
- * Intelligently warm up only the immediately visible hero posters,
- * preventing network socket saturation during critical initial bundle execution.
+ * Intelligently warm up hero reel posters and only primary hero video stream
+ * during the cinematic preloader, preventing network socket exhaustion.
  */
 export function preloadAllHeroReels(): void {
   if (typeof window === 'undefined') return;
 
-  // Warm up ONLY the immediately visible hero reel posters (first 3 slots)
-  HERO_REEL_VIDEOS.slice(0, 3).forEach((reel) => {
+  // 1. Warm up HD posters (fast, lightweight image cache)
+  HERO_REEL_VIDEOS.forEach((reel, idx) => {
     const img = new Image();
     img.src = reel.poster;
+
+    // 2. Only warm up primary hero reel streams (slots 0 and 1) rather than all 14 simultaneously
+    if (idx < 2) {
+      try {
+        const v = document.createElement('video');
+        v.preload = 'metadata';
+        v.muted = true;
+        v.playsInline = true;
+        v.src = reel.lightSrc || reel.src;
+        v.load();
+      } catch {
+        // Ignore background warmup exceptions
+      }
+    }
   });
 }

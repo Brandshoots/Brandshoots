@@ -14,25 +14,17 @@ export const UniversalFloatingActions: React.FC = () => {
 
   // Track scroll position for Back to Top and mobile hero clearance
   useEffect(() => {
-    let ticking = false;
     const handleScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        ticking = false;
-        const scrollY = window.scrollY;
-        const past300 = scrollY > 300;
-        setShowBackToTop((prev) => (prev !== past300 ? past300 : prev));
+      const scrollY = window.scrollY;
+      setShowBackToTop(scrollY > 300);
 
-        if (window.innerWidth < 768) {
-          // On mobile, keep the Hero title 100% unblocked; fade in actions once user starts scrolling
-          const pastHero = scrollY > 140;
-          setIsPastHeroOnMobile((prev) => (prev !== pastHero ? pastHero : prev));
-        } else {
-          // On desktop, always show
-          setIsPastHeroOnMobile((prev) => (!prev ? true : prev));
-        }
-      });
+      if (window.innerWidth < 768) {
+        // On mobile, keep the Hero title 100% unblocked; fade in actions once user starts scrolling
+        setIsPastHeroOnMobile(scrollY > 140);
+      } else {
+        // On desktop, always show
+        setIsPastHeroOnMobile(true);
+      }
     };
 
     handleScroll();
