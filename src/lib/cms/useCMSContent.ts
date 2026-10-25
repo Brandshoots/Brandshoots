@@ -114,7 +114,16 @@ export function useCMSContent() {
     } catch {}
     return fallbackClients;
   });
-  const [hero, setHero] = useState<CMSHero>(INITIAL_HERO);
+  const [hero, setHero] = useState<CMSHero>(() => {
+    try {
+      const cached = localStorage.getItem('brandshoots_hero');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && typeof parsed === 'object') return { ...INITIAL_HERO, ...parsed };
+      }
+    } catch {}
+    return INITIAL_HERO;
+  });
   const [heroReels, setHeroReels] = useState<CMSHeroReel[]>(() => {
     try {
       const cached = localStorage.getItem('brandshoots_hero_reels');
@@ -371,6 +380,14 @@ export function useCMSContent() {
         }
       };
 
+      // Hero local update listener
+      const handleLocalHeroUpdate = (e: Event) => {
+        const customEvent = e as CustomEvent<CMSHero>;
+        if (customEvent.detail && typeof customEvent.detail === 'object') {
+          setHero((prev) => ({ ...prev, ...customEvent.detail }));
+        }
+      };
+
       // Projects local update listener (CMS 1.7)
       const handleLocalProjectsUpdate = (e: Event) => {
         const customEvent = e as CustomEvent<CMSProject[]>;
@@ -389,6 +406,14 @@ export function useCMSContent() {
 
       // Cross-tab storage listener so live site updates immediately when admin edits in another tab
       const handleStorageUpdate = (e: StorageEvent) => {
+        if (e.key === 'brandshoots_hero' && e.newValue) {
+          try {
+            const parsed = JSON.parse(e.newValue);
+            if (parsed && typeof parsed === 'object') {
+              setHero((prev) => ({ ...prev, ...parsed }));
+            }
+          } catch {}
+        }
         if (e.key === 'brandshoots_projects' && e.newValue) {
           try {
             const parsed = JSON.parse(e.newValue);
@@ -447,6 +472,7 @@ export function useCMSContent() {
         }
       };
 
+      window.addEventListener('brandshoots_hero_updated', handleLocalHeroUpdate);
       window.addEventListener('brandshoots_hero_reels_updated', handleLocalReelsUpdate);
       window.addEventListener('brandshoots_services_updated', handleLocalServicesUpdate);
       window.addEventListener('brandshoots_announcements_updated', handleLocalAnnouncementsUpdate);
@@ -458,6 +484,7 @@ export function useCMSContent() {
 
       return () => {
         unsubscribe();
+        window.removeEventListener('brandshoots_hero_updated', handleLocalHeroUpdate);
         window.removeEventListener('brandshoots_hero_reels_updated', handleLocalReelsUpdate);
         window.removeEventListener('brandshoots_services_updated', handleLocalServicesUpdate);
         window.removeEventListener('brandshoots_announcements_updated', handleLocalAnnouncementsUpdate);

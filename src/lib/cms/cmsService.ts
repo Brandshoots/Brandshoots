@@ -288,15 +288,40 @@ export async function resetClientsToDefaults(): Promise<CMSClientLogo[]> {
 // HERO CRUD
 // ----------------------------------------------------
 export async function fetchPublishedHero(): Promise<CMSHero | null> {
-  const snapshot = await get(ref(firebaseDb, 'published/hero'));
-  return snapshot.exists() ? snapshot.val() : null;
+  try {
+    const snapshot = await get(ref(firebaseDb, 'published/hero'));
+    if (snapshot.exists()) {
+      return snapshot.val();
+    }
+  } catch (err) {
+    console.warn('Firebase fetchPublishedHero offline, checking cache:', err);
+  }
+  try {
+    const cached = localStorage.getItem('brandshoots_hero');
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed && typeof parsed === 'object') return { ...INITIAL_HERO, ...parsed };
+    }
+  } catch {}
+  return INITIAL_HERO;
 }
 
 export async function saveHero(hero: CMSHero): Promise<void> {
-  await set(ref(firebaseDb, 'published/hero'), {
+  const updated = {
     ...hero,
     updatedAt: Date.now(),
-  });
+  };
+  try {
+    localStorage.setItem('brandshoots_hero', JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('brandshoots_hero_updated', { detail: updated }));
+  } catch (err) {
+    console.warn('LocalStorage saveHero failed:', err);
+  }
+  try {
+    await set(ref(firebaseDb, 'published/hero'), updated);
+  } catch (err) {
+    console.warn('Firebase saveHero offline:', err);
+  }
 }
 
 // ----------------------------------------------------

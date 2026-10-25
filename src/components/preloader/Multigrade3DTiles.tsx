@@ -26,7 +26,8 @@ interface TileData {
 const PreloaderThumbnailCard: React.FC<{
   poster: string;
   title: string;
-}> = memo(({ poster, title }) => {
+  isEager?: boolean;
+}> = memo(({ poster, title, isEager = false }) => {
   return (
     <div
       className="relative rounded-lg md:rounded-xl overflow-hidden bg-[#0A0D14] border border-white/10 ring-1 ring-black/70 shadow-[0_12px_32px_rgba(0,0,0,0.8)] shrink-0 select-none"
@@ -35,7 +36,7 @@ const PreloaderThumbnailCard: React.FC<{
       <img
         src={poster}
         alt={title}
-        loading="eager"
+        loading={isEager ? 'eager' : 'lazy'}
         decoding="async"
         className="w-full h-full object-cover pointer-events-none transition-none preloader-poster-img"
         style={{
@@ -211,11 +212,12 @@ export const Multigrade3DTiles = forwardRef<Multigrade3DTilesHandle, Multigrade3
                 animationPlayState: 'running'
               }}
             >
-              {colReels.map((reel) => (
+              {colReels.map((reel, rIdx) => (
                 <PreloaderThumbnailCard
                   key={reel.id}
                   poster={reel.poster}
                   title={reel.title}
+                  isEager={colIdx === 3 && rIdx < 2}
                 />
               ))}
             </div>

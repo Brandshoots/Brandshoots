@@ -18,98 +18,14 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
   const titleBrandRef = useRef<HTMLSpanElement>(null);
   const titleShootsRef = useRef<HTMLSpanElement>(null);
   const reelWallContainerRef = useRef<HTMLDivElement>(null);
-  const mobileVideoContainerRef = useRef<HTMLDivElement>(null);
-  const mobileVideoRef = useRef<HTMLVideoElement>(null);
   const taglineRef = useRef<HTMLDivElement>(null);
   const scrollIndicatorRef = useRef<HTMLDivElement>(null);
 
-  const [isMobile, setIsMobile] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return window.innerWidth < 768;
-    }
-    return false;
-  });
+  const [isMuted, setIsMuted] = useState(true);
 
-  const [isMobileMuted, setIsMobileMuted] = useState(true);
-
-  // Responsive breakpoint tracking
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const mobileVideoUrl =
-    hero?.mobileVideoUrl ||
-    '/reels/wearebrandshoots_1777444216_3885805244420742638_77785749886.mp4';
-  const mobilePosterUrl =
-    '/reels/posters/wearebrandshoots_1777444216_3885805244420742638_77785749886.jpg';
-
-  // Mobile background video autoplay, battery optimization & off-screen pausing
-  useEffect(() => {
-    const video = mobileVideoRef.current;
-    if (!video) return;
-
-    video.defaultMuted = true;
-    video.muted = true;
-    video.playsInline = true;
-    video.setAttribute('muted', '');
-    video.setAttribute('playsinline', '');
-    video.setAttribute('webkit-playsinline', '');
-    video.setAttribute('autoplay', '');
-    video.setAttribute('loop', '');
-
-    const startPlayback = () => {
-      const p = video.play();
-      if (p !== undefined) {
-        p.catch(() => {
-          const unlock = () => {
-            video.play().catch(() => {});
-          };
-          window.addEventListener('touchstart', unlock, { once: true, passive: true });
-          window.addEventListener('click', unlock, { once: true, passive: true });
-        });
-      }
-    };
-
-    startPlayback();
-    video.addEventListener('loadeddata', startPlayback, { once: true });
-    video.addEventListener('canplay', startPlayback, { once: true });
-
-    // Pause video when hero is scrolled out of view to conserve mobile decoders & battery
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            video.play().catch(() => {});
-          } else {
-            video.pause();
-          }
-        });
-      },
-      { threshold: 0.05 }
-    );
-
-    if (heroRef.current) {
-      observer.observe(heroRef.current);
-    }
-
-    return () => {
-      observer.disconnect();
-      video.removeEventListener('loadeddata', startPlayback);
-      video.removeEventListener('canplay', startPlayback);
-    };
-  }, [mobileVideoUrl]);
-
-  const toggleMobileAudio = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const video = mobileVideoRef.current;
-    if (!video) return;
-    const nextMuted = !video.muted;
-    video.muted = nextMuted;
-    setIsMobileMuted(nextMuted);
+  const toggleAudio = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setIsMuted((prev) => !prev);
   };
 
   // GSAP Entrance Timeline for the Hero (Synchronized with preloader completion)
@@ -118,7 +34,6 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
       if (titleBrandRef.current) gsap.set(titleBrandRef.current, { y: 30, opacity: 0, scale: 0.96 });
       if (titleShootsRef.current) gsap.set(titleShootsRef.current, { y: 30, opacity: 0, scale: 0.96 });
       if (reelWallContainerRef.current) gsap.set(reelWallContainerRef.current, { opacity: 0, scale: 0.94 });
-      if (mobileVideoContainerRef.current) gsap.set(mobileVideoContainerRef.current, { opacity: 0 });
       if (taglineRef.current) gsap.set(taglineRef.current, { y: -16, opacity: 0 });
       if (scrollIndicatorRef.current) gsap.set(scrollIndicatorRef.current, { y: 16, opacity: 0 });
       return;
@@ -141,7 +56,6 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
       gsap.set(titleBrandRef.current, { y: 30, scale: 0.96 });
       gsap.set(titleShootsRef.current, { y: 30, scale: 0.96 });
       if (reelWallContainerRef.current) gsap.set(reelWallContainerRef.current, { opacity: 0, scale: 0.94 });
-      if (mobileVideoContainerRef.current) gsap.set(mobileVideoContainerRef.current, { opacity: 0 });
       gsap.set(taglineRef.current, { y: -16 });
       gsap.set(scrollIndicatorRef.current, { y: 16 });
 
@@ -150,13 +64,6 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
         tl.to(
           reelWallContainerRef.current,
           { opacity: 1, scale: 1, duration: 0.95, ease: 'power2.out' },
-          0.05
-        );
-      }
-      if (mobileVideoContainerRef.current) {
-        tl.to(
-          mobileVideoContainerRef.current,
-          { opacity: 1, duration: 0.85, ease: 'power2.out' },
           0.05
         );
       }
@@ -204,14 +111,6 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
           );
         }
 
-        if (mobileVideoContainerRef.current) {
-          exitTl.to(
-            mobileVideoContainerRef.current,
-            { y: -70, scale: 1.05, opacity: 0.25, ease: 'power1.out' },
-            0
-          );
-        }
-
         if (taglineRef.current) {
           exitTl.to(taglineRef.current, { y: -50, opacity: 0, ease: 'power1.out' }, 0);
         }
@@ -251,71 +150,21 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
       className="relative w-full h-[100svh] min-h-[100svh] max-h-[100svh] md:h-[100dvh] md:max-h-[100dvh] bg-[#05070A] text-white overflow-hidden select-none"
     >
       {/* ========================================================= */}
-      {/* 1. MOBILE CINEMATIC FULL REEL VIDEO BACKGROUND            */}
+      {/* 1. CINEMATIC BACKGROUND ENVIRONMENTS                      */}
       {/* ========================================================= */}
-      <div
-        ref={mobileVideoContainerRef}
-        className="block md:hidden absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0"
-      >
-        {/* Instant high-res poster - prevents black flash */}
-        <img
-          src={mobilePosterUrl}
-          alt="BrandShoots Reel"
-          loading="eager"
-          decoding="async"
-          className="absolute inset-0 w-full h-full object-cover object-center scale-[1.02] pointer-events-none"
-        />
-        {/* Full-bleed looped vertical background reel */}
-        <video
-          ref={mobileVideoRef}
-          src={mobileVideoUrl}
-          poster={mobilePosterUrl}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          className="relative w-full h-full object-cover object-center scale-[1.02]"
-        />
+      <HeroCinematicBackground />
+      <div className="absolute inset-0 cinema-grain pointer-events-none z-20 opacity-30" />
+      <div className="absolute inset-0 cinema-vignette pointer-events-none z-10 opacity-55" />
 
-        {/* Top Gradient for Navbar, Logo & Menu Clarity */}
-        <div className="absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-[#04060A]/95 via-[#04060A]/60 to-transparent pointer-events-none z-10" />
-
-        {/* Cinematic Vignette for 35mm Film Depth */}
-        <div
-          className="absolute inset-0 pointer-events-none z-10"
-          style={{
-            background:
-              'radial-gradient(circle at center, transparent 35%, rgba(4,6,10,0.45) 75%, rgba(4,6,10,0.85) 100%)',
-          }}
-        />
-        <div className="absolute inset-0 bg-black/25 pointer-events-none z-10" />
-
-        {/* Bottom Gradient for Tagline & Scroll Cue Contrast */}
-        <div
-          className="absolute inset-x-0 bottom-0 h-80 pointer-events-none z-10"
-          style={{
-            background:
-              'linear-gradient(to top, #04060A 0%, rgba(4,6,10,0.96) 28%, rgba(4,6,10,0.7) 60%, transparent 100%)',
-          }}
-        />
-      </div>
+      {/* Top Gradient for Navbar, Logo & Menu Clarity */}
+      <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#04060A]/95 via-[#04060A]/60 to-transparent pointer-events-none z-20" />
 
       {/* ========================================================= */}
-      {/* 2. DESKTOP CINEMATIC BACKGROUND ENVIRONMENTS & 3D CYLINDER */}
-      {/* ========================================================= */}
-      <div className="hidden md:block">
-        <HeroCinematicBackground />
-        <div className="absolute inset-0 cinema-grain pointer-events-none z-20 opacity-30" />
-        <div className="absolute inset-0 cinema-vignette pointer-events-none z-10 opacity-55" />
-      </div>
-
-      {/* ========================================================= */}
-      {/* 3. HEADER: TAGLINE (CREATE. SHOOT. GROW.) ABOVE 3D CAROUSEL */}
+      {/* 2. HEADER: TAGLINE (CREATE. SHOOT. GROW.) ABOVE CAROUSEL  */}
       {/* ========================================================= */}
       <div
         ref={taglineRef}
-        className="absolute top-[16.5vh] sm:top-[17.5vh] md:top-[18.5vh] lg:top-[19.5vh] left-0 right-0 z-30 font-mono text-[11px] sm:text-[13px] md:text-[14px] lg:text-[15px] tracking-[0.38em] sm:tracking-[0.48em] uppercase font-bold text-center pointer-events-none px-4"
+        className="absolute top-[16vh] sm:top-[17vh] md:top-[18vh] lg:top-[19vh] left-0 right-0 z-30 font-mono text-[11px] sm:text-[13px] md:text-[14px] lg:text-[15px] tracking-[0.38em] sm:tracking-[0.48em] uppercase font-bold text-center pointer-events-none px-4"
       >
         <span className="text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
           {hero?.taglinePrefix || 'CREATE. '}
@@ -328,17 +177,23 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
         </span>
       </div>
 
-      {/* REAL 3D CYLINDRICAL REEL WALL INSTALLATION (Desktop only) */}
+      {/* ========================================================= */}
+      {/* 3. REAL 3D CYLINDRICAL REEL WALL INSTALLATION             */}
+      {/* ========================================================= */}
       <div
         ref={reelWallContainerRef}
-        className="hidden md:block absolute top-[44%] sm:top-[44.5%] md:top-[45%] lg:top-[45.5%] left-0 right-0 -translate-y-1/2 w-full h-[430px] sm:h-[470px] md:h-[520px] lg:h-[550px] z-10 pointer-events-none overflow-hidden"
+        className="absolute top-[44%] sm:top-[44.5%] md:top-[45%] lg:top-[45.5%] left-0 right-0 -translate-y-1/2 w-full h-[430px] sm:h-[470px] md:h-[520px] lg:h-[550px] z-10 pointer-events-none overflow-hidden"
       >
-        {!isMobile && <ReelWall3D isPreloaderActive={isPreloaderActive} />}
+        <ReelWall3D
+          isPreloaderActive={isPreloaderActive}
+          isMuted={isMuted}
+          onToggleMute={toggleAudio}
+        />
       </div>
 
-      {/* Desktop Atmospheric Horizon Gradient Buffer */}
+      {/* Atmospheric Horizon Gradient Buffer */}
       <div
-        className="hidden md:block absolute bottom-0 inset-x-0 h-32 sm:h-40 pointer-events-none z-20"
+        className="absolute bottom-0 inset-x-0 h-32 sm:h-40 pointer-events-none z-20"
         style={{
           background:
             'linear-gradient(to top, #04060A 0%, rgba(4,6,10,0.92) 35%, rgba(4,6,10,0.4) 70%, transparent 100%)',
@@ -395,14 +250,14 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
         </span>
       </div>
 
-      {/* Mobile Audio Unmute / Mute Toggle Pill */}
+      {/* Audio Unmute / Mute Toggle Pill (Desktop/Tablet) */}
       <button
         type="button"
-        onClick={toggleMobileAudio}
-        className="md:hidden absolute bottom-[4vh] right-5 z-40 p-2.5 rounded-full bg-black/50 backdrop-blur-md border border-white/15 text-white/80 hover:text-white transition-all duration-200 active:scale-90 select-auto pointer-events-auto shadow-lg"
-        aria-label={isMobileMuted ? 'Unmute video audio' : 'Mute video audio'}
+        onClick={toggleAudio}
+        className="hidden sm:block absolute bottom-[3.5vh] sm:bottom-[4vh] right-5 sm:right-8 z-40 p-2.5 rounded-full bg-black/50 backdrop-blur-md border border-white/15 text-white/80 hover:text-white transition-all duration-200 active:scale-90 select-auto pointer-events-auto shadow-lg"
+        aria-label={isMuted ? 'Unmute reel audio' : 'Mute reel audio'}
       >
-        {isMobileMuted ? (
+        {isMuted ? (
           <VolumeX className="w-3.5 h-3.5 text-white/70" />
         ) : (
           <Volume2 className="w-3.5 h-3.5 text-[#008CFF] drop-shadow-[0_0_6px_rgba(0,140,255,0.8)]" />

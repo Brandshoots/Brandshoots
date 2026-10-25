@@ -217,6 +217,7 @@ export const BrandShootsLogo3D: React.FC = () => {
 
     const animate = () => {
       reqId = requestAnimationFrame(animate);
+      if (document.hidden) return;
       const elapsedTime = clock.getElapsedTime();
 
       // Smooth lerp mouse tilts

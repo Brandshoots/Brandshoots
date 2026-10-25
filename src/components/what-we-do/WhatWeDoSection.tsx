@@ -24,7 +24,7 @@ const MISSIONS: MissionData[] = [
     titleLines: ['CREATIVE', 'CONTENT'],
     category: 'CREATIVE CONTENT',
     description: 'High-impact social films, vertical storytelling, viral hooks, and creative campaign direction engineered to captivate algorithmic feeds.',
-    imageUrl: '/reels/thumbnails/aabharan_womens_accessories_2026-05-30_10-01-21_3908213461611903133_45301478774.jpg',
+    imageUrl: '/what-we-do/creative-content.jpg',
     videoUrl: '/reels/aabharan_womens_accessories/aabharan_womens_accessories_2026-05-30_10-01-21_3908213461611903133_45301478774.mp4',
     aspectRatio: 'portrait',
     tag: 'CREATIVE DIRECTION & HOOKS',
@@ -35,7 +35,7 @@ const MISSIONS: MissionData[] = [
     titleLines: ['DIGITAL', 'GROWTH'],
     category: 'DIGITAL GROWTH',
     description: 'Full-funnel digital creative systems, visual campaigns, and scalable brand momentum engineered to convert viewers into lifelong advocates.',
-    imageUrl: '/reels/thumbnails/viswatuff.glass_rjy_2026-05-28_18-00-28_3907005057329571857_78432309239.jpg',
+    imageUrl: '/what-we-do/digital-growth.jpg',
     videoUrl: '/reels/viswatuff.glass_rjy/viswatuff.glass_rjy_2026-05-28_18-00-28_3907005057329571857_78432309239.mp4',
     aspectRatio: 'portrait',
     tag: 'CATEGORY LEADERSHIP & SCALE',
@@ -46,82 +46,33 @@ const MISSIONS: MissionData[] = [
     titleLines: ['EDITING &', 'POSTING'],
     category: 'EDITING & POSTING',
     description: 'Precision cinematic editing, luxury Hollywood color grading, immersive spatial sound design, and scheduled high-impact posting across platforms.',
-    imageUrl: '/reels/thumbnails/sbventures_official_2026-09-15_17-10-21_3986704799434897519_5720346010.jpg',
+    imageUrl: '/what-we-do/editing-posting.jpg',
     videoUrl: '/reels/sbventures_official/sbventures_official_2026-09-15_17-10-21_3986704799434897519_5720346010.mp4',
     aspectRatio: 'portrait',
     tag: 'PRECISION FINISHING & DISTRIBUTION',
   },
 ];
 
-const ReelPlayer: React.FC<{
-  videoUrl: string;
-  posterUrl: string;
-  isActive: boolean;
-  className?: string;
-}> = React.memo(({ videoUrl, posterUrl, isActive, className }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [hasLoaded, setHasLoaded] = useState(false);
-  const safeVideoUrl = encodeURI(videoUrl);
-  const safePosterUrl = encodeURI(posterUrl);
-
-  useEffect(() => {
-    if (isActive && !hasLoaded) {
-      setHasLoaded(true);
-    }
-  }, [isActive, hasLoaded]);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    video.muted = true;
-    video.defaultMuted = true;
-    video.playsInline = true;
-    video.setAttribute('playsinline', '');
-    video.setAttribute('webkit-playsinline', '');
-
-    if (isActive) {
-      const playPromise = video.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {});
-      }
-    } else {
-      video.pause();
-    }
-  }, [isActive, hasLoaded]);
-
-  return (
-    <video
-      ref={videoRef}
-      src={hasLoaded ? safeVideoUrl : undefined}
-      poster={safePosterUrl}
-      data-active={isActive ? 'true' : 'false'}
-      autoPlay={isActive}
-      loop
-      muted
-      playsInline
-      preload={isActive ? 'metadata' : 'none'}
-      className={className}
-    />
-  );
-});
-ReelPlayer.displayName = 'ReelPlayer';
-
 export const WhatWeDoSection: React.FC = () => {
   const { services } = useCMSContent();
   const activeMissions: MissionData[] =
     services && services.length === 3
-      ? services.map((s, idx) => ({
-          id: s.id,
-          number: s.number || `0${idx + 1}`,
-          titleLines: s.titleLines,
-          category: s.category,
-          description: s.description,
-          imageUrl: s.imageUrl || MISSIONS[idx]?.imageUrl,
-          videoUrl: s.videoUrl || MISSIONS[idx]?.videoUrl || s.imageUrl?.replace(/\.(jpg|png|jpeg)$/i, '.mp4'),
-          aspectRatio: 'portrait' as const,
-          tag: s.tag,
-        }))
+      ? services.map((s, idx) => {
+          // If stored imageUrl is empty or still points to old reel thumbnails, migrate to brand-new generated image
+          const isLegacyThumb = !s.imageUrl || s.imageUrl.includes('/reels/thumbnails/');
+          const resolvedImageUrl = isLegacyThumb ? MISSIONS[idx].imageUrl : s.imageUrl;
+          return {
+            id: s.id,
+            number: s.number || `0${idx + 1}`,
+            titleLines: s.titleLines,
+            category: s.category,
+            description: s.description,
+            imageUrl: resolvedImageUrl,
+            videoUrl: s.videoUrl || MISSIONS[idx]?.videoUrl,
+            aspectRatio: 'portrait' as const,
+            tag: s.tag,
+          };
+        })
       : MISSIONS;
 
   const sectionRef = useRef<HTMLElement>(null);
@@ -202,28 +153,7 @@ export const WhatWeDoSection: React.FC = () => {
     }
   };
 
-  // User interaction unlock listener for iOS & Android autoplay policies
-  useEffect(() => {
-    const handleUserUnlock = () => {
-      const vids = stageRef.current?.querySelectorAll('video');
-      vids?.forEach((v) => {
-        v.muted = true;
-        v.defaultMuted = true;
-      });
-      const activeVideo = stageRef.current?.querySelector('video[data-active="true"]') as HTMLVideoElement | null;
-      if (activeVideo && activeVideo.paused) {
-        activeVideo.play().catch(() => {});
-      }
-    };
 
-    window.addEventListener('touchstart', handleUserUnlock, { once: true, passive: true });
-    window.addEventListener('pointerdown', handleUserUnlock, { once: true, passive: true });
-
-    return () => {
-      window.removeEventListener('touchstart', handleUserUnlock);
-      window.removeEventListener('pointerdown', handleUserUnlock);
-    };
-  }, []);
 
   // GSAP SCROLL ENGINES (Unified Pinned 3D Stage on Mobile & Desktop)
   useEffect(() => {
@@ -376,34 +306,6 @@ export const WhatWeDoSection: React.FC = () => {
           }
         },
       });
-
-      // Viewport IntersectionObserver: pause capabilities video when section leaves viewport
-      const sectionObserver = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (!entry.isIntersecting) {
-              const vids = stageRef.current?.querySelectorAll('video');
-              vids?.forEach((v) => {
-                if (!v.paused) v.pause();
-              });
-            } else {
-              const activeVideo = stageRef.current?.querySelector('video[data-active="true"]') as HTMLVideoElement | null;
-              if (activeVideo && activeVideo.paused) {
-                activeVideo.play().catch(() => {});
-              }
-            }
-          });
-        },
-        { threshold: 0.05 }
-      );
-
-      if (sectionRef.current) {
-        sectionObserver.observe(sectionRef.current);
-      }
-
-      return () => {
-        sectionObserver.disconnect();
-      };
     }, sectionRef);
 
     return () => ctx.revert();
@@ -520,13 +422,26 @@ export const WhatWeDoSection: React.FC = () => {
                         isEven ? 'lg:order-1' : 'lg:order-2'
                       }`}
                     >
-                      <div className="relative rounded-2xl overflow-hidden border border-white/20 shadow-[0_20px_60px_rgba(0,0,0,0.85)] bg-black transition-transform aspect-[9/16] h-[48vh] xs:h-[52vh] sm:h-[58vh] lg:h-[68vh] xl:h-[72vh] max-h-[720px] w-auto max-w-[calc(100vw-3rem)] flex items-center justify-center">
-                        <ReelPlayer
-                          videoUrl={mission.videoUrl}
-                          posterUrl={mission.imageUrl}
-                          isActive={isCurrentActive}
-                          className="w-full h-full object-contain bg-black"
+                      <div className="relative rounded-2xl overflow-hidden border border-white/20 shadow-[0_20px_60px_rgba(0,0,0,0.85)] bg-black transition-transform aspect-[9/16] h-[48vh] xs:h-[52vh] sm:h-[58vh] lg:h-[68vh] xl:h-[72vh] max-h-[720px] w-auto max-w-[calc(100vw-3rem)] flex items-center justify-center group/card">
+                        <img
+                          src={mission.imageUrl || MISSIONS[idx]?.imageUrl}
+                          alt={`${mission.category} - ${mission.titleLines.join(' ')}`}
+                          loading={idx === 0 ? 'eager' : 'lazy'}
+                          className="w-full h-full object-cover select-none pointer-events-none transition-transform duration-700 ease-out group-hover/card:scale-105"
                         />
+                        {/* Subtle Cinematic Vignette / Glare overlay */}
+                        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/55 via-transparent to-black/20" />
+
+                        {/* Official Embedded BrandShoots Logo Watermark */}
+                        <div className="absolute top-4 sm:top-5 right-4 sm:right-5 z-10 pointer-events-none flex items-center px-3.5 py-1.5 rounded-xl bg-black/65 backdrop-blur-md border border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.7)]">
+                          <img
+                            src="/Logo-Official-Tight.png"
+                            alt="BrandShoots"
+                            className="h-4 sm:h-5 w-auto object-contain"
+                          />
+                        </div>
+
+                        <div className="absolute inset-0 rounded-2xl border border-white/10 pointer-events-none" />
                       </div>
                     </div>
                   </div>

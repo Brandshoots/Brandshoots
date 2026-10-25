@@ -13,7 +13,7 @@ import {
   Layers,
   Sparkles,
   ExternalLink,
-  Film,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { CMSService } from '../../types/cms';
 import { fetchPublishedServices, saveAllServices, resetServicesToDefaults } from '../../lib/cms/cmsService';
@@ -47,7 +47,18 @@ export const WhatWeDoCMS: React.FC = () => {
     let isMounted = true;
     fetchPublishedServices().then((data) => {
       if (isMounted) {
-        setServices(data);
+        const defaults = [
+          '/what-we-do/creative-content.jpg',
+          '/what-we-do/digital-growth.jpg',
+          '/what-we-do/editing-posting.jpg',
+        ];
+        const upgraded = data.map((s, idx) => {
+          if (!s.imageUrl || s.imageUrl.includes('/reels/thumbnails/')) {
+            return { ...s, imageUrl: defaults[idx] || s.imageUrl };
+          }
+          return s;
+        });
+        setServices(upgraded);
         setIsLoading(false);
       }
     });
@@ -117,23 +128,31 @@ export const WhatWeDoCMS: React.FC = () => {
 
   // Quick Preset Selection from portfolio clients
   const handleSelectPresetReel = (videoUrl: string, posterUrl: string) => {
-    if (!videoUrl) return;
-    setFormVideoUrl(videoUrl);
     if (posterUrl) {
       setFormImageUrl(posterUrl);
     }
+    if (videoUrl) {
+      setFormVideoUrl(videoUrl);
+    }
   };
 
-  // Handle local video file upload / drop
+  // Handle local image or video file upload / drop
   const handleFileSelect = (file: File) => {
-    if (!file.type.startsWith('video/')) {
-      alert('Please select a valid video file (MP4, MOV, WEBM).');
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+
+    if (!isImage && !isVideo) {
+      alert('Please select a valid image (JPG, PNG, WEBP) or video file.');
       return;
     }
 
     // Instant local preview
     const localUrl = URL.createObjectURL(file);
-    setFormVideoUrl(localUrl);
+    if (isImage) {
+      setFormImageUrl(localUrl);
+    } else {
+      setFormVideoUrl(localUrl);
+    }
 
     // Optional Cloudinary upload
     const cloudName =
@@ -143,7 +162,7 @@ export const WhatWeDoCMS: React.FC = () => {
 
     if (cloudName.trim()) {
       setIsUploading(true);
-      setUploadStatus('Uploading video to Cloudinary CDN...');
+      setUploadStatus(`Uploading ${isImage ? 'image' : 'video'} to Cloudinary CDN...`);
 
       try {
         const formData = new FormData();
@@ -151,8 +170,9 @@ export const WhatWeDoCMS: React.FC = () => {
         formData.append('upload_preset', 'brandshoots_unsigned');
         formData.append('folder', 'brandshoots/what-we-do');
 
+        const endpoint = isImage ? 'image/upload' : 'video/upload';
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName.trim()}/video/upload`);
+        xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName.trim()}/${endpoint}`);
 
         xhr.onload = () => {
           setIsUploading(false);
@@ -161,7 +181,11 @@ export const WhatWeDoCMS: React.FC = () => {
               const res = JSON.parse(xhr.responseText);
               const hostedUrl = res.secure_url || res.url;
               if (hostedUrl) {
-                setFormVideoUrl(hostedUrl);
+                if (isImage) {
+                  setFormImageUrl(hostedUrl);
+                } else {
+                  setFormVideoUrl(hostedUrl);
+                }
                 setUploadStatus('Uploaded to Cloudinary CDN!');
               }
             } catch {}
@@ -170,6 +194,7 @@ export const WhatWeDoCMS: React.FC = () => {
 
         xhr.onerror = () => {
           setIsUploading(false);
+          setUploadStatus('Upload failed. Local preview retained.');
         };
 
         xhr.send(formData);
@@ -230,7 +255,7 @@ export const WhatWeDoCMS: React.FC = () => {
             </span>
           </div>
           <p className="text-sm font-sans text-white/60 mt-1 max-w-3xl">
-            Edit text, titles, matter narratives, badges, and 9:16 vertical video reels for the 3 homepage capabilities (01 / 03, 02 / 03, 03 / 03), ending with the Scene 04 3D Climax.
+            Edit text, titles, matter narratives, badges, and 9:16 vertical slide images for the 3 homepage capabilities (01 / 03, 02 / 03, 03 / 03), ending with the Scene 04 3D Climax.
           </p>
         </div>
 
@@ -266,7 +291,7 @@ export const WhatWeDoCMS: React.FC = () => {
       {/* 3 Core Capability Cards Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {services.slice(0, 3).map((service, index) => {
-          const displayVideo = service.videoUrl || service.imageUrl.replace(/\.(jpg|png|jpeg)$/i, '.mp4');
+          const displayMedia = service.imageUrl || service.videoUrl;
           return (
             <div
               key={service.id || index}
@@ -295,39 +320,47 @@ export const WhatWeDoCMS: React.FC = () => {
                 </button>
               </div>
 
-              {/* Card Body: 9:16 Video Reel + Content */}
+              {/* Card Body: 9:16 Slide Image + Content */}
               <div className="p-5 flex flex-col gap-4 flex-1">
-                {/* 9:16 Video Reel Container */}
-                <div className="relative w-full aspect-[9/16] max-h-[380px] bg-black rounded-xl overflow-hidden border border-white/10 group/video shadow-inner">
-                  <video
-                    src={displayVideo}
-                    poster={service.imageUrl}
-                    muted
-                    loop
-                    playsInline
-                    autoPlay
-                    className="w-full h-full object-cover"
-                  />
+                {/* 9:16 Slide Image Container */}
+                <div className="relative w-full aspect-[9/16] max-h-[380px] bg-black rounded-xl overflow-hidden border border-white/10 group/img shadow-inner">
+                  {service.imageUrl ? (
+                    <img
+                      src={service.imageUrl}
+                      alt={service.category}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover/img:scale-105"
+                    />
+                  ) : (
+                    <video
+                      src={displayMedia}
+                      poster={service.imageUrl}
+                      muted
+                      loop
+                      playsInline
+                      autoPlay
+                      className="w-full h-full object-cover"
+                    />
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none" />
 
-                  {/* Reel Overlay Info */}
+                  {/* Image Overlay Info */}
                   <div className="absolute top-3 left-3 pointer-events-none">
                     <span className="px-2.5 py-1 rounded-md bg-black/70 backdrop-blur-md border border-white/15 text-[10px] font-mono font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                      <Film className="w-3 h-3 text-[#008CFF]" />
-                      <span>Chapter 0{index + 1} Reel</span>
+                      <ImageIcon className="w-3 h-3 text-[#008CFF]" />
+                      <span>Chapter 0{index + 1} Image</span>
                     </span>
                   </div>
 
-                  {/* Quick Change Video Button */}
+                  {/* Quick Change Image Button */}
                   <button
                     type="button"
                     onClick={() => openEditModal(service, index)}
                     className="absolute bottom-3 right-3 px-3 py-1.5 rounded-lg bg-black/85 hover:bg-[#008CFF] text-white border border-white/30 flex items-center gap-1.5 text-xs font-mono font-semibold transition-all cursor-pointer shadow-xl backdrop-blur-md"
-                    title="Change video reel"
-                    aria-label="Change video reel"
+                    title="Change slide image"
+                    aria-label="Change slide image"
                   >
                     <RefreshCw className="w-3.5 h-3.5 text-current" />
-                    <span>Change Video</span>
+                    <span>Change Image</span>
                   </button>
                 </div>
 
@@ -361,7 +394,7 @@ export const WhatWeDoCMS: React.FC = () => {
                     className="w-full mt-2 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.12] border border-white/10 text-xs font-mono font-bold text-white/90 hover:text-white flex items-center justify-center gap-2 transition-all cursor-pointer"
                   >
                     <Edit3 className="w-3.5 h-3.5 text-[#008CFF]" />
-                    <span>Edit Pillar 0{index + 1} Content & Video</span>
+                    <span>Edit Pillar 0{index + 1} Content & Image</span>
                   </button>
                 </div>
               </div>
@@ -524,66 +557,55 @@ export const WhatWeDoCMS: React.FC = () => {
                 />
               </div>
 
-              {/* 5. Video Reel URL & Preset Selection */}
+              {/* 5. 9:16 Vertical Slide Image & Optional Video */}
               <div className="space-y-3 pt-3 border-t border-white/10">
                 <label className="block text-xs font-mono uppercase text-white/70 font-bold flex items-center gap-1.5">
-                  <Video className="w-3.5 h-3.5 text-[#008CFF]" />
-                  <span>9:16 Vertical Reel Video</span>
+                  <ImageIcon className="w-3.5 h-3.5 text-[#008CFF]" />
+                  <span>9:16 Vertical Slide Image</span>
                 </label>
 
-                {/* Preset Dropdown Selection */}
-                <div>
-                  <label className="block text-[11px] font-mono uppercase text-white/50 mb-1">
-                    Quick Pick from BrandShoots Portfolio Projects
-                  </label>
-                  <select
-                    onChange={(e) => {
-                      const proj = CLIENT_PROJECTS.find((p) => p.videoUrl === e.target.value);
-                      if (proj) {
-                        handleSelectPresetReel(proj.videoUrl, proj.posterUrl);
-                      }
-                    }}
-                    value={CLIENT_PROJECTS.some((p) => p.videoUrl === formVideoUrl) ? formVideoUrl : ''}
-                    className="w-full px-4 py-2.5 rounded-xl bg-black/70 border border-white/20 text-white text-xs font-mono focus:outline-none focus:border-[#008CFF] transition-colors cursor-pointer"
-                  >
-                    <option value="">-- Choose a Preset Client Reel (Optional) --</option>
-                    {CLIENT_PROJECTS.map((proj) => (
-                      <option key={proj.id} value={proj.videoUrl}>
-                        {proj.name} — {proj.category}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Direct Video URL Input */}
+                {/* Direct Image URL Input */}
                 <div className="relative">
                   <input
                     type="text"
-                    value={formVideoUrl}
-                    onChange={(e) => setFormVideoUrl(e.target.value)}
-                    placeholder="e.g. /reels/... or https://res.cloudinary.com/.../video.mp4"
+                    value={formImageUrl}
+                    onChange={(e) => setFormImageUrl(e.target.value)}
+                    placeholder="e.g. /reels/thumbnails/...jpg or https://..."
                     required
                     className="w-full px-4 py-2.5 pl-10 rounded-xl bg-black/70 border border-white/20 text-white text-sm font-mono placeholder:text-white/30 focus:outline-none focus:border-[#008CFF] transition-colors"
                   />
                   <LinkIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                 </div>
 
-                {/* Optional Poster Image URL */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={formImageUrl}
-                    onChange={(e) => setFormImageUrl(e.target.value)}
-                    placeholder="Poster image URL (optional thumbnail): /reels/thumbnails/...jpg"
-                    className="w-full px-4 py-2 rounded-xl bg-black/50 border border-white/15 text-white/80 text-xs font-mono placeholder:text-white/25 focus:outline-none focus:border-[#008CFF] transition-colors"
-                  />
+                {/* Preset Dropdown Selection */}
+                <div>
+                  <label className="block text-[11px] font-mono uppercase text-white/50 mb-1">
+                    Quick Pick Cover Image from Portfolio Projects
+                  </label>
+                  <select
+                    onChange={(e) => {
+                      const proj = CLIENT_PROJECTS.find((p) => (p.posterUrl || p.videoUrl) === e.target.value);
+                      if (proj) {
+                        handleSelectPresetReel(proj.videoUrl, proj.posterUrl);
+                      }
+                    }}
+                    value={CLIENT_PROJECTS.some((p) => p.posterUrl === formImageUrl) ? formImageUrl : ''}
+                    className="w-full px-4 py-2.5 rounded-xl bg-black/70 border border-white/20 text-white text-xs font-mono focus:outline-none focus:border-[#008CFF] transition-colors cursor-pointer"
+                  >
+                    <option value="">-- Choose a Preset Client Cover Image (Optional) --</option>
+                    {CLIENT_PROJECTS.map((proj) => (
+                      <option key={proj.id} value={proj.posterUrl || proj.videoUrl}>
+                        {proj.name} — {proj.category}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* File Upload / Drag Drop */}
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="video/*"
+                  accept="image/*,video/*"
                   onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
                   className="hidden"
                 />
@@ -593,30 +615,53 @@ export const WhatWeDoCMS: React.FC = () => {
                   className="p-3.5 rounded-xl border border-dashed border-white/25 hover:border-[#008CFF] bg-white/[0.02] hover:bg-[#008CFF]/5 transition-all flex items-center justify-center gap-2 cursor-pointer text-xs font-mono text-white/70 hover:text-white"
                 >
                   <Upload className="w-4 h-4 text-[#008CFF]" />
-                  <span>Or click to upload video file from device</span>
+                  <span>Click to upload image (JPG, PNG, WEBP) or video from device</span>
                 </div>
 
                 {uploadStatus && (
                   <p className="text-xs font-mono text-emerald-400">{uploadStatus}</p>
                 )}
 
-                {/* Video Preview */}
-                {formVideoUrl && (
+                {/* Optional Video Reel URL Input */}
+                <div className="pt-2">
+                  <label className="block text-[11px] font-mono uppercase text-white/50 mb-1 flex items-center gap-1.5">
+                    <Video className="w-3 h-3 text-white/40" />
+                    <span>Optional Video Reel URL</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formVideoUrl}
+                    onChange={(e) => setFormVideoUrl(e.target.value)}
+                    placeholder="Optional video link: /reels/... or https://..."
+                    className="w-full px-4 py-2 rounded-xl bg-black/50 border border-white/15 text-white/80 text-xs font-mono placeholder:text-white/25 focus:outline-none focus:border-[#008CFF] transition-colors"
+                  />
+                </div>
+
+                {/* Media Preview */}
+                {(formImageUrl || formVideoUrl) && (
                   <div className="mt-2 p-3 bg-black/80 rounded-xl border border-white/15 flex items-center gap-4">
                     <div className="w-16 aspect-[9/16] rounded-lg overflow-hidden bg-black shrink-0 border border-white/20 shadow-md">
-                      <video
-                        src={formVideoUrl}
-                        poster={formImageUrl}
-                        muted
-                        loop
-                        autoPlay
-                        playsInline
-                        className="w-full h-full object-cover"
-                      />
+                      {formImageUrl ? (
+                        <img
+                          src={formImageUrl}
+                          alt="Slide preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <video
+                          src={formVideoUrl}
+                          poster={formImageUrl}
+                          muted
+                          loop
+                          autoPlay
+                          playsInline
+                          className="w-full h-full object-cover"
+                        />
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <span className="text-[10px] font-mono uppercase text-[#008CFF] font-bold block">Live Reel Preview</span>
-                      <p className="text-xs font-mono text-white truncate">{formVideoUrl}</p>
+                      <span className="text-[10px] font-mono uppercase text-[#008CFF] font-bold block">Live Slide Visual Preview</span>
+                      <p className="text-xs font-mono text-white truncate">{formImageUrl || formVideoUrl}</p>
                     </div>
                   </div>
                 )}

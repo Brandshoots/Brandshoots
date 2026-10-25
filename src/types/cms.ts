@@ -60,6 +60,10 @@ export interface CMSHero {
   taglineSuffix: string;
   desktopVideoUrl?: string;
   mobileVideoUrl?: string;
+  mobilePosterUrl?: string;
+  mobileDisplayMode?: 'single-reel-carousel' | 'featured-single-reel';
+  mobileFeaturedTitle?: string;
+  mobileFeaturedClient?: string;
   reels?: CMSHeroReel[];
   updatedAt?: number;
 }

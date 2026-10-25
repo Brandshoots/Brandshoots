@@ -28,27 +28,17 @@ const MobileReelCard: React.FC<MobileReelCardProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [isInView, setIsInView] = useState<boolean>(false);
 
-  // Play/pause dynamically based on viewport intersection
+  // IntersectionObserver: Only the active in-view card mounts & decodes video (Single Active Video Rule)
   useEffect(() => {
     const container = containerRef.current;
-    const video = videoRef.current;
-    if (!container || !video) return;
-
-    video.muted = isMuted;
+    if (!container) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            video
-              .play()
-              .then(() => setIsPlaying(true))
-              .catch(() => setIsPlaying(false));
-          } else {
-            video.pause();
-            setIsPlaying(false);
-          }
+          setIsInView(entry.isIntersecting);
         });
       },
       {
@@ -61,9 +51,37 @@ const MobileReelCard: React.FC<MobileReelCardProps> = ({
     return () => {
       observer.disconnect();
     };
-  }, [isMuted]);
+  }, []);
 
-  // Keep muted state in sync
+  // Video playback lifecycle & hardware decoder release when off-screen
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !isInView) return;
+
+    video.defaultMuted = true;
+    video.muted = isMuted;
+    video.playsInline = true;
+
+    const start = () => {
+      video
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch(() => setIsPlaying(false));
+    };
+
+    start();
+    video.addEventListener('canplay', start, { once: true });
+
+    return () => {
+      video.removeEventListener('canplay', start);
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
+      setIsPlaying(false);
+    };
+  }, [isInView, isMuted, project.videoUrl]);
+
+  // Keep muted state in sync without reloading
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.muted = isMuted;
@@ -105,17 +123,28 @@ const MobileReelCard: React.FC<MobileReelCardProps> = ({
         onClick={togglePlay}
         className="relative w-[80vw] max-w-[325px] aspect-[9/16] mx-auto rounded-2xl sm:rounded-3xl overflow-hidden bg-[#070B14] shadow-[0_16px_40px_rgba(0,0,0,0.85)] border border-white/10 cursor-pointer select-none group"
       >
-        {/* Real Reel Video */}
-        <video
-          ref={videoRef}
-          src={project.videoUrl}
-          poster={project.posterUrl}
-          playsInline
-          muted={isMuted}
-          loop
-          preload={index === 0 ? 'auto' : 'metadata'}
-          className="w-full h-full object-cover"
+        {/* Instant High-Res Poster Image — Always rendered underneath (Zero black flash) */}
+        <img
+          src={project.posterUrl}
+          alt={project.name}
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
         />
+
+        {/* Single Active Video (Mounted dynamically ONLY when intersecting viewport) */}
+        {isInView && (
+          <video
+            ref={videoRef}
+            src={project.videoUrl}
+            poster={project.posterUrl}
+            playsInline
+            muted={isMuted}
+            loop
+            preload="auto"
+            className="absolute inset-0 w-full h-full object-cover z-1"
+          />
+        )}
 
         {/* Top Badges Overlay inside Reel */}
         <div className="absolute top-3 inset-x-3 flex items-center justify-between pointer-events-none z-10">

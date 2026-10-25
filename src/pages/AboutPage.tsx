@@ -76,6 +76,7 @@ export const AboutPage: React.FC = () => {
       gsap.ticker.remove(ticker);
       lenis.off('scroll', ScrollTrigger.update);
       lenis.destroy();
+      ScrollTrigger.getAll().forEach((t) => t.kill());
     };
   }, [preloaderActive]);
 
