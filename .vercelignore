@@ -3,6 +3,7 @@ dist
 .git
 reports
 scripts
+asset-backups
 /Reels/
 /Official Clients/
 /public/reels_original/

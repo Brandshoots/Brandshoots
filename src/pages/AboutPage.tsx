@@ -27,9 +27,8 @@ export const AboutPage: React.FC = () => {
     setPreloaderActive(false);
   }, []);
 
-  // Set document title, scroll to top, and clear legacy session flag
+  // Reset scroll and clear the legacy session flag. SiteSeo owns metadata.
   useEffect(() => {
-    document.title = 'About | BRANDSHOOTS — Create. Shoot. Grow.';
     window.scrollTo(0, 0);
     if (typeof window !== 'undefined') {
       try {
@@ -88,6 +87,7 @@ export const AboutPage: React.FC = () => {
 
       {/* 2. CINEMATIC ABOUT PAGE CHAPTERS (Rendered seamlessly underneath preloader overlay) */}
       <AboutNavbar />
+      <h1 className="sr-only">About BrandShoots</h1>
 
       {/* 3D Brand Manifesto: CREATE -> SHOOT -> GROW with Amplified 3D Depth */}
       <ManifestoScrollSection />

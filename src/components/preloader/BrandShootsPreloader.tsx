@@ -36,6 +36,7 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
   const flashRef = useRef<HTMLDivElement>(null);
   const backdropHazeRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
+  const hasCompletedRef = useRef(false);
 
   const [isCompleted, setIsCompleted] = useState(false);
 
@@ -47,10 +48,15 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
   }, []);
 
   const handleSequenceComplete = useCallback(() => {
+    // The animation and the safety timer can finish close together. Only hand
+    // control back to the homepage once, so the preloader cannot remount or
+    // fire its callback twice.
+    if (hasCompletedRef.current) return;
+    hasCompletedRef.current = true;
+    timelineRef.current?.kill();
+    timelineRef.current = null;
     setIsCompleted(true);
-    if (onComplete) {
-      onComplete();
-    }
+    onComplete?.();
   }, [onComplete]);
 
   useEffect(() => {
@@ -59,6 +65,7 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
 
     if (prefersReduced) {
       const quickTl = gsap.timeline({ onComplete: handleSequenceComplete });
+      timelineRef.current = quickTl;
       quickTl.to(containerRef.current, { opacity: 1, duration: 0.1 });
       quickTl.call(() => {
         if (logoOverlayRef.current) {
@@ -67,7 +74,11 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
         }
       });
       quickTl.to(containerRef.current, { opacity: 0, duration: 0.5, delay: 0.6 });
-      return;
+
+      return () => {
+        quickTl.kill();
+        timelineRef.current = null;
+      };
     }
 
     const ctx = gsap.context(() => {
@@ -91,10 +102,8 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
 
     // Safety timeout failsafe to ensure visitor is never trapped
     const safetyTimer = setTimeout(() => {
-      if (!isCompleted) {
-        handleSequenceComplete();
-      }
-    }, PRELOADER_CONFIG.safetyTimeoutMs || 5500);
+      handleSequenceComplete();
+    }, PRELOADER_CONFIG.safetyTimeoutMs || 4500);
 
     return () => {
       clearTimeout(safetyTimer);
@@ -103,7 +112,7 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
       }
       ctx.revert();
     };
-  }, [forceReducedMotion, handleSequenceComplete, isCompleted]);
+  }, [forceReducedMotion, handleSequenceComplete]);
 
   if (isCompleted) {
     return null;

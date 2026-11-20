@@ -3,8 +3,8 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Volume2, VolumeX, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ReelWall3D } from './ReelWall3D';
-import { HeroCinematicBackground } from './HeroCinematicBackground';
 import { useCMSContent } from '../../lib/cms/useCMSContent';
+import { getOptimizedImageUrl } from '../../utils/mediaAssets';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -52,14 +52,15 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
       return [
         {
           src: hero.mobileVideoUrl,
-          poster:
+          poster: getOptimizedImageUrl(
             hero.mobilePosterUrl ||
-            '/reels/posters/wearebrandshoots_1777444216_3885805244420742638_77785749886.jpg',
+            '/reels/posters/wearebrandshoots_1777444216_3885805244420742638_77785749886.webp'
+          ),
           title: hero.mobileFeaturedTitle || 'BrandShoots Studio Reel',
         },
         ...(heroReels || []).map((r) => ({
           src: r.src,
-          poster: r.poster,
+          poster: getOptimizedImageUrl(r.poster),
           title: r.title,
         })),
       ];
@@ -67,14 +68,16 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
     if (heroReels && heroReels.length > 0) {
       return heroReels.map((r) => ({
         src: r.src,
-        poster: r.poster,
+        poster: getOptimizedImageUrl(r.poster),
         title: r.title,
       }));
     }
     return [
       {
         src: '/reels/wearebrandshoots_1777444216_3885805244420742638_77785749886.mp4',
-        poster: '/reels/posters/wearebrandshoots_1777444216_3885805244420742638_77785749886.jpg',
+        poster: getOptimizedImageUrl(
+          '/reels/posters/wearebrandshoots_1777444216_3885805244420742638_77785749886.webp'
+        ),
         title: 'BrandShoots Flagship Reel',
       },
     ];
@@ -119,7 +122,7 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
 
   // Mobile Full Screen Video Playback & Lifecycle
   useEffect(() => {
-    if (!isMobile) return;
+    if (!isMobile || isPreloaderActive) return;
     const video = mobileVideoRef.current;
     if (!video) return;
 
@@ -180,7 +183,7 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
       video.removeEventListener('canplay', tryPlay);
       video.removeEventListener('loadeddata', tryPlay);
     };
-  }, [isMobile, currentMobileSrc, isMuted]);
+  }, [isMobile, isPreloaderActive, currentMobileSrc, isMuted]);
 
   // GSAP Entrance Timeline for the Hero (Synchronized with preloader completion)
   useEffect(() => {
@@ -267,11 +270,7 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
         });
 
         if (reelWallContainerRef.current) {
-          exitTl.to(
-            reelWallContainerRef.current,
-            { y: -140, scale: 1.18, opacity: 0.12, filter: 'blur(6px)', ease: 'power1.out' },
-            0
-          );
+          exitTl.to(reelWallContainerRef.current, { y: -80, opacity: 0.18, ease: 'power1.out' }, 0);
         }
 
         if (mobileVideoContainerRef.current) {
@@ -289,7 +288,7 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
         if (titleBrandRef.current && titleShootsRef.current) {
           exitTl.to(
             [titleBrandRef.current, titleShootsRef.current],
-            { y: -60, scale: 0.92, opacity: 0, filter: 'blur(8px)', ease: 'power1.out' },
+            { y: -60, scale: 0.96, opacity: 0, ease: 'power1.out' },
             0
           );
         }
@@ -333,6 +332,10 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
         <img
           src={currentMobilePoster}
           alt={currentMobileTitle || 'BrandShoots Reel'}
+          width={720}
+          height={1280}
+          sizes="100vw"
+          fetchPriority="high"
           loading="eager"
           decoding="async"
           className="absolute inset-0 w-full h-full object-cover object-center scale-[1.01] pointer-events-none select-none transition-opacity duration-300"
@@ -343,11 +346,11 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
           ref={mobileVideoRef}
           src={currentMobileSrc}
           poster={currentMobilePoster}
-          autoPlay
+          autoPlay={!isPreloaderActive}
           loop
           muted={isMuted}
           playsInline
-          preload="auto"
+          preload={isPreloaderActive ? 'none' : 'metadata'}
           className="absolute inset-0 w-full h-full object-cover object-center scale-[1.01] pointer-events-none select-none"
         />
 
@@ -416,21 +419,15 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
         </div>
       </div>
 
-      {/* ========================================================= */}
-      {/* 2. DESKTOP CINEMATIC BACKGROUND ENVIRONMENTS & 3D CYLINDER*/}
-      {/* ========================================================= */}
-      <div className="hidden md:block absolute inset-0">
-        <HeroCinematicBackground />
-        <div className="absolute inset-0 cinema-grain pointer-events-none z-20 opacity-30" />
-        <div className="absolute inset-0 cinema-vignette pointer-events-none z-10 opacity-55" />
-      </div>
+      {/* 2. DESKTOP PORTFOLIO BACKDROP */}
+      <div className="hidden md:block absolute inset-0 bg-[#08090C]" />
 
       {/* ========================================================= */}
       {/* 3. HEADER: TAGLINE (CREATE. SHOOT. GROW.)                 */}
       {/* ========================================================= */}
       <div
         ref={taglineRef}
-        className="absolute top-[16vh] sm:top-[17vh] md:top-[18vh] lg:top-[19vh] left-0 right-0 z-30 font-mono text-[11px] sm:text-[13px] md:text-[14px] lg:text-[15px] tracking-[0.38em] sm:tracking-[0.48em] uppercase font-bold text-center pointer-events-none px-4"
+        className="absolute top-[16vh] sm:top-[17vh] md:top-[18vh] lg:top-[19vh] left-0 right-0 z-30 font-sans text-[10px] sm:text-xs md:text-[13px] tracking-[0.2em] uppercase font-medium text-center pointer-events-none px-4"
       >
         <span className="text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
           {hero?.taglinePrefix || 'CREATE. '}
@@ -455,6 +452,7 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
             isPreloaderActive={isPreloaderActive}
             isMuted={isMuted}
             onToggleMute={toggleAudio}
+            reels={heroReels}
           />
         )}
       </div>
@@ -471,13 +469,13 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
       {/* ========================================================= */}
       {/* 5. CENTRAL TITLE: BRANDSHOOTS                             */}
       {/* ========================================================= */}
-      <div className="absolute bottom-[9vh] sm:bottom-[9.5vh] md:bottom-[10vh] lg:bottom-[10.5vh] left-0 right-0 z-30 text-center select-none pointer-events-none px-4 sm:px-10">
-        <h1 className="font-display font-black tracking-[-0.038em] uppercase text-[12.5vw] sm:text-[10vw] lg:text-[8.8vw] xl:text-[124px] 2xl:text-[132px] leading-[0.88] flex items-center justify-center">
+      <div className="absolute bottom-[10vh] sm:bottom-[10.5vh] md:bottom-[11vh] lg:bottom-[11.5vh] left-0 right-0 z-30 text-center select-none pointer-events-none px-4 sm:px-10">
+        <h1 className="font-display font-black tracking-[-0.038em] uppercase text-[11vw] sm:text-[9vw] lg:text-[7.2vw] xl:text-[112px] 2xl:text-[120px] leading-[0.88] flex items-center justify-center">
           {/* BRAND — clean flat electric blue with glowing shadow */}
           <span
             ref={titleBrandRef}
             className="inline-block text-[#008CFF]"
-            style={{ textShadow: '0 4px 28px rgba(0,0,0,0.95), 0 0 35px rgba(0,140,255,0.45)' }}
+            style={{ textShadow: '0 2px 16px rgba(0,0,0,0.75)' }}
           >
             {hero?.brandTitle || 'BRAND'}
           </span>

@@ -1,2 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /reference-lab
+
+Sitemap: https://www.brandshoots.in/sitemap.xml

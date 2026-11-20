@@ -1,30 +1,11 @@
 import React, { useState } from 'react';
 import {
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
   sendPasswordResetEmail,
 } from 'firebase/auth';
 import { firebaseAuth } from '../../lib/firebase';
 import { Lock, Mail, ArrowRight, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const MASTER_EMAIL = 'brandshoots.in@gmail.com';
-const VALID_ADMIN_EMAILS = [
-  'admin',
-  'admin@brandshoots.in',
-  'brandshoots.in@gmail.com',
-  'brandshoots@gmail.com',
-  'dev@brandshoots.com',
-];
-
-const VALID_ADMIN_PASSWORDS = [
-  'BD@admin2026',
-  'admin',
-  'admin123',
-  'admin2026',
-  'Admin@2026',
-  '123456',
-];
 
 export const AdminLoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -41,84 +22,30 @@ export const AdminLoginPage: React.FC = () => {
   const [resetError, setResetError] = useState<string | null>(null);
 
   const performLogin = async (loginEmail: string, loginPass: string) => {
-    const rawInput = loginEmail.trim();
-    if (!rawInput || !loginPass) {
-      setError('Please enter both admin email/username and password.');
+    const firebaseEmail = loginEmail.trim();
+    if (!firebaseEmail || !loginPass) {
+      setError('Please enter both administrator email and password.');
       return;
     }
-
-    const isMasterUser = VALID_ADMIN_EMAILS.some(
-      (m) => m.toLowerCase() === rawInput.toLowerCase()
-    );
-    const isMasterPass = VALID_ADMIN_PASSWORDS.includes(loginPass);
-    const isMasterAdmin = isMasterUser && isMasterPass;
-
-    // Normalize email for Firebase Auth format: if user typed "admin", resolve to master email
-    const firebaseEmail = rawInput.includes('@') ? rawInput : MASTER_EMAIL;
 
     setError(null);
     setIsSubmitting(true);
 
-    // 1. Resilient Master Admin Session Fallback (Instant & flawless for admin / BD@admin2026)
-    if (isMasterAdmin) {
-      localStorage.setItem(
-        'bs_admin_auth_fallback',
-        JSON.stringify({
-          email: rawInput.includes('@') ? rawInput : 'admin@brandshoots.in',
-          uid: 'master-admin-bs',
-          displayName: 'BrandShoots Administrator',
-          authenticatedAt: Date.now(),
-        })
-      );
-
-      // Attempt background Firebase sync without blocking user entry
-      signInWithEmailAndPassword(firebaseAuth, 'admin-master@brandshoots.com', 'BD@admin2026').catch(() => {
-        signInWithEmailAndPassword(firebaseAuth, firebaseEmail, loginPass).catch(() => {});
-      });
-
-      window.dispatchEvent(new Event('bs-auth-change'));
-      setIsSubmitting(false);
-      return;
-    }
-
     try {
-      // 2. Standard Firebase Auth sign-in
       await signInWithEmailAndPassword(firebaseAuth, firebaseEmail, loginPass);
     } catch (err: any) {
-      console.warn('Firebase sign-in attempt notice:', err);
-
-      // 3. Auto-registration attempt for first-time setup
-      if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-        try {
-          await createUserWithEmailAndPassword(firebaseAuth, firebaseEmail, loginPass);
-          setIsSubmitting(false);
-          return;
-        } catch (createErr: any) {
-          if (createErr.code === 'auth/email-already-in-use') {
-            try {
-              await signInWithEmailAndPassword(firebaseAuth, firebaseEmail, loginPass);
-              setIsSubmitting(false);
-              return;
-            } catch {
-              // fall through
-            }
-          }
-        }
-      }
-
-      let msg = 'Failed to sign in. Please verify your credentials.';
+      console.warn('Firebase sign-in attempt notice:', err?.code || 'unknown');
+      let message = 'Failed to sign in. Please verify your credentials.';
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
-        msg = 'Invalid credentials. Please verify your password.';
+        message = 'Invalid credentials. Please verify your email and password.';
       } else if (err.code === 'auth/user-not-found') {
-        msg = 'No administrator account found with this identifier.';
+        message = 'No administrator account was found for this email.';
       } else if (err.code === 'auth/invalid-email') {
-        msg = 'Please enter a valid administrator email or username.';
+        message = 'Please enter a valid administrator email.';
       } else if (err.code === 'auth/too-many-requests') {
-        msg = 'Access temporarily throttled due to multiple attempts. Please retry shortly.';
-      } else if (err.message) {
-        msg = err.message;
+        message = 'Access temporarily throttled due to multiple attempts. Please retry shortly.';
       }
-      setError(msg);
+      setError(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -186,14 +113,15 @@ export const AdminLoginPage: React.FC = () => {
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
             <label className="block text-[11px] font-mono uppercase tracking-wider text-white/60 mb-2">
-              Admin Email / Username
+              Administrator Email
             </label>
             <div className="relative">
               <input
-                type="text"
+                type="email"
+                autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin or brandshoots.in@gmail.com"
+                placeholder="admin@brandshoots.in"
                 required
                 className="w-full px-4 py-3 pl-10 rounded-xl bg-black/50 border border-white/15 text-white placeholder-white/20 text-sm focus:outline-none focus:border-[#008CFF] focus:shadow-[0_0_20px_rgba(0,140,255,0.2)] transition-all font-mono"
               />
@@ -209,7 +137,7 @@ export const AdminLoginPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
-                  setResetEmail(email.includes('@') ? email : MASTER_EMAIL);
+                  setResetEmail(email);
                   setResetSuccess(false);
                   setResetError(null);
                   setShowResetModal(true);
@@ -222,6 +150,7 @@ export const AdminLoginPage: React.FC = () => {
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"

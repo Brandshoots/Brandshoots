@@ -20,9 +20,8 @@ export const PortfolioPage: React.FC = () => {
     return true;
   });
 
-  // Set document title and scroll to top on mount
+  // Reset scroll on mount. SiteSeo owns metadata.
   useEffect(() => {
-    document.title = 'Portfolio | BRANDSHOOTS — Create. Shoot. Grow.';
     window.scrollTo(0, 0);
   }, []);
 
@@ -77,6 +76,7 @@ export const PortfolioPage: React.FC = () => {
 
       {/* 1. HOMEPAGE-MATCHED NAVIGATION BAR */}
       <PortfolioNavbar />
+      <h1 className="sr-only">BrandShoots Commercial Video Portfolio</h1>
 
       {/* 2. 100vw × 100vh 3D CINEMATIC CORRIDOR (PROJECTS 01-08) */}
       <PortfolioWormhole3D />

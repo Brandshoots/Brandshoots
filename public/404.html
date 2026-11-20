@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#08090C" />
+    <link rel="preload" href="/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <title>Page Not Found | BrandShoots</title>
+    <style>
+      @font-face { font-family: Figtree; font-style: normal; font-weight: 300 900; font-display: swap; src: url('/fonts/figtree-latin.woff2') format('woff2'); }
+      :root { color-scheme: dark; font-family: Figtree, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; background: #08090c; color: #fff; }
+      header { height: 76px; border-bottom: 1px solid rgba(255,255,255,.12); }
+      .nav, .content { width: min(100% - 40px, 1380px); margin: 0 auto; }
+      .nav { height: 100%; display: flex; align-items: center; justify-content: space-between; }
+      .logo { width: 190px; height: auto; display: block; }
+      nav { display: flex; align-items: center; gap: 28px; }
+      nav a { color: rgba(255,255,255,.7); text-decoration: none; font-size: 12px; letter-spacing: .12em; }
+      main { min-height: calc(100vh - 76px); display: flex; align-items: center; padding: 72px 0; }
+      .content { border-top: 1px solid rgba(255,255,255,.15); padding-top: 36px; }
+      .eyebrow { margin: 0; color: #1497f5; font-size: 11px; font-weight: 700; letter-spacing: .16em; }
+      h1 { max-width: 960px; margin: 24px 0 0; font-size: clamp(58px, 10vw, 144px); line-height: .84; letter-spacing: -.065em; }
+      .message { max-width: 600px; margin: 30px 0 0; color: rgba(255,255,255,.62); font-size: 17px; line-height: 1.7; }
+      .home { display: inline-flex; margin-top: 34px; min-height: 48px; align-items: center; background: #1497f5; color: #fff; padding: 0 20px; text-decoration: none; font-size: 12px; font-weight: 700; letter-spacing: .12em; }
+      .home:hover { background: #fff; color: #08090c; }
+      @media (max-width: 640px) { nav a:not(:last-child) { display: none; } .logo { width: 150px; } }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="nav">
+        <a href="/" aria-label="BrandShoots home"><img class="logo" src="/Logo%20Official.svg" alt="BrandShoots" width="1600" height="365" /></a>
+        <nav aria-label="Primary navigation">
+          <a href="/about">ABOUT</a>
+          <a href="/portfolio">PORTFOLIO</a>
+          <a href="/packages">PACKAGES</a>
+          <a href="/contact">CONTACT</a>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <div class="content">
+        <p class="eyebrow">ERROR 404</p>
+        <h1>Page not found.</h1>
+        <p class="message">The page you requested does not exist or may have moved. Return to the BrandShoots homepage to continue.</p>
+        <a class="home" href="/">← BACK TO HOME</a>
+      </div>
+    </main>
+  </body>
+</html>

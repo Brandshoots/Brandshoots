@@ -34,3 +34,8 @@ scratch_*.png
 public/Reels Folder
 
 .env*
+
+# Backups and local scratch files
+asset-backups/
+fix.txt
+

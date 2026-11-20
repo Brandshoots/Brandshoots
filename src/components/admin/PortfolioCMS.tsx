@@ -27,22 +27,22 @@ import {
 import { pushProjectsUndoAction } from '../../lib/cms/cmsHistory';
 
 const PRESET_LOGOS = [
-  { label: 'Santhi Pipes', url: '/clients/Shanti Pipes.png' },
-  { label: 'Viswatuff Glass', url: '/clients/Viswatuff Glass Logo.png' },
-  { label: 'Bags World', url: '/clients/Bags World Logo.PNG' },
-  { label: 'Aabharan Jewellers', url: '/clients/Aabharan Logo.png' },
-  { label: 'Fresh & Fresh', url: '/clients/Fresh and Fresh Logo.png' },
-  { label: 'Dayanidhi Creations', url: '/clients/Dayanidhi Logo.png' },
-  { label: 'Jain Beauty Studio', url: '/clients/Jain Beauty Logo.png' },
-  { label: 'RK Home Living', url: '/clients/Rk home.png' },
-  { label: 'SB Ventures', url: '/clients/SB Ventures Logo.png' },
-  { label: 'KC Overseas', url: '/clients/KC Overseas Logo.PNG' },
-  { label: 'SRK Doors World', url: '/clients/SRK Doors World Logo.png' },
-  { label: 'Jain Enterprises', url: '/clients/Jain Enterprises Logo.png' },
-  { label: 'Nirmala', url: '/clients/Nirmala logo.png' },
-  { label: 'Rudra', url: '/clients/Rudra logo.png' },
-  { label: 'Sahana', url: '/clients/Sahana Logo.PNG' },
-  { label: 'T3 Studio', url: '/clients/T3 Logo.png' },
+  { label: 'Santhi Pipes', url: '/clients/optimized/Shanti Pipes.webp' },
+  { label: 'Viswatuff Glass', url: '/clients/optimized/Viswatuff Glass Logo.webp' },
+  { label: 'Bags World', url: '/clients/optimized/Bags World Logo.webp' },
+  { label: 'Aabharan Jewellers', url: '/clients/optimized/Aabharan Logo.webp' },
+  { label: 'Fresh & Fresh', url: '/clients/optimized/Fresh and Fresh Logo.webp' },
+  { label: 'Dayanidhi Creations', url: '/clients/optimized/Dayanidhi Logo.webp' },
+  { label: 'Jain Beauty Studio', url: '/clients/optimized/Jain Beauty Logo.webp' },
+  { label: 'RK Home Living', url: '/clients/optimized/Rk home.webp' },
+  { label: 'SB Ventures', url: '/clients/optimized/SB Ventures Logo.webp' },
+  { label: 'KC Overseas', url: '/clients/optimized/KC Overseas Logo.webp' },
+  { label: 'SRK Doors World', url: '/clients/optimized/SRK Doors World Logo.webp' },
+  { label: 'Jain Enterprises', url: '/clients/optimized/Jain Enterprises Logo.webp' },
+  { label: 'Nirmala', url: '/clients/optimized/Nirmala logo.webp' },
+  { label: 'Rudra', url: '/clients/optimized/Rudra logo.webp' },
+  { label: 'Sahana', url: '/clients/optimized/Sahana Logo.webp' },
+  { label: 'T3 Studio', url: '/clients/optimized/T3 Logo.webp' },
 ];
 
 export const PortfolioCMS: React.FC = () => {
@@ -163,8 +163,8 @@ export const PortfolioCMS: React.FC = () => {
     setFormYear('2026');
     setFormVisible(true);
     setFormVideoUrl('/reels/santhi.pipes_rjy/santhi.pipes_rjy_2026-09-06_10-01-41_3979966688738161477_48644092133.mp4');
-    setFormPosterUrl('/reels/thumbnails/santhi.pipes_rjy_2026-09-06_10-01-41_3979966688738161477_48644092133.jpg');
-    setFormLogoUrl('/clients/Shanti Pipes.png');
+    setFormPosterUrl('/reels/thumbnails-webp/santhi.pipes_rjy_2026-09-06_10-01-41_3979966688738161477_48644092133.webp');
+    setFormLogoUrl('/clients/optimized/Shanti Pipes.webp');
     setFormViews('250K+');
     setFormFollowers('18K+');
     setFormLikes('34K+');
@@ -896,7 +896,7 @@ export const PortfolioCMS: React.FC = () => {
                         type="text"
                         value={formLogoUrl}
                         onChange={(e) => setFormLogoUrl(e.target.value)}
-                        placeholder="e.g. /clients/Shanti Pipes.png"
+                        placeholder="e.g. /clients/optimized/Shanti Pipes.webp"
                         className="w-full bg-[#030509] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-cyan-500/50"
                       />
                     </div>
@@ -1009,7 +1009,7 @@ export const PortfolioCMS: React.FC = () => {
                       required
                       value={formPosterUrl}
                       onChange={(e) => setFormPosterUrl(e.target.value)}
-                      placeholder="/reels/thumbnails/...jpg"
+                      placeholder="/reels/thumbnails-webp/...webp"
                       className="w-full bg-[#030509] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-cyan-500/50"
                     />
 
@@ -1249,7 +1249,7 @@ export const PortfolioCMS: React.FC = () => {
                                 type="text"
                                 value={reel.posterUrl}
                                 onChange={(e) => handleUpdateReel(rIdx, 'posterUrl', e.target.value)}
-                                placeholder="/reels/thumbnails/...jpg"
+                                placeholder="/reels/thumbnails-webp/...webp"
                                 className="w-full bg-[#070b14] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white"
                               />
                             </div>

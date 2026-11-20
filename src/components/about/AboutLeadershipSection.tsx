@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useCMSContent } from '../../lib/cms/useCMSContent';
+import { getOptimizedImageUrl } from '../../utils/mediaAssets';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -177,8 +178,10 @@ export const AboutLeadershipSection: React.FC = () => {
               >
                 <img
                   ref={portraitImgRef}
-                  src={leadership?.founderImage || '/founder.png'}
+                  src={getOptimizedImageUrl(leadership?.founderImage || '/founder.webp')}
                   alt={`${leadership?.founderName || 'Durgarao Vallepu'} — ${leadership?.founderRole || 'Founder'}`}
+                  width={960}
+                  height={960}
                   loading="lazy"
                   decoding="async"
                   className="w-full h-full object-cover object-[center_20%] select-none will-change-transform"

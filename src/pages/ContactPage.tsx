@@ -19,9 +19,8 @@ export const ContactPage: React.FC = () => {
     return true;
   });
 
-  // Set document title & reset scroll
+  // Reset scroll on mount. SiteSeo owns metadata.
   useEffect(() => {
-    document.title = 'Contact | BRANDSHOOTS — Create. Shoot. Grow.';
     window.scrollTo(0, 0);
   }, []);
 
@@ -57,6 +56,14 @@ export const ContactPage: React.FC = () => {
       gsap.ticker.remove(ticker);
       lenis.destroy();
     };
+  }, [preloaderActive]);
+
+  useEffect(() => {
+    if (preloaderActive || window.location.hash !== '#site-visit') return;
+    const timer = window.setTimeout(() => {
+      document.getElementById('site-visit')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 250);
+    return () => window.clearTimeout(timer);
   }, [preloaderActive]);
 
   const handleScrollToForm = () => {

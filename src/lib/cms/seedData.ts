@@ -53,7 +53,7 @@ export const INITIAL_HERO: CMSHero = {
   taglineSuffix: ' GROW.',
   desktopVideoUrl: '/reels/wearebrandshoots_1777444216_3885805244420742638_77785749886.mp4',
   mobileVideoUrl: '/reels/wearebrandshoots_1777444216_3885805244420742638_77785749886.mp4',
-  mobilePosterUrl: '/reels/posters/wearebrandshoots_1777444216_3885805244420742638_77785749886.jpg',
+  mobilePosterUrl: '/reels/posters/wearebrandshoots_1777444216_3885805244420742638_77785749886.webp',
   mobileDisplayMode: 'single-reel-carousel',
   mobileFeaturedTitle: 'BrandShoots Studio Reel',
   mobileFeaturedClient: 'BrandShoots',
@@ -68,7 +68,7 @@ export const INITIAL_SERVICES: Record<string, CMSService> = {
     titleLines: ['CREATIVE', 'CONTENT'],
     category: 'CREATIVE CONTENT',
     description: 'High-impact social films, vertical storytelling, viral hooks, and creative campaign direction engineered to captivate algorithmic feeds.',
-    imageUrl: '/what-we-do/creative-content.jpg',
+    imageUrl: '/what-we-do/optimized/creative-content.webp',
     videoUrl: '/reels/aabharan_womens_accessories/aabharan_womens_accessories_2026-05-30_10-01-21_3908213461611903133_45301478774.mp4',
     aspectRatio: 'portrait',
     tag: 'CREATIVE DIRECTION & HOOKS',
@@ -82,7 +82,7 @@ export const INITIAL_SERVICES: Record<string, CMSService> = {
     titleLines: ['DIGITAL', 'GROWTH'],
     category: 'DIGITAL GROWTH',
     description: 'Full-funnel digital creative systems, visual campaigns, and scalable brand momentum engineered to convert viewers into lifelong advocates.',
-    imageUrl: '/what-we-do/digital-growth.jpg',
+    imageUrl: '/what-we-do/optimized/digital-growth.webp',
     videoUrl: '/reels/viswatuff.glass_rjy/viswatuff.glass_rjy_2026-05-28_18-00-28_3907005057329571857_78432309239.mp4',
     aspectRatio: 'portrait',
     tag: 'CATEGORY LEADERSHIP & SCALE',
@@ -96,7 +96,7 @@ export const INITIAL_SERVICES: Record<string, CMSService> = {
     titleLines: ['EDITING &', 'POSTING'],
     category: 'EDITING & POSTING',
     description: 'Precision cinematic editing, luxury Hollywood color grading, immersive spatial sound design, and scheduled high-impact posting across platforms.',
-    imageUrl: '/what-we-do/editing-posting.jpg',
+    imageUrl: '/what-we-do/optimized/editing-posting.webp',
     videoUrl: '/reels/sbventures_official/sbventures_official_2026-09-15_17-10-21_3986704799434897519_5720346010.mp4',
     aspectRatio: 'portrait',
     tag: 'PRECISION FINISHING & DISTRIBUTION',
@@ -163,7 +163,7 @@ export const INITIAL_LEADERSHIP: CMSLeadership = {
   founderName: 'Durgarao Vallepu',
   founderRole: 'Founder & Creative Director',
   founderBio: 'Director, visual strategist, and commercial filmmaker dedicated to elevating Indian and global brands into cinematic legends.',
-  founderImage: '/founder.png',
+  founderImage: '/founder.webp',
   updatedAt: Date.now(),
 };
 
@@ -180,7 +180,7 @@ export const INITIAL_SITE_SETTINGS: CMSSiteSettings = {
 export const INITIAL_ANNOUNCEMENTS: Record<string, CMSAnnouncement> = {
   'ann_1': {
     id: 'ann_1',
-    imageUrl: '/reels/thumbnails/sbventures_official_2026-09-15_17-10-21_3986704799434897519_5720346010.jpg',
+    imageUrl: '/reels/thumbnails-webp/sbventures_official_2026-09-15_17-10-21_3986704799434897519_5720346010.webp',
     title: 'We Are Hiring: Senior Video Editor & Colorist',
     description: 'Join the BrandShoots studio core. We are scouting ambitious video editors & DaVinci colorists skilled in high-retention commercial cuts.',
     buttonUrl: '/contact',
@@ -191,7 +191,7 @@ export const INITIAL_ANNOUNCEMENTS: Record<string, CMSAnnouncement> = {
   },
   'ann_2': {
     id: 'ann_2',
-    imageUrl: '/reels/thumbnails/viswatuff.glass_rjy_2026-05-28_18-00-28_3907005057329571857_78432309239.jpg',
+    imageUrl: '/reels/thumbnails-webp/viswatuff.glass_rjy_2026-05-28_18-00-28_3907005057329571857_78432309239.webp',
     title: 'Welcoming Our New USA Enterprise Client',
     description: 'BrandShoots goes international! Thrilled to partner with a leading tech & architectural firm in California to craft their global commercial film series.',
     buttonUrl: '/portfolio',
@@ -202,7 +202,7 @@ export const INITIAL_ANNOUNCEMENTS: Record<string, CMSAnnouncement> = {
   },
   'ann_3': {
     id: 'ann_3',
-    imageUrl: '/reels/thumbnails/aabharan_womens_accessories_2026-05-30_10-01-21_3908213461611903133_45301478774.jpg',
+    imageUrl: '/reels/thumbnails-webp/aabharan_womens_accessories_2026-05-30_10-01-21_3908213461611903133_45301478774.webp',
     title: 'Now Booking Q4 Brand Campaigns & Studio Shoots',
     description: 'Direct collaboration with our creative directors for high-retention social-first video campaigns, luxury brand films, and multi-platform launches.',
     buttonUrl: '/contact',
@@ -213,7 +213,7 @@ export const INITIAL_ANNOUNCEMENTS: Record<string, CMSAnnouncement> = {
   },
   'ann_4': {
     id: 'ann_4',
-    imageUrl: '/reels/thumbnails/santhi.pipes_rjy_2026-09-06_10-01-41_3979966688738161477_48644092133.jpg',
+    imageUrl: '/reels/thumbnails-webp/santhi.pipes_rjy_2026-09-06_10-01-41_3979966688738161477_48644092133.webp',
     title: 'BrandShoots Expands Studio & Commercial Cine Production',
     description: 'Elevating commercial filmmaking, high-velocity vertical reels, custom anamorphic cine lenses, and full-spectrum visual direction across South India.',
     buttonUrl: '/portfolio',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -22,7 +22,7 @@ const DEFAULT_PROJECT_TYPES = [
 export const ContactFormSection: React.FC = () => {
   const { contact } = useCMSContent();
 
-  const whatsappPhone = contact?.whatsappPhone || '917075960672';
+  const whatsappPhone = '917075960672';
   const displayPhone = contact?.displayPhone || '+91 70759 60672';
   const studioEmail = contact?.email || 'contact@brandshoots.com';
   const studioCityState = contact?.cityState || 'Rajamahendravaram, Andhra Pradesh, India';
@@ -87,6 +87,13 @@ export const ContactFormSection: React.FC = () => {
   const [siteVisitSubmitted, setSiteVisitSubmitted] = useState(false);
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (window.location.hash === '#site-visit') {
+      setSiteVisitSubmitted(false);
+      setIsBookingModalOpen(true);
+    }
+  }, []);
 
   // Smooth scroll helper
   const handleScrollToForm = () => {

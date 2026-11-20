@@ -1,14 +1,15 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { Volume2, VolumeX, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useCMSContent } from '../../lib/cms/useCMSContent';
 import { INITIAL_HERO_REELS } from '../../lib/cms/seedData';
 import { CMSHeroReel } from '../../types/cms';
+import { getOptimizedImageUrl } from '../../utils/mediaAssets';
 
 export interface ReelWall3DProps {
   onLoaded?: () => void;
   isPreloaderActive?: boolean;
   isMuted?: boolean;
   onToggleMute?: () => void;
+  reels?: CMSHeroReel[];
 }
 
 // 14 slots for a seamless 360-degree cylinder
@@ -19,6 +20,7 @@ const REEL_DWELL_MS = 5200; // Time active center reel plays before snapping
 interface CylinderCardProps {
   item: CMSHeroReel & { slotIndex: number };
   isCenter: boolean;
+  isPreloaderActive: boolean;
   isMuted: boolean;
   onToggleMute?: () => void;
   onSelectSlot: (slotIndex: number) => void;
@@ -28,6 +30,7 @@ const CylinderCard: React.FC<CylinderCardProps> = React.memo(
   ({
     item,
     isCenter,
+    isPreloaderActive,
     isMuted,
     onToggleMute,
     onSelectSlot,
@@ -50,7 +53,7 @@ const CylinderCard: React.FC<CylinderCardProps> = React.memo(
     // Active center reel video lifecycle & reliable autoplay
     useEffect(() => {
       const video = videoRef.current;
-      if (!video || !isCenter) return;
+      if (!video || !isCenter || isPreloaderActive) return;
 
       video.defaultMuted = true;
       video.muted = isMuted;
@@ -97,7 +100,7 @@ const CylinderCard: React.FC<CylinderCardProps> = React.memo(
         video.removeAttribute('src');
         video.load();
       };
-    }, [isCenter, item.src]);
+    }, [isCenter, isPreloaderActive, item.src]);
 
     const handleClick = useCallback(() => {
       onSelectSlot(item.slotIndex);
@@ -118,24 +121,28 @@ const CylinderCard: React.FC<CylinderCardProps> = React.memo(
         <div className="relative w-full h-full rounded-[16px] overflow-hidden bg-[#07090E] border border-white/10 ring-1 ring-black/80 shadow-[0_16px_50px_rgba(0,0,0,0.95)]">
           {/* 1. Instant High-Res Poster Image (Always rendered underneath - prevents ANY black frame or loading flash) */}
           <img
-            src={item.poster}
+            src={getOptimizedImageUrl(item.poster)}
             alt={item.title || 'BrandShoots Reel'}
-            loading="eager"
+            width={540}
+            height={960}
+            sizes="(min-width: 1024px) 236px, (min-width: 768px) 190px, 68vw"
+            fetchPriority={isCenter ? 'high' : 'low'}
+            loading={isCenter ? 'eager' : 'lazy'}
             decoding="async"
             className="absolute inset-0 w-full h-full object-cover rounded-[15px] pointer-events-none select-none z-0"
           />
 
           {/* 2. Single Active Video (Mounted on demand ONLY when reel is centered) */}
-          {isCenter && (
+          {isCenter && !isPreloaderActive && (
             <video
               ref={videoRef}
               src={item.src}
-              poster={item.poster}
+              poster={getOptimizedImageUrl(item.poster)}
               autoPlay
               loop
               muted={isMuted}
               playsInline
-              preload="auto"
+              preload="metadata"
               className="absolute inset-0 w-full h-full object-cover rounded-[15px] pointer-events-none select-none z-10"
             />
           )}
@@ -180,6 +187,7 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
   isPreloaderActive = false,
   isMuted: controlledMuted,
   onToggleMute: controlledToggleMute,
+  reels,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const rotGroupRef = useRef<HTMLDivElement>(null);
@@ -189,16 +197,13 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
   const isMuted = controlledMuted !== undefined ? controlledMuted : internalMuted;
   const toggleMute = controlledToggleMute || (() => setInternalMuted((prev) => !prev));
 
-  // Read live CMS reels synced across tabs & Firebase
-  const { heroReels } = useCMSContent();
-
   const activeReels: CMSHeroReel[] = useMemo(() => {
-    if (heroReels && heroReels.length > 0) {
-      const visible = heroReels.filter((r) => r.visible !== false);
+    if (reels && reels.length > 0) {
+      const visible = reels.filter((reel) => reel.visible !== false);
       if (visible.length > 0) return visible;
     }
     return INITIAL_HERO_REELS;
-  }, [heroReels]);
+  }, [reels]);
 
   // Seamless 14-slot cylinder arrangement
   const cylinderItems = useMemo(() => {
@@ -261,6 +266,7 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
 
   // Mouse Parallax & Intersection Observer
   useEffect(() => {
+    if (isPreloaderActive) return;
     if (onLoaded) {
       onLoaded();
     }
@@ -362,7 +368,7 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [onLoaded]);
+  }, [isPreloaderActive, onLoaded]);
 
   // Pointer Drag & Touch Handling
   const handlePointerDown = (e: React.PointerEvent) => {
@@ -458,6 +464,7 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
                 key={`${item.id}-${item.slotIndex}`}
                 item={item}
                 isCenter={item.slotIndex === centerSlotIndex}
+                isPreloaderActive={isPreloaderActive}
                 isMuted={isMuted}
                 onToggleMute={toggleMute}
                 onSelectSlot={snapToSlot}

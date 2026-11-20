@@ -97,7 +97,7 @@ export const ClienteleCMS: React.FC = () => {
     setEditingClient(null);
     setEditingIndex(null);
     setFormName('');
-    setFormLogoUrl('/clients/trimmed/Aabharan Logo.png');
+    setFormLogoUrl('/clients/optimized/Aabharan Logo.webp');
     setFormViews('');
     setFormLikes('');
     setFormVisible(true);
@@ -485,7 +485,7 @@ export const ClienteleCMS: React.FC = () => {
                     type="text"
                     value={formLogoUrl}
                     onChange={(e) => setFormLogoUrl(e.target.value)}
-                    placeholder="e.g. /clients/trimmed/Shanti Pipes.png or https://..."
+                    placeholder="e.g. /clients/optimized/Shanti Pipes.webp or https://..."
                     required
                     className="w-full px-4 py-2.5 pl-10 rounded-xl bg-black/70 border border-white/20 text-white text-sm font-mono placeholder:text-white/30 focus:outline-none focus:border-white/60 transition-colors"
                   />

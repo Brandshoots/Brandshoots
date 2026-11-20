@@ -1,8 +1,9 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Instagram, Youtube, Facebook, MessageCircle, ArrowUp } from 'lucide-react';
-import { BRAND_PATHS, SHOOTS_PATHS, BRANDSHOOTS_LOGO_VIEWBOX } from './brandshootsLogoPaths';
-import { useCMSContent } from '../../lib/cms/useCMSContent';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface BrandShootsFooterProps {
   onOpenContact?: () => void;
@@ -10,214 +11,86 @@ interface BrandShootsFooterProps {
 
 export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = () => {
   const footerRef = useRef<HTMLElement>(null);
-  const { contact } = useCMSContent();
-
-  const instagramUrl = contact?.instagramUrl || 'https://instagram.com/wearebrandshoots';
-  const youtubeUrl = contact?.youtubeUrl || 'https://youtube.com/@wearebrandshoots';
-  const facebookUrl = contact?.facebookUrl || 'https://facebook.com/wearebrandshoots';
-  const whatsappUrl = `https://wa.me/${contact?.whatsappPhone || '917075960672'}`;
+  const instagramUrl = 'https://instagram.com/wearebrandshoots';
+  const youtubeUrl = 'https://youtube.com/@wearebrandshoots';
+  const facebookUrl = 'https://facebook.com/wearebrandshoots';
+  const whatsappUrl = 'https://wa.me/917075960672';
 
   const scrollToTop = () => {
     const lenis = (window as any).__lenis;
-    if (lenis) {
-      lenis.scrollTo(0, { duration: 1.0 });
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    if (lenis) lenis.scrollTo(0, { duration: 0.9 });
+    else window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleServicesClick = (event: React.MouseEvent) => {
+    if (window.location.pathname !== '/') return;
+    const section = document.getElementById('what-we-do');
+    if (!section) return;
+    event.preventDefault();
+    const lenis = (window as any).__lenis;
+    if (lenis) lenis.scrollTo(section, { duration: 0.9 });
+    else section.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    const context = gsap.context(() => {
+      if (!footerRef.current) return;
+      gsap.fromTo(footerRef.current.querySelectorAll('nav a, footer a, footer button'), { opacity: 0, y: 14 }, {
+        opacity: 1,
+        y: 0,
+        duration: 0.5,
+        stagger: 0.05,
+        ease: 'power2.out',
+        scrollTrigger: { trigger: footerRef.current, start: 'top 88%', once: true },
+      });
+    }, footerRef);
+    return () => context.revert();
+  }, []);
+
   return (
-    <>
-      <footer
-        id="footer"
-        ref={footerRef}
-        className="relative w-full bg-[#030508] text-white select-none overflow-hidden"
-      >
-        {/* Soft atmospheric gradient blend from preceding section */}
-        <div
-          className="absolute top-0 inset-x-0 h-16 pointer-events-none z-10"
-          style={{
-            background:
-              'linear-gradient(to bottom, #020306 0%, rgba(2,3,6,0.6) 40%, transparent 100%)',
-          }}
-        />
-
-        {/* Atmospheric lighting */}
-        <div
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[90vw] max-w-[1200px] h-[380px] pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(ellipse at 50% 20%, rgba(0, 140, 255, 0.12) 0%, rgba(3, 8, 20, 0.4) 50%, transparent 80%)',
-            filter: 'blur(80px)',
-          }}
-        />
-
-        <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 pt-12 sm:pt-16 pb-12 flex flex-col items-center text-center">
-          
-          {/* ========================================================= */}
-          {/* 1. MONUMENTAL BRANDSHOOTS VECTOR LOGO (Final Frame Anchor) */}
-          {/* ========================================================= */}
-          <Link
-            to="/"
-            onClick={() => {
-              if (window.location.pathname === '/') {
-                scrollToTop();
-              }
-            }}
-            className="cursor-pointer group select-none py-2 inline-flex flex-col items-center w-full max-w-[280px] xs:max-w-[340px] sm:max-w-xl md:max-w-2xl lg:max-w-3xl"
-          >
-            <svg
-              viewBox={BRANDSHOOTS_LOGO_VIEWBOX}
-              className="w-full h-auto overflow-hidden filter drop-shadow-[0_4px_30px_rgba(0,0,0,0.9)] transition-transform duration-300 group-hover:scale-[1.01]"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <g>
-                <g className="logo-blue-layer">
-                  {BRAND_PATHS.map((d, i) => (
-                    <path key={`brand-path-${i}`} d={d} fill="#008CFF" />
-                  ))}
-                </g>
-                <g className="logo-white-layer">
-                  {SHOOTS_PATHS.map((d, i) => (
-                    <path key={`shoots-path-${i}`} d={d} fill="#FFFFFF" />
-                  ))}
-                </g>
-              </g>
-            </svg>
-          </Link>
-
-          {/* CREATE. SHOOT. GROW. Signature Creed */}
-          <div className="mt-4 sm:mt-5 font-mono text-[10px] xs:text-[11px] sm:text-xs tracking-[0.42em] uppercase font-bold text-center">
-            <span className="text-white/80">CREATE. </span>
-            <span className="text-[#008CFF] drop-shadow-[0_0_10px_rgba(0,140,255,0.85)]">SHOOT. </span>
-            <span className="text-white/80">GROW.</span>
+    <footer ref={footerRef} id="footer" className="w-full bg-[#08090C] text-white">
+      <div className="mx-auto w-full max-w-[1380px] px-5 pb-8 pt-16 sm:px-8 sm:pt-20 lg:px-12">
+        <div className="flex flex-col gap-10 border-b border-white/20 pb-12 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <Link to="/" onClick={() => window.location.pathname === '/' && scrollToTop()} className="inline-block">
+              <img src="/Logo Official.svg" alt="BrandShoots Official Logo" width={1600} height={365} loading="lazy" decoding="async" className="h-12 w-auto sm:h-14" />
+            </Link>
+            <p className="mt-4 text-[11px] font-medium tracking-[0.28em] text-white/55 uppercase">
+              CREATE. <span className="text-[#1497F5]">SHOOT.</span> GROW.
+            </p>
+            <p className="mt-6 max-w-md text-sm leading-7 text-white/50">
+              A high-end creative agency engineering commercial films, visual architecture, and high-retention content systems for ambitious brands.
+            </p>
           </div>
 
-          {/* Statement */}
-          <p className="mt-6 max-w-lg text-xs sm:text-sm text-white/50 leading-relaxed font-normal">
-            A high-end creative agency engineering commercial films, visual architecture, and high-retention content systems for ambitious brands.
-          </p>
-
-          {/* ========================================================= */}
-          {/* 2. ARCHITECTURAL EDITORIAL NAVIGATION ROW                 */}
-          {/* ========================================================= */}
-          <nav className="mt-10 sm:mt-12 flex flex-wrap justify-center items-center gap-7 sm:gap-11 text-white/75 font-sans text-xs sm:text-[13px] tracking-[0.24em] uppercase font-semibold">
-            <Link
-              to="/"
-              className="hover:text-[#008CFF] transition-colors duration-200 cursor-pointer"
-            >
-              HOME
-            </Link>
-
-            <Link
-              to="/about"
-              className="hover:text-[#008CFF] transition-colors duration-200 cursor-pointer"
-            >
-              ABOUT
-            </Link>
-
-            <Link
-              to="/portfolio"
-              className="hover:text-[#008CFF] transition-colors duration-200 cursor-pointer"
-            >
-              PORTFOLIO
-            </Link>
-
-            <Link
-              to="/#what-we-do"
-              onClick={(e) => {
-                if (window.location.pathname === '/') {
-                  e.preventDefault();
-                  const el = document.getElementById('what-we-do');
-                  const lenis = (window as any).__lenis;
-                  if (el && lenis) {
-                    lenis.scrollTo(el, { duration: 1.0 });
-                  } else if (el) {
-                    el.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }
-              }}
-              className="hover:text-[#008CFF] transition-colors duration-200 cursor-pointer"
-            >
-              SERVICES
-            </Link>
-
-            <Link
-              to="/contact"
-              className="text-[#008CFF] hover:text-[#52B2FF] transition-colors duration-200 cursor-pointer uppercase tracking-[0.24em]"
-            >
-              CONTACT
-            </Link>
+          <nav className="grid grid-cols-2 gap-x-10 gap-y-4 text-xs font-medium tracking-[0.14em] text-white/65 uppercase sm:flex sm:flex-wrap sm:gap-8">
+            <Link to="/" className="transition-colors hover:text-[#1497F5]">HOME</Link>
+            <Link to="/about" className="transition-colors hover:text-[#1497F5]">ABOUT</Link>
+            <Link to="/portfolio" className="transition-colors hover:text-[#1497F5]">PORTFOLIO</Link>
+            <Link to="/packages" className="transition-colors hover:text-[#1497F5]">PACKAGES</Link>
+            <Link to="/#what-we-do" onClick={handleServicesClick} className="transition-colors hover:text-[#1497F5]">SERVICES</Link>
+            <Link to="/contact" className="text-[#1497F5] transition-colors hover:text-white">CONTACT</Link>
           </nav>
-
-          {/* ========================================================= */}
-          {/* 3. SOCIAL MEDIA CHANNELS                                  */}
-          {/* ========================================================= */}
-          <div className="mt-8 sm:mt-10 flex items-center gap-3.5 sm:gap-4">
-            <a
-              href={instagramUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Instagram"
-              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/[0.06] hover:bg-[#008CFF] border border-white/12 flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 shadow-sm active:scale-95"
-            >
-              <Instagram className="w-4.5 h-4.5" />
-            </a>
-
-            <a
-              href={youtubeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="YouTube"
-              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/[0.06] hover:bg-[#008CFF] border border-white/12 flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 shadow-sm active:scale-95"
-            >
-              <Youtube className="w-4.5 h-4.5" />
-            </a>
-
-            <a
-              href={facebookUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Facebook"
-              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/[0.06] hover:bg-[#008CFF] border border-white/12 flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 shadow-sm active:scale-95"
-            >
-              <Facebook className="w-4.5 h-4.5" />
-            </a>
-
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="WhatsApp"
-              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/[0.06] hover:bg-[#008CFF] border border-white/12 flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 shadow-sm active:scale-95"
-            >
-              <MessageCircle className="w-4.5 h-4.5" />
-            </a>
-          </div>
-
-          {/* ========================================================= */}
-          {/* 4. FINAL CLOSING BAR: LOCATIONS, COPYRIGHT, BACK TO TOP   */}
-          {/* ========================================================= */}
-          <div className="w-full mt-12 sm:mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-[11px] font-mono tracking-widest text-white/40 uppercase">
-              <span>Rajahmundry & Hyderabad, India</span>
-              <span className="hidden sm:inline">•</span>
-              <span>© {new Date().getFullYear()} BRANDSHOOTS. ALL RIGHTS RESERVED.</span>
-            </div>
-
-            {/* Back to Top */}
-            <button
-              type="button"
-              onClick={scrollToTop}
-              className="inline-flex items-center gap-2 text-[11px] font-mono tracking-widest uppercase text-white/50 hover:text-[#008CFF] transition-colors cursor-pointer"
-            >
-              <span>Back to Top</span>
-              <ArrowUp className="w-3.5 h-3.5" />
-            </button>
-          </div>
         </div>
-      </footer>
-    </>
+
+        <div className="flex flex-col gap-8 border-b border-white/20 py-8 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-white/55">
+            <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="hover:text-white">Instagram</a>
+            <a href={youtubeUrl} target="_blank" rel="noopener noreferrer" className="hover:text-white">YouTube</a>
+            <a href={facebookUrl} target="_blank" rel="noopener noreferrer" className="hover:text-white">Facebook</a>
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="hover:text-white">WhatsApp</a>
+          </div>
+          <button type="button" onClick={scrollToTop} className="self-start text-xs tracking-[0.14em] text-white/45 uppercase transition-colors hover:text-[#1497F5] sm:self-auto">
+            Back to Top ↑
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-2 pt-6 text-[10px] tracking-[0.14em] text-white/65 uppercase sm:flex-row sm:items-center sm:justify-between">
+          <span>Rajahmundry &amp; Hyderabad, India</span>
+          <span>© {new Date().getFullYear()} BRANDSHOOTS. ALL RIGHTS RESERVED.</span>
+        </div>
+      </div>
+    </footer>
   );
 };
 

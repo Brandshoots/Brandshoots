@@ -48,12 +48,12 @@ export const WhatWeDoCMS: React.FC = () => {
     fetchPublishedServices().then((data) => {
       if (isMounted) {
         const defaults = [
-          '/what-we-do/creative-content.jpg',
-          '/what-we-do/digital-growth.jpg',
-          '/what-we-do/editing-posting.jpg',
+          '/what-we-do/optimized/creative-content.webp',
+          '/what-we-do/optimized/digital-growth.webp',
+          '/what-we-do/optimized/editing-posting.webp',
         ];
         const upgraded = data.map((s, idx) => {
-          if (!s.imageUrl || s.imageUrl.includes('/reels/thumbnails/')) {
+          if (!s.imageUrl || s.imageUrl.includes('/reels/thumbnails-webp/')) {
             return { ...s, imageUrl: defaults[idx] || s.imageUrl };
           }
           return s;
@@ -570,7 +570,7 @@ export const WhatWeDoCMS: React.FC = () => {
                     type="text"
                     value={formImageUrl}
                     onChange={(e) => setFormImageUrl(e.target.value)}
-                    placeholder="e.g. /reels/thumbnails/...jpg or https://..."
+                    placeholder="e.g. /reels/thumbnails-webp/...jpg or https://..."
                     required
                     className="w-full px-4 py-2.5 pl-10 rounded-xl bg-black/70 border border-white/20 text-white text-sm font-mono placeholder:text-white/30 focus:outline-none focus:border-[#008CFF] transition-colors"
                   />

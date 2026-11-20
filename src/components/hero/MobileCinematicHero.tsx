@@ -115,7 +115,7 @@ export const MobileCinematicHero: React.FC = () => {
       >
         {/* Crystal-clear poster sits behind video so there's never a black frame */}
         <img
-          src="/reels/thumbnails/wearebrandshoots_2025-10-16_15-04-28_3744567634965812934_77785749886.jpg"
+          src="/reels/thumbnails-webp/wearebrandshoots_2025-10-16_15-04-28_3744567634965812934_77785749886.webp"
           alt="BrandShoots Master Reel"
           loading="eager"
           decoding="async"
@@ -124,7 +124,7 @@ export const MobileCinematicHero: React.FC = () => {
         <video
           ref={videoRef}
           src="/reels/wearebrandshoots/wearebrandshoots_2025-10-16_15-04-28_3744567634965812934_77785749886.mp4"
-          poster="/reels/thumbnails/wearebrandshoots_2025-10-16_15-04-28_3744567634965812934_77785749886.jpg"
+          poster="/reels/thumbnails-webp/wearebrandshoots_2025-10-16_15-04-28_3744567634965812934_77785749886.webp"
           autoPlay
           loop
           muted

@@ -6,7 +6,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000,
-    host: true
+    host: true,
+    watch: {
+      ignored: ['**/asset-backups/**', '**/reports/**', '**/public/fonts/**', '**/*.woff2']
+    }
   },
   build: {
     target: 'es2020',

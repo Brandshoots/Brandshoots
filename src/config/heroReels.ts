@@ -15,7 +15,7 @@ export const HERO_REEL_VIDEOS: HeroReelVideo[] = [
     client: 'BrandShoots',
     src: '/reels/wearebrandshoots/wearebrandshoots_2026-04-02_19-52-00_3866474098000140140_77785749886_2.mp4',
     lightSrc: '/reels_light/wearebrandshoots_2026-04-02.mp4',
-    poster: '/reels/thumbnails/wearebrandshoots_2026-04-02_19-52-00_3866474098000140140_77785749886_2.jpg'
+    poster: '/reels/thumbnails-webp/wearebrandshoots_2026-04-02_19-52-00_3866474098000140140_77785749886_2.webp'
   },
   // 2. CERA / Dayanidhi Interiors
   {
@@ -24,7 +24,7 @@ export const HERO_REEL_VIDEOS: HeroReelVideo[] = [
     client: 'Dayanidhi Interiors',
     src: '/reels/dayanidhi.interiors_rjy/dayanidhi.interiors_rjy_2025-10-07_12-00-25_3737951699329041277_72884206961.mp4',
     lightSrc: '/reels_light/dayanidhi.interiors_rjy_2025-10-07.mp4',
-    poster: '/reels/thumbnails/dayanidhi.interiors_rjy_2025-10-07_12-00-25_3737951699329041277_72884206961.jpg'
+    poster: '/reels/thumbnails-webp/dayanidhi.interiors_rjy_2025-10-07_12-00-25_3737951699329041277_72884206961.webp'
   },
   // 3. Aabharan Jewellers - Temple Garland Heritage
   {
@@ -33,7 +33,7 @@ export const HERO_REEL_VIDEOS: HeroReelVideo[] = [
     client: 'Aabharan Jewellers',
     src: '/reels/aabharan_womens_accessories/aabharan_womens_accessories_2025-10-17_10-00-00_3745139393318603226_45301478774.mp4',
     lightSrc: '/reels_light/aabharan_womens_accessories_2025-10-17.mp4',
-    poster: '/reels/thumbnails/aabharan_womens_accessories_2025-10-17_10-00-00_3745139393318603226_45301478774.jpg'
+    poster: '/reels/thumbnails-webp/aabharan_womens_accessories_2025-10-17_10-00-00_3745139393318603226_45301478774.webp'
   },
   // 4. Santhi Pipes - Factory & Phone
   {
@@ -42,7 +42,7 @@ export const HERO_REEL_VIDEOS: HeroReelVideo[] = [
     client: 'Santhi Pipes',
     src: '/reels/santhi.pipes_rjy/santhi.pipes_rjy_2026-09-06_10-01-41_3979966688738161477_48644092133.mp4',
     lightSrc: '/reels_light/santhi.pipes_rjy_2026-09-06.mp4',
-    poster: '/reels/thumbnails/santhi.pipes_rjy_2026-09-06_10-01-41_3979966688738161477_48644092133.jpg'
+    poster: '/reels/thumbnails-webp/santhi.pipes_rjy_2026-09-06_10-01-41_3979966688738161477_48644092133.webp'
   },
   // 5. Bags World - Red Train Journey
   {
@@ -51,7 +51,7 @@ export const HERO_REEL_VIDEOS: HeroReelVideo[] = [
     client: 'Bags World',
     src: '/reels/bags.world_rjy/bags.world_rjy_2025-09-09_09-40-28_3717579195573459823_54511918250.mp4',
     lightSrc: '/reels_light/bags.world_rjy_2025-09-09.mp4',
-    poster: '/reels/thumbnails/bags.world_rjy_2025-09-09_09-40-28_3717579195573459823_54511918250.jpg'
+    poster: '/reels/thumbnails-webp/bags.world_rjy_2025-09-09_09-40-28_3717579195573459823_54511918250.webp'
   },
   // 6. BrandShoots Team Polo Walk
   {
@@ -60,7 +60,7 @@ export const HERO_REEL_VIDEOS: HeroReelVideo[] = [
     client: 'BrandShoots',
     src: '/reels/wearebrandshoots/wearebrandshoots_2025-10-16_15-04-28_3744567634965812934_77785749886.mp4',
     lightSrc: '/reels_light/wearebrandshoots_2025-10-16.mp4',
-    poster: '/reels/thumbnails/wearebrandshoots_2025-10-16_15-04-28_3744567634965812934_77785749886.jpg'
+    poster: '/reels/thumbnails-webp/wearebrandshoots_2025-10-16_15-04-28_3744567634965812934_77785749886.webp'
   },
   // 7. New Playzone - Festival Gathering
   {
@@ -69,7 +69,7 @@ export const HERO_REEL_VIDEOS: HeroReelVideo[] = [
     client: 'New Playzone',
     src: '/reels/newplayzone_rjy/newplayzone_rjy_2025-09-23_09-49-41_3727739247089824309_76443365829.mp4',
     lightSrc: '/reels_light/newplayzone_rjy_2025-09-23.mp4',
-    poster: '/reels/thumbnails/newplayzone_rjy_2025-09-23_09-49-41_3727739247089824309_76443365829.jpg'
+    poster: '/reels/thumbnails-webp/newplayzone_rjy_2025-09-23_09-49-41_3727739247089824309_76443365829.webp'
   },
   // 8. Viswatuff Glass - Architectural Glass Factory
   {
@@ -78,7 +78,7 @@ export const HERO_REEL_VIDEOS: HeroReelVideo[] = [
     client: 'Viswatuff Glass',
     src: '/reels/viswatuff.glass_rjy/viswatuff.glass_rjy_2026-05-28_18-00-28_3907005057329571857_78432309239.mp4',
     lightSrc: '/reels_light/viswatuff.glass_rjy_2026-05-28.mp4',
-    poster: '/reels/thumbnails/viswatuff.glass_rjy_2026-05-28_18-00-28_3907005057329571857_78432309239.jpg'
+    poster: '/reels/thumbnails-webp/viswatuff.glass_rjy_2026-05-28_18-00-28_3907005057329571857_78432309239.webp'
   },
   // 9. Jain Beauty Studio
   {
@@ -87,7 +87,7 @@ export const HERO_REEL_VIDEOS: HeroReelVideo[] = [
     client: 'Jain Beauty Concepts',
     src: '/reels/jain_beauty_concepts/jain_beauty_concepts_2025-10-16_09-55-09_3744410345428741931_48808965364.mp4',
     lightSrc: '/reels_light/jain_beauty_concepts_2025-10-16.mp4',
-    poster: '/reels/thumbnails/jain_beauty_concepts_2025-10-16_09-55-09_3744410345428741931_48808965364.jpg'
+    poster: '/reels/thumbnails-webp/jain_beauty_concepts_2025-10-16_09-55-09_3744410345428741931_48808965364.webp'
   },
   // 10. KC Overseas Global Education
   {
@@ -96,7 +96,7 @@ export const HERO_REEL_VIDEOS: HeroReelVideo[] = [
     client: 'KC Overseas',
     src: '/reels/kc_overseas_rjy/kc_overseas_rjy_2025-10-28_11-56-25_3753167479003838060_46988266664.mp4',
     lightSrc: '/reels_light/kc_overseas_rjy_2025-10-28.mp4',
-    poster: '/reels/thumbnails/kc_overseas_rjy_2025-10-28_11-56-25_3753167479003838060_46988266664.jpg'
+    poster: '/reels/thumbnails-webp/kc_overseas_rjy_2025-10-28_11-56-25_3753167479003838060_46988266664.webp'
   },
   // 11. SB Ventures Real Estate
   {
@@ -105,7 +105,7 @@ export const HERO_REEL_VIDEOS: HeroReelVideo[] = [
     client: 'SB Ventures',
     src: '/reels/sbventures_official/sbventures_official_2026-09-15_17-10-21_3986704799434897519_5720346010.mp4',
     lightSrc: '/reels_light/sbventures_official_2026-09-15.mp4',
-    poster: '/reels/thumbnails/sbventures_official_2026-09-15_17-10-21_3986704799434897519_5720346010.jpg'
+    poster: '/reels/thumbnails-webp/sbventures_official_2026-09-15_17-10-21_3986704799434897519_5720346010.webp'
   },
   // 12. Tea3 Official Hospitality
   {
@@ -114,7 +114,7 @@ export const HERO_REEL_VIDEOS: HeroReelVideo[] = [
     client: 'Tea3 Official',
     src: '/reels/tea3_official/tea3_official_2025-10-29_09-54-59_3753833688871293700_76713485685.mp4',
     lightSrc: '/reels_light/tea3_official_2025-10-29.mp4',
-    poster: '/reels/thumbnails/tea3_official_2025-10-29_09-54-59_3753833688871293700_76713485685.jpg'
+    poster: '/reels/thumbnails-webp/tea3_official_2025-10-29_09-54-59_3753833688871293700_76713485685.webp'
   },
   // 13. Sahana Dryfruits FMCG
   {
@@ -123,7 +123,7 @@ export const HERO_REEL_VIDEOS: HeroReelVideo[] = [
     client: 'Sahana Dryfruits',
     src: '/reels/sahana.dryfruits_rjy/sahana.dryfruits_rjy_2026-07-05_17-57-04_3934543118156154206_38485858909.mp4',
     lightSrc: '/reels_light/sahana.dryfruits_rjy_2026-07-05.mp4',
-    poster: '/reels/thumbnails/sahana.dryfruits_rjy_2026-07-05_17-57-04_3934543118156154206_38485858909.jpg'
+    poster: '/reels/thumbnails-webp/sahana.dryfruits_rjy_2026-07-05_17-57-04_3934543118156154206_38485858909.webp'
   },
   // 14. Born Pretty Studios
   {
@@ -132,24 +132,27 @@ export const HERO_REEL_VIDEOS: HeroReelVideo[] = [
     client: 'Born Pretty Studios',
     src: '/reels/bornprettystudios_by_ranjita/bornprettystudios_by_ranjita_2025-10-26_10-10-05_3751666692112642806_67162035256.mp4',
     lightSrc: '/reels_light/bornprettystudios_by_ranjita_2025-10-26.mp4',
-    poster: '/reels/thumbnails/bornprettystudios_by_ranjita_2025-10-26_10-10-05_3751666692112642806_67162035256.jpg'
+    poster: '/reels/thumbnails-webp/bornprettystudios_by_ranjita_2025-10-26_10-10-05_3751666692112642806_67162035256.webp'
   }
 ];
 
 /**
- * Intelligently warm up hero reel posters and only primary hero video stream
- * during the cinematic preloader, preventing network socket exhaustion.
+ * Warm only the first hero frame while the preloader is visible. The hero
+ * carousel lazy-loads the remaining posters after handoff, so startup does
+ * not compete with the preloader for image decoders and network sockets.
  */
 export function preloadAllHeroReels(): void {
   if (typeof window === 'undefined') return;
 
-  // 1. Warm up HD posters (fast, lightweight image cache)
-  HERO_REEL_VIDEOS.forEach((reel, idx) => {
+  const initialReels = HERO_REEL_VIDEOS.slice(0, 2);
+  initialReels.forEach((reel, idx) => {
     const img = new Image();
+    img.decoding = 'async';
     img.src = reel.poster;
 
-    // 2. Only warm up primary hero reel streams (slots 0 and 1) rather than all 14 simultaneously
-    if (idx < 2) {
+    // Warm only the first lightweight streams. The full stream is requested
+    // by the hero once the preloader has handed control back.
+    if (idx === 0) {
       try {
         const v = document.createElement('video');
         v.preload = 'metadata';

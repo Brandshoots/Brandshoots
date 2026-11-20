@@ -17,32 +17,32 @@ interface ReelData {
 const BRAND_REELS: ReelData[] = [
   {
     video: '/reels/wearebrandshoots_1777444216_3885805244420742638_77785749886.mp4',
-    poster: '/reels/posters/wearebrandshoots_1777444216_3885805244420742638_77785749886.jpg',
+    poster: '/reels/posters/wearebrandshoots_1777444216_3885805244420742638_77785749886.webp',
     label: 'STUDIO ARCHIVE 01',
   },
   {
     video: '/reels/wearebrandshoots_1787252706_3968084628303865353_77785749886.mp4',
-    poster: '/reels/posters/wearebrandshoots_1787252706_3968084628303865353_77785749886.jpg',
+    poster: '/reels/posters/wearebrandshoots_1787252706_3968084628303865353_77785749886.webp',
     label: 'BRAND FILM 02',
   },
   {
     video: '/reels/wearebrandshoots_1786854627_3964745654666992928_77785749886.mp4',
-    poster: '/reels/posters/wearebrandshoots_1786854627_3964745654666992928_77785749886.jpg',
+    poster: '/reels/posters/wearebrandshoots_1786854627_3964745654666992928_77785749886.webp',
     label: 'COMMERCIAL 03',
   },
   {
     video: '/reels/wearebrandshoots_1786454245_3961387117295433628_77785749886.mp4',
-    poster: '/reels/posters/wearebrandshoots_1786454245_3961387117295433628_77785749886.jpg',
+    poster: '/reels/posters/wearebrandshoots_1786454245_3961387117295433628_77785749886.webp',
     label: '9:16 SOCIAL REEL 04',
   },
   {
     video: '/reels/wearebrandshoots_1788094941_3975150238988110104_77785749886.mp4',
-    poster: '/reels/posters/wearebrandshoots_1788094941_3975150238988110104_77785749886.jpg',
+    poster: '/reels/posters/wearebrandshoots_1788094941_3975150238988110104_77785749886.webp',
     label: 'VISUAL CAMPAIGN 05',
   },
   {
     video: '/reels/wearebrandshoots_1789541302_3987282906831722378_77785749886.mp4',
-    poster: '/reels/posters/wearebrandshoots_1789541302_3987282906831722378_77785749886.jpg',
+    poster: '/reels/posters/wearebrandshoots_1789541302_3987282906831722378_77785749886.webp',
     label: 'CREATIVE PRODUCTION 06',
   },
 ];
