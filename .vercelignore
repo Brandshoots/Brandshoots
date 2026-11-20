@@ -2,7 +2,9 @@ node_modules
 dist
 .git
 reports
+docs
 scripts
+!scripts/generate-route-html.mjs
 asset-backups
 /Reels/
 /Official Clients/
