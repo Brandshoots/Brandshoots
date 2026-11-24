@@ -17,15 +17,13 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  html,
-  body,
-  body * {
-    font-family: 'Source Sans 3', sans-serif !important;
+  body {
+    font-family: 'Source Sans 3', sans-serif;
     font-optical-sizing: auto;
   }
 
   button, input, select, textarea {
-    font-family: 'Source Sans 3', sans-serif !important;
+    font: inherit;
   }
 }
 
