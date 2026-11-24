@@ -4,44 +4,27 @@ import { useCMSContent } from '../../lib/cms/useCMSContent';
 import { getProjectSocialLink } from '../../data/clientSocialData';
 
 interface ClientLogoItem {
+  id?: string;
+  slug?: string;
   name: string;
-  category?: string;
   logo: string;
   views?: string;
   likes?: string;
 }
 
-const ALL_CLIENTS: ClientLogoItem[] = [
-  { name: 'Santhi Pipes', category: 'Industrial & Infrastructure', logo: '/clients/optimized/Shanti Pipes.webp', views: '250K+', likes: '34K+' },
-  { name: 'Viswatuff Glass', category: 'Architectural Glass', logo: '/clients/optimized/Viswatuff Glass Logo.webp', views: '320K+', likes: '41K+' },
-  { name: 'Bags World', category: 'Retail & Fashion', logo: '/clients/optimized/Bags World Logo.webp', views: '480K+', likes: '62K+' },
-  { name: 'Aabharan Jewellers', category: 'Luxury & Heritage', logo: '/clients/optimized/Aabharan Logo.webp', views: '540K+', likes: '68K+' },
-  { name: 'Fresh & Fresh', category: 'Supermarket & FMCG', logo: '/clients/optimized/Fresh and Fresh Logo.webp', views: '190K+', likes: '26K+' },
-  { name: 'Dayanidhi Creations', category: 'Textiles & Apparel', logo: '/clients/optimized/Dayanidhi Logo.webp', views: '220K+', likes: '31K+' },
-  { name: 'Jain Beauty Studio', category: 'Beauty & Lifestyle', logo: '/clients/optimized/Jain Beauty Logo.webp', views: '360K+', likes: '47K+' },
-  { name: 'RK Home Living', category: 'Architectural Furnishings', logo: '/clients/optimized/Rk home.webp', views: '280K+', likes: '38K+' },
-  { name: 'SB Ventures', category: 'Real Estate & Land', logo: '/clients/optimized/SB Ventures Logo.webp', views: '310K+', likes: '42K+' },
-  { name: 'KC Overseas', category: 'Global Education', logo: '/clients/optimized/KC Overseas Logo.webp', views: '195K+', likes: '27K+' },
-  { name: 'SRK Doors World', category: 'Industrial Materials', logo: '/clients/optimized/SRK Doors World Logo.webp', views: '230K+', likes: '30K+' },
-  { name: 'Jain Enterprises', category: 'Commercial Trade', logo: '/clients/optimized/Jain Enterprises Logo.webp', views: '175K+', likes: '24K+' },
-  { name: 'Nirmala', category: 'Consumer Brands', logo: '/clients/optimized/Nirmala logo.webp', views: '210K+', likes: '28K+' },
-  { name: 'Rudra', category: 'Hospitality & Dining', logo: '/clients/optimized/Rudra logo.webp', views: '185K+', likes: '25K+' },
-  { name: 'Sahana', category: 'Fine Silks', logo: '/clients/optimized/Sahana Logo.webp', views: '290K+', likes: '39K+' },
-  { name: 'T3 Studio', category: 'Creative Production', logo: '/clients/optimized/T3 Logo.webp', views: '160K+', likes: '22K+' },
-];
-
 export const PortfolioClienteleSection: React.FC = () => {
   const { clients } = useCMSContent();
 
-  const activeClients: ClientLogoItem[] =
-    clients && clients.length > 0
-      ? clients.map((c) => ({
-          name: c.name,
-          logo: c.logoUrl,
-          views: c.views,
-          likes: c.likes,
-        }))
-      : ALL_CLIENTS;
+  const activeClients: ClientLogoItem[] = clients
+    .filter((client) => client.visible !== false)
+    .map((client) => ({
+      id: client.id,
+      slug: client.slug,
+      name: client.name,
+      logo: client.logoUrl,
+      views: client.views,
+      likes: client.likes,
+    }));
 
   const half = Math.ceil(activeClients.length / 2);
   const row1 = activeClients.slice(0, half);
@@ -51,10 +34,12 @@ export const PortfolioClienteleSection: React.FC = () => {
   const marqueeRow1 = [...row1, ...row1, ...row1, ...row1];
   const marqueeRow2 = [...row2, ...row2, ...row2, ...row2];
 
+  if (activeClients.length === 0) return null;
+
   const renderClientCard = (client: ClientLogoItem, key: string) => {
     const hasViews = Boolean(client.views && client.views.trim());
     const hasLikes = Boolean(client.likes && client.likes.trim());
-    const socialLink = getProjectSocialLink({ name: client.name });
+    const socialLink = getProjectSocialLink({ id: client.id, slug: client.slug, name: client.name });
 
     return (
       <div
@@ -175,11 +160,13 @@ export const PortfolioClienteleSection: React.FC = () => {
         </div>
 
         {/* Stream 2: Continuous Flow Right */}
-        <div className="group/row2 w-full overflow-hidden flex select-none">
-          <div className="flex shrink-0 items-center gap-6 sm:gap-7 animate-marquee-right group-hover/row2:[animation-play-state:paused] will-change-transform">
-            {marqueeRow2.map((client, idx) => renderClientCard(client, `r2-${idx}`))}
+        {row2.length > 0 && (
+          <div className="group/row2 w-full overflow-hidden flex select-none">
+            <div className="flex shrink-0 items-center gap-6 sm:gap-7 animate-marquee-right group-hover/row2:[animation-play-state:paused] will-change-transform">
+              {marqueeRow2.map((client, idx) => renderClientCard(client, `r2-${idx}`))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Embedded High-Performance Infinite Marquee Keyframes */}

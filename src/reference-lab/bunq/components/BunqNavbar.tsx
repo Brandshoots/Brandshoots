@@ -85,10 +85,10 @@ export const BunqNavbar: React.FC<BunqNavbarProps> = ({ onOpenInquiry, activeSec
             }}
             className="flex items-center gap-1.5 cursor-pointer select-none"
           >
-            <span className="text-xl sm:text-2xl font-black tracking-tighter text-[#139EF2] font-['Figtree']">
+            <span className="text-xl sm:text-2xl font-black tracking-tighter text-[#139EF2] font-sans">
               BRAND
             </span>
-            <span className="text-xl sm:text-2xl font-black tracking-tighter text-white font-['Figtree']">
+            <span className="text-xl sm:text-2xl font-black tracking-tighter text-white font-sans">
               SHOOTS
             </span>
             <span className="w-1.5 h-1.5 rounded-full bg-[#139EF2] mb-2 ml-0.5 animate-pulse" />
@@ -212,7 +212,7 @@ export const BunqNavbar: React.FC<BunqNavbarProps> = ({ onOpenInquiry, activeSec
                     }}
                     className="group text-left py-2 flex items-baseline justify-between border-b border-white/5 hover:border-[#139EF2]/40 transition-colors"
                   >
-                    <span className="text-4xl sm:text-6xl font-black uppercase tracking-tight text-white group-hover:text-[#139EF2] transition-colors font-['Figtree']">
+                    <span className="text-4xl sm:text-6xl font-black uppercase tracking-tight text-white group-hover:text-[#139EF2] transition-colors font-sans">
                       {item.label}
                     </span>
                     <span className="text-xs font-mono text-white/40 group-hover:text-white transition-colors">
@@ -273,7 +273,7 @@ export const BunqNavbar: React.FC<BunqNavbarProps> = ({ onOpenInquiry, activeSec
                       <span className="text-xs font-mono text-[#139EF2]">{s.title}</span>
                       <span className="text-[10px] font-mono text-white/40">{s.tag}</span>
                     </div>
-                    <div className="text-lg font-bold text-white font-['Figtree']">{s.name}</div>
+                    <div className="text-lg font-bold text-white font-sans">{s.name}</div>
                     <p className="text-xs text-white/60 mt-1 line-clamp-2">{s.desc}</p>
                   </div>
                 ))}

@@ -169,7 +169,7 @@ export const INITIAL_LEADERSHIP: CMSLeadership = {
 
 export const INITIAL_SITE_SETTINGS: CMSSiteSettings = {
   contactPhone: '+91 70759 60672',
-  contactEmail: 'contact@brandshoots.com',
+  contactEmail: 'brandshoots.in@gmail.com',
   whatsappPhone: '917075960672',
   instagramUrl: 'https://www.instagram.com/wearebrandshoots',
   youtubeUrl: 'https://www.youtube.com/@brandshoots',
@@ -232,7 +232,7 @@ export const INITIAL_CONTACT_PAGE: CMSContactPage = {
 
   displayPhone: '+91 70759 60672',
   whatsappPhone: '917075960672',
-  email: 'contact@brandshoots.com',
+  email: 'brandshoots.in@gmail.com',
   cityState: 'Rajamahendravaram, Andhra Pradesh, India',
   fullAddress: '26-2-7/2, Jayakrishnapuram, near Kambala Cheruvu, Rajamahendravaram, Andhra Pradesh, India',
 

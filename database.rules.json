@@ -2,11 +2,32 @@
   "rules": {
     "published": {
       ".read": true,
-      ".write": "auth != null"
+      "projects": { ".write": "auth != null" },
+      "clients": { ".write": "auth != null" },
+      "hero": { ".write": "auth != null" },
+      "heroReels": { ".write": "auth != null" },
+      "services": { ".write": "auth != null" },
+      "testimonials": { ".write": "auth != null" },
+      "leadership": { ".write": "auth != null" },
+      "siteSettings": { ".write": "auth != null" },
+      "announcements": { ".write": "auth != null" },
+      "contact": { ".write": "auth != null" },
+      "results": {
+        ".indexOn": ["order", "homepageOrder"],
+        "$resultId": {
+          ".write": "auth != null",
+          ".validate": "!newData.exists() || (newData.hasChildren(['id', 'clientName', 'clientLogoUrl', 'beforeFollowers', 'afterFollowers', 'beforeViews', 'afterViews', 'durationMonths', 'beforeScreenshotUrl', 'afterScreenshotUrl', 'testimonial', 'featured', 'order', 'homepageOrder', 'status', 'createdAt', 'updatedAt']) && newData.child('id').val() === $resultId && newData.child('clientName').isString() && newData.child('clientName').val().length > 0 && newData.child('clientLogoUrl').isString() && newData.child('clientLogoUrl').val().length > 0 && newData.child('beforeFollowers').isNumber() && newData.child('beforeFollowers').val() >= 0 && newData.child('afterFollowers').isNumber() && newData.child('afterFollowers').val() >= 0 && newData.child('beforeViews').isNumber() && newData.child('beforeViews').val() >= 0 && newData.child('afterViews').isNumber() && newData.child('afterViews').val() >= 0 && newData.child('durationMonths').isNumber() && newData.child('durationMonths').val() >= 1 && newData.child('beforeScreenshotUrl').isString() && newData.child('beforeScreenshotUrl').val().length > 0 && newData.child('afterScreenshotUrl').isString() && newData.child('afterScreenshotUrl').val().length > 0 && newData.child('testimonial').isString() && newData.child('testimonial').val().length > 0 && newData.child('featured').isBoolean() && newData.child('order').isNumber() && newData.child('order').val() >= 0 && newData.child('homepageOrder').isNumber() && newData.child('homepageOrder').val() >= 0 && newData.child('status').val() === 'published' && newData.child('createdAt').isNumber() && newData.child('updatedAt').isNumber() && (!newData.child('videoUrl').exists() || newData.child('videoUrl').isString()) && (!newData.child('videoPosterUrl').exists() || newData.child('videoPosterUrl').isString()))"
+        }
+      }
     },
     "drafts": {
       ".read": "auth != null",
-      ".write": "auth != null"
+      "results": {
+        "$resultId": {
+          ".write": "auth != null",
+          ".validate": "!newData.exists() || (newData.hasChildren(['id', 'clientName', 'clientLogoUrl', 'featured', 'order', 'homepageOrder', 'status', 'createdAt', 'updatedAt']) && newData.child('id').val() === $resultId && newData.child('clientName').isString() && newData.child('featured').isBoolean() && newData.child('order').isNumber() && newData.child('order').val() >= 0 && newData.child('homepageOrder').isNumber() && newData.child('homepageOrder').val() >= 0 && (newData.child('status').val() === 'draft' || newData.child('status').val() === 'published' || newData.child('status').val() === 'archived') && newData.child('createdAt').isNumber() && newData.child('updatedAt').isNumber() && (!newData.child('beforeFollowers').exists() || (newData.child('beforeFollowers').isNumber() && newData.child('beforeFollowers').val() >= 0)) && (!newData.child('afterFollowers').exists() || (newData.child('afterFollowers').isNumber() && newData.child('afterFollowers').val() >= 0)) && (!newData.child('beforeViews').exists() || (newData.child('beforeViews').isNumber() && newData.child('beforeViews').val() >= 0)) && (!newData.child('afterViews').exists() || (newData.child('afterViews').isNumber() && newData.child('afterViews').val() >= 0)) && (!newData.child('durationMonths').exists() || (newData.child('durationMonths').isNumber() && newData.child('durationMonths').val() >= 0)))"
+        }
+      }
     },
     "leads": {
       ".read": "auth != null",

@@ -16,8 +16,8 @@ export const WithMediaCurtainWipe: React.FC<WithMediaCurtainWipeProps> = ({ isWi
           <div className="w-12 h-12 rounded-xl bg-blue-600/20 border border-blue-500/40 p-2 flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.4)]">
             <img src="/logo.svg" alt="BrandShoots" className="w-full h-full object-contain" />
           </div>
-          <span className="text-xs font-mono tracking-[0.3em] uppercase text-blue-400">
-            BRANDSHOOTS // CINEMATIC ENGINE
+          <span className="text-xs font-mono tracking-[0.3em] text-blue-400">
+            <span>BrandShoots</span><span className="uppercase"> // CINEMATIC ENGINE</span>
           </span>
         </div>
       </div>

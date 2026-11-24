@@ -1,7 +1,7 @@
-import { saveHeroReels, saveAllServices, saveAllAnnouncements, saveAllClients, saveAllTestimonials, saveAllProjects, saveContactPage } from './cmsService';
-import { CMSHeroReel, CMSService, CMSAnnouncement, CMSClientLogo, CMSTestimonial, CMSProject, CMSContactPage } from '../../types/cms';
+import { saveHeroReels, saveAllServices, saveAllAnnouncements, saveAllClients, saveAllTestimonials, saveAllProjects, saveContactPage, replaceAllResults } from './cmsService';
+import { CMSHeroReel, CMSService, CMSAnnouncement, CMSClientLogo, CMSTestimonial, CMSProject, CMSContactPage, CMSResult } from '../../types/cms';
 
-export type CMSHistoryType = 'heroReels' | 'services' | 'announcements' | 'clients' | 'testimonials' | 'projects' | 'contact';
+export type CMSHistoryType = 'heroReels' | 'services' | 'announcements' | 'clients' | 'testimonials' | 'projects' | 'contact' | 'results';
 
 export interface CMSHistoryEntry {
   id: string;
@@ -138,6 +138,21 @@ export function pushProjectsUndoAction(description: string, previousState: CMSPr
   triggerNavFlash(description, 'action');
 }
 
+// Push a new undoable action for Results
+export function pushResultsUndoAction(description: string, previousState: CMSResult[]): void {
+  const stack = getUndoStack();
+  const entry: CMSHistoryEntry = {
+    id: `undo_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    timestamp: Date.now(),
+    description,
+    type: 'results',
+    previousState: JSON.parse(JSON.stringify(previousState)),
+  };
+  stack.push(entry);
+  saveUndoStack(stack);
+  triggerNavFlash(description, 'action');
+}
+
 // Push a new undoable action for Contact Page (CMS 1.8)
 export function pushContactUndoAction(description: string, previousState: CMSContactPage): void {
   const stack = getUndoStack();
@@ -177,6 +192,7 @@ export async function undoLastAction(): Promise<{
   restoredClients?: CMSClientLogo[];
   restoredTestimonials?: CMSTestimonial[];
   restoredProjects?: CMSProject[];
+  restoredResults?: CMSResult[];
   restoredContact?: CMSContactPage;
 }> {
   const stack = getUndoStack();
@@ -268,6 +284,18 @@ export async function undoLastAction(): Promise<{
       success: true,
       message: restoreMsg,
       restoredProjects: lastEntry.previousState,
+    };
+  }
+
+  if (lastEntry.type === 'results' && Array.isArray(lastEntry.previousState)) {
+    const restoredResults = await replaceAllResults(lastEntry.previousState);
+    const restoreMsg = `Restored: ${lastEntry.description}`;
+    triggerNavFlash(restoreMsg, 'undo');
+
+    return {
+      success: true,
+      message: restoreMsg,
+      restoredResults,
     };
   }
 

@@ -13,66 +13,26 @@ interface MissionData {
   category: string;
   description: string;
   imageUrl: string;
-  videoUrl: string;
-  aspectRatio: 'portrait';
+  videoUrl?: string;
+  aspectRatio: 'portrait' | 'cinematic';
   tag: string;
 }
 
-const MISSIONS: MissionData[] = [
-  {
-    id: 'creative-content',
-    number: '01',
-    titleLines: ['CREATIVE', 'CONTENT'],
-    category: 'CREATIVE CONTENT',
-    description: 'High-impact social films, vertical storytelling, viral hooks, and creative campaign direction engineered to captivate algorithmic feeds.',
-    imageUrl: '/what-we-do/optimized/creative-content.webp',
-    videoUrl: '/reels/aabharan_womens_accessories/aabharan_womens_accessories_2026-05-30_10-01-21_3908213461611903133_45301478774.mp4',
-    aspectRatio: 'portrait',
-    tag: 'CREATIVE DIRECTION & HOOKS',
-  },
-  {
-    id: 'digital-growth',
-    number: '02',
-    titleLines: ['DIGITAL', 'GROWTH'],
-    category: 'DIGITAL GROWTH',
-    description: 'Full-funnel digital creative systems, visual campaigns, and scalable brand momentum engineered to convert viewers into lifelong advocates.',
-    imageUrl: '/what-we-do/optimized/digital-growth.webp',
-    videoUrl: '/reels/viswatuff.glass_rjy/viswatuff.glass_rjy_2026-05-28_18-00-28_3907005057329571857_78432309239.mp4',
-    aspectRatio: 'portrait',
-    tag: 'CATEGORY LEADERSHIP & SCALE',
-  },
-  {
-    id: 'editing-posting',
-    number: '03',
-    titleLines: ['EDITING &', 'POSTING'],
-    category: 'EDITING & POSTING',
-    description: 'Precision cinematic editing, luxury Hollywood color grading, immersive spatial sound design, and scheduled high-impact posting across platforms.',
-    imageUrl: '/what-we-do/optimized/editing-posting.webp',
-    videoUrl: '/reels/sbventures_official/sbventures_official_2026-09-15_17-10-21_3986704799434897519_5720346010.mp4',
-    aspectRatio: 'portrait',
-    tag: 'PRECISION FINISHING & DISTRIBUTION',
-  },
-];
-
 export const WhatWeDoSection: React.FC = () => {
   const { services } = useCMSContent();
-  const activeMissions: MissionData[] =
-    services && services.length === 3
-      ? services.map((service, index) => {
-          const isLegacyThumb = !service.imageUrl || service.imageUrl.includes('/reels/thumbnails-webp/');
-          return {
-            id: service.id,
-            number: service.number || `0${index + 1}`,
-            titleLines: service.titleLines,
-            category: service.category,
-            description: service.description,
-            imageUrl: isLegacyThumb ? MISSIONS[index].imageUrl : service.imageUrl,
-            videoUrl: service.videoUrl || MISSIONS[index].videoUrl,
-            aspectRatio: 'portrait',
-            tag: service.tag,
-          };
-        })
-      : MISSIONS;
+  const activeMissions: MissionData[] = services
+    .filter((service) => service.visible !== false)
+    .map((service, index) => ({
+      id: service.id,
+      number: service.number || String(index + 1).padStart(2, '0'),
+      titleLines: service.titleLines,
+      category: service.category,
+      description: service.description,
+      imageUrl: service.imageUrl,
+      videoUrl: service.videoUrl,
+      aspectRatio: service.aspectRatio || 'portrait',
+      tag: service.tag,
+    }));
   const sectionRef = useRef<HTMLElement>(null);
   const articleRefs = useRef<(HTMLElement | null)[]>([]);
   const imageRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -109,34 +69,52 @@ export const WhatWeDoSection: React.FC = () => {
           return (
             <article ref={(element) => (articleRefs.current[index] = element)} key={mission.id} className="grid grid-cols-1 gap-10 border-t border-white/20 py-20 sm:py-28 lg:grid-cols-12 lg:items-center lg:gap-16 lg:py-36">
               <div className={`lg:col-span-5 ${reverse ? 'lg:order-2' : 'lg:order-1'}`}>
-                <div className="mb-8 flex items-center gap-4 text-[11px] tracking-[0.16em] text-white/45 uppercase">
-                  <span className="text-[#1497F5]">{mission.number} / 03</span>
+                <div className="mb-6 flex items-center gap-4 font-mono text-xs tracking-[0.24em] text-white/50 uppercase">
+                  <span className="text-[#008CFF] font-bold">{mission.number} / {String(activeMissions.length).padStart(2, '0')}</span>
                   <span>{mission.category}</span>
                 </div>
-                <h2 className="text-4xl font-semibold uppercase leading-[0.9] tracking-[-0.055em] sm:text-6xl lg:text-7xl">
+                <h2 className="text-4xl sm:text-6xl lg:text-7xl font-sans font-black uppercase leading-[0.92] tracking-[-0.025em] text-white">
                   {mission.titleLines.map((line) => <span key={line} className="block">{line}</span>)}
                 </h2>
-                <p className="mt-8 max-w-lg text-base leading-8 text-white/65 sm:text-lg">
+                <p className="mt-6 max-w-lg font-sans font-light text-base leading-relaxed text-white/75 sm:text-lg">
                   {mission.description}
                 </p>
-                <p className="mt-8 border-l border-[#1497F5] pl-4 text-[11px] font-medium tracking-[0.16em] text-white/55 uppercase">
+                <p className="mt-6 border-l-2 border-[#008CFF] pl-4 font-mono text-xs font-semibold tracking-[0.2em] text-white/60 uppercase">
                   {mission.tag}
                 </p>
               </div>
 
               <figure className={`lg:col-span-7 ${reverse ? 'lg:order-1' : 'lg:order-2'}`}>
-                <div ref={(element) => (imageRefs.current[index] = element)} className="mx-auto aspect-[4/5] w-full max-w-[560px] overflow-hidden bg-[#111419] lg:mx-0">
-                  <img
-                    src={getOptimizedImageUrl(mission.imageUrl || MISSIONS[index].imageUrl)}
-                    alt={`${mission.category} - ${mission.titleLines.join(' ')}`}
-                    width={960}
-                    height={1280}
-                    sizes="(min-width: 1024px) 44vw, 100vw"
-                    loading="lazy"
-                    fetchPriority="low"
-                    decoding="async"
-                    className="h-full w-full object-cover transition-transform duration-700 hover:scale-[1.025]"
-                  />
+                <div
+                  ref={(element) => (imageRefs.current[index] = element)}
+                  className={`mx-auto w-full max-w-[560px] overflow-hidden bg-[#111419] lg:mx-0 ${
+                    mission.aspectRatio === 'cinematic' ? 'aspect-video' : 'aspect-[4/5]'
+                  }`}
+                >
+                  {mission.videoUrl ? (
+                    <video
+                      src={mission.videoUrl}
+                      poster={mission.imageUrl ? getOptimizedImageUrl(mission.imageUrl) : undefined}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      preload="metadata"
+                      aria-label={`${mission.category} - ${mission.titleLines.join(' ')}`}
+                      className="h-full w-full object-cover transition-transform duration-700 hover:scale-[1.025]"
+                    />
+                  ) : mission.imageUrl ? (
+                    <img
+                      src={getOptimizedImageUrl(mission.imageUrl)}
+                      alt={`${mission.category} - ${mission.titleLines.join(' ')}`}
+                      width={mission.aspectRatio === 'cinematic' ? 1280 : 960}
+                      height={mission.aspectRatio === 'cinematic' ? 720 : 1280}
+                      sizes="(min-width: 1024px) 44vw, 100vw"
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover transition-transform duration-700 hover:scale-[1.025]"
+                    />
+                  ) : null}
                 </div>
               </figure>
             </article>

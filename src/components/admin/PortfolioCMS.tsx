@@ -6,9 +6,7 @@ import {
   RefreshCw,
   CheckCircle2,
   X,
-  Upload,
   Image as ImageIcon,
-  Video,
   Eye,
   EyeOff,
   ChevronUp,
@@ -25,6 +23,40 @@ import {
   resetProjectsToDefaults,
 } from '../../lib/cms/cmsService';
 import { pushProjectsUndoAction } from '../../lib/cms/cmsHistory';
+import { CloudinaryUploader, isDurableMediaUrl } from './CloudinaryUploader';
+
+const PortfolioUploader = CloudinaryUploader;
+
+type ReelField = Exclude<keyof CMSProjectReel, 'id'>;
+
+const getErrorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error && error.message ? error.message : fallback;
+
+const createStableId = (prefix: 'project' | 'reel') => {
+  const suffix =
+    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  return `${prefix}_${suffix}`;
+};
+
+const normalizeReelIds = (reels: CMSProjectReel[]) => {
+  const usedIds = new Set<string>();
+  return reels.map((reel) => {
+    let reelId = typeof reel.id === 'string' && reel.id.trim() ? reel.id : createStableId('reel');
+    while (usedIds.has(reelId)) reelId = createStableId('reel');
+    usedIds.add(reelId);
+    return { ...reel, id: reelId };
+  });
+};
+
+const validateAssetUrl = (value: string, label: string, required = true): string | null => {
+  const cleanValue = value.trim();
+  if (!cleanValue) return required ? `${label} is required.` : null;
+  return isDurableMediaUrl(cleanValue)
+    ? null
+    : `${label} must use a durable HTTPS URL or site-relative path. data:, blob:, http://, protocol-relative, and credential-bearing URLs are not allowed.`;
+};
 
 const PRESET_LOGOS = [
   { label: 'Santhi Pipes', url: '/clients/optimized/Shanti Pipes.webp' },
@@ -49,12 +81,17 @@ export const PortfolioCMS: React.FC = () => {
   const [projects, setProjects] = useState<CMSProject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [saveToast, setSaveToast] = useState<string | null>(null);
+  const [listError, setListError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [mutationKey, setMutationKey] = useState<string | null>(null);
+  const mutationLock = useRef(false);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState<CMSProject | null>(null);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [draftProjectId, setDraftProjectId] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Form State: Basic Info
   const [formName, setFormName] = useState('');
@@ -78,13 +115,12 @@ export const PortfolioCMS: React.FC = () => {
   const [formDeliverables, setFormDeliverables] = useState<string[]>(['', '', '']);
   const [formReels, setFormReels] = useState<CMSProjectReel[]>([]);
 
-  // File Upload State
-  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
-  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
-  const [isUploadingPoster, setIsUploadingPoster] = useState(false);
-  const logoInputRef = useRef<HTMLInputElement>(null);
-  const videoInputRef = useRef<HTMLInputElement>(null);
-  const posterInputRef = useRef<HTMLInputElement>(null);
+  // Upload State
+  const [activeUploads, setActiveUploads] = useState<Set<string>>(() => new Set());
+  const hasActiveUploads = activeUploads.size > 0;
+  const isSaving = mutationKey === 'save';
+  const isFormBusy = hasActiveUploads || isSaving;
+  const isBusy = mutationKey !== null;
 
   // Load published projects on mount & listen for undo updates
   useEffect(() => {
@@ -96,13 +132,17 @@ export const PortfolioCMS: React.FC = () => {
           setIsLoading(false);
         }
       })
-      .catch((err) => {
-        console.warn('Failed to load portfolio projects:', err);
-        if (mounted) setIsLoading(false);
+      .catch((error) => {
+        console.warn('Failed to load portfolio projects:', error);
+        if (mounted) {
+          setListError(getErrorMessage(error, 'Portfolio projects could not be loaded.'));
+          setIsLoading(false);
+        }
       });
 
-    const handleSync = (e: Event) => {
-      const customEvent = e as CustomEvent<CMSProject[]>;
+    const handleSync = (event: Event) => {
+      if (mutationLock.current) return;
+      const customEvent = event as CustomEvent<CMSProject[]>;
       if (customEvent.detail && Array.isArray(customEvent.detail)) {
         setProjects(customEvent.detail);
       }
@@ -112,18 +152,61 @@ export const PortfolioCMS: React.FC = () => {
     return () => {
       mounted = false;
       window.removeEventListener('brandshoots_projects_updated', handleSync);
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     };
   }, []);
 
-  const showToast = (msg: string) => {
-    setSaveToast(msg);
-    setTimeout(() => setSaveToast(null), 3500);
+  const showToast = (message: string) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setSaveToast(message);
+    toastTimerRef.current = setTimeout(() => setSaveToast(null), 3500);
+  };
+
+  const beginMutation = (key: string) => {
+    if (mutationLock.current) return false;
+    mutationLock.current = true;
+    setMutationKey(key);
+    setListError(null);
+    return true;
+  };
+
+  const endMutation = () => {
+    mutationLock.current = false;
+    setMutationKey(null);
+  };
+
+  const recordUndo = (description: string, previousState: CMSProject[]) => {
+    try {
+      pushProjectsUndoAction(description, previousState);
+    } catch (error) {
+      console.warn('Portfolio change was saved, but undo history could not be recorded:', error);
+      setListError('The change was saved, but it could not be added to Undo history.');
+    }
+  };
+
+  const handleUploadingChange = (key: string, uploading: boolean) => {
+    setActiveUploads((current) => {
+      const next = new Set(current);
+      if (uploading) next.add(key);
+      else next.delete(key);
+      return next;
+    });
   };
 
   // Open Edit Modal
-  const openEditModal = (project: CMSProject, index: number) => {
-    setEditingProject(project);
-    setEditingIndex(index);
+  const openEditModal = (projectId: string) => {
+    if (mutationLock.current) return;
+    const projectIndex = projects.findIndex((project) => project.id === projectId);
+    const project = projects[projectIndex];
+    if (projectIndex < 0 || !project) {
+      setListError('That portfolio project no longer exists. Refresh and try again.');
+      return;
+    }
+
+    setEditingProjectId(project.id);
+    setDraftProjectId(project.id);
+    setFormError(null);
+    setActiveUploads(new Set());
     setFormName(project.name || '');
     setFormHeadline(project.headline || '');
     setFormCategory(project.category || 'Commercial Production');
@@ -133,30 +216,38 @@ export const PortfolioCMS: React.FC = () => {
     setFormPosterUrl(project.posterUrl || '');
     setFormLogoUrl(project.logoUrl || '');
 
-    // Extract metrics
-    const viewsObj = project.metrics?.find((m) => m.label.toLowerCase() === 'views');
-    const followersObj = project.metrics?.find((m) => m.label.toLowerCase() === 'followers');
-    const likesObj = project.metrics?.find((m) => m.label.toLowerCase() === 'likes');
+    const viewsObj = project.metrics?.find((metric) => metric.label.toLowerCase() === 'views');
+    const followersObj = project.metrics?.find((metric) => metric.label.toLowerCase() === 'followers');
+    const likesObj = project.metrics?.find((metric) => metric.label.toLowerCase() === 'likes');
     setFormViews(viewsObj?.value || '250K+');
     setFormFollowers(followersObj?.value || '18K+');
     setFormLikes(likesObj?.value || '34K+');
 
-    // More Info content
     setFormStory(project.story || '');
     setFormDeliverables(
       project.deliverables && project.deliverables.length > 0
         ? [...project.deliverables]
         : ['High-Speed Extrusion Lines & Heavy Machinery', 'Large-Scale Warehouse & Logistics', 'High-Retention Commercial Cut']
     );
-    setFormReels(project.reels && project.reels.length > 0 ? [...project.reels] : []);
-
+    setFormReels(
+      project.reels && project.reels.length > 0
+        ? normalizeReelIds(project.reels)
+        : []
+    );
     setIsModalOpen(true);
   };
 
   // Open Create Modal
   const openCreateModal = () => {
-    setEditingProject(null);
-    setEditingIndex(null);
+    if (mutationLock.current) return;
+    let newDraftProjectId = createStableId('project');
+    while (projects.some((project) => project.id === newDraftProjectId)) {
+      newDraftProjectId = createStableId('project');
+    }
+    setEditingProjectId(null);
+    setDraftProjectId(newDraftProjectId);
+    setFormError(null);
+    setActiveUploads(new Set());
     setFormName('');
     setFormHeadline('');
     setFormCategory('Commercial Production');
@@ -179,240 +270,236 @@ export const PortfolioCMS: React.FC = () => {
   };
 
   const closeModal = () => {
+    if (mutationLock.current || hasActiveUploads) return;
     setIsModalOpen(false);
-    setEditingProject(null);
-    setEditingIndex(null);
-  };
-
-  // Handle Logo File Upload
-  const handleLogoFileSelect = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      alert('Please select a valid image file (PNG, JPG, SVG, WebP).');
-      return;
-    }
-    setIsUploadingLogo(true);
-    const localUrl = URL.createObjectURL(file);
-    setFormLogoUrl(localUrl);
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setFormLogoUrl(reader.result);
-      }
-      setIsUploadingLogo(false);
-    };
-    reader.onerror = () => setIsUploadingLogo(false);
-    reader.readAsDataURL(file);
-  };
-
-  // Handle Poster File Upload
-  const handlePosterFileSelect = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      alert('Please select a valid image file for the poster.');
-      return;
-    }
-    setIsUploadingPoster(true);
-    const localUrl = URL.createObjectURL(file);
-    setFormPosterUrl(localUrl);
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setFormPosterUrl(reader.result);
-      }
-      setIsUploadingPoster(false);
-    };
-    reader.onerror = () => setIsUploadingPoster(false);
-    reader.readAsDataURL(file);
-  };
-
-  // Handle Video File Upload
-  const handleVideoFileSelect = (file: File) => {
-    if (!file.type.startsWith('video/')) {
-      alert('Please select a valid MP4/MOV/WebM video file.');
-      return;
-    }
-    setIsUploadingVideo(true);
-    const localUrl = URL.createObjectURL(file);
-    setFormVideoUrl(localUrl);
-
-    // Optional Cloudinary direct upload if available
-    const cloudName =
-      (import.meta as any).env?.VITE_CLOUDINARY_CLOUD_NAME ||
-      localStorage.getItem('bs_cloudinary_cloud_name') ||
-      '';
-
-    if (cloudName.trim()) {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'brandshoots_unsigned');
-      formData.append('folder', 'brandshoots_portfolio');
-
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName.trim()}/video/upload`);
-      xhr.onload = () => {
-        setIsUploadingVideo(false);
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try {
-            const res = JSON.parse(xhr.responseText);
-            if (res.secure_url) setFormVideoUrl(res.secure_url);
-          } catch {}
-        }
-      };
-      xhr.onerror = () => setIsUploadingVideo(false);
-      xhr.send(formData);
-    } else {
-      setIsUploadingVideo(false);
-    }
+    setEditingProjectId(null);
+    setDraftProjectId('');
+    setFormError(null);
   };
 
   // Save Project (Create or Edit)
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const nameClean = formName.trim();
-    if (!nameClean) {
-      alert('Please enter a project title / client name.');
+  const handleSave = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setFormError(null);
+
+    if (hasActiveUploads) {
+      setFormError('Wait for every media upload to finish before saving.');
       return;
     }
 
+    const nameClean = formName.trim();
+    const headlineClean = formHeadline.trim();
+    if (!nameClean) {
+      setFormError('Please enter a project title / client name.');
+      return;
+    }
+    if (!headlineClean) {
+      setFormError('Please enter the short project description.');
+      return;
+    }
+    if (!editingProjectId && !draftProjectId) {
+      setFormError('This project draft has no stable ID. Close the editor and create it again.');
+      return;
+    }
+    if (!editingProjectId && projects.some((project) => project.id === draftProjectId)) {
+      setFormError('This project draft conflicts with an existing project. Close the editor and create it again.');
+      return;
+    }
+
+    const assetErrors = [
+      validateAssetUrl(formLogoUrl, 'Client logo', false),
+      validateAssetUrl(formVideoUrl, 'Main reel video'),
+      validateAssetUrl(formPosterUrl, 'Main reel poster'),
+      ...formReels.flatMap((reel, index) => [
+        validateAssetUrl(reel.videoUrl, `Reel ${index + 1} video`),
+        validateAssetUrl(reel.posterUrl, `Reel ${index + 1} poster`),
+      ]),
+    ].filter((message): message is string => Boolean(message));
+
+    if (assetErrors.length > 0) {
+      setFormError(assetErrors[0]);
+      return;
+    }
+    if (!beginMutation('save')) return;
+
     const previousState = [...projects];
     const cleanDeliverables = formDeliverables
-      .map((d) => d.trim())
-      .filter((d) => d.length > 0);
-
+      .map((deliverable) => deliverable.trim())
+      .filter((deliverable) => deliverable.length > 0);
+    const cleanReels = formReels.map((reel) => ({
+      ...reel,
+      title: reel.title.trim(),
+      category: reel.category.trim(),
+      duration: reel.duration.trim(),
+      videoUrl: reel.videoUrl.trim(),
+      posterUrl: reel.posterUrl.trim(),
+    }));
     const metrics = [
       { label: 'Views', value: formViews.trim() || '250K+' },
       { label: 'Followers', value: formFollowers.trim() || '18K+' },
       { label: 'Likes', value: formLikes.trim() || '34K+' },
     ];
 
-    let updatedList: CMSProject[];
+    try {
+      let updatedList: CMSProject[];
+      let undoDescription: string;
+      let successMessage: string;
 
-    if (editingProject && editingIndex !== null) {
-      // Edit existing
-      pushProjectsUndoAction(`Updated portfolio project: ${nameClean}`, previousState);
+      if (editingProjectId) {
+        const fullListIndex = projects.findIndex((project) => project.id === editingProjectId);
+        const currentProject = projects[fullListIndex];
+        if (fullListIndex < 0 || !currentProject) {
+          throw new Error('This project no longer exists. Close the editor and try again.');
+        }
 
-      const updatedProject: CMSProject = {
-        ...editingProject,
-        name: nameClean,
-        headline: formHeadline.trim(),
-        category: formCategory.trim() || 'Commercial Production',
-        year: formYear.trim() || '2026',
-        videoUrl: formVideoUrl.trim(),
-        posterUrl: formPosterUrl.trim(),
-        logoUrl: formLogoUrl.trim() || undefined,
-        story: formStory.trim(),
-        deliverables: cleanDeliverables,
-        metrics,
-        reels: formReels,
-        visible: formVisible,
-        updatedAt: Date.now(),
-      };
+        const updatedProject: CMSProject = {
+          ...currentProject,
+          name: nameClean,
+          headline: headlineClean,
+          category: formCategory.trim() || 'Commercial Production',
+          year: formYear.trim() || '2026',
+          videoUrl: formVideoUrl.trim(),
+          posterUrl: formPosterUrl.trim(),
+          logoUrl: formLogoUrl.trim() || undefined,
+          story: formStory.trim(),
+          deliverables: cleanDeliverables,
+          metrics,
+          reels: cleanReels,
+          visible: formVisible,
+          updatedAt: Date.now(),
+        };
 
-      updatedList = projects.map((p, idx) => (idx === editingIndex ? updatedProject : p));
-      showToast(`Project "${nameClean}" updated & live synced!`);
-    } else {
-      // Create new
-      pushProjectsUndoAction(`Added portfolio project: ${nameClean}`, previousState);
+        updatedList = projects.map((project) =>
+          project.id === editingProjectId ? updatedProject : project
+        );
+        undoDescription = `Updated portfolio project: ${nameClean}`;
+        successMessage = `Project "${nameClean}" updated.`;
+      } else {
+        const cleanSlug = nameClean.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
+        const newProject: CMSProject = {
+          id: draftProjectId,
+          slug: cleanSlug,
+          name: nameClean,
+          headline: headlineClean,
+          category: formCategory.trim() || 'Commercial Production',
+          year: formYear.trim() || '2026',
+          videoUrl: formVideoUrl.trim(),
+          posterUrl: formPosterUrl.trim(),
+          logoUrl: formLogoUrl.trim() || undefined,
+          story: formStory.trim(),
+          deliverables: cleanDeliverables,
+          metrics,
+          reels: cleanReels,
+          order: projects.length,
+          visible: formVisible,
+          updatedAt: Date.now(),
+        };
 
-      const cleanSlug = nameClean.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
-      const newProject: CMSProject = {
-        id: `project_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-        slug: cleanSlug,
-        name: nameClean,
-        headline: formHeadline.trim(),
-        category: formCategory.trim() || 'Commercial Production',
-        year: formYear.trim() || '2026',
-        videoUrl: formVideoUrl.trim(),
-        posterUrl: formPosterUrl.trim(),
-        logoUrl: formLogoUrl.trim() || undefined,
-        story: formStory.trim(),
-        deliverables: cleanDeliverables,
-        metrics,
-        reels: formReels,
-        order: projects.length,
-        visible: formVisible,
-        updatedAt: Date.now(),
-      };
+        updatedList = [...projects, newProject];
+        undoDescription = `Added portfolio project: ${nameClean}`;
+        successMessage = `Project "${nameClean}" added.`;
+      }
 
-      updatedList = [...projects, newProject];
-      showToast(`Project "${nameClean}" added & live synced!`);
+      const normalizedList = updatedList.map((project, index) => ({ ...project, order: index }));
+      await saveAllProjects(normalizedList);
+      setProjects(normalizedList);
+      recordUndo(undoDescription, previousState);
+      setIsModalOpen(false);
+      setEditingProjectId(null);
+      setDraftProjectId('');
+      setFormError(null);
+      showToast(successMessage);
+    } catch (error) {
+      setFormError(getErrorMessage(error, 'Firebase could not save this portfolio project. No success was recorded.'));
+    } finally {
+      endMutation();
     }
-
-    setProjects(updatedList);
-    await saveAllProjects(updatedList);
-    closeModal();
   };
 
   // Quick Visibility Toggle
-  const toggleVisibility = async (index: number) => {
-    const project = projects[index];
-    if (!project) return;
-
-    const previousState = [...projects];
-    const newVisible = !project.visible;
-    pushProjectsUndoAction(
-      `${newVisible ? 'Shown' : 'Hidden'} portfolio project: ${project.name}`,
-      previousState
-    );
-
-    const updated = projects.map((p, idx) =>
-      idx === index ? { ...p, visible: newVisible, updatedAt: Date.now() } : p
-    );
-    setProjects(updated);
-    await saveAllProjects(updated);
-    showToast(`"${project.name}" is now ${newVisible ? 'Visible' : 'Hidden'} on Portfolio.`);
-  };
-
-  // Reorder: Move Up
-  const moveUp = async (index: number) => {
-    if (index <= 0) return;
-    const previousState = [...projects];
-    const updated = [...projects];
-    const temp = updated[index];
-    updated[index] = updated[index - 1];
-    updated[index - 1] = temp;
-
-    pushProjectsUndoAction(`Moved "${temp.name}" up`, previousState);
-    setProjects(updated);
-    await saveAllProjects(updated);
-    showToast(`Reordered "${temp.name}" to position #${index}.`);
-  };
-
-  // Reorder: Move Down
-  const moveDown = async (index: number) => {
-    if (index >= projects.length - 1) return;
-    const previousState = [...projects];
-    const updated = [...projects];
-    const temp = updated[index];
-    updated[index] = updated[index + 1];
-    updated[index + 1] = temp;
-
-    pushProjectsUndoAction(`Moved "${temp.name}" down`, previousState);
-    setProjects(updated);
-    await saveAllProjects(updated);
-    showToast(`Reordered "${temp.name}" to position #${index + 2}.`);
-  };
-
-  // Delete Project
-  const handleDelete = async (index: number) => {
-    const project = projects[index];
-    if (!project) return;
-    if (!window.confirm(`Are you sure you want to delete "${project.name}" from the portfolio?`)) {
+  const toggleVisibility = async (projectId: string) => {
+    if (!beginMutation(`visibility:${projectId}`)) return;
+    const fullListIndex = projects.findIndex((project) => project.id === projectId);
+    const project = projects[fullListIndex];
+    if (fullListIndex < 0 || !project) {
+      setListError('That portfolio project no longer exists. Refresh and try again.');
+      endMutation();
       return;
     }
 
     const previousState = [...projects];
-    pushProjectsUndoAction(`Deleted portfolio project: ${project.name}`, previousState);
+    const newVisible = !(project.visible !== false);
+    const updated = projects.map((item) =>
+      item.id === projectId ? { ...item, visible: newVisible, updatedAt: Date.now() } : item
+    );
 
-    const updated = projects.filter((_, idx) => idx !== index);
-    setProjects(updated);
-    await saveAllProjects(updated);
-    showToast(`Project "${project.name}" deleted.`);
+    try {
+      await saveAllProjects(updated);
+      setProjects(updated);
+      recordUndo(`${newVisible ? 'Shown' : 'Hidden'} portfolio project: ${project.name}`, previousState);
+      showToast(`"${project.name}" is now ${newVisible ? 'Visible' : 'Hidden'} on Portfolio.`);
+    } catch (error) {
+      setListError(getErrorMessage(error, `Firebase could not update visibility for "${project.name}".`));
+    } finally {
+      endMutation();
+    }
+  };
+
+  const moveProject = async (projectId: string, direction: -1 | 1) => {
+    if (searchQuery.trim() || !beginMutation(`move:${projectId}`)) return;
+    const fullListIndex = projects.findIndex((project) => project.id === projectId);
+    const targetIndex = fullListIndex + direction;
+    const project = projects[fullListIndex];
+    if (!project || fullListIndex < 0 || targetIndex < 0 || targetIndex >= projects.length) {
+      endMutation();
+      return;
+    }
+
+    const previousState = [...projects];
+    const updated = [...projects];
+    [updated[fullListIndex], updated[targetIndex]] = [updated[targetIndex], updated[fullListIndex]];
+    const normalized = updated.map((item, index) => ({ ...item, order: index }));
+
+    try {
+      await saveAllProjects(normalized);
+      setProjects(normalized);
+      recordUndo(`Moved "${project.name}" ${direction < 0 ? 'up' : 'down'}`, previousState);
+      showToast(`Reordered "${project.name}" to position #${targetIndex + 1}.`);
+    } catch (error) {
+      setListError(getErrorMessage(error, `Firebase could not reorder "${project.name}".`));
+    } finally {
+      endMutation();
+    }
+  };
+
+  // Delete Project
+  const handleDelete = async (projectId: string) => {
+    const fullListIndex = projects.findIndex((project) => project.id === projectId);
+    const project = projects[fullListIndex];
+    if (fullListIndex < 0 || !project || mutationLock.current) return;
+    if (!window.confirm(`Are you sure you want to delete "${project.name}" from the portfolio?`)) return;
+    if (!beginMutation(`delete:${projectId}`)) return;
+
+    const previousState = [...projects];
+    const updated = projects
+      .filter((item) => item.id !== projectId)
+      .map((item, index) => ({ ...item, order: index }));
+
+    try {
+      await saveAllProjects(updated);
+      setProjects(updated);
+      recordUndo(`Deleted portfolio project: ${project.name}`, previousState);
+      showToast(`Project "${project.name}" deleted.`);
+    } catch (error) {
+      setListError(getErrorMessage(error, `Firebase could not delete "${project.name}".`));
+    } finally {
+      endMutation();
+    }
   };
 
   // Reset to Defaults
   const handleResetDefaults = async () => {
+    if (mutationLock.current) return;
     if (
       !window.confirm(
         'Reset all portfolio projects to original default production showcase? Any custom projects will be replaced.'
@@ -420,11 +507,19 @@ export const PortfolioCMS: React.FC = () => {
     ) {
       return;
     }
+    if (!beginMutation('reset')) return;
+
     const previousState = [...projects];
-    pushProjectsUndoAction('Reset all portfolio projects to default showcase', previousState);
-    const defaults = await resetProjectsToDefaults();
-    setProjects(defaults);
-    showToast('Portfolio projects restored to defaults & live synced!');
+    try {
+      const defaults = await resetProjectsToDefaults();
+      setProjects(defaults);
+      recordUndo('Reset all portfolio projects to default showcase', previousState);
+      showToast('Portfolio projects restored to defaults.');
+    } catch (error) {
+      setListError(getErrorMessage(error, 'Firebase could not restore the default portfolio projects.'));
+    } finally {
+      endMutation();
+    }
   };
 
   // Deliverables list helpers
@@ -445,35 +540,45 @@ export const PortfolioCMS: React.FC = () => {
 
   // Additional reels helpers
   const handleAddReel = () => {
+    if (isFormBusy) return;
+    let newReelId = createStableId('reel');
+    while (formReels.some((reel) => reel.id === newReelId)) {
+      newReelId = createStableId('reel');
+    }
     const newReel: CMSProjectReel = {
-      id: `reel_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+      id: newReelId,
       title: `Reel 0${formReels.length + 2}`,
       category: 'Commercial Cut',
       duration: '0:30',
       videoUrl: formVideoUrl || '',
       posterUrl: formPosterUrl || '',
     };
-    setFormReels([...formReels, newReel]);
+    setFormReels((current) => [...current, newReel]);
+    setFormError(null);
   };
 
-  const handleUpdateReel = (idx: number, field: keyof CMSProjectReel, val: string) => {
-    const updated = [...formReels];
-    updated[idx] = { ...updated[idx], [field]: val };
-    setFormReels(updated);
+  const handleUpdateReel = (reelId: string, field: ReelField, value: string) => {
+    setFormReels((current) =>
+      current.map((reel) => (reel.id === reelId ? { ...reel, [field]: value } : reel))
+    );
+    setFormError(null);
   };
 
-  const handleRemoveReel = (idx: number) => {
-    setFormReels(formReels.filter((_, i) => i !== idx));
+  const handleRemoveReel = (reelId: string) => {
+    if (isFormBusy) return;
+    setFormReels((current) => current.filter((reel) => reel.id !== reelId));
+    setFormError(null);
   };
 
   // Filtered projects
-  const filteredProjects = projects.filter((p) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
+  const hasActiveFilter = Boolean(searchQuery.trim());
+  const filteredProjects = projects.filter((project) => {
+    if (!hasActiveFilter) return true;
+    const query = searchQuery.toLowerCase();
     return (
-      p.name?.toLowerCase().includes(q) ||
-      p.headline?.toLowerCase().includes(q) ||
-      p.category?.toLowerCase().includes(q)
+      project.name?.toLowerCase().includes(query) ||
+      project.headline?.toLowerCase().includes(query) ||
+      project.category?.toLowerCase().includes(query)
     );
   });
 
@@ -507,7 +612,8 @@ export const PortfolioCMS: React.FC = () => {
           <button
             type="button"
             onClick={handleResetDefaults}
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-mono transition-colors border border-white/10 cursor-pointer"
+            disabled={isBusy}
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-mono transition-colors border border-white/10 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
             title="Reset to default showcase"
           >
             <RefreshCw className="w-3.5 h-3.5 text-white" />
@@ -517,13 +623,20 @@ export const PortfolioCMS: React.FC = () => {
           <button
             type="button"
             onClick={openCreateModal}
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#008CFF] hover:bg-[#1a97ff] text-white text-xs font-sans font-bold tracking-wide uppercase transition-all shadow-[0_0_20px_rgba(0,140,255,0.35)] cursor-pointer active:scale-95"
+            disabled={isBusy}
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#008CFF] hover:bg-[#1a97ff] text-white text-xs font-sans font-bold tracking-wide uppercase transition-all shadow-[0_0_20px_rgba(0,140,255,0.35)] cursor-pointer active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Plus className="w-4 h-4 text-white" />
             <span>Add Project</span>
           </button>
         </div>
       </div>
+
+      {listError && (
+        <div role="alert" className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+          {listError}
+        </div>
+      )}
 
       {/* Search / Filter Input */}
       {projects.length > 4 && (
@@ -560,7 +673,8 @@ export const PortfolioCMS: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredProjects.map((project, index) => {
+          {filteredProjects.map((project) => {
+            const fullListIndex = projects.findIndex((candidate) => candidate.id === project.id);
             const views = project.metrics?.find((m) => m.label.toLowerCase() === 'views')?.value || '250K+';
             const followers = project.metrics?.find((m) => m.label.toLowerCase() === 'followers')?.value || '18K+';
             const likes = project.metrics?.find((m) => m.label.toLowerCase() === 'likes')?.value || '34K+';
@@ -568,7 +682,7 @@ export const PortfolioCMS: React.FC = () => {
 
             return (
               <div
-                key={project.id || index}
+                key={project.id}
                 className={`group relative rounded-2xl bg-[#070b14] border transition-all duration-200 flex flex-col overflow-hidden hover:border-cyan-500/40 hover:shadow-[0_4px_24px_rgba(0,140,255,0.08)] ${
                   isVisible ? 'border-white/10' : 'border-white/5 opacity-60'
                 }`}
@@ -577,7 +691,7 @@ export const PortfolioCMS: React.FC = () => {
                 <div className="flex items-center justify-between p-3.5 border-b border-white/5 bg-white/[0.01]">
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-xs text-cyan-400 font-semibold px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/20">
-                      #{String(index + 1).padStart(2, '0')}
+                      #{String(fullListIndex + 1).padStart(2, '0')}
                     </span>
                     <span className="text-[11px] font-sans font-medium text-white/50 uppercase tracking-wider">
                       {project.category || 'Commercial'}
@@ -588,12 +702,12 @@ export const PortfolioCMS: React.FC = () => {
                     {/* Move Up */}
                     <button
                       type="button"
-                      disabled={index === 0}
+                      disabled={hasActiveFilter || isBusy || fullListIndex <= 0}
                       onClick={(e) => {
                         e.stopPropagation();
-                        moveUp(index);
+                        void moveProject(project.id, -1);
                       }}
-                      title="Move Up"
+                      title={hasActiveFilter ? 'Clear the search filter to reorder projects' : 'Move Up'}
                       className="p-1.5 rounded-lg hover:bg-white/10 text-white/60 hover:text-white disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed transition-colors"
                     >
                       <ChevronUp className="w-3.5 h-3.5 text-white" />
@@ -602,12 +716,12 @@ export const PortfolioCMS: React.FC = () => {
                     {/* Move Down */}
                     <button
                       type="button"
-                      disabled={index === projects.length - 1}
+                      disabled={hasActiveFilter || isBusy || fullListIndex >= projects.length - 1}
                       onClick={(e) => {
                         e.stopPropagation();
-                        moveDown(index);
+                        void moveProject(project.id, 1);
                       }}
-                      title="Move Down"
+                      title={hasActiveFilter ? 'Clear the search filter to reorder projects' : 'Move Down'}
                       className="p-1.5 rounded-lg hover:bg-white/10 text-white/60 hover:text-white disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed transition-colors"
                     >
                       <ChevronDown className="w-3.5 h-3.5 text-white" />
@@ -616,9 +730,10 @@ export const PortfolioCMS: React.FC = () => {
                     {/* Visibility Toggle */}
                     <button
                       type="button"
+                      disabled={isBusy}
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggleVisibility(index);
+                        void toggleVisibility(project.id);
                       }}
                       title={isVisible ? 'Hide Project' : 'Show Project'}
                       className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white cursor-pointer transition-colors"
@@ -634,7 +749,7 @@ export const PortfolioCMS: React.FC = () => {
 
                 {/* Card Body: Logo Preview + Title & Description */}
                 <div
-                  onClick={() => openEditModal(project, index)}
+                  onClick={() => openEditModal(project.id)}
                   className="p-4 flex-1 flex flex-col cursor-pointer"
                 >
                   <div className="flex items-start gap-3.5 mb-3">
@@ -691,7 +806,8 @@ export const PortfolioCMS: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => openEditModal(project, index)}
+                      disabled={isBusy}
+                      onClick={() => openEditModal(project.id)}
                       className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-white font-sans text-xs transition-colors cursor-pointer"
                     >
                       <Edit3 className="w-3.5 h-3.5 text-white" />
@@ -700,7 +816,8 @@ export const PortfolioCMS: React.FC = () => {
 
                     <button
                       type="button"
-                      onClick={() => handleDelete(index)}
+                      disabled={isBusy}
+                      onClick={() => void handleDelete(project.id)}
                       className="p-1 rounded-lg hover:bg-rose-500/10 text-white/60 hover:text-rose-400 transition-colors cursor-pointer"
                       title="Delete Project"
                     >
@@ -738,7 +855,7 @@ export const PortfolioCMS: React.FC = () => {
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-white/[0.02]">
               <div>
                 <h3 className="text-lg font-sans font-bold text-white tracking-tight flex items-center gap-2.5">
-                  <span>{editingProject ? 'Edit Portfolio Project' : 'Add New Portfolio Project'}</span>
+                  <span>{editingProjectId !== null ? 'Edit Portfolio Project' : 'Add New Portfolio Project'}</span>
                   {formName && (
                     <span className="text-xs font-mono font-normal text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded">
                       {formName}
@@ -753,7 +870,8 @@ export const PortfolioCMS: React.FC = () => {
               <button
                 type="button"
                 onClick={closeModal}
-                className="p-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                disabled={isFormBusy}
+                className="p-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <X className="w-5 h-5 text-white" />
               </button>
@@ -880,8 +998,12 @@ export const PortfolioCMS: React.FC = () => {
                   {formLogoUrl && (
                     <button
                       type="button"
-                      onClick={() => setFormLogoUrl('')}
-                      className="text-xs text-rose-400 hover:text-rose-300 font-sans cursor-pointer"
+                      onClick={() => {
+                        setFormLogoUrl('');
+                        setFormError(null);
+                      }}
+                      disabled={isFormBusy}
+                      className="text-xs text-rose-400 hover:text-rose-300 font-sans cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       Remove Logo
                     </button>
@@ -890,53 +1012,39 @@ export const PortfolioCMS: React.FC = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
                   <div className="sm:col-span-2 space-y-3">
-                    <div>
-                      <label className="block text-xs font-sans text-white/70 mb-1.5">Logo URL or Path</label>
-                      <input
-                        type="text"
-                        value={formLogoUrl}
-                        onChange={(e) => setFormLogoUrl(e.target.value)}
-                        placeholder="e.g. /clients/optimized/Shanti Pipes.webp"
-                        className="w-full bg-[#030509] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-cyan-500/50"
-                      />
-                    </div>
+                    <PortfolioUploader
+                      label="Client Logo"
+                      value={formLogoUrl}
+                      accept="image"
+                      helpText="Optional. Upload a signed image or enter a durable HTTPS URL/site path."
+                      onChange={(url) => {
+                        setFormLogoUrl(url);
+                        setFormError(null);
+                      }}
+                      onUploadingChange={(uploading) =>
+                        handleUploadingChange('project:logo', uploading)
+                      }
+                    />
 
-                    <div className="flex flex-wrap items-center gap-2">
-                      <input
-                        ref={logoInputRef}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleLogoFileSelect(file);
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => logoInputRef.current?.click()}
-                        disabled={isUploadingLogo}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-white text-xs font-sans font-medium transition-colors cursor-pointer"
-                      >
-                        <Upload className="w-3.5 h-3.5 text-white" />
-                        <span>{isUploadingLogo ? 'Uploading...' : 'Upload Logo File'}</span>
-                      </button>
-
-                      {/* Preset Logos Dropdown */}
-                      <select
-                        onChange={(e) => {
-                          if (e.target.value) setFormLogoUrl(e.target.value);
-                        }}
-                        className="bg-[#030509] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white/70 focus:outline-none cursor-pointer"
-                      >
-                        <option value="">Or choose from existing clients...</option>
-                        {PRESET_LOGOS.map((preset) => (
-                          <option key={preset.url} value={preset.url}>
-                            {preset.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                    {/* Preset Logos Dropdown */}
+                    <select
+                      value=""
+                      disabled={isFormBusy}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          setFormLogoUrl(e.target.value);
+                          setFormError(null);
+                        }
+                      }}
+                      className="bg-[#030509] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white/70 focus:outline-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <option value="">Or choose from existing clients...</option>
+                      {PRESET_LOGOS.map((preset) => (
+                        <option key={preset.url} value={preset.url}>
+                          {preset.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   {/* Logo Preview Box */}
@@ -962,79 +1070,33 @@ export const PortfolioCMS: React.FC = () => {
                 </h4>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Video URL */}
-                  <div className="space-y-2">
-                    <label className="block text-xs font-sans text-white/70">
-                      Reel Video (MP4 / WebM / CDN URL) <span className="text-rose-400">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formVideoUrl}
-                      onChange={(e) => setFormVideoUrl(e.target.value)}
-                      placeholder="/reels/.../video.mp4"
-                      className="w-full bg-[#030509] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-cyan-500/50"
-                    />
+                  <PortfolioUploader
+                    label="Main Reel Video"
+                    value={formVideoUrl}
+                    accept="video"
+                    helpText="Required. Device files use signed Cloudinary uploads."
+                    onChange={(url) => {
+                      setFormVideoUrl(url);
+                      setFormError(null);
+                    }}
+                    onUploadingChange={(uploading) =>
+                      handleUploadingChange('project:video', uploading)
+                    }
+                  />
 
-                    <div className="flex items-center gap-2">
-                      <input
-                        ref={videoInputRef}
-                        type="file"
-                        accept="video/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleVideoFileSelect(file);
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => videoInputRef.current?.click()}
-                        disabled={isUploadingVideo}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-white text-xs font-sans cursor-pointer"
-                      >
-                        <Video className="w-3.5 h-3.5 text-white" />
-                        <span>{isUploadingVideo ? 'Uploading...' : 'Upload Video'}</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Poster Thumbnail */}
-                  <div className="space-y-2">
-                    <label className="block text-xs font-sans text-white/70">
-                      Poster Image (Instant frame loading) <span className="text-rose-400">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formPosterUrl}
-                      onChange={(e) => setFormPosterUrl(e.target.value)}
-                      placeholder="/reels/thumbnails-webp/...webp"
-                      className="w-full bg-[#030509] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-cyan-500/50"
-                    />
-
-                    <div className="flex items-center gap-2">
-                      <input
-                        ref={posterInputRef}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handlePosterFileSelect(file);
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => posterInputRef.current?.click()}
-                        disabled={isUploadingPoster}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-white text-xs font-sans cursor-pointer"
-                      >
-                        <ImageIcon className="w-3.5 h-3.5 text-white" />
-                        <span>{isUploadingPoster ? 'Uploading...' : 'Upload Poster'}</span>
-                      </button>
-                    </div>
-                  </div>
+                  <PortfolioUploader
+                    label="Main Reel Poster"
+                    value={formPosterUrl}
+                    accept="image"
+                    helpText="Required. Use a durable poster image for instant loading."
+                    onChange={(url) => {
+                      setFormPosterUrl(url);
+                      setFormError(null);
+                    }}
+                    onUploadingChange={(uploading) =>
+                      handleUploadingChange('project:poster', uploading)
+                    }
+                  />
                 </div>
 
                 {/* Video Preview */}
@@ -1178,7 +1240,8 @@ export const PortfolioCMS: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleAddReel}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/20 text-xs font-sans cursor-pointer"
+                      disabled={isFormBusy}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/20 text-xs font-sans cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Add Reel</span>
@@ -1193,7 +1256,7 @@ export const PortfolioCMS: React.FC = () => {
                     <div className="space-y-3">
                       {formReels.map((reel, rIdx) => (
                         <div
-                          key={reel.id || rIdx}
+                          key={reel.id}
                           className="p-3 rounded-xl bg-[#030509] border border-white/10 space-y-2.5"
                         >
                           <div className="flex items-center justify-between">
@@ -1202,8 +1265,9 @@ export const PortfolioCMS: React.FC = () => {
                             </span>
                             <button
                               type="button"
-                              onClick={() => handleRemoveReel(rIdx)}
-                              className="text-xs text-rose-400 hover:text-rose-300 font-sans cursor-pointer"
+                              onClick={() => handleRemoveReel(reel.id)}
+                              disabled={isFormBusy}
+                              className="text-xs text-rose-400 hover:text-rose-300 font-sans cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
                             >
                               Remove
                             </button>
@@ -1215,7 +1279,7 @@ export const PortfolioCMS: React.FC = () => {
                               <input
                                 type="text"
                                 value={reel.title}
-                                onChange={(e) => handleUpdateReel(rIdx, 'title', e.target.value)}
+                                onChange={(e) => handleUpdateReel(reel.id, 'title', e.target.value)}
                                 placeholder="e.g. Automated Extrusion Robotics Cut"
                                 className="w-full bg-[#070b14] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white"
                               />
@@ -1225,7 +1289,7 @@ export const PortfolioCMS: React.FC = () => {
                               <input
                                 type="text"
                                 value={reel.category}
-                                onChange={(e) => handleUpdateReel(rIdx, 'category', e.target.value)}
+                                onChange={(e) => handleUpdateReel(reel.id, 'category', e.target.value)}
                                 placeholder="e.g. Precision Motion"
                                 className="w-full bg-[#070b14] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white"
                               />
@@ -1233,26 +1297,26 @@ export const PortfolioCMS: React.FC = () => {
                           </div>
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                            <div>
-                              <label className="block text-[11px] text-white/60 mb-1">Video URL</label>
-                              <input
-                                type="text"
-                                value={reel.videoUrl}
-                                onChange={(e) => handleUpdateReel(rIdx, 'videoUrl', e.target.value)}
-                                placeholder="/reels/...mp4"
-                                className="w-full bg-[#070b14] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-[11px] text-white/60 mb-1">Poster / Thumbnail URL</label>
-                              <input
-                                type="text"
-                                value={reel.posterUrl}
-                                onChange={(e) => handleUpdateReel(rIdx, 'posterUrl', e.target.value)}
-                                placeholder="/reels/thumbnails-webp/...webp"
-                                className="w-full bg-[#070b14] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white"
-                              />
-                            </div>
+                            <PortfolioUploader
+                              label={`Reel Cut #${rIdx + 1} Video`}
+                              value={reel.videoUrl}
+                              accept="video"
+                              helpText="Required. Device files use signed Cloudinary uploads."
+                              onChange={(url) => handleUpdateReel(reel.id, 'videoUrl', url)}
+                              onUploadingChange={(uploading) =>
+                                handleUploadingChange(`reel:${reel.id}:video`, uploading)
+                              }
+                            />
+                            <PortfolioUploader
+                              label={`Reel Cut #${rIdx + 1} Poster`}
+                              value={reel.posterUrl}
+                              accept="image"
+                              helpText="Required. Upload or enter a durable poster URL."
+                              onChange={(url) => handleUpdateReel(reel.id, 'posterUrl', url)}
+                              onUploadingChange={(uploading) =>
+                                handleUploadingChange(`reel:${reel.id}:poster`, uploading)
+                              }
+                            />
                           </div>
                         </div>
                       ))}
@@ -1283,22 +1347,35 @@ export const PortfolioCMS: React.FC = () => {
                 </label>
               </div>
 
+              {formError && (
+                <div
+                  role="alert"
+                  className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200"
+                >
+                  {formError}
+                </div>
+              )}
+
               {/* Sticky Action Footer */}
               <div className="sticky bottom-0 -mx-6 -mb-6 p-4 sm:p-5 bg-[#070b14]/95 backdrop-blur-md border-t border-white/10 flex items-center justify-end gap-3 z-20">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-sans text-xs transition-colors cursor-pointer"
+                  disabled={isFormBusy}
+                  className="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-sans text-xs transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Cancel
                 </button>
 
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#008CFF] hover:bg-[#1a97ff] text-white font-sans text-xs font-bold tracking-wider uppercase transition-all shadow-[0_0_24px_rgba(0,140,255,0.4)] cursor-pointer active:scale-95"
+                  disabled={isFormBusy}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#008CFF] hover:bg-[#1a97ff] text-white font-sans text-xs font-bold tracking-wider uppercase transition-all shadow-[0_0_24px_rgba(0,140,255,0.4)] cursor-pointer active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <CheckCircle2 className="w-4 h-4 text-white" />
-                  <span>Save Project</span>
+                  <span>
+                    {hasActiveUploads ? 'Uploading Media...' : isSaving ? 'Saving...' : 'Save Project'}
+                  </span>
                 </button>
               </div>
 

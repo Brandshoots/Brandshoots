@@ -16,14 +16,38 @@ import {
   Briefcase,
   CheckCircle2,
   Sparkles,
+  ArrowUp,
+  ArrowDown,
+  AlertCircle,
 } from 'lucide-react';
+import { ref, set } from 'firebase/database';
 import { CMSTestimonial } from '../../types/cms';
 import {
   fetchPublishedTestimonials,
   saveAllTestimonials,
-  resetTestimonialsToDefaults,
 } from '../../lib/cms/cmsService';
-import { pushTestimonialsUndoAction, triggerNavFlash } from '../../lib/cms/cmsHistory';
+import { pushTestimonialsUndoAction } from '../../lib/cms/cmsHistory';
+import { INITIAL_TESTIMONIALS } from '../../lib/cms/seedData';
+import { firebaseDb } from '../../lib/firebase';
+
+const normalizeTestimonials = (items: CMSTestimonial[]): CMSTestimonial[] =>
+  items.map((item, index) => ({
+    ...item,
+    order: index,
+    visible: item.visible !== false,
+    updatedAt: Date.now(),
+  }));
+
+const persistTestimonials = async (items: CMSTestimonial[]): Promise<CMSTestimonial[]> => {
+  const normalized = normalizeTestimonials(items);
+  const record = Object.fromEntries(normalized.map((item) => [item.id, item]));
+  await set(ref(firebaseDb, 'published/testimonials'), record);
+  await saveAllTestimonials(normalized);
+  return normalized;
+};
+
+const errorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : 'The change could not be saved.';
 
 export const TestimonialsCMS: React.FC = () => {
   const [testimonials, setTestimonials] = useState<CMSTestimonial[]>([]);
@@ -31,13 +55,22 @@ export const TestimonialsCMS: React.FC = () => {
   const [editingItem, setEditingItem] = useState<CMSTestimonial | null>(null);
   const [isNew, setIsNew] = useState<boolean>(false);
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
+  const [isMutating, setIsMutating] = useState(false);
+  const [operationError, setOperationError] = useState<string | null>(null);
 
   // Load testimonials
   const loadTestimonials = async () => {
     setLoading(true);
-    const list = await fetchPublishedTestimonials();
-    setTestimonials(list);
-    setLoading(false);
+    setOperationError(null);
+    try {
+      const list = await fetchPublishedTestimonials();
+      setTestimonials(list);
+    } catch (error) {
+      console.error('Failed to load testimonials:', error);
+      setOperationError(`Could not load testimonials: ${errorMessage(error)}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -60,6 +93,9 @@ export const TestimonialsCMS: React.FC = () => {
 
   // Open modal for new testimonial
   const handleAddNew = () => {
+    if (isMutating) return;
+    setOperationError(null);
+    setSaveSuccess(false);
     const nextOrder = testimonials.length;
     const newItem: CMSTestimonial = {
       id: `testimonial-${Date.now()}`,
@@ -77,6 +113,8 @@ export const TestimonialsCMS: React.FC = () => {
 
   // Open modal for editing
   const handleEdit = (item: CMSTestimonial) => {
+    if (isMutating) return;
+    setOperationError(null);
     setEditingItem(JSON.parse(JSON.stringify(item)));
     setIsNew(false);
   };
@@ -84,101 +122,179 @@ export const TestimonialsCMS: React.FC = () => {
   // Quick visibility toggle
   const handleToggleVisibility = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const prev = JSON.parse(JSON.stringify(testimonials));
-    const target = testimonials.find((t) => t.id === id);
+    if (isMutating) return;
+    const target = testimonials.find((item) => item.id === id);
     if (!target) return;
 
-    const newVisibility = target.visible === false ? true : false;
-    const updated = testimonials.map((t) =>
-      t.id === id ? { ...t, visible: newVisibility, updatedAt: Date.now() } : t
+    const previousState = testimonials.map((item) => ({ ...item }));
+    const newVisibility = target.visible === false;
+    const updated = testimonials.map((item) =>
+      item.id === id ? { ...item, visible: newVisibility, updatedAt: Date.now() } : item
     );
+    const description = `${newVisibility ? 'Showed' : 'Hidden'} testimonial for "${target.client || target.author}"`;
 
-    const desc = `${newVisibility ? 'Showed' : 'Hidden'} testimonial for "${target.client || target.author}"`;
-    pushTestimonialsUndoAction(desc, prev);
-    await saveAllTestimonials(updated);
-    setTestimonials(updated);
-    triggerNavFlash(desc, 'action');
+    setIsMutating(true);
+    setOperationError(null);
+    try {
+      const persisted = await persistTestimonials(updated);
+      setTestimonials(persisted);
+      pushTestimonialsUndoAction(description, previousState);
+    } catch (error) {
+      console.error('Failed to change testimonial visibility:', error);
+      setOperationError(`Could not change testimonial visibility: ${errorMessage(error)}`);
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
+  const handleMove = async (id: string, direction: -1 | 1, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isMutating) return;
+    const fromIndex = testimonials.findIndex((item) => item.id === id);
+    const toIndex = fromIndex + direction;
+    if (fromIndex < 0 || toIndex < 0 || toIndex >= testimonials.length) return;
+
+    const previousState = testimonials.map((item) => ({ ...item }));
+    const updated = [...testimonials];
+    [updated[fromIndex], updated[toIndex]] = [updated[toIndex], updated[fromIndex]];
+    const moved = updated[toIndex];
+    const description = `Moved testimonial for "${moved.client || moved.author}" to position ${toIndex + 1}`;
+
+    setIsMutating(true);
+    setOperationError(null);
+    try {
+      const persisted = await persistTestimonials(updated);
+      setTestimonials(persisted);
+      pushTestimonialsUndoAction(description, previousState);
+    } catch (error) {
+      console.error('Failed to reorder testimonials:', error);
+      setOperationError(`Could not reorder testimonials: ${errorMessage(error)}`);
+    } finally {
+      setIsMutating(false);
+    }
   };
 
   // Delete testimonial
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const target = testimonials.find((t) => t.id === id);
+    if (isMutating) return;
+    const target = testimonials.find((item) => item.id === id);
     const name = target?.client || target?.author || 'Testimonial';
 
     if (!window.confirm(`Are you sure you want to delete the testimonial for "${name}"? You can undo this action via the navbar.`)) {
       return;
     }
 
-    const prev = JSON.parse(JSON.stringify(testimonials));
-    const updated = testimonials.filter((t) => t.id !== id);
+    const previousState = testimonials.map((item) => ({ ...item }));
+    const updated = testimonials.filter((item) => item.id !== id);
+    const description = `Deleted testimonial for "${name}"`;
 
-    const desc = `Deleted testimonial for "${name}"`;
-    pushTestimonialsUndoAction(desc, prev);
-    await saveAllTestimonials(updated);
-    setTestimonials(updated);
-    triggerNavFlash(desc, 'action');
+    setIsMutating(true);
+    setOperationError(null);
+    try {
+      const persisted = await persistTestimonials(updated);
+      setTestimonials(persisted);
+      pushTestimonialsUndoAction(description, previousState);
+    } catch (error) {
+      console.error('Failed to delete testimonial:', error);
+      setOperationError(`Could not delete testimonial: ${errorMessage(error)}`);
+    } finally {
+      setIsMutating(false);
+    }
   };
 
   // Reset to original defaults
   const handleResetDefaults = async () => {
+    if (isMutating) return;
     if (!window.confirm('Reset all testimonials to original default reviews? You can undo this action via the navbar.')) {
       return;
     }
 
-    const prev = JSON.parse(JSON.stringify(testimonials));
-    const desc = 'Reset all testimonials to factory defaults';
-    pushTestimonialsUndoAction(desc, prev);
+    const previousState = testimonials.map((item) => ({ ...item }));
+    const defaults = Object.values(INITIAL_TESTIMONIALS)
+      .sort((a, b) => a.order - b.order)
+      .map((item) => ({ ...item }));
+    const description = 'Reset all testimonials to factory defaults';
 
-    const defaults = await resetTestimonialsToDefaults();
-    setTestimonials(defaults);
-    triggerNavFlash(desc, 'action');
+    setIsMutating(true);
+    setOperationError(null);
+    try {
+      const persisted = await persistTestimonials(defaults);
+      setTestimonials(persisted);
+      pushTestimonialsUndoAction(description, previousState);
+    } catch (error) {
+      console.error('Failed to reset testimonials:', error);
+      setOperationError(`Could not reset testimonials: ${errorMessage(error)}`);
+    } finally {
+      setIsMutating(false);
+    }
   };
 
   // Save item from modal
   const handleSaveModal = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingItem) return;
+    if (!editingItem || isMutating) return;
 
     if (!editingItem.client.trim() && !editingItem.author.trim()) {
-      alert('Please provide either a Client Name or Author Name.');
+      setOperationError('Please provide either a Client Name or Author Name.');
       return;
     }
 
     if (!editingItem.quote.trim()) {
-      alert('Please provide the testimonial quote text.');
+      setOperationError('Please provide the testimonial quote text.');
       return;
     }
 
-    const prev = JSON.parse(JSON.stringify(testimonials));
-    let updated: CMSTestimonial[];
-
-    if (isNew) {
-      updated = [...testimonials, { ...editingItem, updatedAt: Date.now() }];
-    } else {
-      updated = testimonials.map((t) =>
-        t.id === editingItem.id ? { ...editingItem, updatedAt: Date.now() } : t
-      );
+    if (!isNew && !testimonials.some((item) => item.id === editingItem.id)) {
+      setOperationError('This testimonial no longer exists. Close the editor and try again.');
+      return;
     }
 
-    const desc = isNew
-      ? `Added new testimonial for "${editingItem.client || editingItem.author}"`
-      : `Updated testimonial for "${editingItem.client || editingItem.author}"`;
+    const previousState = testimonials.map((item) => ({ ...item }));
+    const cleanedItem: CMSTestimonial = {
+      ...editingItem,
+      client: editingItem.client.trim(),
+      quote: editingItem.quote.trim(),
+      author: editingItem.author.trim(),
+      role: editingItem.role.trim(),
+      visible: editingItem.visible !== false,
+      updatedAt: Date.now(),
+    };
+    const updated = isNew
+      ? [...testimonials, cleanedItem]
+      : testimonials.map((item) => item.id === cleanedItem.id ? cleanedItem : item);
+    const description = isNew
+      ? `Added new testimonial for "${cleanedItem.client || cleanedItem.author}"`
+      : `Updated testimonial for "${cleanedItem.client || cleanedItem.author}"`;
 
-    pushTestimonialsUndoAction(desc, prev);
-    await saveAllTestimonials(updated);
-    setTestimonials(updated);
-    setSaveSuccess(true);
-    triggerNavFlash(desc, 'action');
-
-    setTimeout(() => {
-      setSaveSuccess(false);
-      setEditingItem(null);
-    }, 400);
+    setIsMutating(true);
+    setOperationError(null);
+    try {
+      const persisted = await persistTestimonials(updated);
+      setTestimonials(persisted);
+      pushTestimonialsUndoAction(description, previousState);
+      setSaveSuccess(true);
+      window.setTimeout(() => {
+        setSaveSuccess(false);
+        setEditingItem(null);
+      }, 400);
+    } catch (error) {
+      console.error('Failed to save testimonial:', error);
+      setOperationError(`Could not save testimonial: ${errorMessage(error)}`);
+    } finally {
+      setIsMutating(false);
+    }
   };
 
   return (
     <div className="w-full flex flex-col gap-6">
+      {operationError && (
+        <div className="flex items-start gap-2.5 p-4 rounded-xl bg-red-500/15 border border-red-500/40 text-red-300 text-sm font-mono">
+          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+          <span>{operationError}</span>
+        </div>
+      )}
+
       {/* Top Header Card */}
       <div className="bg-[#070B12]/95 border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-[0_20px_80px_rgba(0,0,0,0.8)] backdrop-blur-2xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -204,7 +320,8 @@ export const TestimonialsCMS: React.FC = () => {
             <button
               type="button"
               onClick={handleResetDefaults}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/15 text-white font-mono text-xs uppercase font-semibold transition-all cursor-pointer active:scale-95"
+              disabled={isMutating}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/15 text-white font-mono text-xs uppercase font-semibold transition-all cursor-pointer active:scale-95 disabled:opacity-40"
               title="Reset all reviews to original defaults"
             >
               <RotateCcw className="w-4 h-4 text-white" />
@@ -214,7 +331,8 @@ export const TestimonialsCMS: React.FC = () => {
             <button
               type="button"
               onClick={handleAddNew}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#008CFF] hover:bg-[#209CFF] text-white font-mono text-xs uppercase font-bold tracking-wider transition-all shadow-[0_0_25px_rgba(0,140,255,0.4)] cursor-pointer active:scale-95"
+              disabled={isMutating}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#008CFF] hover:bg-[#209CFF] disabled:opacity-40 text-white font-mono text-xs uppercase font-bold tracking-wider transition-all shadow-[0_0_25px_rgba(0,140,255,0.4)] cursor-pointer active:scale-95"
             >
               <Plus className="w-4 h-4 text-white" />
               <span>Add Testimonial</span>
@@ -235,7 +353,8 @@ export const TestimonialsCMS: React.FC = () => {
           <button
             type="button"
             onClick={handleAddNew}
-            className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#008CFF] text-white font-mono text-xs uppercase font-bold"
+            disabled={isMutating}
+            className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#008CFF] text-white font-mono text-xs uppercase font-bold disabled:opacity-40"
           >
             <Plus className="w-4 h-4 text-white" />
             <span>Add Testimonial</span>
@@ -303,12 +422,34 @@ export const TestimonialsCMS: React.FC = () => {
 
                   {/* Quick Action Buttons */}
                   <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={(e) => handleMove(item.id, -1, e)}
+                      disabled={isMutating || index === 0}
+                      title="Move review up"
+                      aria-label={`Move review for ${item.client || item.author} up`}
+                      className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/15 text-white flex items-center justify-center transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+                    >
+                      <ArrowUp className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => handleMove(item.id, 1, e)}
+                      disabled={isMutating || index === testimonials.length - 1}
+                      title="Move review down"
+                      aria-label={`Move review for ${item.client || item.author} down`}
+                      className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/15 text-white flex items-center justify-center transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+                    >
+                      <ArrowDown className="w-4 h-4" />
+                    </button>
+
                     {/* Toggle Visibility */}
                     <button
                       type="button"
                       onClick={(e) => handleToggleVisibility(item.id, e)}
+                      disabled={isMutating}
                       title={isVisible ? 'Hide review on website' : 'Make review visible on website'}
-                      className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                      className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer disabled:opacity-40 ${
                         isVisible
                           ? 'bg-white/5 hover:bg-white/15 text-white'
                           : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
@@ -325,8 +466,9 @@ export const TestimonialsCMS: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleEdit(item)}
+                      disabled={isMutating}
                       title="Edit this review"
-                      className="w-8 h-8 rounded-xl bg-white/5 hover:bg-[#008CFF] hover:text-white flex items-center justify-center text-white transition-all cursor-pointer"
+                      className="w-8 h-8 rounded-xl bg-white/5 hover:bg-[#008CFF] hover:text-white flex items-center justify-center text-white transition-all cursor-pointer disabled:opacity-40"
                     >
                       <Edit3 className="w-4 h-4 text-white" />
                     </button>
@@ -335,8 +477,9 @@ export const TestimonialsCMS: React.FC = () => {
                     <button
                       type="button"
                       onClick={(e) => handleDelete(item.id, e)}
+                      disabled={isMutating}
                       title="Delete review"
-                      className="w-8 h-8 rounded-xl bg-white/5 hover:bg-red-500/20 hover:border-red-500/40 border border-transparent text-white/70 hover:text-red-400 flex items-center justify-center transition-all cursor-pointer"
+                      className="w-8 h-8 rounded-xl bg-white/5 hover:bg-red-500/20 hover:border-red-500/40 border border-transparent text-white/70 hover:text-red-400 flex items-center justify-center transition-all cursor-pointer disabled:opacity-40"
                     >
                       <Trash2 className="w-4 h-4 text-white" />
                     </button>
@@ -373,7 +516,8 @@ export const TestimonialsCMS: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setEditingItem(null)}
-                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/70 hover:text-white transition-colors cursor-pointer"
+                disabled={isMutating}
+                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/70 hover:text-white transition-colors cursor-pointer disabled:opacity-40"
               >
                 <X className="w-4 h-4 text-white" />
               </button>
@@ -452,13 +596,17 @@ export const TestimonialsCMS: React.FC = () => {
                 />
               </div>
 
-              {/* Visibility and Order Settings */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-white/10">
-                {/* Visibility Toggle */}
+              {/* Visibility Setting */}
+              <div className="pt-2 border-t border-white/10">
                 <div className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.02] border border-white/10">
-                  <span className="font-mono text-xs uppercase tracking-wider text-white/80 font-semibold">
-                    Live Visibility
-                  </span>
+                  <div>
+                    <span className="font-mono text-xs uppercase tracking-wider text-white/80 font-semibold block">
+                      Live Visibility
+                    </span>
+                    <span className="font-mono text-[10px] text-white/40">
+                      Use the card arrow controls to change display order.
+                    </span>
+                  </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
@@ -470,22 +618,6 @@ export const TestimonialsCMS: React.FC = () => {
                     />
                     <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#008CFF]"></div>
                   </label>
-                </div>
-
-                {/* Display Order Position */}
-                <div className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.02] border border-white/10">
-                  <span className="font-mono text-xs uppercase tracking-wider text-white/80 font-semibold">
-                    Display Order
-                  </span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={editingItem.order ?? 0}
-                    onChange={(e) =>
-                      setEditingItem({ ...editingItem, order: parseInt(e.target.value) || 0 })
-                    }
-                    className="w-20 px-3 py-1 rounded-lg bg-black/60 border border-white/20 text-white font-mono text-xs text-center focus:outline-none focus:border-[#008CFF]"
-                  />
                 </div>
               </div>
 
@@ -535,14 +667,16 @@ export const TestimonialsCMS: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setEditingItem(null)}
-                  className="px-5 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/10 border border-white/15 text-white/80 hover:text-white font-mono text-xs uppercase font-semibold transition-all cursor-pointer"
+                  disabled={isMutating}
+                  className="px-5 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/10 border border-white/15 text-white/80 hover:text-white font-mono text-xs uppercase font-semibold transition-all cursor-pointer disabled:opacity-40"
                 >
                   Cancel
                 </button>
 
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#008CFF] hover:bg-[#209CFF] text-white font-mono text-xs uppercase font-bold tracking-wider transition-all shadow-[0_0_20px_rgba(0,140,255,0.4)] active:scale-95 cursor-pointer"
+                  disabled={isMutating}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#008CFF] hover:bg-[#209CFF] disabled:opacity-50 text-white font-mono text-xs uppercase font-bold tracking-wider transition-all shadow-[0_0_20px_rgba(0,140,255,0.4)] active:scale-95 cursor-pointer"
                 >
                   {saveSuccess ? (
                     <>
@@ -552,7 +686,7 @@ export const TestimonialsCMS: React.FC = () => {
                   ) : (
                     <>
                       <Save className="w-4 h-4 text-white" />
-                      <span>Save Review</span>
+                      <span>{isMutating ? 'Saving...' : 'Save Review'}</span>
                     </>
                   )}
                 </button>

@@ -1,6 +1,6 @@
 # Website Packages Section – brandshoots.in
 Suggested route: /packages (link in main nav as "Packages") + short 3-card teaser on homepage linking to it.
-Source: Brandshoots Monthly Packages 2026 PDF. All copy below is final text for the site.
+Source: BrandShoots Monthly Packages 2026 PDF. All copy below is final text for the site.
 
 ---
 
@@ -22,7 +22,7 @@ For businesses building a consistent social media presence.
 - Festival posters
 - Monthly performance report
 
-Button: **Get Started** → WhatsApp (`https://wa.me/917075960672?text=Hi%20Brandshoots%2C%20I%27m%20interested%20in%20the%20Starter%20plan`)
+Button: **Get Started** → WhatsApp (`https://wa.me/917075960672?text=Hi%20BrandShoots%2C%20I%27m%20interested%20in%20the%20Starter%20plan`)
 
 ## Card 2 – Growth  · badge: MOST POPULAR (highlight this card)
 **₹60,000 / month**
@@ -106,7 +106,7 @@ Not sure which plan fits? **Book a site visit (₹2,000)** or **Chat on WhatsApp
 ---
 
 ## SEO for /packages
-- Title: `Packages & Pricing | Brandshoots – Monthly Reels & Social Media Plans, Rajahmundry & Hyderabad`
+- Title: `Packages & Pricing | BrandShoots – Monthly Reels & Social Media Plans, Rajahmundry & Hyderabad`
 - Description: `Monthly content packages from ₹40,000: reels, shoot days, editing and Instagram, Facebook & YouTube management for businesses in Rajahmundry and Hyderabad.`
 - H1: `Monthly Content Packages`
 - Add to sitemap.xml.

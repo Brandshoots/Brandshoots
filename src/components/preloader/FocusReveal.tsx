@@ -9,7 +9,7 @@ interface FocusRevealProps {
 
 /**
  * CINEMA VIEWFINDER CAMERA FRAME:
- * - Pure, minimal corner L-brackets precisely framing outside the BRANDSHOOTS logo letters
+ * - Pure, minimal corner L-brackets precisely framing outside the BrandShoots logo letters
  * - Zero artificial text or clutter
  * - Dynamic autofocus pulse into crisp electric brand-blue lock
  */

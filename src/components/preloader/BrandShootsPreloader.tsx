@@ -1,19 +1,19 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import gsap from 'gsap';
 import { Multigrade3DTiles, Multigrade3DTilesHandle } from './Multigrade3DTiles';
 import { BrandLogoOverlay, BrandLogoOverlayHandle } from './BrandLogoOverlay';
 import { CameraFlash } from './CameraFlash';
 import { PRELOADER_CONFIG } from '../../config/preloaderConfig';
 import { createPreloaderTimeline } from '../../animations/preloaderTimeline';
-import { preloadAllHeroReels } from '../../config/heroReels';
 
 interface BrandShootsPreloaderProps {
   onComplete?: () => void;
   forceReducedMotion?: boolean;
+  readyToExit?: boolean;
 }
 
 /**
- * BRANDSHOOTS CINEMATIC STARTUP PRELOADER
+ * BrandShoots CINEMATIC STARTUP PRELOADER
  * Flow:
  * 1. 3D STREAMING REELS (B/W)
  * 2. MULTIGRADE TILES GATHER & DECELERATE (Collect)
@@ -21,12 +21,13 @@ interface BrandShootsPreloaderProps {
  * 4. SHUTTER SNAP
  * 5. HIGH-INTENSITY WHITE XENON FLASH
  * 6. COLOR REVEAL BLOOM
- * 7. OFFICIAL BRANDSHOOTS LOGO + "CREATE. SHOOT. GROW."
+ * 7. OFFICIAL BrandShoots LOGO + "CREATE. SHOOT. GROW."
  * 8. SMOOTH BUTTER DISSOLVE INTO HOMEPAGE HERO
  */
 export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
   onComplete,
   forceReducedMotion = false,
+  readyToExit = true,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const tilesContainerRef = useRef<HTMLDivElement>(null);
@@ -37,90 +38,104 @@ export const BrandShootsPreloader: React.FC<BrandShootsPreloaderProps> = ({
   const backdropHazeRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
   const hasCompletedRef = useRef(false);
+  const waitingForReadinessRef = useRef(false);
+  const readyToExitRef = useRef(readyToExit);
+  const onCompleteRef = useRef(onComplete);
+  readyToExitRef.current = readyToExit;
+  onCompleteRef.current = onComplete;
 
-  const [isCompleted, setIsCompleted] = useState(false);
-
-  // Warm up hero assets and official logo in memory during preloader
-  useEffect(() => {
-    preloadAllHeroReels();
-    const logoImg = new Image();
-    logoImg.src = '/Logo-Official-Tight.svg';
+  const resumeExit = useCallback(() => {
+    if (!waitingForReadinessRef.current || !timelineRef.current) return;
+    waitingForReadinessRef.current = false;
+    timelineRef.current.play();
   }, []);
 
   const handleSequenceComplete = useCallback(() => {
-    // The animation and the safety timer can finish close together. Only hand
-    // control back to the homepage once, so the preloader cannot remount or
-    // fire its callback twice.
     if (hasCompletedRef.current) return;
     hasCompletedRef.current = true;
     timelineRef.current?.kill();
     timelineRef.current = null;
-    setIsCompleted(true);
-    onComplete?.();
-  }, [onComplete]);
+    onCompleteRef.current?.();
+  }, []);
+
+  useEffect(() => {
+    if (readyToExit) resumeExit();
+  }, [readyToExit, resumeExit]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     const prefersReduced = mediaQuery.matches || forceReducedMotion;
+    let context: gsap.Context | undefined;
 
-    if (prefersReduced) {
-      const quickTl = gsap.timeline({ onComplete: handleSequenceComplete });
-      timelineRef.current = quickTl;
-      quickTl.to(containerRef.current, { opacity: 1, duration: 0.1 });
-      quickTl.call(() => {
-        if (logoOverlayRef.current) {
-          logoOverlayRef.current.setStage('locked');
-          logoOverlayRef.current.setColorRevealed(true);
-        }
-      });
-      quickTl.to(containerRef.current, { opacity: 0, duration: 0.5, delay: 0.6 });
+    const safetyTimer = window.setTimeout(() => {
+      readyToExitRef.current = true;
+      resumeExit();
+    }, PRELOADER_CONFIG.safetyTimeoutMs);
 
-      return () => {
-        quickTl.kill();
-        timelineRef.current = null;
-      };
+    try {
+      if (prefersReduced) {
+        context = gsap.context(() => {
+          const quickTimeline = gsap.timeline({
+            paused: true,
+            onComplete: handleSequenceComplete,
+          });
+          timelineRef.current = quickTimeline;
+          quickTimeline.set(containerRef.current, { opacity: 1 });
+          quickTimeline.call(() => {
+            logoOverlayRef.current?.setStage('locked');
+            logoOverlayRef.current?.setColorRevealed(true);
+          });
+          quickTimeline.to({}, { duration: 0.35 });
+          quickTimeline.addPause('ready', () => {
+            waitingForReadinessRef.current = true;
+            if (readyToExitRef.current) window.requestAnimationFrame(resumeExit);
+          });
+          quickTimeline.to(containerRef.current, { opacity: 0, duration: 0.2, ease: 'power1.out' }, 'ready+=0.001');
+          quickTimeline.play();
+        }, containerRef);
+      } else {
+        context = gsap.context(() => {
+          timelineRef.current = createPreloaderTimeline(
+            {
+              containerRef,
+              tilesContainerRef,
+              tilesRef,
+              logoOverlayRef,
+              atmosphereRef,
+              flashRef,
+              backdropHazeRef,
+            },
+            {
+              onComplete: handleSequenceComplete,
+              onHoldForReadiness: () => {
+                waitingForReadinessRef.current = true;
+                if (readyToExitRef.current) window.requestAnimationFrame(resumeExit);
+              },
+            }
+          );
+          timelineRef.current.play();
+        }, containerRef);
+      }
+    } catch (error) {
+      console.error('BrandShoots preloader setup failed', error);
+      handleSequenceComplete();
     }
 
-    const ctx = gsap.context(() => {
-      timelineRef.current = createPreloaderTimeline(
-        {
-          containerRef,
-          tilesContainerRef,
-          tilesRef,
-          logoOverlayRef,
-          atmosphereRef,
-          flashRef,
-          backdropHazeRef,
-        },
-        {
-          onComplete: handleSequenceComplete,
-        }
-      );
-
-      timelineRef.current.play();
-    });
-
-    // Safety timeout failsafe to ensure visitor is never trapped
-    const safetyTimer = setTimeout(() => {
-      handleSequenceComplete();
-    }, PRELOADER_CONFIG.safetyTimeoutMs || 4500);
-
     return () => {
-      clearTimeout(safetyTimer);
-      if (timelineRef.current) {
-        timelineRef.current.kill();
-      }
-      ctx.revert();
+      window.clearTimeout(safetyTimer);
+      waitingForReadinessRef.current = false;
+      timelineRef.current?.kill();
+      timelineRef.current = null;
+      context?.revert();
     };
-  }, [forceReducedMotion, handleSequenceComplete]);
-
-  if (isCompleted) {
-    return null;
-  }
+  }, [forceReducedMotion, handleSequenceComplete, resumeExit]);
 
   return (
     <div
       ref={containerRef}
+      role="status"
+      aria-live="polite"
+      aria-label="Loading BrandShoots homepage"
       className="fixed inset-0 z-[99999] flex items-center justify-center bg-[#050608] overflow-hidden select-none will-change-opacity"
       style={{
         perspective: '1300px',

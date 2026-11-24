@@ -12,7 +12,7 @@ export const WithMediaFooter: React.FC<WithMediaFooterProps> = ({
   onStartInquiry,
 }) => {
   return (
-    <footer className="relative w-full bg-[#030508] border-t border-white/[0.08] pt-16 sm:pt-20 pb-12 overflow-hidden text-white font-['Figtree']">
+    <footer className="relative w-full bg-[#030508] border-t border-white/[0.08] pt-16 sm:pt-20 pb-12 overflow-hidden text-white font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-16 border-b border-white/[0.08]">
           {/* Col 1: Brand & Creed */}
@@ -136,7 +136,7 @@ export const WithMediaFooter: React.FC<WithMediaFooterProps> = ({
         {/* Bottom Strip */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 font-mono gap-4">
           <div>
-            © {new Date().getFullYear()} BRANDSHOOTS. All Rights Reserved. Create · Shoot · Grow.
+            © {new Date().getFullYear()} BrandShoots. All Rights Reserved. Create · Shoot · Grow.
           </div>
           <div className="flex items-center gap-6">
             <span>Reference Lab: With Media Reverse Engineering Prototype</span>

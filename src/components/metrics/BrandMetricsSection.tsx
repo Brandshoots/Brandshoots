@@ -55,11 +55,11 @@ export const MetricCard: React.FC<MetricCardProps> = ({ metric, index, isTrigger
   return (
     <article ref={cardRef} className={`border-t border-white/25 ${compact ? 'py-5' : 'py-7 sm:py-9'}`}>
       <div className="flex items-baseline gap-1">
-        <span ref={numberRef} className="text-5xl font-semibold leading-none tracking-[-0.06em] text-white sm:text-6xl lg:text-7xl">0</span>
-        <span className="text-2xl font-medium leading-none text-[#1497F5] sm:text-3xl">{metric.suffix}</span>
+        <span ref={numberRef} className="text-5xl sm:text-6xl lg:text-7xl font-sans font-black leading-none tracking-tight text-white">0</span>
+        <span className="text-2xl sm:text-3xl font-sans font-black leading-none text-[#008CFF]">{metric.suffix}</span>
       </div>
-      <h3 className="mt-4 text-sm font-medium tracking-[0.08em] text-white uppercase">{metric.label}</h3>
-      <p className="mt-1 text-sm text-white/45">{metric.sublabel}</p>
+      <h3 className="mt-4 font-mono text-xs uppercase tracking-[0.2em] font-semibold text-white/90">{metric.label}</h3>
+      <p className="mt-1.5 font-sans font-light text-sm text-white/60 leading-relaxed">{metric.sublabel}</p>
     </article>
   );
 };
@@ -95,10 +95,10 @@ export const BrandMetricsSection: React.FC<{ className?: string; id?: string }> 
     <section id={id} ref={sectionRef} aria-label="PROVEN TRACK RECORD" className={`w-full border-b border-white/10 bg-[#08090C] py-24 text-white sm:py-32 ${className}`}>
       <div className="mx-auto w-full max-w-[1380px] px-5 sm:px-8 lg:px-12">
         <div className="mb-14 grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
-          <h2 className="text-3xl font-semibold uppercase leading-[0.92] tracking-[-0.05em] sm:text-5xl lg:text-6xl">
-            DATA &amp; <span className="text-[#1497F5]">SCALE</span> THAT MATTERS.
+          <h2 className="text-3xl sm:text-5xl lg:text-6xl font-sans font-black uppercase leading-[0.92] tracking-[-0.025em]">
+            DATA &amp; <span className="text-[#008CFF]">SCALE</span> THAT MATTERS.
           </h2>
-          <p className="max-w-xl text-sm leading-7 text-white/60 sm:text-base lg:justify-self-end">
+          <p className="max-w-xl font-sans font-light text-sm sm:text-base text-white/75 leading-relaxed lg:justify-self-end">
             From high-stakes commercial films to algorithmic viral retention systems, our productions translate directly into measurable audience growth and ROI.
           </p>
         </div>

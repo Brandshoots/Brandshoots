@@ -70,7 +70,7 @@ export const WithMediaHero: React.FC<WithMediaHeroProps> = ({
           <span>Rajamahendravaram & Hyderabad · Commercial Studio</span>
         </div>
 
-        {/* Monolithic Dual-Row Headline (With Media inspired scale, Figtree craft) */}
+        {/* Monolithic Dual-Row Headline (With Media inspired scale, Source Sans 3 craft) */}
         <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black uppercase tracking-tight text-white leading-[0.92] mb-6">
           <span className="block hover:text-slate-100 transition-colors">
             Where <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-blue-200 to-white">Cinema</span>

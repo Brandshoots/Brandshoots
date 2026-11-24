@@ -1,34 +1,105 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Edit3,
   RefreshCw,
   RotateCcw,
   CheckCircle2,
   X,
-  Upload,
-  Link as LinkIcon,
-  Video,
   FileText,
   Tag,
   Layers,
   Sparkles,
   ExternalLink,
   Image as ImageIcon,
+  Eye,
+  EyeOff,
+  ArrowUp,
+  ArrowDown,
+  AlertCircle,
 } from 'lucide-react';
+import { get, ref, set } from 'firebase/database';
 import { CMSService } from '../../types/cms';
-import { fetchPublishedServices, saveAllServices, resetServicesToDefaults } from '../../lib/cms/cmsService';
+import { saveAllServices } from '../../lib/cms/cmsService';
 import { pushServicesUndoAction } from '../../lib/cms/cmsHistory';
+import { INITIAL_SERVICES } from '../../lib/cms/seedData';
+import { firebaseDb } from '../../lib/firebase';
 import { CLIENT_PROJECTS } from '../../data/clientsData';
+import { CloudinaryUploader } from './CloudinaryUploader';
+
+type UploadingAwareUploaderProps = React.ComponentProps<typeof CloudinaryUploader> & {
+  onUploadingChange?: (isUploading: boolean) => void;
+};
+
+const UploadingAwareCloudinaryUploader = CloudinaryUploader as React.ComponentType<UploadingAwareUploaderProps>;
+
+const isAllowedMediaUrl = (value: string, optional = false): boolean => {
+  const clean = value.trim();
+  if (!clean) return optional;
+  return /^https:\/\//i.test(clean) || /^\/(?!\/)/.test(clean);
+};
+
+const loadServicesWithoutRepair = async (): Promise<CMSService[]> => {
+  let remoteError: unknown = null;
+  try {
+    const snapshot = await get(ref(firebaseDb, 'published/services'));
+    if (snapshot.exists()) {
+      const value = snapshot.val();
+      const list: CMSService[] = Array.isArray(value) ? value : Object.values(value);
+      return [...list].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    }
+  } catch (error) {
+    remoteError = error;
+  }
+
+  try {
+    const cached = localStorage.getItem('brandshoots_services');
+    if (cached) {
+      const parsed: unknown = JSON.parse(cached);
+      if (Array.isArray(parsed)) {
+        return [...(parsed as CMSService[])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to read cached services:', error);
+  }
+
+  if (remoteError) throw remoteError;
+  return [];
+};
+
+const normalizeServices = (items: CMSService[]): CMSService[] =>
+  items.map((item, index) => ({
+    ...item,
+    number: String(index + 1).padStart(2, '0'),
+    order: index,
+    visible: item.visible !== false,
+    updatedAt: Date.now(),
+  }));
+
+const persistServices = async (items: CMSService[]): Promise<CMSService[]> => {
+  const normalized = normalizeServices(items);
+  const record: Record<string, CMSService> = {};
+  normalized.forEach((item) => {
+    const { videoUrl, ...required } = item;
+    record[item.id] = videoUrl ? { ...required, videoUrl } : required;
+  });
+  await set(ref(firebaseDb, 'published/services'), record);
+  await saveAllServices(normalized);
+  return normalized;
+};
+
+const errorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : 'The change could not be saved.';
 
 export const WhatWeDoCMS: React.FC = () => {
   const [services, setServices] = useState<CMSService[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [saveToast, setSaveToast] = useState<string | null>(null);
-  const [isResetting, setIsResetting] = useState(false);
+  const [toastIsError, setToastIsError] = useState(false);
+  const [isMutating, setIsMutating] = useState(false);
 
   // Edit Modal State
   const [editingService, setEditingService] = useState<CMSService | null>(null);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   // Modal Form Inputs
   const [formTitleLine1, setFormTitleLine1] = useState('');
@@ -38,30 +109,28 @@ export const WhatWeDoCMS: React.FC = () => {
   const [formTag, setFormTag] = useState('');
   const [formVideoUrl, setFormVideoUrl] = useState('');
   const [formImageUrl, setFormImageUrl] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadStatus, setUploadStatus] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isImageUploading, setIsImageUploading] = useState(false);
+  const [isVideoUploading, setIsVideoUploading] = useState(false);
+  const isUploading = isImageUploading || isVideoUploading;
 
   // Fetch published services on mount & listen for undo updates
   useEffect(() => {
     let isMounted = true;
-    fetchPublishedServices().then((data) => {
-      if (isMounted) {
-        const defaults = [
-          '/what-we-do/optimized/creative-content.webp',
-          '/what-we-do/optimized/digital-growth.webp',
-          '/what-we-do/optimized/editing-posting.webp',
-        ];
-        const upgraded = data.map((s, idx) => {
-          if (!s.imageUrl || s.imageUrl.includes('/reels/thumbnails-webp/')) {
-            return { ...s, imageUrl: defaults[idx] || s.imageUrl };
-          }
-          return s;
-        });
-        setServices(upgraded);
-        setIsLoading(false);
-      }
-    });
+    loadServicesWithoutRepair()
+      .then((data) => {
+        if (isMounted) {
+          setServices(data);
+          setIsLoading(false);
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to load services:', error);
+        if (isMounted) {
+          setToastIsError(true);
+          setSaveToast(`Could not load services: ${errorMessage(error)}`);
+          setIsLoading(false);
+        }
+      });
 
     const handleServicesUpdated = (e: any) => {
       if (e?.detail && Array.isArray(e.detail)) {
@@ -77,157 +146,174 @@ export const WhatWeDoCMS: React.FC = () => {
     };
   }, []);
 
-  const showToast = (msg: string) => {
+  const showToast = (msg: string, isError = false) => {
+    setToastIsError(isError);
     setSaveToast(msg);
-    setTimeout(() => setSaveToast(null), 3500);
+    window.setTimeout(() => setSaveToast(null), 3500);
   };
 
   // Reset to Defaults (Syncs frontend with canonical 3 pillars)
   const handleResetDefaults = async () => {
+    if (isMutating) return;
     const confirmed = window.confirm(
       'Reset What We Do to the 3 canonical pillars (CREATIVE CONTENT, DIGITAL GROWTH, EDITING & POSTING)?\n\nThis will sync with the live homepage. You can undo this anytime using the Undo button.'
     );
     if (!confirmed) return;
 
-    setIsResetting(true);
+    const previousState = [...services];
+    const defaults = Object.values(INITIAL_SERVICES)
+      .sort((a, b) => a.order - b.order)
+      .map((service) => ({ ...service, titleLines: [...service.titleLines] }));
+
+    setIsMutating(true);
     try {
-      pushServicesUndoAction('Reset What We Do to 3 Core Pillars', services);
-      const defaults = await resetServicesToDefaults();
-      setServices(defaults);
+      const persisted = await persistServices(defaults);
+      setServices(persisted);
+      pushServicesUndoAction('Reset What We Do to 3 Core Pillars', previousState);
       showToast('Successfully synced to the 3 canonical pillars!');
-    } catch (err) {
-      console.error('Error resetting services:', err);
-      showToast('Error syncing to defaults. Please try again.');
+    } catch (error) {
+      console.error('Error resetting services:', error);
+      showToast(`Could not reset pillars: ${errorMessage(error)}`, true);
     } finally {
-      setIsResetting(false);
+      setIsMutating(false);
     }
   };
 
   // Open Edit Modal
-  const openEditModal = (service: CMSService, index: number) => {
+  const openEditModal = (service: CMSService) => {
     setEditingService(service);
-    setEditingIndex(index);
     setFormTitleLine1(service.titleLines?.[0] || '');
     setFormTitleLine2(service.titleLines?.[1] || '');
     setFormCategory(service.category || '');
     setFormDescription(service.description || '');
     setFormTag(service.tag || '');
-    setFormVideoUrl(service.videoUrl || service.imageUrl.replace(/\.(jpg|png|jpeg)$/i, '.mp4'));
+    setFormVideoUrl(service.videoUrl || '');
     setFormImageUrl(service.imageUrl || '');
-    setIsUploading(false);
-    setUploadStatus('');
+    setIsImageUploading(false);
+    setIsVideoUploading(false);
   };
 
   // Close Edit Modal
   const closeEditModal = () => {
+    if (isMutating) return;
     setEditingService(null);
-    setEditingIndex(null);
-    setIsUploading(false);
-    setUploadStatus('');
+    setIsImageUploading(false);
+    setIsVideoUploading(false);
   };
 
   // Quick Preset Selection from portfolio clients
   const handleSelectPresetReel = (videoUrl: string, posterUrl: string) => {
-    if (posterUrl) {
-      setFormImageUrl(posterUrl);
-    }
-    if (videoUrl) {
-      setFormVideoUrl(videoUrl);
+    if (posterUrl) setFormImageUrl(posterUrl);
+    if (videoUrl) setFormVideoUrl(videoUrl);
+  };
+
+  const handleMoveService = async (id: string, direction: -1 | 1) => {
+    if (isMutating) return;
+    const fromIndex = services.findIndex((service) => service.id === id);
+    const toIndex = fromIndex + direction;
+    if (fromIndex < 0 || toIndex < 0 || toIndex >= services.length) return;
+
+    const previousState = [...services];
+    const updated = [...services];
+    [updated[fromIndex], updated[toIndex]] = [updated[toIndex], updated[fromIndex]];
+    const moved = updated[toIndex];
+
+    setIsMutating(true);
+    try {
+      const persisted = await persistServices(updated);
+      setServices(persisted);
+      pushServicesUndoAction(`Moved ${moved.category} to position ${toIndex + 1}`, previousState);
+      showToast(`${moved.category} moved to position ${toIndex + 1}.`);
+    } catch (error) {
+      console.error('Error reordering services:', error);
+      showToast(`Could not reorder pillars: ${errorMessage(error)}`, true);
+    } finally {
+      setIsMutating(false);
     }
   };
 
-  // Handle local image or video file upload / drop
-  const handleFileSelect = (file: File) => {
-    const isImage = file.type.startsWith('image/');
-    const isVideo = file.type.startsWith('video/');
+  const handleToggleVisibility = async (id: string) => {
+    if (isMutating) return;
+    const target = services.find((service) => service.id === id);
+    if (!target) return;
 
-    if (!isImage && !isVideo) {
-      alert('Please select a valid image (JPG, PNG, WEBP) or video file.');
-      return;
-    }
+    const previousState = [...services];
+    const nextVisible = !(target.visible !== false);
+    const updated = services.map((service) =>
+      service.id === id ? { ...service, visible: nextVisible, updatedAt: Date.now() } : service
+    );
 
-    // Instant local preview
-    const localUrl = URL.createObjectURL(file);
-    if (isImage) {
-      setFormImageUrl(localUrl);
-    } else {
-      setFormVideoUrl(localUrl);
-    }
-
-    // Optional Cloudinary upload
-    const cloudName =
-      import.meta.env.VITE_CLOUDINARY_CLOUD_NAME ||
-      localStorage.getItem('bs_cloudinary_cloud_name') ||
-      '';
-
-    if (cloudName.trim()) {
-      setIsUploading(true);
-      setUploadStatus(`Uploading ${isImage ? 'image' : 'video'} to Cloudinary CDN...`);
-
-      try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', 'brandshoots_unsigned');
-        formData.append('folder', 'brandshoots/what-we-do');
-
-        const endpoint = isImage ? 'image/upload' : 'video/upload';
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName.trim()}/${endpoint}`);
-
-        xhr.onload = () => {
-          setIsUploading(false);
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try {
-              const res = JSON.parse(xhr.responseText);
-              const hostedUrl = res.secure_url || res.url;
-              if (hostedUrl) {
-                if (isImage) {
-                  setFormImageUrl(hostedUrl);
-                } else {
-                  setFormVideoUrl(hostedUrl);
-                }
-                setUploadStatus('Uploaded to Cloudinary CDN!');
-              }
-            } catch {}
-          }
-        };
-
-        xhr.onerror = () => {
-          setIsUploading(false);
-          setUploadStatus('Upload failed. Local preview retained.');
-        };
-
-        xhr.send(formData);
-      } catch {
-        setIsUploading(false);
-      }
+    setIsMutating(true);
+    try {
+      const persisted = await persistServices(updated);
+      setServices(persisted);
+      pushServicesUndoAction(
+        `${nextVisible ? 'Showed' : 'Hid'} pillar: ${target.category}`,
+        previousState
+      );
+      showToast(`${target.category} is now ${nextVisible ? 'VISIBLE' : 'HIDDEN'}.`);
+    } catch (error) {
+      console.error('Error changing service visibility:', error);
+      showToast(`Could not change visibility: ${errorMessage(error)}`, true);
+    } finally {
+      setIsMutating(false);
     }
   };
 
   // Save Service Changes
   const handleSaveService = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingService || editingIndex === null) return;
+    if (!editingService || isUploading || isMutating) return;
 
-    const fullTitle = `${formTitleLine1.trim()} ${formTitleLine2.trim()}`.trim() || 'Capability';
-    pushServicesUndoAction(`Updated Pillar #${editingService.number}: ${fullTitle}`, services);
+    const currentService = services.find((service) => service.id === editingService.id);
+    if (!currentService) {
+      showToast('This pillar no longer exists. Close the editor and try again.', true);
+      return;
+    }
 
+    const imageUrl = formImageUrl.trim();
+    const videoUrl = formVideoUrl.trim();
+    if (!isAllowedMediaUrl(imageUrl)) {
+      showToast('Use a secure HTTPS image URL or a site-relative image path.', true);
+      return;
+    }
+    if (!isAllowedMediaUrl(videoUrl, true)) {
+      showToast('Use a secure HTTPS video URL, a site-relative video path, or leave it empty.', true);
+      return;
+    }
+
+    const fullTitle = `${formTitleLine1.trim()} ${formTitleLine2.trim()}`.trim();
+    const { videoUrl: _existingVideoUrl, ...serviceWithoutVideo } = currentService;
     const updatedService: CMSService = {
-      ...editingService,
-      titleLines: [formTitleLine1.trim() || 'CREATIVE', formTitleLine2.trim() || 'CONTENT'],
-      category: formCategory.trim() || editingService.category,
-      description: formDescription.trim() || editingService.description,
-      tag: formTag.trim() || editingService.tag,
-      videoUrl: formVideoUrl.trim() || editingService.videoUrl,
-      imageUrl: formImageUrl.trim() || editingService.imageUrl,
+      ...serviceWithoutVideo,
+      titleLines: [formTitleLine1.trim(), formTitleLine2.trim()],
+      category: formCategory.trim(),
+      description: formDescription.trim(),
+      tag: formTag.trim(),
+      imageUrl,
+      ...(videoUrl ? { videoUrl } : {}),
+      visible: currentService.visible !== false,
       updatedAt: Date.now(),
     };
 
-    const updatedList = services.map((s, idx) => (idx === editingIndex ? updatedService : s));
-    setServices(updatedList);
-    await saveAllServices(updatedList);
-    closeEditModal();
-    showToast(`Pillar #${editingService.number} (${fullTitle}) updated & live synced!`);
+    const previousState = [...services];
+    const updatedList = services.map((service) =>
+      service.id === currentService.id ? updatedService : service
+    );
+
+    setIsMutating(true);
+    try {
+      const persisted = await persistServices(updatedList);
+      setServices(persisted);
+      pushServicesUndoAction(`Updated Pillar #${currentService.number}: ${fullTitle}`, previousState);
+      showToast(`Pillar #${currentService.number} (${fullTitle}) updated & live synced!`);
+      setEditingService(null);
+    } catch (error) {
+      console.error('Error saving service:', error);
+      showToast(`Could not save pillar: ${errorMessage(error)}`, true);
+    } finally {
+      setIsMutating(false);
+    }
   };
 
   if (isLoading) {
@@ -270,31 +356,39 @@ export const WhatWeDoCMS: React.FC = () => {
           <button
             type="button"
             onClick={handleResetDefaults}
-            disabled={isResetting}
+            disabled={isMutating}
             className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/15 border border-white/15 text-xs font-mono font-semibold text-white/80 hover:text-white flex items-center gap-2 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
             title="Reset What We Do to canonical 3 pillars"
           >
-            <RotateCcw className={`w-3.5 h-3.5 text-[#008CFF] ${isResetting ? 'animate-spin' : ''}`} />
-            <span>{isResetting ? 'Syncing...' : 'Reset Defaults / Sync'}</span>
+            <RotateCcw className={`w-3.5 h-3.5 text-[#008CFF] ${isMutating ? 'animate-spin' : ''}`} />
+            <span>{isMutating ? 'Saving...' : 'Reset Defaults / Sync'}</span>
           </button>
         </div>
       </div>
 
       {/* Save Notification Toast */}
       {saveToast && (
-        <div className="p-4 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-200 text-sm font-mono flex items-center gap-2.5 animate-fadeIn shadow-lg">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+        <div className={`p-4 rounded-xl border text-sm font-mono flex items-center gap-2.5 animate-fadeIn shadow-lg ${
+          toastIsError
+            ? 'bg-red-500/15 border-red-500/40 text-red-200'
+            : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200'
+        }`}>
+          {toastIsError ? (
+            <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+          ) : (
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+          )}
           <span className="font-semibold">{saveToast}</span>
         </div>
       )}
 
       {/* 3 Core Capability Cards Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {services.slice(0, 3).map((service, index) => {
+        {services.map((service, index) => {
           const displayMedia = service.imageUrl || service.videoUrl;
           return (
             <div
-              key={service.id || index}
+              key={service.id}
               className="group relative rounded-2xl overflow-hidden bg-[#0A0D14] border border-white/15 flex flex-col transition-all duration-300 hover:border-[#008CFF]/50 hover:shadow-[0_16px_50px_rgba(0,140,255,0.15)]"
             >
               {/* Card Header: Chapter Number & Category Pill */}
@@ -308,16 +402,52 @@ export const WhatWeDoCMS: React.FC = () => {
                   </span>
                 </div>
 
-                {/* Edit Button */}
-                <button
-                  type="button"
-                  onClick={() => openEditModal(service, index)}
-                  className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-[#008CFF] text-white border border-white/20 flex items-center gap-1.5 text-xs font-mono font-bold transition-all duration-200 cursor-pointer shadow-md hover:scale-105 active:scale-95 shrink-0"
-                  title={`Edit Pillar #${service.number}`}
-                >
-                  <Edit3 className="w-3.5 h-3.5 text-current" />
-                  <span>Edit</span>
-                </button>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleMoveService(service.id, -1)}
+                    disabled={isMutating || index === 0}
+                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Move pillar up"
+                    aria-label={`Move ${service.category} up`}
+                  >
+                    <ArrowUp className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleMoveService(service.id, 1)}
+                    disabled={isMutating || index === services.length - 1}
+                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Move pillar down"
+                    aria-label={`Move ${service.category} down`}
+                  >
+                    <ArrowDown className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleVisibility(service.id)}
+                    disabled={isMutating}
+                    className={`p-1.5 rounded-lg border transition-all cursor-pointer disabled:opacity-40 ${
+                      service.visible !== false
+                        ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+                        : 'bg-white/5 border-white/15 text-white/40'
+                    }`}
+                    title={service.visible !== false ? 'Hide pillar' : 'Show pillar'}
+                    aria-label={`${service.visible !== false ? 'Hide' : 'Show'} ${service.category}`}
+                  >
+                    {service.visible !== false ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openEditModal(service)}
+                    disabled={isMutating}
+                    className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-[#008CFF] text-white border border-white/20 flex items-center gap-1.5 text-xs font-mono font-bold transition-all duration-200 cursor-pointer shadow-md hover:scale-105 active:scale-95 disabled:opacity-40"
+                    title={`Edit Pillar #${service.number}`}
+                  >
+                    <Edit3 className="w-3.5 h-3.5 text-current" />
+                    <span>Edit</span>
+                  </button>
+                </div>
               </div>
 
               {/* Card Body: 9:16 Slide Image + Content */}
@@ -354,7 +484,7 @@ export const WhatWeDoCMS: React.FC = () => {
                   {/* Quick Change Image Button */}
                   <button
                     type="button"
-                    onClick={() => openEditModal(service, index)}
+                    onClick={() => openEditModal(service)}
                     className="absolute bottom-3 right-3 px-3 py-1.5 rounded-lg bg-black/85 hover:bg-[#008CFF] text-white border border-white/30 flex items-center gap-1.5 text-xs font-mono font-semibold transition-all cursor-pointer shadow-xl backdrop-blur-md"
                     title="Change slide image"
                     aria-label="Change slide image"
@@ -390,7 +520,7 @@ export const WhatWeDoCMS: React.FC = () => {
                   {/* Edit Card Button Footer */}
                   <button
                     type="button"
-                    onClick={() => openEditModal(service, index)}
+                    onClick={() => openEditModal(service)}
                     className="w-full mt-2 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.12] border border-white/10 text-xs font-mono font-bold text-white/90 hover:text-white flex items-center justify-center gap-2 transition-all cursor-pointer"
                   >
                     <Edit3 className="w-3.5 h-3.5 text-[#008CFF]" />
@@ -445,7 +575,7 @@ export const WhatWeDoCMS: React.FC = () => {
       {/* =================================================================== */}
       {/* EDIT PILLAR MODAL                                                   */}
       {/* =================================================================== */}
-      {editingService && editingIndex !== null && (
+      {editingService && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-[#0A0E17] border border-white/15 rounded-3xl w-full max-w-2xl p-6 sm:p-8 space-y-5 shadow-2xl my-auto max-h-[94vh] overflow-y-auto custom-scrollbar">
             {/* Modal Header */}
@@ -459,7 +589,7 @@ export const WhatWeDoCMS: React.FC = () => {
                     Edit Capability Pillar #{editingService.number}
                   </h2>
                   <p className="text-xs font-mono text-white/50">
-                    Pillar {editingIndex + 1} of 03 inside What We Do Section
+                    Pillar {services.findIndex((service) => service.id === editingService.id) + 1} of {String(services.length).padStart(2, '0')} inside What We Do Section
                   </p>
                 </div>
               </div>
@@ -559,23 +689,15 @@ export const WhatWeDoCMS: React.FC = () => {
 
               {/* 5. 9:16 Vertical Slide Image & Optional Video */}
               <div className="space-y-3 pt-3 border-t border-white/10">
-                <label className="block text-xs font-mono uppercase text-white/70 font-bold flex items-center gap-1.5">
-                  <ImageIcon className="w-3.5 h-3.5 text-[#008CFF]" />
-                  <span>9:16 Vertical Slide Image</span>
-                </label>
-
-                {/* Direct Image URL Input */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={formImageUrl}
-                    onChange={(e) => setFormImageUrl(e.target.value)}
-                    placeholder="e.g. /reels/thumbnails-webp/...jpg or https://..."
-                    required
-                    className="w-full px-4 py-2.5 pl-10 rounded-xl bg-black/70 border border-white/20 text-white text-sm font-mono placeholder:text-white/30 focus:outline-none focus:border-[#008CFF] transition-colors"
-                  />
-                  <LinkIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-                </div>
+                <UploadingAwareCloudinaryUploader
+                  label="9:16 Vertical Slide Image"
+                  value={formImageUrl}
+                  onChange={setFormImageUrl}
+                  onUploadingChange={setIsImageUploading}
+                  accept="image"
+                  requireCloudinary
+                  helpText="Upload a signed Cloudinary image, or enter a secure HTTPS/site-relative image URL."
+                />
 
                 {/* Preset Dropdown Selection */}
                 <div>
@@ -601,41 +723,15 @@ export const WhatWeDoCMS: React.FC = () => {
                   </select>
                 </div>
 
-                {/* File Upload / Drag Drop */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,video/*"
-                  onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
-                  className="hidden"
+                <UploadingAwareCloudinaryUploader
+                  label="Optional Video Reel"
+                  value={formVideoUrl}
+                  onChange={setFormVideoUrl}
+                  onUploadingChange={setIsVideoUploading}
+                  accept="video"
+                  requireCloudinary
+                  helpText="Optional. Upload a signed Cloudinary video, enter a secure HTTPS/site-relative URL, or clear it."
                 />
-
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="p-3.5 rounded-xl border border-dashed border-white/25 hover:border-[#008CFF] bg-white/[0.02] hover:bg-[#008CFF]/5 transition-all flex items-center justify-center gap-2 cursor-pointer text-xs font-mono text-white/70 hover:text-white"
-                >
-                  <Upload className="w-4 h-4 text-[#008CFF]" />
-                  <span>Click to upload image (JPG, PNG, WEBP) or video from device</span>
-                </div>
-
-                {uploadStatus && (
-                  <p className="text-xs font-mono text-emerald-400">{uploadStatus}</p>
-                )}
-
-                {/* Optional Video Reel URL Input */}
-                <div className="pt-2">
-                  <label className="block text-[11px] font-mono uppercase text-white/50 mb-1 flex items-center gap-1.5">
-                    <Video className="w-3 h-3 text-white/40" />
-                    <span>Optional Video Reel URL</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formVideoUrl}
-                    onChange={(e) => setFormVideoUrl(e.target.value)}
-                    placeholder="Optional video link: /reels/... or https://..."
-                    className="w-full px-4 py-2 rounded-xl bg-black/50 border border-white/15 text-white/80 text-xs font-mono placeholder:text-white/25 focus:outline-none focus:border-[#008CFF] transition-colors"
-                  />
-                </div>
 
                 {/* Media Preview */}
                 {(formImageUrl || formVideoUrl) && (
@@ -678,11 +774,11 @@ export const WhatWeDoCMS: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={isUploading}
+                  disabled={isUploading || isMutating}
                   className="px-6 py-2.5 rounded-xl bg-[#008CFF] hover:bg-[#008CFF]/90 disabled:opacity-50 text-white text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(0,140,255,0.4)] active:scale-95 cursor-pointer flex items-center gap-2"
                 >
                   <CheckCircle2 className="w-4 h-4 text-white" />
-                  <span>Save Pillar Changes</span>
+                  <span>{isUploading ? 'Uploading Media...' : isMutating ? 'Saving...' : 'Save Pillar Changes'}</span>
                 </button>
               </div>
             </form>

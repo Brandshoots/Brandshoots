@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Upload,
   Film,
@@ -14,6 +14,34 @@ import {
   Link as LinkIcon,
   HardDrive,
 } from 'lucide-react';
+import { firebaseAuth } from '../../lib/firebase';
+
+const IMAGE_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/svg+xml',
+  'image/gif',
+]);
+const VIDEO_MIME_TYPES = new Set([
+  'video/mp4',
+  'video/quicktime',
+  'video/webm',
+  'video/x-m4v',
+]);
+const IMAGE_MAX_BYTES = 15 * 1024 * 1024;
+const VIDEO_MAX_BYTES = 250 * 1024 * 1024;
+const UPLOAD_TIMEOUT_MS = 10 * 60 * 1000;
+
+type UploadKind = 'image' | 'video';
+
+type SignedUploadDescriptor = {
+  cloudName: string;
+  apiKey: string;
+  signature: string;
+  timestamp: number;
+  folder: string;
+};
 
 export interface CloudinaryUploaderProps {
   label: string;
@@ -21,6 +49,80 @@ export interface CloudinaryUploaderProps {
   onChange: (url: string) => void;
   accept?: 'video' | 'image' | 'both';
   helpText?: string;
+  /** @deprecated Device uploads are always signed and Cloudinary-hosted. */
+  requireCloudinary?: boolean;
+  onUploadingChange?: (isUploading: boolean) => void;
+}
+
+export function isDurableMediaUrl(candidate: string): boolean {
+  const value = candidate.trim();
+  if (!value || /^(?:data:|blob:|http:)/i.test(value) || value.startsWith('//')) return false;
+  if (value.startsWith('/')) return true;
+
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'https:' && Boolean(parsed.hostname) && !parsed.username && !parsed.password;
+  } catch {
+    return false;
+  }
+}
+
+function isExpectedCloudinaryUrl(candidate: unknown, cloudName: string): candidate is string {
+  if (typeof candidate !== 'string') return false;
+
+  try {
+    const parsed = new URL(candidate);
+    return (
+      parsed.origin === 'https://res.cloudinary.com' &&
+      !parsed.username &&
+      !parsed.password &&
+      parsed.pathname.startsWith(`/${cloudName}/`)
+    );
+  } catch {
+    return false;
+  }
+}
+
+function parseUploadDescriptor(value: unknown): SignedUploadDescriptor {
+  if (!value || typeof value !== 'object') {
+    throw new Error('The upload service returned an invalid signing response.');
+  }
+
+  const descriptor = value as Partial<SignedUploadDescriptor>;
+  if (
+    typeof descriptor.cloudName !== 'string' ||
+    !/^[a-zA-Z0-9_-]+$/.test(descriptor.cloudName) ||
+    typeof descriptor.apiKey !== 'string' ||
+    !descriptor.apiKey.trim() ||
+    typeof descriptor.signature !== 'string' ||
+    !/^[a-f0-9]{40}$/i.test(descriptor.signature) ||
+    typeof descriptor.timestamp !== 'number' ||
+    !Number.isInteger(descriptor.timestamp) ||
+    descriptor.timestamp <= 0 ||
+    descriptor.folder !== 'brandshoots'
+  ) {
+    throw new Error('The upload service returned an incomplete signing response.');
+  }
+
+  return descriptor as SignedUploadDescriptor;
+}
+
+function getFileKind(file: File): UploadKind | null {
+  const mimeType = file.type.toLowerCase();
+  if (IMAGE_MIME_TYPES.has(mimeType)) return 'image';
+  if (VIDEO_MIME_TYPES.has(mimeType)) return 'video';
+  return null;
+}
+
+function mediaValueIsVideo(value: string): boolean {
+  if (!value) return false;
+
+  try {
+    const pathname = value.startsWith('/') ? value : new URL(value).pathname;
+    return /\.(?:mp4|mov|webm|m4v)$/i.test(pathname) || pathname.includes('/video/');
+  } catch {
+    return false;
+  }
 }
 
 export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
@@ -29,255 +131,220 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
   onChange,
   accept = 'both',
   helpText,
+  onUploadingChange,
 }) => {
   const [mode, setMode] = useState<'device' | 'url'>('device');
   const [manualUrl, setManualUrl] = useState(value || '');
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [statusMessage, setStatusMessage] = useState<string>('');
+  const [statusMessage, setStatusMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
-  const [inlineCloudName, setInlineCloudName] = useState(() => {
-    return (
-      import.meta.env.VITE_CLOUDINARY_CLOUD_NAME ||
-      localStorage.getItem('bs_cloudinary_cloud_name') ||
-      ''
-    );
-  });
-  const [showCloudPrompt, setShowCloudPrompt] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const activeRequestRef = useRef<XMLHttpRequest | null>(null);
+  const uploadLockRef = useRef(false);
+  const onUploadingChangeRef = useRef(onUploadingChange);
+
+  useEffect(() => {
+    onUploadingChangeRef.current = onUploadingChange;
+  }, [onUploadingChange]);
 
   useEffect(() => {
     setManualUrl(value || '');
   }, [value]);
 
-  const isVideo =
-    value?.startsWith('data:video') ||
-    value?.endsWith('.mp4') ||
-    value?.endsWith('.mov') ||
-    value?.endsWith('.webm') ||
-    value?.endsWith('.m4v') ||
-    value?.includes('/video/') ||
-    value?.includes('/reels/');
+  useEffect(() => {
+    return () => {
+      uploadLockRef.current = false;
+      activeRequestRef.current?.abort();
+      onUploadingChangeRef.current?.(false);
+    };
+  }, []);
 
-  const isImage = value && !isVideo;
-
-  // Convert file to local Data URL (Base64) - Works 100% offline or direct
-  const convertFileToDataUrl = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = () => reject(new Error('Failed to read file from device.'));
-      reader.readAsDataURL(file);
-    });
+  const updateUploading = (nextValue: boolean) => {
+    setIsUploading(nextValue);
+    onUploadingChangeRef.current?.(nextValue);
   };
 
-  // Upload to Cloudinary CDN
-  const uploadToCloudinary = async (file: File, cloudName: string): Promise<string> => {
-    const isVideoFile = file.type.startsWith('video/');
-    const resourceType = isVideoFile ? 'video' : 'image';
-    const timestamp = Math.round(new Date().getTime() / 1000);
-
-    const paramsToSign = {
-      timestamp,
-      folder: 'brandshoots',
-    };
-
-    let signatureData: { signature: string; apiKey: string; timestamp: number } | null = null;
-    try {
-      const signRes = await fetch('/api/cloudinary-sign', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paramsToSign }),
-      });
-      if (signRes.ok) {
-        signatureData = await signRes.json();
-      }
-    } catch {
-      // fallback
+  const requestUploadDescriptor = async (): Promise<SignedUploadDescriptor> => {
+    const user = firebaseAuth.currentUser;
+    if (!user) {
+      throw new Error('Your administrator session expired. Sign in again before uploading.');
     }
 
+    const idToken = await user.getIdToken();
+    const response = await fetch('/api/cloudinary-sign', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${idToken}` },
+    });
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      throw new Error(payload?.error || 'The signed upload request failed.');
+    }
+
+    return parseUploadDescriptor(payload);
+  };
+
+  const uploadToCloudinary = (
+    file: File,
+    kind: UploadKind,
+    descriptor: SignedUploadDescriptor
+  ): Promise<string> => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('timestamp', timestamp.toString());
-    formData.append('folder', 'brandshoots');
-
-    if (signatureData?.signature) {
-      formData.append('api_key', signatureData.apiKey);
-      formData.append('signature', signatureData.signature);
-    } else {
-      formData.append('upload_preset', 'brandshoots_unsigned');
-    }
+    formData.append('api_key', descriptor.apiKey);
+    formData.append('signature', descriptor.signature);
+    formData.append('timestamp', descriptor.timestamp.toString());
+    formData.append('folder', descriptor.folder);
 
     return new Promise<string>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName.trim()}/${resourceType}/upload`);
+      let settled = false;
+      activeRequestRef.current = xhr;
 
-      xhr.upload.onprogress = (evt) => {
-        if (evt.lengthComputable) {
-          const pct = Math.round((evt.loaded / evt.total) * 95);
-          setProgress(pct);
-          setStatusMessage(`Uploading to Cloudinary CDN (${pct}%)...`);
-        }
+      const finish = (callback: () => void) => {
+        if (settled) return;
+        settled = true;
+        if (activeRequestRef.current === xhr) activeRequestRef.current = null;
+        callback();
+      };
+
+      xhr.open(
+        'POST',
+        `https://api.cloudinary.com/v1_1/${encodeURIComponent(descriptor.cloudName)}/${kind}/upload`
+      );
+      xhr.timeout = UPLOAD_TIMEOUT_MS;
+
+      xhr.upload.onprogress = (event) => {
+        if (!event.lengthComputable) return;
+        const percentage = Math.min(95, Math.round((event.loaded / event.total) * 95));
+        setProgress(percentage);
+        setStatusMessage(`Uploading to Cloudinary CDN (${percentage}%)...`);
       };
 
       xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try {
-            const data = JSON.parse(xhr.responseText);
-            setProgress(100);
-            resolve(data.secure_url || data.url);
-          } catch {
-            reject(new Error('Invalid response from Cloudinary.'));
-          }
-        } else {
-          try {
-            const errData = JSON.parse(xhr.responseText);
-            reject(new Error(errData?.error?.message || `Upload failed with status ${xhr.status}`));
-          } catch {
-            reject(new Error(`Upload failed with status ${xhr.status}`));
-          }
+        if (xhr.status < 200 || xhr.status >= 300) {
+          finish(() => {
+            try {
+              const response = JSON.parse(xhr.responseText);
+              reject(new Error(response?.error?.message || `Upload failed with status ${xhr.status}.`));
+            } catch {
+              reject(new Error(`Upload failed with status ${xhr.status}.`));
+            }
+          });
+          return;
         }
+
+        finish(() => {
+          try {
+            const response = JSON.parse(xhr.responseText);
+            if (!isExpectedCloudinaryUrl(response?.secure_url, descriptor.cloudName)) {
+              reject(new Error('Cloudinary returned an unexpected or insecure media URL.'));
+              return;
+            }
+            setProgress(100);
+            resolve(response.secure_url);
+          } catch (uploadError) {
+            reject(
+              uploadError instanceof Error
+                ? uploadError
+                : new Error('Cloudinary returned an invalid response.')
+            );
+          }
+        });
       };
 
-      xhr.onerror = () => reject(new Error('Network connection error during file upload.'));
+      xhr.onerror = () => finish(() => reject(new Error('A network error interrupted the upload.')));
+      xhr.ontimeout = () =>
+        finish(() => reject(new Error('The upload timed out. Check your connection and try again.')));
+      xhr.onabort = () => finish(() => reject(new Error('The upload was cancelled.')));
       xhr.send(formData);
     });
   };
 
-  // Main file processing handler
   const processFile = async (file: File) => {
+    if (uploadLockRef.current) return;
+
     setError(null);
-    setShowCloudPrompt(false);
-    setIsUploading(true);
-    setProgress(5);
-    setStatusMessage('Reading file from device...');
+    setProgress(0);
+    setStatusMessage('Validating file...');
 
-    const isVideoFile = file.type.startsWith('video/') || file.name.match(/\.(mp4|mov|webm|m4v)$/i);
-    const isImageFile = file.type.startsWith('image/') || file.name.match(/\.(jpg|jpeg|png|webp|svg|gif)$/i);
-
-    const activeCloudName =
-      inlineCloudName ||
-      localStorage.getItem('bs_cloudinary_cloud_name') ||
-      import.meta.env.VITE_CLOUDINARY_CLOUD_NAME ||
-      '';
-
-    try {
-      // 1. If Image File:
-      if (isImageFile) {
-        if (activeCloudName) {
-          try {
-            setStatusMessage('Uploading image to Cloudinary...');
-            const cdnUrl = await uploadToCloudinary(file, activeCloudName);
-            onChange(cdnUrl);
-            setManualUrl(cdnUrl);
-            setIsUploading(false);
-            return;
-          } catch (cloudErr: any) {
-            console.warn('Cloudinary image upload failed, falling back to direct Data URL:', cloudErr);
-          }
-        }
-        // Direct conversion fallback (Guaranteed to always work from device!)
-        setStatusMessage('Embedding image from device...');
-        setProgress(60);
-        const dataUrl = await convertFileToDataUrl(file);
-        setProgress(100);
-        onChange(dataUrl);
-        setManualUrl(dataUrl);
-        setIsUploading(false);
-        return;
-      }
-
-      // 2. If Video File (Reel):
-      if (isVideoFile) {
-        if (activeCloudName) {
-          setStatusMessage('Uploading video reel to Cloudinary CDN...');
-          const cdnUrl = await uploadToCloudinary(file, activeCloudName);
-          onChange(cdnUrl);
-          setManualUrl(cdnUrl);
-          setIsUploading(false);
-          return;
-        }
-
-        // If no cloud name set, check file size:
-        const fileSizeMB = file.size / (1024 * 1024);
-        if (fileSizeMB <= 12) {
-          // If reel is under 12MB, can convert directly as data URL!
-          setStatusMessage('Processing compact video from device...');
-          setProgress(50);
-          const dataUrl = await convertFileToDataUrl(file);
-          setProgress(100);
-          onChange(dataUrl);
-          setManualUrl(dataUrl);
-          setIsUploading(false);
-          return;
-        }
-
-        // Otherwise prompt for Cloudinary Cloud Name for large video
-        setPendingFile(file);
-        setShowCloudPrompt(true);
-        setIsUploading(false);
-        return;
-      }
-
-      throw new Error(`Unsupported file type: ${file.type || file.name}`);
-    } catch (err: any) {
-      console.error('File process error:', err);
-      setError(err?.message || 'Failed to process file from device.');
-      setIsUploading(false);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      processFile(file);
-    }
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      processFile(file);
-    }
-  };
-
-  const handleSaveCloudNameAndUpload = async () => {
-    if (!inlineCloudName.trim()) {
-      setError('Please enter a Cloudinary Cloud Name (e.g., brandshoots or your account cloud name).');
+    const kind = getFileKind(file);
+    if (!kind || (accept !== 'both' && kind !== accept)) {
+      setError(`Choose a supported ${accept === 'both' ? 'image or video' : accept} file.`);
       return;
     }
-    localStorage.setItem('bs_cloudinary_cloud_name', inlineCloudName.trim());
-    setShowCloudPrompt(false);
-    if (pendingFile) {
-      await processFile(pendingFile);
-      setPendingFile(null);
+
+    if (file.size <= 0) {
+      setError('The selected file is empty.');
+      return;
     }
+
+    const maximumBytes = kind === 'image' ? IMAGE_MAX_BYTES : VIDEO_MAX_BYTES;
+    if (file.size > maximumBytes) {
+      setError(`${kind === 'image' ? 'Images' : 'Videos'} must be smaller than ${kind === 'image' ? '15 MB' : '250 MB'}.`);
+      return;
+    }
+
+    uploadLockRef.current = true;
+    updateUploading(true);
+    setProgress(5);
+
+    try {
+      setStatusMessage('Authorizing signed upload...');
+      const descriptor = await requestUploadDescriptor();
+      setStatusMessage(`Uploading ${kind} to Cloudinary CDN...`);
+      const secureUrl = await uploadToCloudinary(file, kind, descriptor);
+      onChange(secureUrl);
+      setManualUrl(secureUrl);
+      setStatusMessage('Upload complete.');
+    } catch (uploadError) {
+      console.error('Cloudinary upload failed:', uploadError);
+      setError(
+        uploadError instanceof Error ? uploadError.message : 'The file could not be uploaded.'
+      );
+    } finally {
+      uploadLockRef.current = false;
+      updateUploading(false);
+    }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) void processFile(file);
+    event.target.value = '';
+  };
+
+  const handleDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDragging(false);
+    const file = event.dataTransfer.files?.[0];
+    if (file) void processFile(file);
   };
 
   const handleManualApply = () => {
-    if (manualUrl.trim()) {
-      onChange(manualUrl.trim());
-      setError(null);
+    const nextUrl = manualUrl.trim();
+    if (!isDurableMediaUrl(nextUrl)) {
+      setError('Enter a durable HTTPS URL or site-relative path. data:, blob:, and http:// URLs are not allowed.');
+      return;
     }
+    onChange(nextUrl);
+    setError(null);
   };
 
   const handleClear = () => {
     onChange('');
     setManualUrl('');
     setError(null);
-    setShowCloudPrompt(false);
-    setPendingFile(null);
   };
+
+  const isVideo = mediaValueIsVideo(value);
+  const isImage = Boolean(value) && !isVideo;
 
   return (
     <div className="w-full space-y-2.5 bg-black/30 p-3.5 rounded-2xl border border-white/10">
-      {/* Label & Mode Selector Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <label className="text-xs font-mono uppercase tracking-wider text-white/80 flex items-center gap-2">
           {accept === 'video' ? (
@@ -290,12 +357,12 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
           <span>{label}</span>
         </label>
 
-        {/* Device vs URL Mode Toggle */}
         <div className="flex items-center gap-1.5 p-1 bg-black/60 border border-white/10 rounded-xl">
           <button
             type="button"
             onClick={() => setMode('device')}
-            className={`px-3 py-1 rounded-lg text-[10px] font-mono uppercase font-bold tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
+            disabled={isUploading}
+            className={`px-3 py-1 rounded-lg text-[10px] font-mono uppercase font-bold tracking-wider flex items-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 ${
               mode === 'device'
                 ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.25)]'
                 : 'text-white/60 hover:text-white hover:bg-white/[0.04]'
@@ -308,7 +375,8 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
           <button
             type="button"
             onClick={() => setMode('url')}
-            className={`px-3 py-1 rounded-lg text-[10px] font-mono uppercase font-bold tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
+            disabled={isUploading}
+            className={`px-3 py-1 rounded-lg text-[10px] font-mono uppercase font-bold tracking-wider flex items-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 ${
               mode === 'url'
                 ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.25)]'
                 : 'text-white/60 hover:text-white hover:bg-white/[0.04]'
@@ -320,7 +388,6 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
         </div>
       </div>
 
-      {/* 1. DEVICE UPLOAD MODE */}
       {mode === 'device' && (
         <div className="space-y-3">
           <input
@@ -328,30 +395,33 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
             type="file"
             accept={
               accept === 'video'
-                ? 'video/mp4,video/quicktime,video/webm,video/x-m4v,video/*'
+                ? 'video/mp4,video/quicktime,video/webm,video/x-m4v'
                 : accept === 'image'
-                ? 'image/jpeg,image/png,image/webp,image/svg+xml,image/gif,image/*'
-                : 'video/*,image/*'
+                  ? 'image/jpeg,image/png,image/webp,image/svg+xml,image/gif'
+                  : 'video/mp4,video/quicktime,video/webm,video/x-m4v,image/jpeg,image/png,image/webp,image/svg+xml,image/gif'
             }
             onChange={handleFileChange}
+            disabled={isUploading}
             className="hidden"
             id={`device-upload-${label.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`}
           />
 
           <div
-            onDragOver={(e) => {
-              e.preventDefault();
-              setIsDragging(true);
+            onDragOver={(event) => {
+              event.preventDefault();
+              if (!isUploading) setIsDragging(true);
             }}
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-            className={`relative w-full border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all ${
+            onClick={() => {
+              if (!isUploading) fileInputRef.current?.click();
+            }}
+            className={`relative w-full border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center gap-3 transition-all ${
               isDragging
-                ? 'border-white bg-white/15 scale-[1.01]'
+                ? 'border-white bg-white/15 scale-[1.01] cursor-pointer'
                 : isUploading
-                ? 'border-white/60 bg-white/10'
-                : 'border-white/15 hover:border-white/40 bg-black/40 hover:bg-white/[0.03]'
+                  ? 'border-white/60 bg-white/10 cursor-not-allowed'
+                  : 'border-white/15 hover:border-white/40 bg-black/40 hover:bg-white/[0.03] cursor-pointer'
             }`}
           >
             {isUploading ? (
@@ -379,16 +449,16 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
                   </p>
                   <p className="text-[10px] font-mono text-white/50">
                     {accept === 'video'
-                      ? 'Supports MP4, MOV, WEBM reels (Any size)'
+                      ? 'MP4, MOV, WEBM, or M4V up to 250 MB'
                       : accept === 'image'
-                      ? 'Supports PNG, JPG, WEBP, SVG images'
-                      : 'Supports video reels (.mp4, .mov) and images (.png, .jpg, .webp)'}
+                        ? 'PNG, JPG, WEBP, SVG, or GIF up to 15 MB'
+                        : 'Supported images up to 15 MB and videos up to 250 MB'}
                   </p>
                 </div>
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  onClick={(event) => {
+                    event.stopPropagation();
                     fileInputRef.current?.click();
                   }}
                   className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white text-white hover:text-black font-mono text-[10px] uppercase font-bold tracking-wider transition-all"
@@ -398,51 +468,16 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
               </>
             )}
           </div>
-
-          {/* Inline Cloudinary Cloud Name Setup Prompt (if large video uploaded and cloud name missing) */}
-          {showCloudPrompt && (
-            <div className="p-4 rounded-xl bg-[#008CFF]/15 border border-[#008CFF]/40 space-y-3">
-              <div className="flex items-start gap-2.5">
-                <Sparkles className="w-4 h-4 text-[#008CFF] shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="text-xs font-mono font-bold text-white uppercase">
-                    Cloudinary Video Hosting Setup
-                  </h4>
-                  <p className="text-[11px] font-mono text-white/70 mt-0.5 leading-relaxed">
-                    To host high-resolution video reels from your device, enter your Cloudinary Cloud Name below (found in your Cloudinary Dashboard):
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-2">
-                <input
-                  type="text"
-                  value={inlineCloudName}
-                  onChange={(e) => setInlineCloudName(e.target.value)}
-                  placeholder="e.g. brandshoots or dxxxx"
-                  className="flex-1 px-3 py-2 rounded-lg bg-black/80 border border-white/20 text-white font-mono text-xs focus:border-[#008CFF] focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={handleSaveCloudNameAndUpload}
-                  className="px-4 py-2 rounded-lg bg-[#008CFF] hover:bg-[#209CFF] text-white font-mono text-xs uppercase font-bold tracking-wider shrink-0 cursor-pointer shadow-[0_0_15px_rgba(0,140,255,0.4)]"
-                >
-                  Save & Upload Reel
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
-      {/* 2. DIRECT URL MODE */}
       {mode === 'url' && (
         <div className="flex gap-2">
           <div className="relative flex-1">
             <input
               type="text"
               value={manualUrl}
-              onChange={(e) => setManualUrl(e.target.value)}
+              onChange={(event) => setManualUrl(event.target.value)}
               placeholder="e.g. /reels/sample.mp4 or https://res.cloudinary.com/..."
               className="w-full px-3 py-2.5 bg-black/60 border border-white/15 rounded-xl text-xs font-mono text-white placeholder-white/30 focus:border-[#008CFF] focus:outline-none transition-colors"
             />
@@ -468,9 +503,11 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
         </div>
       )}
 
-      {/* Error Message */}
       {error && (
-        <div className="flex items-start gap-2 p-2.5 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-mono">
+        <div
+          className="flex items-start gap-2 p-2.5 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-mono"
+          role="alert"
+        >
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
@@ -478,7 +515,6 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
 
       {helpText && <p className="text-[10px] text-white/40 font-mono">{helpText}</p>}
 
-      {/* 3. ACTIVE MEDIA PREVIEW CARD */}
       {value && (
         <div className="p-3 bg-black/70 border border-white/15 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
           <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -489,8 +525,7 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
                   className="w-full h-full object-cover"
                   muted
                   playsInline
-                  autoPlay
-                  loop
+                  preload="metadata"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
                 <Film className="absolute bottom-1 right-1 w-3.5 h-3.5 text-[#008CFF]" />
@@ -504,27 +539,27 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
 
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
                 <span className="text-[10px] font-mono uppercase font-bold tracking-wider text-emerald-400">
                   {isVideo ? 'Active Reel Ready' : 'Active Image Ready'}
                 </span>
               </div>
               <p className="text-[11px] font-mono text-white/70 truncate mt-0.5 max-w-md" title={value}>
-                {value.startsWith('data:') ? 'Embedded Media from Device (Base64)' : value}
+                {value}
               </p>
             </div>
           </div>
 
-          {/* Quick Action Controls */}
           <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
             <button
               type="button"
+              disabled={isUploading}
               onClick={() => {
                 setMode('device');
                 setTimeout(() => fileInputRef.current?.click(), 50);
               }}
-              className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-[#008CFF] text-white text-[10px] font-mono uppercase font-bold tracking-wider flex items-center gap-1 transition-all cursor-pointer"
-              title="Replace this media with a new file from your device"
+              className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-[#008CFF] text-white text-[10px] font-mono uppercase font-bold tracking-wider flex items-center gap-1 transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+              title="Replace this media with a signed Cloudinary upload"
             >
               <RefreshCw className="w-3 h-3" />
               <span>Replace</span>
@@ -532,8 +567,9 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
 
             <button
               type="button"
+              disabled={isUploading}
               onClick={handleClear}
-              className="p-1.5 rounded-xl text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+              className="p-1.5 rounded-xl text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
               title="Remove media"
             >
               <X className="w-4 h-4" />

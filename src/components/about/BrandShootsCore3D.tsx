@@ -6,7 +6,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
 
 // ============================================================================
-// REAL BRANDSHOOTS 9:16 REELS & POSTERS
+// REAL BrandShoots 9:16 REELS & POSTERS
 // ============================================================================
 interface ReelData {
   video: string;
@@ -501,7 +501,7 @@ export const BrandShootsCore3D: React.FC = () => {
 
       // ----------------------------------------------------------------------
       // CLIMAX: RIGHT AFTER 3 REELS SCROLLED (1.70 -> 2.50)
-      // Cards part symmetrically to wings & BRANDSHOOTS logo anthem emerges
+      // Cards part symmetrically to wings & BrandShoots logo anthem emerges
       // ----------------------------------------------------------------------
       tl.to(
         scrollState,
@@ -820,7 +820,7 @@ export const BrandShootsCore3D: React.FC = () => {
         />
 
         {/* ======================================================== */}
-        {/* 4. HERO ANCHOR: OFFICIAL BRANDSHOOTS LOGO (Z-INDEX: 30)  */}
+        {/* 4. HERO ANCHOR: OFFICIAL BrandShoots LOGO (Z-INDEX: 30)  */}
         {/* Visible in initial intro, hidden in Ch 1-3, climax in Ch 4 */}
         {/* ======================================================== */}
         <div
@@ -842,7 +842,7 @@ export const BrandShootsCore3D: React.FC = () => {
           {/* Official Vector Logo */}
           <img
             src="/Logo Official.svg"
-            alt="BRANDSHOOTS"
+            alt="BrandShoots"
             className="w-[68vw] max-w-[360px] sm:max-w-[460px] lg:max-w-[540px] h-auto object-contain filter drop-shadow-[0_15px_35px_rgba(0,0,0,0.95)] drop-shadow-[0_0_24px_rgba(0,140,255,0.4)]"
           />
 
@@ -891,7 +891,7 @@ export const BrandShootsCore3D: React.FC = () => {
         >
           <div className="relative w-full max-w-xl min-h-[130px] sm:min-h-[140px] flex items-center justify-center">
 
-            {/* CHAPTER 01: ABOUT BRANDSHOOTS */}
+            {/* CHAPTER 01: ABOUT BrandShoots */}
             <div
               ref={chapter1Ref}
               className="absolute inset-x-0 mx-auto flex flex-col items-center text-center will-change-transform opacity-0 pointer-events-none"
@@ -904,7 +904,7 @@ export const BrandShootsCore3D: React.FC = () => {
                 </h2>
 
                 <p className="text-xs sm:text-sm text-white/85 leading-relaxed font-light drop-shadow-[0_1px_8px_rgba(0,0,0,0.9)] max-w-lg mx-auto">
-                  BRANDSHOOTS is a creative production studio turning ideas into films,
+                  BrandShoots is a creative production studio turning ideas into films,
                   campaigns and visual experiences. We bring together storytelling,
                   cinematography and creative direction to create work that connects
                   brands with people.
@@ -926,7 +926,7 @@ export const BrandShootsCore3D: React.FC = () => {
 
                 <p className="text-xs sm:text-sm text-white/85 leading-relaxed font-light drop-shadow-[0_1px_8px_rgba(0,0,0,0.9)] max-w-lg mx-auto">
                   From concept and pre-production to filming, editing and final delivery,
-                  BRANDSHOOTS brings every stage of production together to create films,
+                  BrandShoots brings every stage of production together to create films,
                   campaigns and visual content built around the story.
                 </p>
               </div>
@@ -946,7 +946,7 @@ export const BrandShootsCore3D: React.FC = () => {
 
                 <p className="text-xs sm:text-sm text-white/85 leading-relaxed font-light drop-shadow-[0_1px_8px_rgba(0,0,0,0.9)] max-w-lg mx-auto">
                   From industrial and corporate brands to retail, hospitality and lifestyle,
-                  BRANDSHOOTS creates visual work shaped around each brand, its audience and
+                  BrandShoots creates visual work shaped around each brand, its audience and
                   its story. Every project begins with understanding what makes the brand
                   worth watching.
                 </p>

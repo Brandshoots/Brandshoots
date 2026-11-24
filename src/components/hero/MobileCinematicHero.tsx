@@ -160,16 +160,16 @@ export const MobileCinematicHero: React.FC = () => {
 
 
       {/* ========================================================= */}
-      {/* 3. BOTTOM EDITORIAL HIERARCHY: BRANDSHOOTS + CREED + CUE */}
+      {/* 3. BOTTOM EDITORIAL HIERARCHY: BrandShoots + CREED + CUE */}
       {/* ========================================================= */}
       <div
         ref={bottomContentRef}
         className="absolute inset-x-0 bottom-0 z-20 flex flex-col items-center text-center px-5 pb-[calc(env(safe-area-inset-bottom,0px)+18px)] will-change-transform"
       >
-        {/* BRANDSHOOTS Title in Figtree */}
+        {/* BrandShoots Title in Source Sans 3 */}
         <h1
           ref={titleRef}
-          className="font-figtree font-black uppercase tracking-[-0.038em] text-[clamp(2.5rem,11.8vw,4.1rem)] leading-[0.92] select-none flex items-center justify-center drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]"
+          className="font-sans font-black uppercase tracking-[-0.038em] text-[clamp(2.5rem,11.8vw,4.1rem)] leading-[0.92] select-none flex items-center justify-center drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]"
         >
           <span
             className="text-[#008CFF]"
@@ -188,7 +188,7 @@ export const MobileCinematicHero: React.FC = () => {
         {/* CREATE. SHOOT. GROW. Tagline */}
         <p
           ref={taglineRef}
-          className="mt-3 font-figtree font-bold text-[clamp(0.72rem,2.8vw,0.86rem)] tracking-[0.38em] uppercase text-white/90 select-none drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]"
+          className="mt-3 font-sans font-bold text-[clamp(0.72rem,2.8vw,0.86rem)] tracking-[0.38em] uppercase text-white/90 select-none drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]"
         >
           <span className="text-white">CREATE. </span>
           <span className="text-[#008CFF] drop-shadow-[0_0_12px_rgba(0,140,255,0.85)]">

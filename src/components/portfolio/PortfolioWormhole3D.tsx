@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { CLIENT_PROJECTS, ClientProject } from '../../data/clientsData';
+import { ClientProject } from '../../data/clientsData';
 import { getProjectSocialLink } from '../../data/clientSocialData';
 import { useCMSContent } from '../../lib/cms/useCMSContent';
 import { ProjectDetailModal } from './ProjectDetailModal';
@@ -12,7 +12,7 @@ import { ArrowUpRight, X, ChevronRight, Volume2, Volume1, VolumeX, Play, Pause, 
 gsap.registerPlugin(ScrollTrigger);
 
 /**
- * BRANDSHOOTS PORTFOLIO — 3D LUXURY CINEMATIC SHOWCASE
+ * BrandShoots PORTFOLIO — 3D LUXURY CINEMATIC SHOWCASE
  *
  * Art-directed for pure, neat, high-end aesthetics:
  * - Simple, sleek 9:16 reel frames with rounded corners
@@ -211,11 +211,10 @@ export const PortfolioWormhole3D: React.FC = () => {
   const stRef = useRef<ScrollTrigger | null>(null);
   const debouncedSnapRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Source of truth from CMS with instant fallback to default CLIENT_PROJECTS
+  // The hook supplies startup fallback content; once Firebase responds, its 0/1/N records are authoritative.
   const { projects: cmsProjects } = useCMSContent();
-  const activeProjects: ClientProject[] = (cmsProjects && cmsProjects.length > 0
-    ? (cmsProjects as unknown as ClientProject[])
-    : CLIENT_PROJECTS);
+  const activeProjects = cmsProjects
+    .filter((project) => project.visible !== false) as unknown as ClientProject[];
   const totalProjects = activeProjects.length;
   const projects3DKey = activeProjects.map((p) => `${p.id}:${p.videoUrl}:${p.posterUrl}`).join('|');
 
@@ -1193,16 +1192,18 @@ export const PortfolioWormhole3D: React.FC = () => {
   // Jump smoothly to project chapter with exact sub-pixel positioning
   const scrollToProject = useCallback(
     (index: number, customDuration: number = 0.72) => {
+      if (totalProjects === 0) return;
       const clamped = Math.min(totalProjects - 1, Math.max(0, index));
+      const projectProgress = totalProjects > 1 ? clamped / (totalProjects - 1) : 0;
       let targetTop = 0;
 
       const st = stRef.current;
       if (st && st.end > st.start) {
-        targetTop = st.start + (clamped / (totalProjects - 1)) * (st.end - st.start);
+        targetTop = st.start + projectProgress * (st.end - st.start);
       } else if (containerRef.current) {
         const container = containerRef.current;
         const totalScrollable = container.offsetHeight - window.innerHeight;
-        targetTop = container.offsetTop + (clamped / (totalProjects - 1)) * totalScrollable;
+        targetTop = container.offsetTop + projectProgress * totalScrollable;
       } else {
         return;
       }
@@ -1434,6 +1435,8 @@ export const PortfolioWormhole3D: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [scrollToProject, totalProjects, isMobile]);
 
+  if (activeProjects.length === 0) return null;
+
   const currentProject: ClientProject = activeProjects[activeIndex] || activeProjects[0];
   const isLeft = activeIndex % 2 === 0;
 
@@ -1593,40 +1596,28 @@ export const PortfolioWormhole3D: React.FC = () => {
                   </p>
 
                   {/* Middle: Client Stat Badges (Views, Followers, Likes) */}
-                  {(() => {
-                    const fallbackMetrics = [
-                      { label: 'Views', value: '250K+' },
-                      { label: 'Followers', value: '18K+' },
-                      { label: 'Likes', value: '34K+' },
-                    ];
-                    const stats =
-                      currentProject.metrics && currentProject.metrics.length > 0
-                        ? currentProject.metrics
-                        : fallbackMetrics;
-
-                    return (
-                      <div
-                        className={`mt-2 sm:mt-3 md:mt-5 grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-2.5 max-w-[250px] sm:max-w-[280px] md:max-w-[330px] ${
-                          isMobile ? 'mx-auto' : ''
-                        }`}
-                      >
-                        {stats.map((metric, idx) => (
-                          <div
-                            key={idx}
-                            className="animate-glow-blink-slow px-1.5 py-1 sm:px-2.5 sm:py-2 md:px-3 md:py-2.5 rounded-lg sm:rounded-xl bg-[#008CFF]/[0.05] border border-[#008CFF]/25 hover:border-[#008CFF]/45 backdrop-blur-md flex flex-col items-center justify-center text-center transition-all duration-300 shadow-[0_0_12px_rgba(0,140,255,0.08)]"
-                            style={{ animationDelay: `${idx * 0.28}s` }}
-                          >
-                            <span className="text-[11px] sm:text-sm md:text-base font-sans font-semibold text-white tracking-tight leading-none drop-shadow-[0_0_8px_rgba(0,140,255,0.45)]">
-                              {metric.value}
-                            </span>
-                            <span className="mt-0.5 sm:mt-1 text-[7px] sm:text-[8px] md:text-[9px] font-sans font-medium uppercase tracking-[0.12em] text-white/55 leading-none">
-                              {metric.label}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  })()}
+                  {currentProject.metrics && currentProject.metrics.length > 0 && (
+                    <div
+                      className={`mt-2 sm:mt-3 md:mt-5 grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-2.5 max-w-[250px] sm:max-w-[280px] md:max-w-[330px] ${
+                        isMobile ? 'mx-auto' : ''
+                      }`}
+                    >
+                      {currentProject.metrics.map((metric, idx) => (
+                        <div
+                          key={`${metric.label}-${idx}`}
+                          className="animate-glow-blink-slow px-1.5 py-1 sm:px-2.5 sm:py-2 md:px-3 md:py-2.5 rounded-lg sm:rounded-xl bg-[#008CFF]/[0.05] border border-[#008CFF]/25 hover:border-[#008CFF]/45 backdrop-blur-md flex flex-col items-center justify-center text-center transition-all duration-300 shadow-[0_0_12px_rgba(0,140,255,0.08)]"
+                          style={{ animationDelay: `${idx * 0.28}s` }}
+                        >
+                          <span className="text-[11px] sm:text-sm md:text-base font-sans font-semibold text-white tracking-tight leading-none drop-shadow-[0_0_8px_rgba(0,140,255,0.45)]">
+                            {metric.value}
+                          </span>
+                          <span className="mt-0.5 sm:mt-1 text-[7px] sm:text-[8px] md:text-[9px] font-sans font-medium uppercase tracking-[0.12em] text-white/55 leading-none">
+                            {metric.label}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Action Buttons: MORE INFO + INSTAGRAM */}
                   {(() => {

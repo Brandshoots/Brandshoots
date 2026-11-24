@@ -14,13 +14,18 @@ const routes = {
     description: 'Explore commercial video production, business reels and brand campaigns created by BrandShoots for companies across Andhra Pradesh and Telangana.',
     path: '/portfolio',
   },
+  results: {
+    title: 'Client Results & Case Studies | BrandShoots',
+    description: 'Explore published BrandShoots client case studies with verified before-and-after follower and view figures, screenshots and campaign timelines.',
+    path: '/results',
+  },
   contact: {
     title: 'Contact BrandShoots | Rajahmundry & Hyderabad',
     description: 'Contact BrandShoots for professional brand shoots, commercial reels, video production and social media management in Rajahmundry, Hyderabad and across AP and Telangana.',
     path: '/contact',
   },
   packages: {
-    title: 'Packages & Pricing | Brandshoots – Monthly Reels & Social Media Plans, Rajahmundry & Hyderabad',
+    title: 'Packages & Pricing | BrandShoots – Monthly Reels & Social Media Plans, Rajahmundry & Hyderabad',
     description: 'Monthly content packages from ₹40,000: reels, shoot days, editing and Instagram, Facebook & YouTube management for businesses in Rajahmundry and Hyderabad.',
     path: '/packages',
   },

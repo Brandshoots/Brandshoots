@@ -13,7 +13,7 @@ import {
   CMSAnnouncement,
   CMSContactPage,
 } from '../../types/cms';
-import { CLIENT_PROJECTS, ALL_CLIENT_LOGOS } from '../../data/clientsData';
+import { CLIENT_PROJECTS } from '../../data/clientsData';
 import {
   INITIAL_CLIENTS,
   INITIAL_HERO,
@@ -26,79 +26,62 @@ import {
   INITIAL_CONTACT_PAGE,
 } from './seedData';
 
-// Fallback initial data structures
-const fallbackProjects: CMSProject[] = CLIENT_PROJECTS.map((p, idx) => ({
-  ...p,
-  order: idx,
+// Static content is used only while the first live snapshot is pending or when the listener fails.
+const fallbackProjects: CMSProject[] = CLIENT_PROJECTS.map((project, index) => ({
+  ...project,
+  order: index,
   visible: true,
 }));
-
-export function sanitizeProjectList(list: CMSProject[]): CMSProject[] {
-  if (
-    !list ||
-    list.length < 12 ||
-    list.some((p) => p.id === 'fresh-and-fresh' || p.id === 'rk-home-living' || p.id === 'dayanidhi-creations')
-  ) {
-    return fallbackProjects;
-  }
-  return list.map((proj) => {
-    const canonical = CLIENT_PROJECTS.find((cp) => cp.id === proj.id || cp.slug === proj.slug);
-    if (!canonical) return proj;
-    return {
-      ...canonical,
-      ...proj,
-      name: canonical.name,
-      videoUrl: canonical.videoUrl,
-      posterUrl: canonical.posterUrl,
-      logoUrl: canonical.logoUrl || proj.logoUrl,
-      headline: canonical.headline,
-      metrics: canonical.metrics,
-      reels: canonical.reels,
-      visible: proj.visible !== false,
-      order: typeof proj.order === 'number' ? proj.order : (canonical as any).order ?? 0,
-    };
-  });
-}
-
 const fallbackClients: CMSClientLogo[] = Object.values(INITIAL_CLIENTS);
-
-export function sanitizeClientList(list: CMSClientLogo[]): CMSClientLogo[] {
-  if (!list || !Array.isArray(list)) return fallbackClients;
-  return list.map((item) => {
-    const canonical = ALL_CLIENT_LOGOS.find(
-      (c) => c.id === item.id || c.name.toLowerCase().trim() === item.name.toLowerCase().trim()
-    );
-    const init = INITIAL_CLIENTS[item.id];
-    return {
-      ...item,
-      logoUrl: canonical?.logoUrl || item.logoUrl,
-      views: item.views !== undefined ? item.views : init?.views,
-      likes: item.likes !== undefined ? item.likes : init?.likes,
-    };
-  });
-}
-
 const fallbackServices: CMSService[] = Object.values(INITIAL_SERVICES).sort(
   (a, b) => (Number(a.order) || 0) - (Number(b.order) || 0)
 );
-
-export function sanitizeServicesList(list: CMSService[]): CMSService[] {
-  if (!list || !Array.isArray(list) || list.length !== 3) return fallbackServices;
-  const hasLegacy = list.some(
-    (s) => s.id === 'video-production' || s.id === 'brand-creative' || s.id === 'motion-graphics'
-  );
-  if (hasLegacy) return fallbackServices;
-  return list;
-}
-
 const fallbackTestimonials: CMSTestimonial[] = Object.values(INITIAL_TESTIMONIALS);
 const fallbackAnnouncements: CMSAnnouncement[] = Object.values(INITIAL_ANNOUNCEMENTS);
+
+type OrderedVisibleItem = {
+  order?: number;
+  visible?: boolean;
+};
+
+function collectionValues<T>(value: unknown): T[] {
+  if (Array.isArray(value)) return value.filter(Boolean) as T[];
+  if (value && typeof value === 'object') return Object.values(value as Record<string, T>).filter(Boolean);
+  return [];
+}
+
+function normalizeVisibleList<T extends OrderedVisibleItem>(value: unknown): T[] {
+  return collectionValues<T>(value)
+    .filter((item) => item.visible !== false)
+    .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+}
+
+function normalizeAnnouncements(value: unknown): CMSAnnouncement[] {
+  return collectionValues<CMSAnnouncement>(value)
+    .filter((announcement) => announcement.isActive !== false)
+    .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+}
+
+export function sanitizeProjectList(list: CMSProject[]): CMSProject[] {
+  return Array.isArray(list) ? list : [];
+}
+
+export function sanitizeClientList(list: CMSClientLogo[]): CMSClientLogo[] {
+  return Array.isArray(list) ? list : [];
+}
+
+export function sanitizeServicesList(list: CMSService[]): CMSService[] {
+  return Array.isArray(list) ? list : [];
+}
 
 export function useCMSContent() {
   const [projects, setProjects] = useState<CMSProject[]>(() => {
     try {
-      localStorage.removeItem('brandshoots_projects');
-      localStorage.removeItem('brandshoots_projects_v2026');
+      const cached = localStorage.getItem('brandshoots_projects');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) return sanitizeProjectList(normalizeVisibleList<CMSProject>(parsed));
+      }
     } catch {}
     return fallbackProjects;
   });
@@ -107,9 +90,7 @@ export function useCMSContent() {
       const cached = localStorage.getItem('brandshoots_clients');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return sanitizeClientList(parsed);
-        }
+        if (Array.isArray(parsed)) return sanitizeClientList(normalizeVisibleList<CMSClientLogo>(parsed));
       }
     } catch {}
     return fallbackClients;
@@ -129,7 +110,7 @@ export function useCMSContent() {
       const cached = localStorage.getItem('brandshoots_hero_reels');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return normalizeVisibleList<CMSHeroReel>(parsed);
       }
     } catch {}
     return INITIAL_HERO_REELS;
@@ -139,7 +120,7 @@ export function useCMSContent() {
       const cached = localStorage.getItem('brandshoots_services');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed)) return sanitizeServicesList(parsed);
+        if (Array.isArray(parsed)) return sanitizeServicesList(normalizeVisibleList<CMSService>(parsed));
       }
     } catch {}
     return fallbackServices;
@@ -149,19 +130,28 @@ export function useCMSContent() {
       const cached = localStorage.getItem('brandshoots_testimonials');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return normalizeVisibleList<CMSTestimonial>(parsed);
       }
     } catch {}
     return fallbackTestimonials;
   });
   const [leadership, setLeadership] = useState<CMSLeadership>(INITIAL_LEADERSHIP);
-  const [settings, setSettings] = useState<CMSSiteSettings>(INITIAL_SITE_SETTINGS);
+  const [settings, setSettings] = useState<CMSSiteSettings>(() => {
+    try {
+      const cached = localStorage.getItem('brandshoots_site_settings');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && typeof parsed === 'object') return { ...INITIAL_SITE_SETTINGS, ...parsed };
+      }
+    } catch {}
+    return INITIAL_SITE_SETTINGS;
+  });
   const [announcements, setAnnouncements] = useState<CMSAnnouncement[]>(() => {
     try {
       const cached = localStorage.getItem('brandshoots_announcements');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return normalizeAnnouncements(parsed);
       }
     } catch {}
     return fallbackAnnouncements;
@@ -179,296 +169,201 @@ export function useCMSContent() {
   const [isLive, setIsLive] = useState<boolean>(false);
 
   useEffect(() => {
+    const applyStaticFallback = () => {
+      setProjects(fallbackProjects);
+      setClients(fallbackClients);
+      setHero(INITIAL_HERO);
+      setHeroReels(INITIAL_HERO_REELS);
+      setServices(fallbackServices);
+      setTestimonials(fallbackTestimonials);
+      setLeadership(INITIAL_LEADERSHIP);
+      setSettings(INITIAL_SITE_SETTINGS);
+      setAnnouncements(fallbackAnnouncements);
+      setContact(INITIAL_CONTACT_PAGE);
+      setIsLive(false);
+    };
+
     try {
       const publishedRef = ref(firebaseDb, 'published');
       const unsubscribe = onValue(
         publishedRef,
         (snapshot) => {
-          if (snapshot.exists()) {
-            const data = snapshot.val();
+          const snapshotValue = snapshot.exists() ? snapshot.val() : null;
+          const data = snapshotValue && typeof snapshotValue === 'object'
+            ? snapshotValue as Record<string, unknown>
+            : {};
+          const heroData = data.hero && typeof data.hero === 'object'
+            ? data.hero as Record<string, unknown>
+            : undefined;
 
-            // Projects
-            if (data.projects) {
-              const projList: CMSProject[] = Object.values(data.projects);
-              const visibleSorted = projList
-                .filter((p) => p.visible !== false)
-                .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
-              if (visibleSorted.length > 0) {
-                const cleanRemote = sanitizeProjectList(visibleSorted);
-                try {
-                  const cached = localStorage.getItem('brandshoots_projects_v2026');
-                  if (cached) {
-                    const parsed = JSON.parse(cached);
-                    if (Array.isArray(parsed) && parsed.length >= 12) {
-                      const cleanLocal = sanitizeProjectList(parsed);
-                      const localMax = Math.max(...cleanLocal.map((x: any) => x.updatedAt || 0));
-                      const remoteMax = Math.max(...cleanRemote.map((x: any) => x.updatedAt || 0));
-                      if (localMax > remoteMax) {
-                        setProjects(cleanLocal.filter((p: any) => p.visible !== false));
-                        return;
-                      }
-                    }
-                  }
-                  localStorage.setItem('brandshoots_projects_v2026', JSON.stringify(cleanRemote));
-                } catch {}
-                setProjects(cleanRemote);
-              }
-            }
+          // Every successful snapshot is authoritative, including absent or empty collections.
+          setProjects(sanitizeProjectList(normalizeVisibleList<CMSProject>(data.projects)));
+          setClients(sanitizeClientList(normalizeVisibleList<CMSClientLogo>(data.clients)));
+          setHero((heroData || {}) as unknown as CMSHero);
+          setHeroReels(normalizeVisibleList<CMSHeroReel>(data.heroReels ?? heroData?.reels));
+          setServices(sanitizeServicesList(normalizeVisibleList<CMSService>(data.services)));
+          setTestimonials(normalizeVisibleList<CMSTestimonial>(data.testimonials));
+          setAnnouncements(normalizeAnnouncements(data.announcements));
 
-            // Clients
-            if (data.clients) {
-              const clientList: CMSClientLogo[] = Object.values(data.clients);
-              const visibleSorted = clientList
-                .filter((c) => c.visible !== false)
-                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-              if (visibleSorted.length > 0) {
-                try {
-                  const cached = localStorage.getItem('brandshoots_clients');
-                  if (cached) {
-                    const parsed = JSON.parse(cached);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                      const localMax = Math.max(...parsed.map((x: any) => x.updatedAt || 0));
-                      const remoteMax = Math.max(...visibleSorted.map((x: any) => x.updatedAt || 0));
-                      if (localMax > remoteMax) {
-                        setClients(sanitizeClientList(parsed.filter((c: any) => c.visible !== false)));
-                        return;
-                      }
-                    }
-                  }
-                } catch {}
+          setLeadership(
+            data.leadership && typeof data.leadership === 'object'
+              ? data.leadership as CMSLeadership
+              : INITIAL_LEADERSHIP
+          );
+          setSettings(
+            data.siteSettings && typeof data.siteSettings === 'object'
+              ? data.siteSettings as CMSSiteSettings
+              : INITIAL_SITE_SETTINGS
+          );
+          const liveContact = data.contact && typeof data.contact === 'object'
+            ? data.contact as CMSContactPage
+            : INITIAL_CONTACT_PAGE;
+          setContact(liveContact);
+          try {
+            localStorage.setItem('brandshoots_contact', JSON.stringify(liveContact));
+          } catch {}
 
-                const enriched = visibleSorted.map((item) => {
-                  const init = INITIAL_CLIENTS[item.id];
-                  return {
-                    ...item,
-                    views: item.views !== undefined ? item.views : init?.views,
-                    likes: item.likes !== undefined ? item.likes : init?.likes,
-                  };
-                });
-                setClients(sanitizeClientList(enriched));
-              }
-            }
-
-            // Hero
-            if (data.hero) {
-              setHero((prev) => ({ ...prev, ...data.hero }));
-            }
-
-            // Hero 3D Reels (CMS 1.2)
-            if (data.heroReels || data.hero?.reels) {
-              const rList: CMSHeroReel[] = Array.isArray(data.heroReels || data.hero?.reels)
-                ? (data.heroReels || data.hero?.reels)
-                : Object.values(data.heroReels || data.hero?.reels || {});
-              const activeSorted = rList.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-              if (activeSorted.length > 0) {
-                setHeroReels(activeSorted);
-              }
-            }
-
-            // Services (3 Core Pillars)
-            if (data.services) {
-              const sList: CMSService[] = Object.values(data.services);
-              const visibleSorted = sList
-                .filter((s) => s.visible !== false)
-                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-              if (visibleSorted.length > 0) {
-                setServices(sanitizeServicesList(visibleSorted));
-              }
-            }
-
-            // Testimonials
-            if (data.testimonials) {
-              const tList: CMSTestimonial[] = Object.values(data.testimonials);
-              const visibleSorted = tList
-                .filter((t) => t.visible !== false)
-                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-              if (visibleSorted.length > 0) {
-                try {
-                  const cached = localStorage.getItem('brandshoots_testimonials');
-                  if (cached) {
-                    const parsed = JSON.parse(cached);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                      const localMax = Math.max(...parsed.map((x: any) => x.updatedAt || 0));
-                      const remoteMax = Math.max(...visibleSorted.map((x: any) => x.updatedAt || 0));
-                      if (localMax > remoteMax) {
-                        setTestimonials(parsed.filter((t: any) => t.visible !== false));
-                        return;
-                      }
-                    }
-                  }
-                } catch {}
-                setTestimonials(visibleSorted);
-              }
-            }
-
-            // Leadership
-            if (data.leadership) {
-              setLeadership((prev) => ({ ...prev, ...data.leadership }));
-            }
-
-            // Site Settings
-            if (data.siteSettings) {
-              setSettings((prev) => ({ ...prev, ...data.siteSettings }));
-            }
-
-            // Announcements & Updates
-            if (data.announcements !== undefined) {
-              const aList: CMSAnnouncement[] = Object.values(data.announcements || {});
-              const activeSorted = aList
-                .filter((a) => a && a.isActive !== false)
-                .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
-              setAnnouncements(activeSorted);
-            } else {
-              setAnnouncements(fallbackAnnouncements);
-            }
-
-            // Contact Page (CMS 1.8)
-            if (data.contact) {
-              const mergedContact = { ...INITIAL_CONTACT_PAGE, ...data.contact };
-              setContact(mergedContact);
-              try {
-                localStorage.setItem('brandshoots_contact', JSON.stringify(mergedContact));
-              } catch {}
-            }
-
-            setIsLive(true);
-          }
+          setIsLive(true);
         },
         (error) => {
-          console.warn('Firebase RTDB listener note (falling back to static content):', error.message);
-          setIsLive(false);
+          console.warn('Firebase RTDB listener failed; using static content:', error.message);
+          applyStaticFallback();
         }
       );
 
-      // Local custom event listener for immediate zero-latency tab updates
-      const handleLocalReelsUpdate = (e: Event) => {
-        const customEvent = e as CustomEvent<CMSHeroReel[]>;
-        if (customEvent.detail && Array.isArray(customEvent.detail)) {
-          setHeroReels(customEvent.detail);
-        }
+      // Local custom events provide an optimistic same-tab update until Firebase confirms it.
+      const handleLocalReelsUpdate = (event: Event) => {
+        const detail = (event as CustomEvent<CMSHeroReel[]>).detail;
+        if (Array.isArray(detail)) setHeroReels(normalizeVisibleList<CMSHeroReel>(detail));
       };
 
-      // Services local update listener
-      const handleLocalServicesUpdate = (e: Event) => {
-        const customEvent = e as CustomEvent<CMSService[]>;
-        if (customEvent.detail && Array.isArray(customEvent.detail)) {
-          setServices(customEvent.detail);
-        }
+      const handleLocalServicesUpdate = (event: Event) => {
+        const detail = (event as CustomEvent<CMSService[]>).detail;
+        if (Array.isArray(detail)) setServices(sanitizeServicesList(normalizeVisibleList<CMSService>(detail)));
       };
 
-      // Announcements local update listener
-      const handleLocalAnnouncementsUpdate = (e: Event) => {
-        const customEvent = e as CustomEvent<CMSAnnouncement[]>;
-        if (customEvent.detail && Array.isArray(customEvent.detail)) {
-          setAnnouncements(customEvent.detail);
-        }
+      const handleLocalAnnouncementsUpdate = (event: Event) => {
+        const detail = (event as CustomEvent<CMSAnnouncement[]>).detail;
+        if (Array.isArray(detail)) setAnnouncements(normalizeAnnouncements(detail));
       };
 
-      // Clients local update listener
-      const handleLocalClientsUpdate = (e: Event) => {
-        const customEvent = e as CustomEvent<CMSClientLogo[]>;
-        if (customEvent.detail && Array.isArray(customEvent.detail)) {
-          setClients(sanitizeClientList(customEvent.detail.filter((c) => c.visible !== false)));
-        }
+      const handleLocalClientsUpdate = (event: Event) => {
+        const detail = (event as CustomEvent<CMSClientLogo[]>).detail;
+        if (Array.isArray(detail)) setClients(sanitizeClientList(normalizeVisibleList<CMSClientLogo>(detail)));
       };
 
-      // Testimonials local update listener (CMS 1.5)
-      const handleLocalTestimonialsUpdate = (e: Event) => {
-        const customEvent = e as CustomEvent<CMSTestimonial[]>;
-        if (customEvent.detail && Array.isArray(customEvent.detail)) {
-          setTestimonials(customEvent.detail);
-        }
+      const handleLocalTestimonialsUpdate = (event: Event) => {
+        const detail = (event as CustomEvent<CMSTestimonial[]>).detail;
+        if (Array.isArray(detail)) setTestimonials(normalizeVisibleList<CMSTestimonial>(detail));
       };
 
-      // Hero local update listener
-      const handleLocalHeroUpdate = (e: Event) => {
-        const customEvent = e as CustomEvent<CMSHero>;
-        if (customEvent.detail && typeof customEvent.detail === 'object') {
-          setHero((prev) => ({ ...prev, ...customEvent.detail }));
-        }
+      const handleLocalHeroUpdate = (event: Event) => {
+        const detail = (event as CustomEvent<CMSHero>).detail;
+        if (detail && typeof detail === 'object') setHero(detail);
       };
 
-      // Projects local update listener (CMS 1.7)
-      const handleLocalProjectsUpdate = (e: Event) => {
-        const customEvent = e as CustomEvent<CMSProject[]>;
-        if (customEvent.detail && Array.isArray(customEvent.detail)) {
-          setProjects(customEvent.detail.filter((p) => p.visible !== false));
-        }
+      const handleLocalProjectsUpdate = (event: Event) => {
+        const detail = (event as CustomEvent<CMSProject[]>).detail;
+        if (Array.isArray(detail)) setProjects(sanitizeProjectList(normalizeVisibleList<CMSProject>(detail)));
       };
 
-      // Contact local update listener (CMS 1.8)
-      const handleLocalContactUpdate = (e: Event) => {
-        const customEvent = e as CustomEvent<CMSContactPage>;
-        if (customEvent.detail && typeof customEvent.detail === 'object') {
-          setContact(customEvent.detail);
-        }
+      const handleLocalContactUpdate = (event: Event) => {
+        const detail = (event as CustomEvent<CMSContactPage>).detail;
+        if (detail && typeof detail === 'object') setContact(detail);
       };
 
-      // Cross-tab storage listener so live site updates immediately when admin edits in another tab
-      const handleStorageUpdate = (e: StorageEvent) => {
-        if (e.key === 'brandshoots_hero' && e.newValue) {
+      const handleLocalSettingsUpdate = (event: Event) => {
+        const detail = (event as CustomEvent<CMSSiteSettings>).detail;
+        if (detail && typeof detail === 'object') setSettings(detail);
+      };
+
+      // Storage events mirror confirmed updates from another tab, including deliberate empty arrays.
+      const handleStorageUpdate = (event: StorageEvent) => {
+        if (event.key === 'brandshoots_site_settings') {
+          if (event.newValue === null) {
+            setSettings(INITIAL_SITE_SETTINGS);
+          } else {
+            try {
+              const parsed = JSON.parse(event.newValue);
+              if (parsed && typeof parsed === 'object') setSettings(parsed as CMSSiteSettings);
+            } catch {}
+          }
+        }
+        if (event.key === 'brandshoots_hero') {
+          if (event.newValue === null) {
+            setHero({} as CMSHero);
+          } else {
+            try {
+              const parsed = JSON.parse(event.newValue);
+              if (parsed && typeof parsed === 'object') setHero(parsed as CMSHero);
+            } catch {}
+          }
+        }
+        if (event.key === 'brandshoots_projects') {
+          if (event.newValue === null) {
+            setProjects([]);
+          } else {
+            try {
+              const parsed = JSON.parse(event.newValue);
+              if (Array.isArray(parsed)) setProjects(sanitizeProjectList(normalizeVisibleList<CMSProject>(parsed)));
+            } catch {}
+          }
+        }
+        if (event.key === 'brandshoots_contact' && event.newValue) {
           try {
-            const parsed = JSON.parse(e.newValue);
-            if (parsed && typeof parsed === 'object') {
-              setHero((prev) => ({ ...prev, ...parsed }));
-            }
+            const parsed = JSON.parse(event.newValue);
+            if (parsed && typeof parsed === 'object') setContact(parsed as CMSContactPage);
           } catch {}
         }
-        if (e.key === 'brandshoots_projects' && e.newValue) {
-          try {
-            const parsed = JSON.parse(e.newValue);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setProjects(parsed.filter((p: any) => p.visible !== false));
-            }
-          } catch {}
+        if (event.key === 'brandshoots_hero_reels') {
+          if (event.newValue === null) {
+            setHeroReels([]);
+          } else {
+            try {
+              const parsed = JSON.parse(event.newValue);
+              if (Array.isArray(parsed)) setHeroReels(normalizeVisibleList<CMSHeroReel>(parsed));
+            } catch {}
+          }
         }
-        if (e.key === 'brandshoots_contact' && e.newValue) {
-          try {
-            const parsed = JSON.parse(e.newValue);
-            if (parsed && typeof parsed === 'object') {
-              setContact({ ...INITIAL_CONTACT_PAGE, ...parsed });
-            }
-          } catch {}
+        if (event.key === 'brandshoots_services') {
+          if (event.newValue === null) {
+            setServices([]);
+          } else {
+            try {
+              const parsed = JSON.parse(event.newValue);
+              if (Array.isArray(parsed)) setServices(sanitizeServicesList(normalizeVisibleList<CMSService>(parsed)));
+            } catch {}
+          }
         }
-        if (e.key === 'brandshoots_hero_reels' && e.newValue) {
-          try {
-            const parsed = JSON.parse(e.newValue);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setHeroReels(parsed);
-            }
-          } catch {}
+        if (event.key === 'brandshoots_announcements') {
+          if (event.newValue === null) {
+            setAnnouncements([]);
+          } else {
+            try {
+              const parsed = JSON.parse(event.newValue);
+              if (Array.isArray(parsed)) setAnnouncements(normalizeAnnouncements(parsed));
+            } catch {}
+          }
         }
-        if (e.key === 'brandshoots_services' && e.newValue) {
-          try {
-            const parsed = JSON.parse(e.newValue);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setServices(parsed);
-            }
-          } catch {}
+        if (event.key === 'brandshoots_clients') {
+          if (event.newValue === null) {
+            setClients([]);
+          } else {
+            try {
+              const parsed = JSON.parse(event.newValue);
+              if (Array.isArray(parsed)) setClients(sanitizeClientList(normalizeVisibleList<CMSClientLogo>(parsed)));
+            } catch {}
+          }
         }
-        if (e.key === 'brandshoots_announcements' && e.newValue) {
-          try {
-            const parsed = JSON.parse(e.newValue);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setAnnouncements(parsed);
-            }
-          } catch {}
-        }
-        if (e.key === 'brandshoots_clients' && e.newValue) {
-          try {
-            const parsed = JSON.parse(e.newValue);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setClients(sanitizeClientList(parsed.filter((c: any) => c.visible !== false)));
-            }
-          } catch {}
-        }
-        if (e.key === 'brandshoots_testimonials' && e.newValue) {
-          try {
-            const parsed = JSON.parse(e.newValue);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setTestimonials(parsed);
-            }
-          } catch {}
+        if (event.key === 'brandshoots_testimonials') {
+          if (event.newValue === null) {
+            setTestimonials([]);
+          } else {
+            try {
+              const parsed = JSON.parse(event.newValue);
+              if (Array.isArray(parsed)) setTestimonials(normalizeVisibleList<CMSTestimonial>(parsed));
+            } catch {}
+          }
         }
       };
 
@@ -480,6 +375,7 @@ export function useCMSContent() {
       window.addEventListener('brandshoots_testimonials_updated', handleLocalTestimonialsUpdate);
       window.addEventListener('brandshoots_projects_updated', handleLocalProjectsUpdate);
       window.addEventListener('brandshoots_contact_updated', handleLocalContactUpdate);
+      window.addEventListener('brandshoots_site_settings_updated', handleLocalSettingsUpdate);
       window.addEventListener('storage', handleStorageUpdate);
 
       return () => {
@@ -492,10 +388,12 @@ export function useCMSContent() {
         window.removeEventListener('brandshoots_testimonials_updated', handleLocalTestimonialsUpdate);
         window.removeEventListener('brandshoots_projects_updated', handleLocalProjectsUpdate);
         window.removeEventListener('brandshoots_contact_updated', handleLocalContactUpdate);
+        window.removeEventListener('brandshoots_site_settings_updated', handleLocalSettingsUpdate);
         window.removeEventListener('storage', handleStorageUpdate);
       };
-    } catch (err) {
-      console.warn('Firebase offline, using static defaults:', err);
+    } catch (error) {
+      console.warn('Firebase RTDB listener setup failed; using static content:', error);
+      applyStaticFallback();
     }
   }, []);
 

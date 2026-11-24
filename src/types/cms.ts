@@ -141,6 +141,33 @@ export interface CMSAnnouncement {
   updatedAt: string;
 }
 
+export type CMSResultStatus = 'draft' | 'published' | 'archived';
+
+export interface CMSResult {
+  id: string;
+  clientId?: string;
+  clientName: string;
+  clientLogoUrl: string;
+  beforeFollowers: number | null;
+  afterFollowers: number | null;
+  beforeViews: number | null;
+  afterViews: number | null;
+  durationMonths: number | null;
+  beforeScreenshotUrl: string;
+  afterScreenshotUrl: string;
+  testimonial: string;
+  videoUrl?: string;
+  videoPosterUrl?: string;
+  featured: boolean;
+  order: number;
+  homepageOrder: number;
+  status: CMSResultStatus;
+  createdAt: number;
+  updatedAt: number;
+  publishedAt?: number;
+  archivedAt?: number;
+}
+
 export interface CMSContactPage {
   heroTitle: string;
   heroHighlight: string;

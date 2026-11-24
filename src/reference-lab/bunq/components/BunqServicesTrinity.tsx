@@ -79,11 +79,11 @@ export const BunqServicesTrinity: React.FC<BunqServicesTrinityProps> = ({ onStar
               <span className="w-8 h-[1px] bg-[#139EF2]/40" />
               <span>END-TO-END OWNERSHIP</span>
             </div>
-            <h2 className="text-4xl sm:text-6xl font-black uppercase tracking-tight text-white font-['Figtree'] leading-[0.95]">
+            <h2 className="text-4xl sm:text-6xl font-black uppercase tracking-tight text-white font-sans leading-[0.95]">
               Capabilities
             </h2>
           </div>
-          <p className="text-sm sm:text-base text-white/60 max-w-md font-['Figtree'] leading-relaxed">
+          <p className="text-sm sm:text-base text-white/60 max-w-md font-sans leading-relaxed">
             We reject fragmented agency models. BrandShoots owns every stage of production from original concept to daily distribution.
           </p>
         </div>
@@ -118,13 +118,13 @@ export const BunqServicesTrinity: React.FC<BunqServicesTrinityProps> = ({ onStar
                   </div>
 
                   <div>
-                    <h3 className="text-3xl font-extrabold text-white font-['Figtree'] tracking-tight mb-2">
+                    <h3 className="text-3xl font-extrabold text-white font-sans tracking-tight mb-2">
                       {pillar.title}
                     </h3>
-                    <div className="text-xs font-semibold text-[#139EF2] uppercase tracking-wider font-['Figtree'] mb-3">
+                    <div className="text-xs font-semibold text-[#139EF2] uppercase tracking-wider font-sans mb-3">
                       {pillar.subtitle}
                     </div>
-                    <p className="text-sm text-white/70 font-['Figtree'] leading-relaxed">
+                    <p className="text-sm text-white/70 font-sans leading-relaxed">
                       {pillar.motto}
                     </p>
                   </div>
@@ -132,7 +132,7 @@ export const BunqServicesTrinity: React.FC<BunqServicesTrinityProps> = ({ onStar
                   {/* Deliverables Checklist */}
                   <div className="space-y-2.5 pt-4 border-t border-white/10">
                     {pillar.deliverables.map((d, dIdx) => (
-                      <div key={dIdx} className="flex items-start gap-2.5 text-xs text-white/80 font-['Figtree']">
+                      <div key={dIdx} className="flex items-start gap-2.5 text-xs text-white/80 font-sans">
                         <Check size={14} className="text-[#139EF2] shrink-0 mt-0.5" />
                         <span>{d}</span>
                       </div>
@@ -169,10 +169,10 @@ export const BunqServicesTrinity: React.FC<BunqServicesTrinityProps> = ({ onStar
               <span>•</span>
               <span className="text-white font-bold">₹2,000 FLAT RATE</span>
             </div>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-white font-['Figtree']">
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-white font-sans">
               On-Location Technical Recce & Pre-Production Inspection
             </h3>
-            <p className="text-sm text-white/70 font-['Figtree'] leading-relaxed">
+            <p className="text-sm text-white/70 font-sans leading-relaxed">
               Before committing to a multi-month campaign, our senior cinematographers visit your factory, showroom, or retail space in person. We evaluate ambient lighting, camera tracking feasibility, audio acoustics, and map preliminary angles.
             </p>
           </div>

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { createLead } from '../../lib/cms/cmsService';
 import { useCMSContent } from '../../lib/cms/useCMSContent';
+import { INITIAL_CONTACT_PAGE, INITIAL_SITE_SETTINGS } from '../../lib/cms/seedData';
 
 const DEFAULT_PROJECT_TYPES = [
   'Commercial Production',
@@ -19,45 +20,82 @@ const DEFAULT_PROJECT_TYPES = [
   'Other',
 ];
 
+const safeHttpsUrl = (value: string | undefined, fallback: string): string => {
+  try {
+    const url = new URL((value || '').trim());
+    if (url.protocol === 'https:' && url.hostname && !url.username && !url.password) {
+      return url.toString();
+    }
+  } catch {}
+  return fallback;
+};
+
+const sanitizeWhatsAppNumber = (...values: Array<string | undefined>): string => {
+  for (const value of values) {
+    const digits = (value || '').replace(/\D/g, '');
+    if (/^\d{7,15}$/.test(digits)) return digits;
+  }
+  return INITIAL_SITE_SETTINGS.whatsappPhone;
+};
+
 export const ContactFormSection: React.FC = () => {
-  const { contact } = useCMSContent();
+  const { settings, contact } = useCMSContent();
 
-  const whatsappPhone = '917075960672';
-  const displayPhone = contact?.displayPhone || '+91 70759 60672';
-  const studioEmail = contact?.email || 'contact@brandshoots.com';
-  const studioCityState = contact?.cityState || 'Rajamahendravaram, Andhra Pradesh, India';
-  const studioFullAddress =
-    contact?.fullAddress ||
-    '26-2-7/2, Jayakrishnapuram, near Kambala Cheruvu, Rajamahendravaram, Andhra Pradesh, India';
-  const googleMapsEmbedUrl =
-    contact?.googleMapsEmbedUrl ||
-    'https://maps.google.com/maps?q=26-2-7%2F2%2C%20Jayakrishnapuram%2C%20near%20kambala%20cheruvu%2C%20Rajamahendravaram%20533105%2C%20Andhra%20Pradesh%2C%20India&t=&z=16&ie=UTF8&iwloc=&output=embed';
-  const googleMapsSearchUrl =
-    contact?.googleMapsSearchUrl ||
-    'https://www.google.com/maps/search/?api=1&query=26-2-7%2F2%2C+Jayakrishnapuram%2C+near+kambala+cheruvu%2C+Rajamahendravaram+533105%2C+Andhra+Pradesh%2C+India';
+  const whatsappPhone = sanitizeWhatsAppNumber(
+    settings?.whatsappPhone,
+    contact?.whatsappPhone,
+    INITIAL_SITE_SETTINGS.whatsappPhone
+  );
+  const displayPhone =
+    settings?.contactPhone || contact?.displayPhone || INITIAL_SITE_SETTINGS.contactPhone;
+  const studioEmail =
+    settings?.contactEmail || contact?.email || INITIAL_SITE_SETTINGS.contactEmail;
+  const studioCityState = contact?.cityState || INITIAL_CONTACT_PAGE.cityState;
+  const studioFullAddress = (contact?.fullAddress || INITIAL_CONTACT_PAGE.fullAddress).replace(
+    /\bCollage\b/gi,
+    'College'
+  );
+  const googleMapsEmbedUrl = safeHttpsUrl(
+    (contact?.googleMapsEmbedUrl || INITIAL_CONTACT_PAGE.googleMapsEmbedUrl).replace(
+      /Collage/gi,
+      'College'
+    ),
+    INITIAL_CONTACT_PAGE.googleMapsEmbedUrl
+  );
+  const googleMapsSearchUrl = safeHttpsUrl(
+    (contact?.googleMapsSearchUrl || INITIAL_CONTACT_PAGE.googleMapsSearchUrl).replace(
+      /Collage/gi,
+      'College'
+    ),
+    INITIAL_CONTACT_PAGE.googleMapsSearchUrl
+  );
 
-  const heroTitle = contact?.heroTitle || "LET'S MAKE SOMETHING";
-  const heroHighlight = contact?.heroHighlight || 'WORTH WATCHING.';
-  const heroSubtitle =
-    contact?.heroSubtitle ||
-    "Tell us what you're building, what you need, and where you want to take it.";
-  const heroCtaText = contact?.heroCtaText || 'START A CONVERSATION';
+  const heroTitle = contact?.heroTitle || INITIAL_CONTACT_PAGE.heroTitle;
+  const heroHighlight = contact?.heroHighlight || INITIAL_CONTACT_PAGE.heroHighlight;
+  const heroSubtitle = contact?.heroSubtitle || INITIAL_CONTACT_PAGE.heroSubtitle;
+  const heroCtaText = contact?.heroCtaText || INITIAL_CONTACT_PAGE.heroCtaText;
 
-  const siteVisitTag = contact?.siteVisitTag || 'ON-LOCATION RECCE';
-  const siteVisitTitle = contact?.siteVisitTitle || 'SITE VISIT.';
+  const siteVisitTag = contact?.siteVisitTag || INITIAL_CONTACT_PAGE.siteVisitTag;
+  const siteVisitTitle = contact?.siteVisitTitle || INITIAL_CONTACT_PAGE.siteVisitTitle;
   const siteVisitDescription =
-    contact?.siteVisitDescription ||
-    'Need our team to inspect your factory, showroom, outdoor estate, or shoot location in person? We conduct comprehensive spatial recces, camera framing tests, and lighting assessments before production begins.';
-  const siteVisitPrice = contact?.siteVisitPrice || '₹2,000';
-  const siteVisitPriceUnit = contact?.siteVisitPriceUnit || '/ visit';
-  const siteVisitCtaText = contact?.siteVisitCtaText || 'BOOK A SITE VISIT';
+    contact?.siteVisitDescription || INITIAL_CONTACT_PAGE.siteVisitDescription;
+  const siteVisitPrice = contact?.siteVisitPrice || INITIAL_CONTACT_PAGE.siteVisitPrice;
+  const siteVisitPriceUnit =
+    contact?.siteVisitPriceUnit || INITIAL_CONTACT_PAGE.siteVisitPriceUnit;
+  const siteVisitCtaText = contact?.siteVisitCtaText || INITIAL_CONTACT_PAGE.siteVisitCtaText;
 
-  const instagramHandle = contact?.instagramHandle || '@wearebrandshoots';
-  const instagramUrl = contact?.instagramUrl || 'https://instagram.com/wearebrandshoots';
-  const youtubeHandle = contact?.youtubeHandle || '@wearebrandshoots';
-  const youtubeUrl = contact?.youtubeUrl || 'https://youtube.com/@wearebrandshoots';
-  const facebookHandle = contact?.facebookHandle || '@wearebrandshoots';
-  const facebookUrl = contact?.facebookUrl || 'https://facebook.com/wearebrandshoots';
+  const instagramHandle = contact?.instagramHandle || INITIAL_CONTACT_PAGE.instagramHandle;
+  const instagramUrl = safeHttpsUrl(
+    settings?.instagramUrl,
+    safeHttpsUrl(contact?.instagramUrl, INITIAL_SITE_SETTINGS.instagramUrl)
+  );
+  const youtubeHandle = contact?.youtubeHandle || INITIAL_CONTACT_PAGE.youtubeHandle;
+  const youtubeUrl = safeHttpsUrl(
+    settings?.youtubeUrl,
+    safeHttpsUrl(contact?.youtubeUrl, INITIAL_SITE_SETTINGS.youtubeUrl)
+  );
+  const facebookHandle = contact?.facebookHandle || INITIAL_CONTACT_PAGE.facebookHandle;
+  const facebookUrl = safeHttpsUrl(contact?.facebookUrl, INITIAL_CONTACT_PAGE.facebookUrl);
 
   const projectTypes =
     contact?.projectTypes && contact.projectTypes.length > 0
@@ -87,10 +125,14 @@ export const ContactFormSection: React.FC = () => {
   const [siteVisitSubmitted, setSiteVisitSubmitted] = useState(false);
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSiteVisitSubmitting, setIsSiteVisitSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [siteVisitError, setSiteVisitError] = useState<string | null>(null);
 
   useEffect(() => {
     if (window.location.hash === '#site-visit') {
       setSiteVisitSubmitted(false);
+      setSiteVisitError(null);
       setIsBookingModalOpen(true);
     }
   }, []);
@@ -106,65 +148,85 @@ export const ContactFormSection: React.FC = () => {
   // Primary form submission -> Firebase RTDB leads
   const handlePrimarySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     setIsSubmitting(true);
+    setFormError(null);
 
     try {
       await createLead({
-        name: formData.name,
-        phone: formData.phone,
-        email: formData.email,
-        brandName: formData.company,
-        serviceType: formData.projectType,
-        message: formData.message,
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+        email: formData.email.trim(),
+        brandName: formData.company.trim(),
+        serviceType: formData.projectType.trim(),
+        message: formData.message.trim(),
         type: 'general_inquiry',
         status: 'new',
       });
+      setFormSubmitted(true);
     } catch (err) {
-      console.error('Lead submission note:', err);
+      console.error('Lead submission failed:', err);
+      setFormError(
+        'We could not save your inquiry. Your entries are still here; check your connection and try again.'
+      );
     } finally {
       setIsSubmitting(false);
-      setFormSubmitted(true);
     }
   };
 
-  // Site visit submission -> Firebase RTDB lead + WhatsApp redirect
+  // Site visit submission -> Firebase RTDB lead, then an explicit WhatsApp handoff
   const handleSiteVisitSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSiteVisitSubmitting) return;
+
+    const normalizedVisit = {
+      name: siteVisitData.name.trim(),
+      phone: siteVisitData.phone.trim(),
+      location: siteVisitData.location.trim(),
+      date: siteVisitData.date.trim(),
+    };
+
+    setIsSiteVisitSubmitting(true);
+    setSiteVisitError(null);
 
     try {
       await createLead({
-        name: siteVisitData.name || 'Site Visit Client',
-        phone: siteVisitData.phone || '',
+        name: normalizedVisit.name || 'Site Visit Client',
+        phone: normalizedVisit.phone,
         message: `Booked On-Location Site Visit (${siteVisitPrice} ${siteVisitPriceUnit}). Site/Factory: ${
-          siteVisitData.location || 'Location'
-        }, Preferred Date: ${siteVisitData.date || 'Flexible'}`,
+          normalizedVisit.location || 'Location'
+        }, Preferred Date: ${normalizedVisit.date || 'Flexible'}`,
         type: 'site_visit',
         status: 'new',
       });
+      setSiteVisitData(normalizedVisit);
+      setSiteVisitSubmitted(true);
     } catch (err) {
-      console.error('Site visit lead note:', err);
+      console.error('Site visit lead submission failed:', err);
+      setSiteVisitError(
+        'We could not save your site-visit request. Your entries are still here; check your connection and try again.'
+      );
+    } finally {
+      setIsSiteVisitSubmitting(false);
     }
-
-    const messageLines = [
-      'Hi BRANDSHOOTS,',
-      '',
-      `I would like to book an On-Location Site Visit (${siteVisitPrice} ${siteVisitPriceUnit}) for our project.`,
-      '',
-      `Name: ${siteVisitData.name || 'Client'}`,
-      `Phone: ${siteVisitData.phone || 'Provided via form'}`,
-      `Shoot Location / Site: ${siteVisitData.location || 'Location'}`,
-      `Preferred Date: ${siteVisitData.date || 'Flexible'}`,
-      '',
-      'Please let us know your availability. Thank you!',
-    ];
-
-    const waUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
-      messageLines.join('\n')
-    )}`;
-    window.open(waUrl, '_blank', 'noopener,noreferrer');
-
-    setSiteVisitSubmitted(true);
   };
+
+  const siteVisitMessageLines = [
+    'Hi BrandShoots,',
+    '',
+    `I would like to book an On-Location Site Visit (${siteVisitPrice} ${siteVisitPriceUnit}) for our project.`,
+    '',
+    `Name: ${siteVisitData.name || 'Client'}`,
+    `Phone: ${siteVisitData.phone || 'Provided via form'}`,
+    `Shoot Location / Site: ${siteVisitData.location || 'Location'}`,
+    `Preferred Date: ${siteVisitData.date || 'Flexible'}`,
+    '',
+    'Please let us know your availability. Thank you!',
+  ];
+  const siteVisitWhatsAppUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
+    siteVisitMessageLines.join('\n')
+  )}`;
 
   // Copy address to clipboard
   const handleCopyAddress = () => {
@@ -247,6 +309,7 @@ export const ContactFormSection: React.FC = () => {
                 type="button"
                 onClick={() => {
                   setSiteVisitSubmitted(false);
+                  setSiteVisitError(null);
                   setIsBookingModalOpen(true);
                 }}
                 className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-[#008CFF] hover:bg-[#1a97ff] text-white font-sans text-xs sm:text-sm font-bold tracking-[0.16em] uppercase transition-all duration-200 active:scale-95 cursor-pointer shadow-lg shadow-[#008CFF]/25"
@@ -354,8 +417,19 @@ export const ContactFormSection: React.FC = () => {
               ) : (
                 <form
                   onSubmit={handlePrimarySubmit}
+                  aria-busy={isSubmitting}
                   className="p-6 sm:p-9 rounded-2xl bg-[#070B13] border border-white/10 space-y-5 shadow-2xl"
                 >
+                  {formError && (
+                    <div
+                      role="alert"
+                      aria-live="assertive"
+                      className="rounded-xl border border-rose-500/40 bg-rose-500/15 px-4 py-3 text-sm leading-relaxed text-rose-100"
+                    >
+                      {formError}
+                    </div>
+                  )}
+
                   {/* Name */}
                   <div>
                     <label className="block text-xs uppercase tracking-wider font-semibold text-white/70 mb-1.5">
@@ -471,7 +545,7 @@ export const ContactFormSection: React.FC = () => {
 
                     <a
                       href={`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
-                        'Hi BRANDSHOOTS, I would like to discuss a project.'
+                        'Hi BrandShoots, I would like to discuss a project.'
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -496,17 +570,17 @@ export const ContactFormSection: React.FC = () => {
         <div className="max-w-6xl mx-auto">
           {/* Header & Controls */}
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-7 sm:mb-8">
-            <div>
+            <div className="min-w-0 flex-1">
               <h2 className="font-sans font-black uppercase text-2xl sm:text-3xl text-white tracking-tight">
                 STUDIO LOCATION
               </h2>
 
-              <p className="mt-2 text-white/70 text-sm sm:text-base max-w-xl leading-relaxed whitespace-pre-line">
+              <p className="mt-2 max-w-2xl whitespace-pre-line break-words text-sm leading-relaxed text-white/70 [overflow-wrap:anywhere] sm:text-base">
                 {studioFullAddress}
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex shrink-0 flex-wrap items-center gap-3">
               <a
                 href={googleMapsSearchUrl}
                 target="_blank"
@@ -762,21 +836,45 @@ export const ContactFormSection: React.FC = () => {
                   <Check className="w-6 h-6" />
                 </div>
                 <h4 className="font-sans font-bold text-lg text-white">
-                  Inquiry Sent via WhatsApp
+                  Site-visit request saved
                 </h4>
-                <p className="text-sm text-white/60 mt-2 max-w-xs mx-auto">
-                  We've initiated the conversation on WhatsApp ({displayPhone}) to confirm schedule availability for your site visit.
+                <p className="text-sm text-white/60 mt-2 max-w-sm mx-auto">
+                  Your request is safely in our lead inbox. Continue on WhatsApp ({displayPhone}) to confirm schedule availability.
                 </p>
-                <button
-                  type="button"
-                  onClick={() => setIsBookingModalOpen(false)}
-                  className="mt-6 px-6 py-2.5 rounded-full bg-[#008CFF] text-white font-sans text-xs font-bold uppercase tracking-wider"
-                >
-                  Close
-                </button>
+                <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                  <a
+                    href={siteVisitWhatsAppUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-2.5 font-sans text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-[#2be071]"
+                  >
+                    Continue on WhatsApp
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setIsBookingModalOpen(false)}
+                    className="px-6 py-2.5 rounded-full bg-[#008CFF] text-white font-sans text-xs font-bold uppercase tracking-wider"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             ) : (
-              <form onSubmit={handleSiteVisitSubmit} className="mt-6 space-y-4">
+              <form
+                onSubmit={handleSiteVisitSubmit}
+                aria-busy={isSiteVisitSubmitting}
+                className="mt-6 space-y-4"
+              >
+                {siteVisitError && (
+                  <div
+                    role="alert"
+                    aria-live="assertive"
+                    className="rounded-xl border border-rose-500/40 bg-rose-500/15 px-4 py-3 text-sm leading-relaxed text-rose-100"
+                  >
+                    {siteVisitError}
+                  </div>
+                )}
                 <div>
                   <label className="block text-xs uppercase tracking-wider font-bold text-white/80 mb-1.5">
                     Your Name <span className="text-[#008CFF]">*</span>
@@ -844,9 +942,10 @@ export const ContactFormSection: React.FC = () => {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="w-full py-3.5 rounded-full bg-[#008CFF] hover:bg-[#1a97ff] text-white font-sans text-xs sm:text-sm font-bold tracking-[0.16em] uppercase flex items-center justify-center gap-2 transition-all duration-200 active:scale-98 cursor-pointer shadow-lg shadow-[#008CFF]/25"
+                    disabled={isSiteVisitSubmitting}
+                    className="w-full py-3.5 rounded-full bg-[#008CFF] hover:bg-[#1a97ff] text-white font-sans text-xs sm:text-sm font-bold tracking-[0.16em] uppercase flex items-center justify-center gap-2 transition-all duration-200 active:scale-98 cursor-pointer shadow-lg shadow-[#008CFF]/25 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <span>CONFIRM & BOOK ON WHATSAPP</span>
+                    <span>{isSiteVisitSubmitting ? 'SAVING REQUEST...' : 'SAVE SITE-VISIT REQUEST'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>

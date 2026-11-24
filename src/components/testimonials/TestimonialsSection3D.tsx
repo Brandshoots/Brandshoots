@@ -38,8 +38,9 @@ export const TestimonialsSection3D: React.FC = () => {
   const [isPaused, setIsPaused] = useState(false);
 
   const activeTestimonials = useMemo<TestimonialItem[]>(() => {
-    if (cmsTestimonials && cmsTestimonials.length >= 3) {
-      return cmsTestimonials.filter((testimonial) => testimonial.visible !== false).map((testimonial, index) => {
+    return cmsTestimonials
+      .filter((testimonial) => testimonial.visible !== false)
+      .map((testimonial, index) => {
         const fallback = DEFAULT_TESTIMONIALS.find((item) =>
           item.client.toLowerCase().includes(testimonial.client.toLowerCase()) ||
           testimonial.client.toLowerCase().includes(item.client.toLowerCase())
@@ -55,8 +56,6 @@ export const TestimonialsSection3D: React.FC = () => {
           buttonUrl: '/portfolio',
         };
       });
-    }
-    return DEFAULT_TESTIMONIALS;
   }, [cmsTestimonials]);
 
   const updateCardsToShow = useCallback(() => {
@@ -80,10 +79,12 @@ export const TestimonialsSection3D: React.FC = () => {
   }, [activeTestimonials, cardsToShow, currentIndex]);
 
   const goToNext = useCallback(() => {
+    if (activeTestimonials.length < 2) return;
     setCurrentIndex((index) => (index + 1) % activeTestimonials.length);
   }, [activeTestimonials.length]);
 
   const goToPrevious = useCallback(() => {
+    if (activeTestimonials.length < 2) return;
     setCurrentIndex((index) => (index - 1 + activeTestimonials.length) % activeTestimonials.length);
   }, [activeTestimonials.length]);
 
@@ -136,6 +137,8 @@ export const TestimonialsSection3D: React.FC = () => {
     setIsPaused(false);
   };
 
+  if (activeTestimonials.length === 0) return null;
+
   return (
     <section
       id="testimonials"
@@ -146,8 +149,8 @@ export const TestimonialsSection3D: React.FC = () => {
     >
       <div className="mx-auto w-full max-w-[1380px] px-5 sm:px-8 lg:px-12">
         <div ref={headerRef} className="mb-12 flex items-end justify-between gap-6 border-b border-white/20 pb-8">
-          <h2 className="text-4xl font-semibold uppercase tracking-[-0.055em] sm:text-6xl">TESTIMONIALS<span className="text-[#1497F5]">.</span></h2>
-          <span className="hidden text-[11px] tracking-[0.16em] text-white/45 uppercase sm:block">WHAT LEADERS SAY</span>
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-sans font-black uppercase tracking-[-0.025em]">TESTIMONIALS<span className="text-[#008CFF]">.</span></h2>
+          <span className="hidden font-mono text-xs uppercase tracking-[0.24em] font-semibold text-white/50 sm:block">WHAT LEADERS SAY</span>
         </div>
 
         <div className="relative overflow-hidden" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
@@ -155,17 +158,17 @@ export const TestimonialsSection3D: React.FC = () => {
             {visibleTestimonials.map((testimonial, index) => (
               <article
                 key={`${testimonial.id}-${currentIndex}-${index}`}
-                className={`flex min-h-[310px] flex-col justify-between border border-white/15 bg-[#0d1015] p-6 transition-colors duration-300 sm:p-7 ${index === 0 ? 'border-t-2 border-t-[#1497F5]' : ''}`}
+                className={`flex min-h-[310px] flex-col justify-between border border-white/15 bg-[#0d1015] p-6 transition-colors duration-300 sm:p-7 ${index === 0 ? 'border-t-2 border-t-[#008CFF]' : ''}`}
               >
                 <div>
-                  <p className="text-lg leading-8 tracking-[-0.015em] text-white/85 sm:text-xl">“{testimonial.quote}”</p>
+                  <p className="font-sans font-light text-base sm:text-lg leading-relaxed text-white/85">“{testimonial.quote}”</p>
                 </div>
                 <div className="mt-10 flex items-center gap-4 border-t border-white/10 pt-5">
                   <img src={testimonial.imageUrl} alt={testimonial.author} width={48} height={48} loading="lazy" decoding="async" className="h-12 w-12 shrink-0 rounded-full object-cover grayscale-[0.15]" />
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-white">{testimonial.author}</p>
-                    <p className="mt-1 truncate text-[11px] tracking-[0.1em] text-white/45 uppercase">{testimonial.role}</p>
-                    <p className="mt-1 truncate text-[11px] text-[#1497F5]">{testimonial.client}</p>
+                    <p className="truncate font-sans text-sm font-bold text-white">{testimonial.author}</p>
+                    <p className="mt-0.5 truncate font-mono text-[10px] tracking-[0.16em] text-white/50 uppercase">{testimonial.role}</p>
+                    <p className="mt-0.5 truncate font-mono text-xs tracking-wider text-[#008CFF] font-semibold">{testimonial.client}</p>
                   </div>
                 </div>
               </article>
@@ -179,10 +182,12 @@ export const TestimonialsSection3D: React.FC = () => {
               <button key={testimonial.id} type="button" aria-label={`Show testimonial ${index + 1}`} onClick={() => setCurrentIndex(index)} className={`h-px transition-all duration-300 ${index === currentIndex ? 'w-10 bg-[#1497F5]' : 'w-5 bg-white/25 hover:bg-white/65'}`} />
             ))}
           </div>
-          <div className="flex items-center gap-2">
-            <button type="button" onClick={goToPrevious} aria-label="Previous testimonial" className="border border-white/30 p-2 text-white transition-colors hover:border-white hover:bg-white hover:text-black"><ChevronLeft className="h-4 w-4" /></button>
-            <button type="button" onClick={goToNext} aria-label="Next testimonial" className="border border-white/30 p-2 text-white transition-colors hover:border-white hover:bg-white hover:text-black"><ChevronRight className="h-4 w-4" /></button>
-          </div>
+          {activeTestimonials.length > 1 && (
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={goToPrevious} aria-label="Previous testimonial" className="border border-white/30 p-2 text-white transition-colors hover:border-white hover:bg-white hover:text-black"><ChevronLeft className="h-4 w-4" /></button>
+              <button type="button" onClick={goToNext} aria-label="Next testimonial" className="border border-white/30 p-2 text-white transition-colors hover:border-white hover:bg-white hover:text-black"><ChevronRight className="h-4 w-4" /></button>
+            </div>
+          )}
         </div>
       </div>
     </section>

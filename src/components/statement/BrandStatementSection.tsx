@@ -30,10 +30,10 @@ export const BrandStatementSection: React.FC = () => {
   return (
     <section ref={containerRef} className="w-full border-b border-white/10 bg-[#08090C] py-24 text-white sm:py-32 lg:py-40">
       <div className="mx-auto w-full max-w-[1380px] px-5 sm:px-8 lg:px-12">
-        <h2 className="max-w-6xl text-left text-[clamp(2.9rem,8vw,8.5rem)] font-semibold uppercase leading-[0.86] tracking-[-0.065em]">
+        <h2 className="max-w-6xl text-left text-[clamp(2.9rem,8vw,8.5rem)] font-sans font-black uppercase leading-[0.88] tracking-[-0.025em]">
           <span ref={(element) => (lineRefs.current[0] = element)} className="block text-white/90">WE CRAFT</span>
           <span ref={(element) => (lineRefs.current[1] = element)} className="mt-2 block text-white">FILMS THAT</span>
-          <span ref={(element) => (lineRefs.current[2] = element)} className="mt-2 block text-[#1497F5]">DEFINE BRANDS<span className="text-white">.</span></span>
+          <span ref={(element) => (lineRefs.current[2] = element)} className="mt-2 block text-[#008CFF]">DEFINE BRANDS<span className="text-white">.</span></span>
         </h2>
       </div>
     </section>

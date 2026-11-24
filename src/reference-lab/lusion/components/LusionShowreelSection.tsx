@@ -46,8 +46,8 @@ export const LusionShowreelSection: React.FC<LusionShowreelSectionProps> = ({
           <div className="absolute top-0 left-0 w-full z-20 px-8 py-4 flex items-center justify-between bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
             <div className="flex items-center gap-3">
               <Disc className="w-4 h-4 text-[#139EF2] animate-spin" />
-              <span className="font-mono text-[11px] tracking-widest text-white uppercase">
-                BRANDSHOOTS DIRECTORS CUT // 2026
+              <span className="font-mono text-[11px] tracking-widest text-white">
+                <span>BrandShoots</span><span className="uppercase"> DIRECTORS CUT // 2026</span>
               </span>
             </div>
             <span className="font-mono text-[10px] text-white/50 tracking-wider hidden sm:inline">

@@ -349,7 +349,7 @@ export const HeroCinematicBackground: React.FC<HeroCinematicBackgroundProps> = (
           }}
         />
 
-        {/* Secondary Radiant Cosmic Cyan Starburst Aura (Behind Center of BRANDSHOOTS Logo and Navbar) */}
+        {/* Secondary Radiant Cosmic Cyan Starburst Aura (Behind Center of BrandShoots Logo and Navbar) */}
         <div
           className="absolute top-[18vh] sm:top-[20vh] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[1300px] h-[42vh] max-h-[400px] pointer-events-none"
           style={{

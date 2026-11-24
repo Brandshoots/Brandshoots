@@ -1,32 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-import { StrokeRevealPreloader } from '../components/about/StrokeRevealPreloader';
 import { ContactNavbar } from '../components/contact/ContactNavbar';
 import { ContactFormSection } from '../components/contact/ContactFormSection';
 import { BrandShootsFooter } from '../components/footer/BrandShootsFooter';
 
 gsap.registerPlugin(ScrollTrigger);
 
-export const ContactPage: React.FC = () => {
-  const [preloaderActive, setPreloaderActive] = useState(() => {
-    if (typeof window !== 'undefined' && window.location.search.includes('nopreload')) {
-      return false;
-    }
-    return true;
-  });
+interface ContactPageProps {
+  transitionActive?: boolean;
+}
 
-  // Reset scroll on mount. SiteSeo owns metadata.
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+export const ContactPage: React.FC<ContactPageProps> = ({ transitionActive = false }) => {
 
   // Butter-Smooth Lenis Inertial Scrolling synced with GSAP ScrollTrigger
   useEffect(() => {
-    if (preloaderActive) return;
+    if (transitionActive) return;
 
     const lenis = new Lenis({
       duration: 1.2,
@@ -45,7 +37,7 @@ export const ContactPage: React.FC = () => {
     };
 
     gsap.ticker.add(ticker);
-    gsap.ticker.lagSmoothing(0);
+    gsap.ticker.lagSmoothing(500, 33);
 
     const timer = setTimeout(() => {
       ScrollTrigger.refresh();
@@ -56,15 +48,15 @@ export const ContactPage: React.FC = () => {
       gsap.ticker.remove(ticker);
       lenis.destroy();
     };
-  }, [preloaderActive]);
+  }, [transitionActive]);
 
   useEffect(() => {
-    if (preloaderActive || window.location.hash !== '#site-visit') return;
+    if (transitionActive || window.location.hash !== '#site-visit') return;
     const timer = window.setTimeout(() => {
       document.getElementById('site-visit')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 250);
     return () => window.clearTimeout(timer);
-  }, [preloaderActive]);
+  }, [transitionActive]);
 
   const handleScrollToForm = () => {
     const el = document.getElementById('contact-form');
@@ -75,18 +67,13 @@ export const ContactPage: React.FC = () => {
 
   return (
     <main className="relative w-full min-h-screen bg-[#04060A] text-white overflow-x-hidden selection:bg-[#008CFF] selection:text-white">
-      {/* 1. FAST SVG STROKE-DRAWING PRELOADER OVERLAY */}
-      {preloaderActive && (
-        <StrokeRevealPreloader onComplete={() => setPreloaderActive(false)} />
-      )}
-
-      {/* 2. CONTACT NAVBAR (EXACT HOMEPAGE STYLE WITH CONTACT ACTIVE) */}
+      {/* CONTACT NAVBAR */}
       <ContactNavbar onScrollToForm={handleScrollToForm} />
 
       {/* 3. CINEMATIC CONTACT FORM & SITE VISIT SECTION */}
       <ContactFormSection />
 
-      {/* 4. OFFICIAL BRANDSHOOTS FOOTER */}
+      {/* 4. OFFICIAL BrandShoots FOOTER */}
       <BrandShootsFooter onOpenContact={handleScrollToForm} />
     </main>
   );

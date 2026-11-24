@@ -16,7 +16,7 @@ export const BunqReferenceLab: React.FC = () => {
   const [inquiryService, setInquiryService] = useState<string>('Commercial Video Production');
 
   useEffect(() => {
-    document.title = 'BRANDSHOOTS // Bunq Labs Architecture Lab';
+    document.title = 'BrandShoots // Bunq Labs Architecture Lab';
     window.scrollTo(0, 0);
   }, []);
 
@@ -31,7 +31,7 @@ export const BunqReferenceLab: React.FC = () => {
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-[#04060A] text-white selection:bg-[#139EF2] selection:text-white font-['Figtree'] overflow-x-hidden">
+    <div className="relative w-full min-h-screen bg-[#04060A] text-white selection:bg-[#139EF2] selection:text-white font-sans overflow-x-hidden">
       {/* Floating Pill Navbar with 2-Column Menu & Audio Synthesizer */}
       <BunqNavbar onOpenInquiry={handleOpenInquiry} />
 

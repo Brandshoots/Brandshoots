@@ -5,41 +5,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="theme-color" content="#08090C" />
-    <link rel="preload" href="/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap" />
     <title>Page Not Found | BrandShoots</title>
     <style>
-      @font-face { font-family: Figtree; font-style: normal; font-weight: 300 900; font-display: swap; src: url('/fonts/figtree-latin.woff2') format('woff2'); }
-      :root { color-scheme: dark; font-family: Figtree, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-      * { box-sizing: border-box; }
-      body { margin: 0; min-height: 100vh; background: #08090c; color: #fff; }
-      header { height: 76px; border-bottom: 1px solid rgba(255,255,255,.12); }
-      .nav, .content { width: min(100% - 40px, 1380px); margin: 0 auto; }
-      .nav { height: 100%; display: flex; align-items: center; justify-content: space-between; }
-      .logo { width: 190px; height: auto; display: block; }
-      nav { display: flex; align-items: center; gap: 28px; }
-      nav a { color: rgba(255,255,255,.7); text-decoration: none; font-size: 12px; letter-spacing: .12em; }
-      main { min-height: calc(100vh - 76px); display: flex; align-items: center; padding: 72px 0; }
+      :root { color-scheme: dark; font-family: "Source Sans 3", sans-serif; }
+      *, *::before, *::after { box-sizing: border-box; font-family: "Source Sans 3", sans-serif; }
+      html, body { margin: 0; min-height: 100%; background: #08090c; color: #fff; }
+      body.menu-open { overflow: hidden; }
+      a { color: inherit; }
+      .site-header { position: fixed; inset: 0 0 auto; z-index: 120; height: 76px; border-bottom: 1px solid rgba(255,255,255,.1); background: rgba(8,9,12,.95); backdrop-filter: blur(12px); }
+      .nav-shell, .content { width: min(calc(100% - 40px), 1380px); margin: 0 auto; }
+      .nav-shell { height: 100%; display: flex; align-items: center; justify-content: space-between; }
+      .logo { display: block; width: 190px; height: auto; }
+      .desktop-nav { display: flex; align-items: center; gap: 32px; }
+      .desktop-nav a { text-decoration: none; color: rgba(255,255,255,.72); font-size: 12px; font-weight: 600; letter-spacing: .18em; transition: color .2s; }
+      .desktop-nav a:hover, .desktop-nav a:focus-visible { color: #008cff; }
+      .menu-toggle { display: none; width: 44px; height: 44px; padding: 0; border: 1px solid rgba(255,255,255,.25); background: transparent; color: #fff; align-items: center; justify-content: center; cursor: pointer; }
+      .menu-icon { position: relative; width: 20px; height: 14px; }
+      .menu-icon span { position: absolute; left: 0; width: 20px; height: 1px; background: currentColor; transition: transform .25s, opacity .2s, top .25s; }
+      .menu-icon span:nth-child(1) { top: 0; }
+      .menu-icon span:nth-child(2) { top: 6px; }
+      .menu-icon span:nth-child(3) { top: 12px; }
+      .menu-toggle[aria-expanded="true"] .menu-icon span:nth-child(1) { top: 6px; transform: rotate(45deg); }
+      .menu-toggle[aria-expanded="true"] .menu-icon span:nth-child(2) { opacity: 0; }
+      .menu-toggle[aria-expanded="true"] .menu-icon span:nth-child(3) { top: 6px; transform: rotate(-45deg); }
+      .mobile-menu { position: fixed; inset: 0; z-index: 110; padding: 112px 24px 32px; background: #08090c; }
+      .mobile-menu[hidden] { display: none; }
+      .mobile-nav { display: flex; flex-direction: column; border-top: 1px solid rgba(255,255,255,.15); }
+      .mobile-nav a { padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,.15); text-decoration: none; font-size: 24px; font-weight: 800; letter-spacing: -.02em; }
+      .mobile-nav a:last-child { color: #008cff; }
+      main { min-height: 100vh; display: flex; align-items: center; padding: 148px 0 72px; }
       .content { border-top: 1px solid rgba(255,255,255,.15); padding-top: 36px; }
       .eyebrow { margin: 0; color: #1497f5; font-size: 11px; font-weight: 700; letter-spacing: .16em; }
       h1 { max-width: 960px; margin: 24px 0 0; font-size: clamp(58px, 10vw, 144px); line-height: .84; letter-spacing: -.065em; }
       .message { max-width: 600px; margin: 30px 0 0; color: rgba(255,255,255,.62); font-size: 17px; line-height: 1.7; }
-      .home { display: inline-flex; margin-top: 34px; min-height: 48px; align-items: center; background: #1497f5; color: #fff; padding: 0 20px; text-decoration: none; font-size: 12px; font-weight: 700; letter-spacing: .12em; }
-      .home:hover { background: #fff; color: #08090c; }
-      @media (max-width: 640px) { nav a:not(:last-child) { display: none; } .logo { width: 150px; } }
+      .home { display: inline-flex; min-height: 48px; align-items: center; margin-top: 34px; padding: 0 20px; background: #1497f5; color: #fff; text-decoration: none; font-size: 12px; font-weight: 700; letter-spacing: .12em; transition: background .2s, color .2s; }
+      .home:hover, .home:focus-visible { background: #fff; color: #08090c; }
+      @media (max-width: 767px) {
+        .nav-shell, .content { width: min(calc(100% - 40px), 1380px); }
+        .logo { width: 150px; }
+        .desktop-nav { display: none; }
+        .menu-toggle { display: flex; }
+        main { padding-top: 124px; }
+      }
     </style>
   </head>
   <body>
-    <header>
-      <div class="nav">
-        <a href="/" aria-label="BrandShoots home"><img class="logo" src="/Logo%20Official.svg" alt="BrandShoots" width="1600" height="365" /></a>
-        <nav aria-label="Primary navigation">
+    <header class="site-header">
+      <div class="nav-shell">
+        <a href="/" aria-label="BrandShoots home"><img class="logo" src="/Logo%20Official.svg" alt="BrandShoots Official Logo" width="1600" height="365" /></a>
+        <nav class="desktop-nav" aria-label="Primary navigation">
+          <a href="/">HOME</a>
           <a href="/about">ABOUT</a>
           <a href="/portfolio">PORTFOLIO</a>
+          <a href="/results">RESULTS</a>
           <a href="/packages">PACKAGES</a>
           <a href="/contact">CONTACT</a>
         </nav>
+        <button class="menu-toggle" type="button" aria-label="Open Navigation Menu" aria-expanded="false" aria-controls="mobile-menu">
+          <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+        </button>
       </div>
     </header>
+
+    <div id="mobile-menu" class="mobile-menu" hidden>
+      <nav class="mobile-nav" aria-label="Mobile navigation">
+        <a href="/">HOME</a>
+        <a href="/about">ABOUT</a>
+        <a href="/portfolio">PORTFOLIO</a>
+        <a href="/packages">PACKAGES</a>
+        <a href="/contact">CONTACT</a>
+      </nav>
+    </div>
+
     <main>
       <div class="content">
         <p class="eyebrow">ERROR 404</p>
@@ -48,5 +88,23 @@
         <a class="home" href="/">← BACK TO HOME</a>
       </div>
     </main>
+
+    <script>
+      (() => {
+        const button = document.querySelector('.menu-toggle');
+        const menu = document.getElementById('mobile-menu');
+        const setOpen = (open) => {
+          button.setAttribute('aria-expanded', String(open));
+          button.setAttribute('aria-label', open ? 'Close Navigation Menu' : 'Open Navigation Menu');
+          menu.hidden = !open;
+          document.body.classList.toggle('menu-open', open);
+        };
+        button.addEventListener('click', () => setOpen(button.getAttribute('aria-expanded') !== 'true'));
+        menu.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setOpen(false)));
+        window.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') setOpen(false);
+        });
+      })();
+    </script>
   </body>
 </html>

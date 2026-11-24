@@ -35,7 +35,7 @@ export const BunqFooterIndex: React.FC<BunqFooterIndexProps> = ({
               <Sparkles size={14} />
               <span>LET'S CREATE SOMETHING WORTH REMEMBERING</span>
             </div>
-            <h2 className="text-4xl sm:text-6xl md:text-7xl font-black uppercase tracking-tight text-white font-['Figtree'] leading-[0.95]">
+            <h2 className="text-4xl sm:text-6xl md:text-7xl font-black uppercase tracking-tight text-white font-sans leading-[0.95]">
               Ready To Make Your Story Move?
             </h2>
           </div>
@@ -63,7 +63,7 @@ export const BunqFooterIndex: React.FC<BunqFooterIndexProps> = ({
         </div>
 
         {/* 4-Column Editorial Site Index (BUNQ LABS Signature) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 font-['Figtree']">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 font-sans">
           {/* Col 1: Pages */}
           <div className="space-y-4">
             <div className="text-xs font-mono uppercase tracking-widest text-white/40">
@@ -211,8 +211,8 @@ export const BunqFooterIndex: React.FC<BunqFooterIndexProps> = ({
 
               <div className="flex items-center gap-2">
                 <Mail size={14} className="text-[#139EF2] shrink-0" />
-                <a href="mailto:contact@brandshoots.com" className="hover:text-white transition-colors">
-                  contact@brandshoots.com
+                <a href="mailto:brandshoots.in@gmail.com" className="hover:text-white transition-colors">
+                  brandshoots.in@gmail.com
                 </a>
               </div>
 
@@ -227,10 +227,10 @@ export const BunqFooterIndex: React.FC<BunqFooterIndexProps> = ({
         {/* Monolithic Dual-Tone BrandShoots Wordmark at Bottom */}
         <div className="pt-12 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex items-center gap-2">
-            <span className="text-3xl sm:text-4xl font-black tracking-tighter text-[#139EF2] font-['Figtree']">
+            <span className="text-3xl sm:text-4xl font-black tracking-tighter text-[#139EF2] font-sans">
               BRAND
             </span>
-            <span className="text-3xl sm:text-4xl font-black tracking-tighter text-white font-['Figtree']">
+            <span className="text-3xl sm:text-4xl font-black tracking-tighter text-white font-sans">
               SHOOTS
             </span>
             <span className="text-xs font-mono text-white/40 ml-4 hidden sm:inline">
@@ -270,7 +270,7 @@ export const BunqFooterIndex: React.FC<BunqFooterIndexProps> = ({
 
         {/* Copyright Telemetry */}
         <div className="pt-4 flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-white/30 gap-2 border-t border-white/5">
-          <div>© {new Date().getFullYear()} BRANDSHOOTS. All Rights Reserved.</div>
+          <div>© {new Date().getFullYear()} BrandShoots. All Rights Reserved.</div>
           <div>Reference Lab // Bunq Labs Architecture Interpretation</div>
         </div>
       </div>

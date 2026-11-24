@@ -18,7 +18,7 @@ export const WithMediaReferenceLab: React.FC = () => {
   const [inquiryService, setInquiryService] = useState<string>('Commercial Video Production');
 
   useEffect(() => {
-    document.title = 'BRANDSHOOTS // With Media Reference Lab — Cinema Meets Commerce';
+    document.title = 'BrandShoots // With Media Reference Lab — Cinema Meets Commerce';
     window.scrollTo(0, 0);
   }, []);
 
@@ -54,7 +54,7 @@ export const WithMediaReferenceLab: React.FC = () => {
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-[#05070B] text-white selection:bg-blue-600 selection:text-white font-['Figtree'] overflow-x-hidden">
+    <div className="relative w-full min-h-screen bg-[#05070B] text-white selection:bg-blue-600 selection:text-white font-sans overflow-x-hidden">
       {/* 1. Cinematic Curtain Wipe Transition Overlay */}
       <WithMediaCurtainWipe isWiping={isWiping} />
 

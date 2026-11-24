@@ -370,7 +370,7 @@ export const ManifestoScrollSection: React.FC = () => {
 
         {/* Bottom Status & Progress Telemetry */}
         <div className="shrink-0 w-full flex items-end justify-between text-white/35 font-mono text-[11px] tracking-[0.24em] uppercase pt-4 border-t border-white/[0.06]">
-          <span className="pb-0.5">BRANDSHOOTS</span>
+          <span className="pb-0.5 normal-case tracking-normal">BrandShoots</span>
           <div className="flex flex-col items-end gap-2.5">
             <div className="w-32 sm:w-44 h-[2px] bg-white/10 rounded-full overflow-hidden">
               <div

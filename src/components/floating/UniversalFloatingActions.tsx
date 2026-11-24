@@ -1,6 +1,26 @@
 import React from 'react';
-import { CalendarCheck } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { useCMSContent } from '../../lib/cms/useCMSContent';
+import { INITIAL_CONTACT_PAGE, INITIAL_SITE_SETTINGS } from '../../lib/cms/seedData';
+
+const safeHttpsUrl = (value: string | undefined, fallback: string): string => {
+  try {
+    const url = new URL((value || '').trim());
+    if (url.protocol === 'https:' && url.hostname && !url.username && !url.password) {
+      return url.toString();
+    }
+  } catch {}
+  return fallback;
+};
+
+const sanitizeWhatsAppNumber = (...values: Array<string | undefined>): string => {
+  for (const value of values) {
+    const digits = (value || '').replace(/\D/g, '');
+    if (/^\d{7,15}$/.test(digits)) return digits;
+  }
+  return INITIAL_SITE_SETTINGS.whatsappPhone;
+};
 
 const InstagramGlyph: React.FC<{ className?: string }> = ({ className = '' }) => (
   <svg className={className} viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
@@ -16,38 +36,67 @@ const WhatsAppGlyph: React.FC<{ className?: string }> = ({ className = '' }) => 
 
 export const UniversalFloatingActions: React.FC = () => {
   const location = useLocation();
+  const { settings, contact } = useCMSContent();
   const isAdmin = location.pathname.startsWith('/admin');
   const isReferenceLab = location.pathname.startsWith('/reference-lab');
 
   if (isAdmin || isReferenceLab) return null;
 
-  const cleanPhone = '917075960672';
-  const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
+  const whatsappPhone = sanitizeWhatsAppNumber(
+    settings?.whatsappPhone,
+    contact?.whatsappPhone,
+    INITIAL_SITE_SETTINGS.whatsappPhone
+  );
+  const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
     'Hi BrandShoots, I would like to discuss a film production project.'
   )}`;
-  const instagramUrl = 'https://instagram.com/wearebrandshoots';
+  const instagramUrl = safeHttpsUrl(
+    settings?.instagramUrl,
+    safeHttpsUrl(contact?.instagramUrl, INITIAL_CONTACT_PAGE.instagramUrl)
+  );
 
-  const itemClass = 'group flex h-11 w-11 items-center justify-center border border-white/25 bg-[#08090C] shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:border-white active:translate-y-0 sm:h-12 sm:w-12';
-  const tooltipClass = 'pointer-events-none absolute right-full mr-3 hidden whitespace-nowrap border border-white/15 bg-[#08090C] px-2.5 py-1.5 text-[10px] font-medium tracking-[0.12em] text-white/80 uppercase opacity-0 transition-opacity duration-200 group-hover:opacity-100 md:block';
+  const actionClass = 'group relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-transparent transition-[color,background-color,transform] duration-200 hover:-translate-y-0.5 hover:bg-white/10 active:translate-y-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#008CFF] focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070A] md:h-12 md:w-12';
+  const tooltipClass = 'pointer-events-none absolute right-full mr-3 hidden whitespace-nowrap rounded bg-[#08090C]/95 px-2.5 py-1.5 text-[10px] font-medium tracking-[0.12em] text-white/85 opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 md:block';
+  const placementClass = 'bottom-0 right-0 flex-col gap-1 md:right-6 md:gap-2';
 
   return (
     <aside
+      data-floating-actions
       aria-label="Quick actions"
-      className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom)+4.5rem)] right-4 z-[200] flex flex-col gap-2 sm:bottom-24 sm:right-6"
+      className={`fixed z-[200] flex items-center ${placementClass}`}
     >
-      <a href={instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" className={`group relative ${itemClass} text-[#E1306C] hover:border-[#E1306C] hover:bg-[#E1306C] hover:text-white`}>
+      <a
+        href={instagramUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Open BrandShoots on Instagram"
+        title="Instagram"
+        className={`${actionClass} text-[#E1306C]`}
+      >
         <span className={tooltipClass}>Instagram</span>
-        <InstagramGlyph className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 sm:h-5 sm:w-5" />
+        <InstagramGlyph className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 md:h-[22px] md:w-[22px]" />
       </a>
 
-      <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" title="WhatsApp" className={`group relative ${itemClass} hover:border-[#25D366] hover:bg-[#25D366] hover:text-white`}>
+      <a
+        href={whatsappUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Chat with BrandShoots on WhatsApp"
+        title="WhatsApp"
+        className={`${actionClass} text-[#25D366]`}
+      >
         <span className={tooltipClass}>WhatsApp</span>
-        <WhatsAppGlyph className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 sm:h-5 sm:w-5" />
+        <WhatsAppGlyph className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 md:h-[22px] md:w-[22px]" />
       </a>
 
-      <Link to="/contact" aria-label="Contact and book a shoot" title="Contact" className={`group relative ${itemClass} hover:border-[#1497F5] hover:bg-[#1497F5] hover:text-white`}>
+      <Link
+        to="/contact"
+        aria-label="Contact BrandShoots"
+        title="Contact"
+        className={`${actionClass} text-[#008CFF]`}
+      >
         <span className={tooltipClass}>Contact</span>
-        <CalendarCheck className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 sm:h-5 sm:w-5" />
+        <MessageCircle className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 md:h-[22px] md:w-[22px]" strokeWidth={1.9} />
       </Link>
     </aside>
   );

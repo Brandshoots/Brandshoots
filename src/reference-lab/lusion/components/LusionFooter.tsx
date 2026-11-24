@@ -78,8 +78,8 @@ export const LusionFooter: React.FC = () => {
             <div className="space-y-3 text-sm">
               <div>
                 <span className="text-white/40 text-xs block">Commercial Shoots:</span>
-                <a href="mailto:contact@brandshoots.com" className="text-white hover:text-[#139EF2] transition-colors">
-                  contact@brandshoots.com
+                <a href="mailto:brandshoots.in@gmail.com" className="text-white hover:text-[#139EF2] transition-colors">
+                  brandshoots.in@gmail.com
                 </a>
               </div>
               <div>
@@ -147,7 +147,7 @@ export const LusionFooter: React.FC = () => {
         {/* Footer Bottom Metadata */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[11px] text-white/40 tracking-wider">
           <div>
-            © {new Date().getFullYear()} BRANDSHOOTS STUDIOS. ALL CINEMATOGRAPHIC ASSETS PROTECTED.
+            © {new Date().getFullYear()} BrandShoots STUDIOS. ALL CINEMATOGRAPHIC ASSETS PROTECTED.
           </div>
           <div className="flex items-center gap-4">
             <span>CODE: REFERENCE LAB // LUSION</span>

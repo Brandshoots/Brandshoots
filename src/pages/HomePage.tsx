@@ -3,7 +3,6 @@ import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { BrandShootsPreloader } from '../components/preloader/BrandShootsPreloader';
 import { MainNavbar } from '../components/navbar/MainNavbar';
 import { BrandShootsHero } from '../components/hero/BrandShootsHero';
 
@@ -13,6 +12,7 @@ const BrandStatementSection = lazy(() => import('../components/statement/BrandSt
 const AnnouncementsSection = lazy(() => import('../components/announcements/AnnouncementsSection').then((module) => ({ default: module.AnnouncementsSection })));
 const BrandMetricsSection = lazy(() => import('../components/metrics/BrandMetricsSection').then((module) => ({ default: module.BrandMetricsSection })));
 const WhatWeDoSection = lazy(() => import('../components/what-we-do/WhatWeDoSection').then((module) => ({ default: module.WhatWeDoSection })));
+const ResultsSection = lazy(() => import('../components/results/ResultsSection').then((module) => ({ default: module.ResultsSection })));
 const PackagesTeaser = lazy(() => import('../components/packages/PackagesTeaser').then((module) => ({ default: module.PackagesTeaser })));
 const TheLeadershipSection = lazy(() => import('../components/leadership/TheLeadershipSection').then((module) => ({ default: module.TheLeadershipSection })));
 const OurClientsSection = lazy(() => import('../components/clients/OurClientsSection').then((module) => ({ default: module.OurClientsSection })));
@@ -62,25 +62,18 @@ const DeferredHomepageSection: React.FC<DeferredHomepageSectionProps> = ({ child
   );
 };
 
-export const HomePage: React.FC = () => {
-  const [preloaderActive, setPreloaderActive] = useState(() => {
-    if (window.location.search.includes('nopreload')) return false;
-    try {
-      return sessionStorage.getItem('brandshoots_preloader_seen') !== '1';
-    } catch {
-      return true;
-    }
-  });
+interface HomePageProps {
+  transitionActive?: boolean;
+  onCriticalReady?: () => void;
+}
 
-  const handlePreloaderComplete = () => {
-    try {
-      sessionStorage.setItem('brandshoots_preloader_seen', '1');
-    } catch {}
-    setPreloaderActive(false);
-  };
+export const HomePage: React.FC<HomePageProps> = ({
+  transitionActive = false,
+  onCriticalReady,
+}) => {
 
   useEffect(() => {
-    if (preloaderActive) return;
+    if (transitionActive) return;
 
     const lenis = new Lenis({
       duration: 1.25,
@@ -113,35 +106,36 @@ export const HomePage: React.FC = () => {
       lenis.off('scroll', ScrollTrigger.update);
       lenis.destroy();
     };
-  }, [preloaderActive]);
+  }, [transitionActive]);
 
   return (
-    <>
-      {preloaderActive && <BrandShootsPreloader onComplete={handlePreloaderComplete} />}
-      <div
-        id="homepage-experience"
-        className="w-full"
-        style={{ pointerEvents: preloaderActive ? 'none' : 'auto' }}
-        aria-hidden={preloaderActive}
-      >
-        <MainNavbar />
-        <BrandShootsHero isPreloaderActive={preloaderActive} />
-        {!preloaderActive && (
-          <>
-            <DeferredHomepageSection minHeight={680}><BrandStatementSection /></DeferredHomepageSection>
-            <DeferredHomepageSection minHeight={760}><AnnouncementsSection /></DeferredHomepageSection>
-            <DeferredHomepageSection minHeight={640}><BrandMetricsSection /></DeferredHomepageSection>
-            <DeferredHomepageSection minHeight={2400}><WhatWeDoSection /></DeferredHomepageSection>
-            <DeferredHomepageSection minHeight={820}><PackagesTeaser /></DeferredHomepageSection>
-            <DeferredHomepageSection minHeight={820}><TheLeadershipSection /></DeferredHomepageSection>
-            <DeferredHomepageSection minHeight={760}><OurClientsSection /></DeferredHomepageSection>
-            <DeferredHomepageSection minHeight={680}><TestimonialsSection3D /></DeferredHomepageSection>
-            <DeferredHomepageSection minHeight={680}><FinalCtaSection /></DeferredHomepageSection>
-            <DeferredHomepageSection minHeight={480}><BrandShootsFooter /></DeferredHomepageSection>
-          </>
-        )}
-      </div>
-    </>
+    <div
+      id="homepage-experience"
+      className="w-full"
+      style={{ pointerEvents: transitionActive ? 'none' : 'auto' }}
+      aria-hidden={transitionActive}
+    >
+      <MainNavbar />
+      <BrandShootsHero
+        isPreloaderActive={transitionActive}
+        onCriticalReady={onCriticalReady}
+      />
+      {!transitionActive && (
+        <>
+          <DeferredHomepageSection minHeight={680}><BrandStatementSection /></DeferredHomepageSection>
+          <DeferredHomepageSection minHeight={760}><AnnouncementsSection /></DeferredHomepageSection>
+          <DeferredHomepageSection minHeight={640}><BrandMetricsSection /></DeferredHomepageSection>
+          <DeferredHomepageSection minHeight={2400}><WhatWeDoSection /></DeferredHomepageSection>
+          <DeferredHomepageSection minHeight={1200}><ResultsSection /></DeferredHomepageSection>
+          <DeferredHomepageSection minHeight={820}><PackagesTeaser /></DeferredHomepageSection>
+          <DeferredHomepageSection minHeight={820}><TheLeadershipSection /></DeferredHomepageSection>
+          <DeferredHomepageSection minHeight={760}><OurClientsSection /></DeferredHomepageSection>
+          <DeferredHomepageSection minHeight={680}><TestimonialsSection3D /></DeferredHomepageSection>
+          <DeferredHomepageSection minHeight={680}><FinalCtaSection /></DeferredHomepageSection>
+          <DeferredHomepageSection minHeight={480}><BrandShootsFooter /></DeferredHomepageSection>
+        </>
+      )}
+    </div>
   );
 };
 

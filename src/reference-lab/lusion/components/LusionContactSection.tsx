@@ -218,10 +218,10 @@ export const LusionContactSection: React.FC = () => {
                   <div>
                     <div className="text-white font-semibold text-sm">Client Inquiries</div>
                     <a
-                      href="mailto:contact@brandshoots.com"
+                      href="mailto:brandshoots.in@gmail.com"
                       className="text-white/60 text-xs hover:text-[#139EF2] transition-colors"
                     >
-                      contact@brandshoots.com
+                      brandshoots.in@gmail.com
                     </a>
                   </div>
                 </div>

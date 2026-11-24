@@ -95,7 +95,7 @@ export const BrandLogoOverlay = forwardRef<BrandLogoOverlayHandle, BrandLogoOver
           <img
             ref={logoImgRef}
             src="/Logo-Official-Tight.svg"
-            alt="Brand Shoots"
+            alt="BrandShoots"
             className="w-[88vw] max-w-[650px] sm:max-w-[780px] md:max-w-[920px] lg:max-w-[1020px] h-auto object-contain block z-10 transition-none"
             style={{
               filter: 'grayscale(100%) contrast(140%) brightness(1.15)'

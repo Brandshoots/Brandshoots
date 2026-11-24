@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Plus,
   Edit3,
@@ -6,7 +6,6 @@ import {
   RefreshCw,
   CheckCircle2,
   X,
-  Upload,
   Link as LinkIcon,
   Image as ImageIcon,
   ExternalLink,
@@ -14,36 +13,67 @@ import {
   Eye,
   EyeOff,
   Megaphone,
+  ArrowUp,
+  ArrowDown,
+  AlertCircle,
 } from 'lucide-react';
+import { ref, set } from 'firebase/database';
 import { CMSAnnouncement } from '../../types/cms';
 import {
   fetchPublishedAnnouncements,
   saveAllAnnouncements,
-  resetAnnouncementsToDefaults,
 } from '../../lib/cms/cmsService';
 import { pushAnnouncementsUndoAction } from '../../lib/cms/cmsHistory';
+import { INITIAL_ANNOUNCEMENTS } from '../../lib/cms/seedData';
+import { firebaseDb } from '../../lib/firebase';
+import { CloudinaryUploader } from './CloudinaryUploader';
+
+type UploadingAwareUploaderProps = React.ComponentProps<typeof CloudinaryUploader> & {
+  onUploadingChange?: (isUploading: boolean) => void;
+};
+
+const UploadingAwareCloudinaryUploader = CloudinaryUploader as React.ComponentType<UploadingAwareUploaderProps>;
+
+const isAllowedMediaUrl = (value: string): boolean => {
+  const clean = value.trim();
+  return /^https:\/\//i.test(clean) || /^\/(?!\/)/.test(clean);
+};
+
+const normalizeAnnouncements = (items: CMSAnnouncement[]): CMSAnnouncement[] => {
+  const now = new Date().toISOString();
+  return items.map((item, index) => ({ ...item, order: index, updatedAt: now }));
+};
+
+const persistAnnouncements = async (items: CMSAnnouncement[]): Promise<CMSAnnouncement[]> => {
+  const normalized = normalizeAnnouncements(items);
+  const record = Object.fromEntries(normalized.map((item) => [item.id, item]));
+  await set(ref(firebaseDb, 'published/announcements'), record);
+  await saveAllAnnouncements(normalized);
+  return normalized;
+};
+
+const errorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : 'The change could not be saved.';
 
 export const AnnouncementsCMS: React.FC = () => {
   const [announcements, setAnnouncements] = useState<CMSAnnouncement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [saveToast, setSaveToast] = useState<string | null>(null);
+  const [toastIsError, setToastIsError] = useState(false);
+  const [isMutating, setIsMutating] = useState(false);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<CMSAnnouncement | null>(null);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   // Form Inputs
   const [formTitle, setFormTitle] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [formImageUrl, setFormImageUrl] = useState('');
+  const [formButtonText, setFormButtonText] = useState('MORE INFO');
   const [formButtonUrl, setFormButtonUrl] = useState('');
   const [formIsActive, setFormIsActive] = useState(true);
-
-  // File Upload state
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load announcements on mount
   useEffect(() => {
@@ -75,167 +105,223 @@ export const AnnouncementsCMS: React.FC = () => {
     };
   }, []);
 
-  const showToast = (msg: string) => {
+  const showToast = (msg: string, isError = false) => {
+    setToastIsError(isError);
     setSaveToast(msg);
-    setTimeout(() => setSaveToast(null), 3500);
+    window.setTimeout(() => setSaveToast(null), 3500);
   };
 
   // Open Edit Modal
-  const openEditModal = (item: CMSAnnouncement, index: number) => {
+  const openEditModal = (item: CMSAnnouncement) => {
     setEditingItem(item);
-    setEditingIndex(index);
     setFormTitle(item.title || '');
     setFormDescription(item.description || '');
     setFormImageUrl(item.imageUrl || '');
+    setFormButtonText(item.buttonText || 'MORE INFO');
     setFormButtonUrl(item.buttonUrl || '');
     setFormIsActive(item.isActive !== false);
-    setUploadError(null);
+    setIsUploading(false);
     setIsModalOpen(true);
   };
 
   // Open Create Modal
   const openCreateModal = () => {
     setEditingItem(null);
-    setEditingIndex(null);
     setFormTitle('');
     setFormDescription('');
     setFormImageUrl('/reels/thumbnails-webp/santhi.pipes_rjy_2026-09-06_10-01-41_3979966688738161477_48644092133.webp');
+    setFormButtonText('MORE INFO');
     setFormButtonUrl('/contact');
     setFormIsActive(true);
-    setUploadError(null);
+    setIsUploading(false);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
+    if (isMutating) return;
     setIsModalOpen(false);
     setEditingItem(null);
-    setEditingIndex(null);
-  };
-
-  // Handle Image File Select
-  const handleFileSelect = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      setUploadError('Please select a valid image file (JPG, PNG, WebP).');
-      return;
-    }
-
-    setIsUploading(true);
-    setUploadError(null);
-
-    // Instant local object URL preview
-    const localUrl = URL.createObjectURL(file);
-    setFormImageUrl(localUrl);
-
-    // Save image locally via FileReader for offline / local-first persistence
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setFormImageUrl(reader.result);
-      }
-      setIsUploading(false);
-    };
-    reader.onerror = () => {
-      setIsUploading(false);
-    };
-    reader.readAsDataURL(file);
+    setIsUploading(false);
   };
 
   // Save Announcement (Create or Update)
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isUploading || isMutating) return;
+
     const titleClean = formTitle.trim();
+    const imageUrl = formImageUrl.trim();
     if (!titleClean) return;
+    if (!isAllowedMediaUrl(imageUrl)) {
+      showToast('Use a secure HTTPS image URL or a site-relative image path.', true);
+      return;
+    }
 
     const previousState = [...announcements];
-
-    let updatedList: CMSAnnouncement[];
     const now = new Date().toISOString();
+    let updatedList: CMSAnnouncement[];
+    let description: string;
+    let successMessage: string;
 
-    if (editingItem && editingIndex !== null) {
-      // Update existing
-      pushAnnouncementsUndoAction(`Updated: ${titleClean}`, previousState);
+    if (editingItem) {
+      const currentItem = announcements.find((item) => item.id === editingItem.id);
+      if (!currentItem) {
+        showToast('This announcement no longer exists. Close the editor and try again.', true);
+        return;
+      }
 
       const updatedItem: CMSAnnouncement = {
-        ...editingItem,
+        ...currentItem,
         title: titleClean,
         description: formDescription.trim(),
-        imageUrl: formImageUrl.trim(),
+        imageUrl,
+        buttonText: formButtonText.trim() || 'MORE INFO',
         buttonUrl: formButtonUrl.trim() || '/contact',
         isActive: formIsActive,
         updatedAt: now,
       };
-
-      updatedList = announcements.map((item, idx) => (idx === editingIndex ? updatedItem : item));
-      showToast(`Announcement "${titleClean}" updated & live synced!`);
+      updatedList = announcements.map((item) =>
+        item.id === currentItem.id ? updatedItem : item
+      );
+      description = `Updated: ${titleClean}`;
+      successMessage = `Announcement "${titleClean}" updated & live synced!`;
     } else {
-      // Create new
-      pushAnnouncementsUndoAction(`Added announcement: ${titleClean}`, previousState);
-
       const newItem: CMSAnnouncement = {
         id: `ann_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
         title: titleClean,
         description: formDescription.trim(),
-        imageUrl: formImageUrl.trim(),
+        imageUrl,
+        buttonText: formButtonText.trim() || 'MORE INFO',
         buttonUrl: formButtonUrl.trim() || '/contact',
         isActive: formIsActive,
         order: announcements.length,
         createdAt: now,
         updatedAt: now,
       };
-
       updatedList = [...announcements, newItem];
-      showToast(`Announcement "${titleClean}" published & live synced!`);
+      description = `Added announcement: ${titleClean}`;
+      successMessage = `Announcement "${titleClean}" published & live synced!`;
     }
 
-    setAnnouncements(updatedList);
-    await saveAllAnnouncements(updatedList);
-    closeModal();
+    setIsMutating(true);
+    try {
+      const persisted = await persistAnnouncements(updatedList);
+      setAnnouncements(persisted);
+      pushAnnouncementsUndoAction(description, previousState);
+      showToast(successMessage);
+      setIsModalOpen(false);
+      setEditingItem(null);
+    } catch (error) {
+      console.error('Failed to save announcement:', error);
+      showToast(`Could not save announcement: ${errorMessage(error)}`, true);
+    } finally {
+      setIsMutating(false);
+    }
   };
 
   // Delete Announcement
   const handleDelete = async (id: string, title: string) => {
+    if (isMutating) return;
     if (!window.confirm(`Delete announcement "${title}"? This can be undone using the navbar Undo button.`)) {
       return;
     }
 
     const previousState = [...announcements];
-    pushAnnouncementsUndoAction(`Deleted announcement: ${title}`, previousState);
-
-    const updatedList = announcements.filter((a) => a.id !== id);
-    setAnnouncements(updatedList);
-    await saveAllAnnouncements(updatedList);
-    showToast(`Announcement deleted. Click Undo in navbar to restore.`);
+    const updatedList = announcements.filter((item) => item.id !== id);
+    setIsMutating(true);
+    try {
+      const persisted = await persistAnnouncements(updatedList);
+      setAnnouncements(persisted);
+      pushAnnouncementsUndoAction(`Deleted announcement: ${title}`, previousState);
+      showToast('Announcement deleted. Click Undo in navbar to restore.');
+    } catch (error) {
+      console.error('Failed to delete announcement:', error);
+      showToast(`Could not delete announcement: ${errorMessage(error)}`, true);
+    } finally {
+      setIsMutating(false);
+    }
   };
 
   // Toggle Active / Inactive
-  const handleToggleActive = async (item: CMSAnnouncement, index: number) => {
+  const handleToggleActive = async (id: string) => {
+    if (isMutating) return;
+    const item = announcements.find((announcement) => announcement.id === id);
+    if (!item) return;
+
     const previousState = [...announcements];
-    const newStatus = !item.isActive;
-    pushAnnouncementsUndoAction(
-      `${newStatus ? 'Activated' : 'Paused'}: ${item.title}`,
-      previousState
+    const newStatus = !(item.isActive !== false);
+    const updated = announcements.map((announcement) =>
+      announcement.id === id
+        ? { ...announcement, isActive: newStatus, updatedAt: new Date().toISOString() }
+        : announcement
     );
 
-    const updated = announcements.map((a, idx) =>
-      idx === index ? { ...a, isActive: newStatus, updatedAt: new Date().toISOString() } : a
-    );
+    setIsMutating(true);
+    try {
+      const persisted = await persistAnnouncements(updated);
+      setAnnouncements(persisted);
+      pushAnnouncementsUndoAction(
+        `${newStatus ? 'Activated' : 'Paused'}: ${item.title}`,
+        previousState
+      );
+      showToast(`Announcement "${item.title}" is now ${newStatus ? 'ACTIVE' : 'PAUSED'}.`);
+    } catch (error) {
+      console.error('Failed to change announcement status:', error);
+      showToast(`Could not change announcement status: ${errorMessage(error)}`, true);
+    } finally {
+      setIsMutating(false);
+    }
+  };
 
-    setAnnouncements(updated);
-    await saveAllAnnouncements(updated);
-    showToast(`Announcement "${item.title}" is now ${newStatus ? 'ACTIVE' : 'PAUSED'}.`);
+  const handleMove = async (id: string, direction: -1 | 1) => {
+    if (isMutating) return;
+    const fromIndex = announcements.findIndex((item) => item.id === id);
+    const toIndex = fromIndex + direction;
+    if (fromIndex < 0 || toIndex < 0 || toIndex >= announcements.length) return;
+
+    const previousState = [...announcements];
+    const updated = [...announcements];
+    [updated[fromIndex], updated[toIndex]] = [updated[toIndex], updated[fromIndex]];
+    const moved = updated[toIndex];
+
+    setIsMutating(true);
+    try {
+      const persisted = await persistAnnouncements(updated);
+      setAnnouncements(persisted);
+      pushAnnouncementsUndoAction(`Moved announcement: ${moved.title}`, previousState);
+      showToast(`Announcement moved to position ${toIndex + 1}.`);
+    } catch (error) {
+      console.error('Failed to reorder announcements:', error);
+      showToast(`Could not reorder announcements: ${errorMessage(error)}`, true);
+    } finally {
+      setIsMutating(false);
+    }
   };
 
   // Reset to Defaults
   const handleResetDefaults = async () => {
+    if (isMutating) return;
     if (!window.confirm('Reset announcements to BrandShoots defaults? This can be undone with the navbar Undo button.')) {
       return;
     }
-    const previousState = [...announcements];
-    pushAnnouncementsUndoAction('Reset announcements to default cards', previousState);
 
-    const defaults = await resetAnnouncementsToDefaults();
-    setAnnouncements(defaults);
-    showToast('Announcements reset to defaults!');
+    const previousState = [...announcements];
+    const defaults = Object.values(INITIAL_ANNOUNCEMENTS)
+      .sort((a, b) => a.order - b.order)
+      .map((item) => ({ ...item }));
+
+    setIsMutating(true);
+    try {
+      const persisted = await persistAnnouncements(defaults);
+      setAnnouncements(persisted);
+      pushAnnouncementsUndoAction('Reset announcements to default cards', previousState);
+      showToast('Announcements reset to defaults!');
+    } catch (error) {
+      console.error('Failed to reset announcements:', error);
+      showToast(`Could not reset announcements: ${errorMessage(error)}`, true);
+    } finally {
+      setIsMutating(false);
+    }
   };
 
   if (isLoading) {
@@ -255,8 +341,12 @@ export const AnnouncementsCMS: React.FC = () => {
     <div className="space-y-6">
       {/* Toast Notification */}
       {saveToast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-[#008CFF] text-white font-mono text-xs font-bold shadow-[0_10px_40px_rgba(0,140,255,0.4)] animate-in fade-in slide-in-from-bottom-3 duration-200">
-          <CheckCircle2 className="w-4 h-4 text-white" />
+        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-5 py-3 rounded-2xl text-white font-mono text-xs font-bold animate-in fade-in slide-in-from-bottom-3 duration-200 ${
+          toastIsError
+            ? 'bg-red-600 shadow-[0_10px_40px_rgba(220,38,38,0.35)]'
+            : 'bg-[#008CFF] shadow-[0_10px_40px_rgba(0,140,255,0.4)]'
+        }`}>
+          {toastIsError ? <AlertCircle className="w-4 h-4 text-white" /> : <CheckCircle2 className="w-4 h-4 text-white" />}
           <span>{saveToast}</span>
         </div>
       )}
@@ -282,7 +372,8 @@ export const AnnouncementsCMS: React.FC = () => {
           <button
             type="button"
             onClick={handleResetDefaults}
-            className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/15 flex items-center gap-2 text-xs font-mono font-bold transition-all cursor-pointer"
+            disabled={isMutating}
+            className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/15 flex items-center gap-2 text-xs font-mono font-bold transition-all cursor-pointer disabled:opacity-40"
             title="Reset to default announcement cards"
           >
             <RefreshCw className="w-3.5 h-3.5 text-white" />
@@ -292,7 +383,8 @@ export const AnnouncementsCMS: React.FC = () => {
           <button
             type="button"
             onClick={openCreateModal}
-            className="flex-1 md:flex-none px-4 py-2 rounded-xl bg-white hover:bg-white/90 text-black flex items-center justify-center gap-2 text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] active:scale-95 cursor-pointer"
+            disabled={isMutating}
+            className="flex-1 md:flex-none px-4 py-2 rounded-xl bg-white hover:bg-white/90 disabled:opacity-40 text-black flex items-center justify-center gap-2 text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4 text-black" />
             <span>Add Announcement</span>
@@ -323,8 +415,9 @@ export const AnnouncementsCMS: React.FC = () => {
                   </span>
                   <button
                     type="button"
-                    onClick={() => handleToggleActive(item, index)}
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold cursor-pointer transition-colors ${
+                    onClick={() => handleToggleActive(item.id)}
+                    disabled={isMutating}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold cursor-pointer transition-colors disabled:opacity-40 ${
                       isActive
                         ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-300'
                         : 'bg-white/5 border border-white/15 text-white/40'
@@ -345,12 +438,33 @@ export const AnnouncementsCMS: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Edit & Delete Action Buttons */}
-                <div className="flex items-center gap-2">
+                {/* Ordering, Edit & Delete Action Buttons */}
+                <div className="flex items-center gap-1.5">
                   <button
                     type="button"
-                    onClick={() => openEditModal(item, index)}
-                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white text-white hover:text-black border border-white/20 transition-all cursor-pointer shadow-md"
+                    onClick={() => handleMove(item.id, -1)}
+                    disabled={isMutating || index === 0}
+                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Move announcement up"
+                    aria-label={`Move announcement #${itemNum} up`}
+                  >
+                    <ArrowUp className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleMove(item.id, 1)}
+                    disabled={isMutating || index === announcements.length - 1}
+                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Move announcement down"
+                    aria-label={`Move announcement #${itemNum} down`}
+                  >
+                    <ArrowDown className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openEditModal(item)}
+                    disabled={isMutating}
+                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white text-white hover:text-black border border-white/20 transition-all cursor-pointer shadow-md disabled:opacity-40"
                     title={`Edit Announcement #${itemNum}`}
                     aria-label={`Edit Announcement #${itemNum}`}
                   >
@@ -360,7 +474,8 @@ export const AnnouncementsCMS: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleDelete(item.id, item.title)}
-                    className="p-1.5 rounded-lg bg-white/10 hover:bg-red-500 text-white hover:text-white border border-white/20 transition-all cursor-pointer shadow-md"
+                    disabled={isMutating}
+                    className="p-1.5 rounded-lg bg-white/10 hover:bg-red-500 text-white hover:text-white border border-white/20 transition-all cursor-pointer shadow-md disabled:opacity-40"
                     title={`Delete Announcement #${itemNum}`}
                     aria-label={`Delete Announcement #${itemNum}`}
                   >
@@ -389,7 +504,7 @@ export const AnnouncementsCMS: React.FC = () => {
                   {/* Quick Replace Image Button */}
                   <button
                     type="button"
-                    onClick={() => openEditModal(item, index)}
+                    onClick={() => openEditModal(item)}
                     className="absolute bottom-2 right-2 w-7 h-7 rounded-lg bg-black/80 hover:bg-white text-white hover:text-black border border-white/30 flex items-center justify-center transition-all cursor-pointer shadow-lg"
                     title="Change announcement image"
                     aria-label="Change announcement image"
@@ -497,7 +612,23 @@ export const AnnouncementsCMS: React.FC = () => {
                 />
               </div>
 
-              {/* 3. More Info Destination URL */}
+              {/* 3. CTA Label */}
+              <div>
+                <label className="block text-xs font-mono uppercase text-white/70 mb-1.5 font-bold flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5 text-white" />
+                  <span>Button Text</span>
+                </label>
+                <input
+                  type="text"
+                  value={formButtonText}
+                  onChange={(e) => setFormButtonText(e.target.value)}
+                  placeholder="e.g. MORE INFO, APPLY NOW, REGISTER NOW"
+                  required
+                  className="w-full px-4 py-2.5 rounded-xl bg-black/70 border border-white/20 text-white text-sm font-mono placeholder:text-white/30 focus:outline-none focus:border-white/60 transition-colors"
+                />
+              </div>
+
+              {/* 4. More Info Destination URL */}
               <div>
                 <label className="block text-xs font-mono uppercase text-white/70 mb-1.5 font-bold flex items-center gap-1.5">
                   <LinkIcon className="w-3.5 h-3.5 text-white" />
@@ -512,52 +643,21 @@ export const AnnouncementsCMS: React.FC = () => {
                   className="w-full px-4 py-2.5 rounded-xl bg-black/70 border border-white/20 text-white text-sm font-mono placeholder:text-white/30 focus:outline-none focus:border-white/60 transition-colors"
                 />
                 <span className="text-[10px] font-mono text-white/40 mt-1 block">
-                  Takes visitors to this URL when clicking the "MORE INFO &rarr;" button.
+                  Takes visitors to this URL when clicking the "{formButtonText.trim() || 'MORE INFO'} →" button.
                 </span>
               </div>
 
-              {/* 4. Image Upload & Preview */}
+              {/* 5. Image Upload & Preview */}
               <div className="space-y-3 pt-2 border-t border-white/10">
-                <label className="block text-xs font-mono uppercase text-white/70 font-bold flex items-center gap-1.5">
-                  <ImageIcon className="w-3.5 h-3.5 text-white" />
-                  <span>Announcement Cover Image</span>
-                </label>
-
-                {/* Paste URL Input */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={formImageUrl}
-                    onChange={(e) => setFormImageUrl(e.target.value)}
-                    placeholder="e.g. /reels/thumbnails-webp/... or https://res.cloudinary.com/.../image.webp"
-                    required
-                    className="w-full px-4 py-2.5 pl-10 rounded-xl bg-black/70 border border-white/20 text-white text-sm font-mono placeholder:text-white/30 focus:outline-none focus:border-white/60 transition-colors"
-                  />
-                  <LinkIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-                </div>
-
-                {/* File Upload Trigger */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
-                  className="hidden"
+                <UploadingAwareCloudinaryUploader
+                  label="Announcement Cover Image"
+                  value={formImageUrl}
+                  onChange={setFormImageUrl}
+                  onUploadingChange={setIsUploading}
+                  accept="image"
+                  requireCloudinary
+                  helpText="Upload a signed Cloudinary image, or enter a secure HTTPS/site-relative image URL."
                 />
-
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-white/15 hover:border-white/40 rounded-2xl p-4 text-center cursor-pointer transition-colors bg-white/[0.02] flex items-center justify-center gap-3"
-                >
-                  <Upload className="w-4 h-4 text-white" />
-                  <span className="text-xs font-mono text-white/70">
-                    {isUploading ? 'Processing image...' : 'Click or drop image file to upload directly'}
-                  </span>
-                </div>
-
-                {uploadError && (
-                  <p className="text-xs font-mono text-red-400">{uploadError}</p>
-                )}
 
                 {/* Live Preview Container */}
                 {formImageUrl && (
@@ -611,11 +711,11 @@ export const AnnouncementsCMS: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={isUploading}
+                  disabled={isUploading || isMutating}
                   className="px-6 py-2.5 rounded-xl bg-white hover:bg-white/90 disabled:opacity-50 text-black text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] active:scale-95 cursor-pointer flex items-center gap-2"
                 >
                   <CheckCircle2 className="w-4 h-4 text-black" />
-                  <span>{editingItem ? 'Save Announcement' : 'Publish Announcement'}</span>
+                  <span>{isUploading ? 'Uploading Image...' : isMutating ? 'Saving...' : editingItem ? 'Save Announcement' : 'Publish Announcement'}</span>
                 </button>
               </div>
             </form>

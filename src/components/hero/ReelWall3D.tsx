@@ -126,7 +126,6 @@ const CylinderCard: React.FC<CylinderCardProps> = React.memo(
             width={540}
             height={960}
             sizes="(min-width: 1024px) 236px, (min-width: 768px) 190px, 68vw"
-            fetchPriority={isCenter ? 'high' : 'low'}
             loading={isCenter ? 'eager' : 'lazy'}
             decoding="async"
             className="absolute inset-0 w-full h-full object-cover rounded-[15px] pointer-events-none select-none z-0"

@@ -120,7 +120,7 @@ export const BunqWorkCarousel: React.FC<BunqWorkCarouselProps> = ({
             <span className="w-8 h-[1px] bg-[#139EF2]/40" />
             <span>2026 REEL ARCHIVE</span>
           </div>
-          <h2 className="text-4xl sm:text-6xl font-black uppercase tracking-tight text-white font-['Figtree'] leading-[0.95]">
+          <h2 className="text-4xl sm:text-6xl font-black uppercase tracking-tight text-white font-sans leading-[0.95]">
             Featured Work
           </h2>
         </div>
@@ -249,10 +249,10 @@ export const BunqWorkCarousel: React.FC<BunqWorkCarouselProps> = ({
                       />
                     </div>
                   )}
-                  <h3 className="text-lg font-bold text-white font-['Figtree'] leading-tight">
+                  <h3 className="text-lg font-bold text-white font-sans leading-tight">
                     {project.name}
                   </h3>
-                  <p className="text-xs text-white/70 line-clamp-2 font-['Figtree']">
+                  <p className="text-xs text-white/70 line-clamp-2 font-sans">
                     {project.headline}
                   </p>
                 </div>
@@ -284,7 +284,7 @@ export const BunqWorkCarousel: React.FC<BunqWorkCarouselProps> = ({
               <span className="text-[10px] font-mono text-white/40 uppercase tracking-widest">
                 ACTIVE SHOWCASE
               </span>
-              <div className="text-base sm:text-lg font-bold text-white font-['Figtree']">
+              <div className="text-base sm:text-lg font-bold text-white font-sans">
                 {activeProject.name} — <span className="text-[#139EF2]">{activeProject.headline}</span>
               </div>
             </div>

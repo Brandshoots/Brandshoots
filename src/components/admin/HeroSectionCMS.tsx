@@ -12,7 +12,13 @@ import {
   Type,
   Film,
   Layers,
+  ArrowUp,
+  ArrowDown,
+  Eye,
+  EyeOff,
+  AlertCircle,
 } from 'lucide-react';
+import { ref, set } from 'firebase/database';
 import { CMSHero, CMSHeroReel } from '../../types/cms';
 import {
   fetchPublishedHeroReels,
@@ -22,8 +28,9 @@ import {
 } from '../../lib/cms/cmsService';
 import { INITIAL_HERO, INITIAL_HERO_REELS } from '../../lib/cms/seedData';
 import { SimpleReelModal } from './SimpleReelModal';
-import { CloudinaryUploader } from './CloudinaryUploader';
+import { CloudinaryUploader, isDurableMediaUrl } from './CloudinaryUploader';
 import { pushUndoAction } from '../../lib/cms/cmsHistory';
+import { firebaseDb } from '../../lib/firebase';
 
 export const HeroSectionCMS: React.FC = () => {
   // Navigation Tabs: 'desktop-reels' vs 'mobile-view'
@@ -55,7 +62,12 @@ export const HeroSectionCMS: React.FC = () => {
 
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [saveToast, setSaveToast] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [isSavingHero, setIsSavingHero] = useState(false);
+  const [isSavingReels, setIsSavingReels] = useState(false);
+  const [mobileUploadState, setMobileUploadState] = useState({ video: false, poster: false });
+
+  const isMobileUploading = mobileUploadState.video || mobileUploadState.poster;
 
   // Replace reel modal state
   const [replacingReel, setReplacingReel] = useState<CMSHeroReel | null>(null);
@@ -103,80 +115,213 @@ export const HeroSectionCMS: React.FC = () => {
     setTimeout(() => setSaveToast(null), 3000);
   };
 
-  // Remove a reel from the 3D cylinder grid
-  const handleRemoveReel = async (id: string) => {
-    const target = reels.find((r) => r.id === id);
-    pushUndoAction(`Removed Reel: ${target?.title || 'Slot'}`, reels);
+  const getErrorMessage = (error: unknown, fallback: string) =>
+    error instanceof Error && error.message ? error.message : fallback;
 
-    const updated = reels.filter((r) => r.id !== id).map((r, i) => ({ ...r, order: i }));
-    setReels(updated);
-    await saveHeroReels(updated);
-    showToast('Reel removed from 3D cylinder!');
+  const persistHeroReels = async (nextReels: CMSHeroReel[]) => {
+    const timestamp = Date.now();
+    const normalized = nextReels.map((reel, index) => ({
+      ...reel,
+      lightSrc: reel.lightSrc || reel.src,
+      order: index,
+      updatedAt: timestamp,
+    }));
+
+    await Promise.all([
+      set(ref(firebaseDb, 'published/heroReels'), normalized),
+      set(ref(firebaseDb, 'published/hero/reels'), normalized),
+    ]);
+    await saveHeroReels(normalized);
+    return normalized;
   };
 
-  // Open Replace Modal
+  const persistHeroData = async (nextHero: CMSHero) => {
+    const normalized = { ...nextHero, updatedAt: Date.now() };
+    await set(ref(firebaseDb, 'published/hero'), normalized);
+    await saveHero(normalized);
+    return normalized;
+  };
+
+  const handleRemoveReel = async (id: string) => {
+    if (isSavingReels) return;
+    const target = reels.find((reel) => reel.id === id);
+    const previous = reels;
+    const updated = reels.filter((reel) => reel.id !== id);
+
+    setIsSavingReels(true);
+    setSaveError(null);
+    try {
+      const saved = await persistHeroReels(updated);
+      pushUndoAction(`Removed Reel: ${target?.title || 'Slot'}`, previous);
+      setReels(saved);
+      showToast('Reel removed from 3D cylinder!');
+    } catch (error) {
+      setSaveError(getErrorMessage(error, 'Firebase could not remove this reel.'));
+    } finally {
+      setIsSavingReels(false);
+    }
+  };
+
   const openReplaceModal = (reel: CMSHeroReel, index: number) => {
     setReplacingReel(reel);
     setReplacingIndex(index);
   };
 
-  // Save New Reel
-  const handleSaveNewReel = async (data: { src: string; title: string; client: string; poster: string }) => {
-    pushUndoAction(`Added New Reel: ${data.title}`, reels);
+  const handleSaveNewReel = async (data: {
+    src: string;
+    title: string;
+    client: string;
+    poster: string;
+  }) => {
+    if (isSavingReels) throw new Error('Another reel change is still being saved.');
+    if (!isDurableMediaUrl(data.src) || !isDurableMediaUrl(data.poster)) {
+      throw new Error('Reel video and poster must use durable HTTPS or site-relative URLs.');
+    }
 
+    const previous = reels;
     const newReel: CMSHeroReel = {
       id: `hero-reel-${Date.now()}`,
       title: data.title,
       client: data.client,
       src: data.src,
       lightSrc: data.src,
-      poster: data.poster || '/Logo Official.svg',
+      poster: data.poster,
       order: reels.length,
       visible: true,
       updatedAt: Date.now(),
     };
-    const updated = [...reels, newReel];
-    setReels(updated);
-    await saveHeroReels(updated);
-    setIsAddModalOpen(false);
-    showToast('New reel added to 3D cylinder!');
+
+    setIsSavingReels(true);
+    setSaveError(null);
+    try {
+      const saved = await persistHeroReels([...reels, newReel]);
+      pushUndoAction(`Added New Reel: ${data.title}`, previous);
+      setReels(saved);
+      setIsAddModalOpen(false);
+      showToast('New reel added to 3D cylinder!');
+    } catch (error) {
+      const message = getErrorMessage(error, 'Firebase could not add this reel.');
+      setSaveError(message);
+      throw new Error(message);
+    } finally {
+      setIsSavingReels(false);
+    }
   };
 
-  // Save Replaced Reel
-  const handleSaveReplacedReel = async (data: { src: string; title: string; client: string; poster: string }) => {
+  const handleSaveReplacedReel = async (data: {
+    src: string;
+    title: string;
+    client: string;
+    poster: string;
+  }) => {
     if (!replacingReel) return;
-    const slotNum = replacingIndex !== null ? replacingIndex + 1 : '';
-    pushUndoAction(`Replaced Slot #${slotNum}: ${data.title}`, reels);
+    if (isSavingReels) throw new Error('Another reel change is still being saved.');
+    if (!isDurableMediaUrl(data.src) || !isDurableMediaUrl(data.poster)) {
+      throw new Error('Reel video and poster must use durable HTTPS or site-relative URLs.');
+    }
 
-    const updated = reels.map((r) => {
-      if (r.id === replacingReel.id) {
-        return {
-          ...r,
-          title: data.title,
-          client: data.client,
-          src: data.src,
-          lightSrc: data.src,
-          poster: data.poster || r.poster,
-          updatedAt: Date.now(),
-        };
-      }
-      return r;
-    });
-    setReels(updated);
-    await saveHeroReels(updated);
-    setReplacingReel(null);
-    showToast(`Slot #${slotNum} replaced successfully!`);
+    const previous = reels;
+    const slotNum = replacingIndex !== null ? replacingIndex + 1 : '';
+    const updated = reels.map((reel) =>
+      reel.id === replacingReel.id
+        ? {
+            ...reel,
+            title: data.title,
+            client: data.client,
+            src: data.src,
+            lightSrc: data.src,
+            poster: data.poster,
+            updatedAt: Date.now(),
+          }
+        : reel
+    );
+
+    setIsSavingReels(true);
+    setSaveError(null);
+    try {
+      const saved = await persistHeroReels(updated);
+      pushUndoAction(`Replaced Slot #${slotNum}: ${data.title}`, previous);
+      setReels(saved);
+      setReplacingReel(null);
+      showToast(`Slot #${slotNum} replaced successfully!`);
+    } catch (error) {
+      const message = getErrorMessage(error, 'Firebase could not replace this reel.');
+      setSaveError(message);
+      throw new Error(message);
+    } finally {
+      setIsSavingReels(false);
+    }
   };
 
-  // Save Mobile View & Hero Content
+  const moveReel = async (index: number, direction: -1 | 1) => {
+    if (isSavingReels) return;
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= reels.length) return;
+
+    const previous = reels;
+    const updated = [...reels];
+    [updated[index], updated[targetIndex]] = [updated[targetIndex], updated[index]];
+
+    setIsSavingReels(true);
+    setSaveError(null);
+    try {
+      const saved = await persistHeroReels(updated);
+      pushUndoAction(`Moved Reel: ${reels[index].title}`, previous);
+      setReels(saved);
+      showToast('Reel order saved to Firebase.');
+    } catch (error) {
+      setSaveError(getErrorMessage(error, 'Firebase could not update the reel order.'));
+    } finally {
+      setIsSavingReels(false);
+    }
+  };
+
+  const toggleReelVisibility = async (id: string) => {
+    if (isSavingReels) return;
+    const target = reels.find((reel) => reel.id === id);
+    if (!target) return;
+
+    const previous = reels;
+    const updated = reels.map((reel) =>
+      reel.id === id ? { ...reel, visible: !reel.visible } : reel
+    );
+
+    setIsSavingReels(true);
+    setSaveError(null);
+    try {
+      const saved = await persistHeroReels(updated);
+      pushUndoAction(`${target.visible ? 'Hidden' : 'Shown'} Reel: ${target.title}`, previous);
+      setReels(saved);
+      showToast(`Reel ${target.visible ? 'hidden' : 'shown'} successfully.`);
+    } catch (error) {
+      setSaveError(getErrorMessage(error, 'Firebase could not update reel visibility.'));
+    } finally {
+      setIsSavingReels(false);
+    }
+  };
+
   const handleSaveMobileHero = async () => {
+    if (isMobileUploading) {
+      setSaveError('Wait for the active media upload to finish before saving.');
+      return;
+    }
+
+    const mediaUrls = [heroData.mobileVideoUrl, heroData.mobilePosterUrl].filter(
+      (url): url is string => Boolean(url?.trim())
+    );
+    if (mediaUrls.some((url) => !isDurableMediaUrl(url))) {
+      setSaveError('Mobile video and poster must use durable HTTPS or site-relative URLs.');
+      return;
+    }
+
     try {
       setIsSavingHero(true);
-      await saveHero(heroData);
+      setSaveError(null);
+      const saved = await persistHeroData(heroData);
+      setHeroData(saved);
       showToast('Mobile Hero View & Brand Typography saved successfully!');
-    } catch (err) {
-      console.error(err);
-      showToast('Error saving Mobile Hero view');
+    } catch (error) {
+      setSaveError(getErrorMessage(error, 'Firebase could not save the Mobile Hero view.'));
     } finally {
       setIsSavingHero(false);
     }
@@ -236,6 +381,16 @@ export const HeroSectionCMS: React.FC = () => {
         </div>
       )}
 
+      {saveError && (
+        <div
+          className="p-3.5 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 font-mono text-sm flex items-start gap-2"
+          role="alert"
+        >
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <span>{saveError}</span>
+        </div>
+      )}
+
       {/* =============================================================== */}
       {/* TAB 1: DESKTOP 3D REELS GRID                                    */}
       {/* =============================================================== */}
@@ -248,8 +403,12 @@ export const HeroSectionCMS: React.FC = () => {
 
             <button
               type="button"
-              onClick={() => setIsAddModalOpen(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-white/90 text-black font-sans font-bold text-sm transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] cursor-pointer"
+              onClick={() => {
+                setSaveError(null);
+                setIsAddModalOpen(true);
+              }}
+              disabled={isSavingReels}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-white/90 text-black font-sans font-bold text-sm transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Plus className="w-4 h-4 text-black" />
               <span>Add Reel Slot</span>
@@ -288,12 +447,47 @@ export const HeroSectionCMS: React.FC = () => {
                     #{index + 1}
                   </div>
 
-                  {/* Floating Action Buttons (Top Right: Replace & Remove) */}
-                  <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
+                  {/* Reel management controls */}
+                  <div className="absolute top-2.5 right-2.5 grid grid-cols-2 gap-1.5 z-10">
                     <button
                       type="button"
-                      onClick={() => openReplaceModal(reel, index)}
-                      className="group/replace w-8 h-8 rounded-lg bg-black/90 hover:bg-white border border-white/25 hover:border-white text-white hover:text-black flex items-center justify-center transition-all duration-200 cursor-pointer shadow-lg hover:scale-105 active:scale-95"
+                      onClick={() => void moveReel(index, -1)}
+                      disabled={isSavingReels || index === 0}
+                      className="w-8 h-8 rounded-lg bg-black/90 hover:bg-white border border-white/25 hover:border-white text-white hover:text-black flex items-center justify-center transition-all cursor-pointer shadow-lg disabled:cursor-not-allowed disabled:opacity-35"
+                      title="Move reel up"
+                      aria-label={`Move ${reel.title} up`}
+                    >
+                      <ArrowUp className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void moveReel(index, 1)}
+                      disabled={isSavingReels || index === reels.length - 1}
+                      className="w-8 h-8 rounded-lg bg-black/90 hover:bg-white border border-white/25 hover:border-white text-white hover:text-black flex items-center justify-center transition-all cursor-pointer shadow-lg disabled:cursor-not-allowed disabled:opacity-35"
+                      title="Move reel down"
+                      aria-label={`Move ${reel.title} down`}
+                    >
+                      <ArrowDown className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void toggleReelVisibility(reel.id)}
+                      disabled={isSavingReels}
+                      className="w-8 h-8 rounded-lg bg-black/90 hover:bg-[#008CFF] border border-white/25 hover:border-[#008CFF] text-white flex items-center justify-center transition-all cursor-pointer shadow-lg disabled:cursor-not-allowed disabled:opacity-35"
+                      title={reel.visible ? 'Hide reel' : 'Show reel'}
+                      aria-label={`${reel.visible ? 'Hide' : 'Show'} ${reel.title}`}
+                      aria-pressed={!reel.visible}
+                    >
+                      {reel.visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSaveError(null);
+                        openReplaceModal(reel, index);
+                      }}
+                      disabled={isSavingReels}
+                      className="group/replace w-8 h-8 rounded-lg bg-black/90 hover:bg-white border border-white/25 hover:border-white text-white hover:text-black flex items-center justify-center transition-all duration-200 cursor-pointer shadow-lg disabled:cursor-not-allowed disabled:opacity-35"
                       title="Replace this reel"
                       aria-label="Replace reel"
                     >
@@ -301,14 +495,21 @@ export const HeroSectionCMS: React.FC = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleRemoveReel(reel.id)}
-                      className="group/remove w-8 h-8 rounded-lg bg-black/90 hover:bg-red-600 border border-white/25 hover:border-red-600 text-white flex items-center justify-center transition-all duration-200 cursor-pointer shadow-lg hover:scale-105 active:scale-95"
+                      onClick={() => void handleRemoveReel(reel.id)}
+                      disabled={isSavingReels}
+                      className="group/remove col-span-2 w-full h-8 rounded-lg bg-black/90 hover:bg-red-600 border border-white/25 hover:border-red-600 text-white flex items-center justify-center transition-all duration-200 cursor-pointer shadow-lg disabled:cursor-not-allowed disabled:opacity-35"
                       title="Remove reel"
                       aria-label="Remove reel"
                     >
                       <Trash2 className="w-3.5 h-3.5 transition-transform duration-200 group-hover/remove:scale-110" />
                     </button>
                   </div>
+
+                  {!reel.visible && (
+                    <div className="absolute inset-x-0 bottom-0 bg-black/85 px-3 py-2 text-center text-[10px] font-mono font-bold uppercase tracking-wider text-amber-300">
+                      Hidden from public view
+                    </div>
+                  )}
                 </div>
 
                 {/* Bottom Info Bar */}
@@ -320,7 +521,7 @@ export const HeroSectionCMS: React.FC = () => {
                     >
                       {reel.title || 'Untitled Reel'}
                     </h3>
-                    <span className="block mt-1 text-xs font-mono font-semibold text-white/60 uppercase tracking-wider truncate">
+                    <span className="block mt-1 text-xs font-mono font-semibold text-white/60 tracking-wider truncate">
                       {reel.client || 'BrandShoots'}
                     </span>
                   </div>
@@ -437,16 +638,30 @@ export const HeroSectionCMS: React.FC = () => {
                   label="Mobile Hero Video URL (.mp4)"
                   accept="video"
                   value={heroData.mobileVideoUrl || ''}
-                  onChange={(url) => setHeroData((prev) => ({ ...prev, mobileVideoUrl: url }))}
+                  onChange={(url) => {
+                    setSaveError(null);
+                    setHeroData((prev) => ({ ...prev, mobileVideoUrl: url }));
+                  }}
+                  onUploadingChange={(isUploading) =>
+                    setMobileUploadState((current) => ({ ...current, video: isUploading }))
+                  }
                   helpText="Upload a crisp 9:16 vertical video optimized for mobile devices."
+                  requireCloudinary
                 />
 
                 <CloudinaryUploader
                   label="Mobile Instant Poster Image (.jpg / .png)"
                   accept="image"
                   value={heroData.mobilePosterUrl || ''}
-                  onChange={(url) => setHeroData((prev) => ({ ...prev, mobilePosterUrl: url }))}
+                  onChange={(url) => {
+                    setSaveError(null);
+                    setHeroData((prev) => ({ ...prev, mobilePosterUrl: url }));
+                  }}
+                  onUploadingChange={(isUploading) =>
+                    setMobileUploadState((current) => ({ ...current, poster: isUploading }))
+                  }
                   helpText="Displayed immediately while video is decoding to prevent black flash."
+                  requireCloudinary
                 />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
@@ -561,11 +776,17 @@ export const HeroSectionCMS: React.FC = () => {
               <button
                 type="button"
                 onClick={handleSaveMobileHero}
-                disabled={isSavingHero}
-                className="flex items-center gap-2.5 px-7 py-3 rounded-xl bg-[#008CFF] hover:bg-[#0070CC] text-white font-sans font-bold text-sm transition-all shadow-[0_0_25px_rgba(0,140,255,0.4)] cursor-pointer active:scale-95 disabled:opacity-50"
+                disabled={isSavingHero || isMobileUploading}
+                className="flex items-center gap-2.5 px-7 py-3 rounded-xl bg-[#008CFF] hover:bg-[#0070CC] text-white font-sans font-bold text-sm transition-all shadow-[0_0_25px_rgba(0,140,255,0.4)] cursor-pointer active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Save className="w-4 h-4 text-white" />
-                <span>{isSavingHero ? 'Saving Changes...' : 'Save Mobile Hero Changes'}</span>
+                <span>
+                  {isMobileUploading
+                    ? 'Waiting for Upload...'
+                    : isSavingHero
+                      ? 'Saving Changes...'
+                      : 'Save Mobile Hero Changes'}
+                </span>
               </button>
             </div>
           </div>
@@ -631,7 +852,7 @@ export const HeroSectionCMS: React.FC = () => {
                       <p className="text-[10px] font-sans font-bold text-white leading-tight truncate">
                         {heroData.mobileFeaturedTitle || reels[0]?.title || 'Creative Reel'}
                       </p>
-                      <p className="text-[8px] font-mono text-white/60 uppercase tracking-wider truncate">
+                      <p className="text-[8px] font-mono text-white/60 tracking-wider truncate">
                         {heroData.mobileFeaturedClient || reels[0]?.client || 'BrandShoots'}
                       </p>
                     </div>

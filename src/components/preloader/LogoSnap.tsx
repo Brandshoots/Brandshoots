@@ -9,7 +9,7 @@ interface LogoSnapProps {
 
 /**
  * LogoSnap:
- * Orchestrates the photographic snap event for the official Brand Shoots identity.
+ * Orchestrates the photographic snap event for the official BrandShoots identity.
  * Shutter blades contract -> CLICK -> White flash -> Aperture expands ->
  * Official logo locks into place while Electric Brand Blue (#1497F5) blooms from monochrome.
  */
@@ -54,7 +54,7 @@ export const LogoSnap = forwardRef<HTMLDivElement, LogoSnapProps>(({
         {/* The Exact Official Logo Asset */}
         <img
           src="/Logo Official.svg"
-          alt="Brand Shoots"
+          alt="BrandShoots"
           className={`relative w-full h-auto max-h-24 md:max-h-28 object-contain transition-all duration-500 will-change-transform ${
             isColorRevealed
               ? 'filter drop-shadow-[0_0_24px_rgba(20,151,245,0.45)]'

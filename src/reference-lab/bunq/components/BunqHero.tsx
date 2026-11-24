@@ -34,13 +34,13 @@ export const BunqHero: React.FC<BunqHeroProps> = ({ onStartInquiry, onExploreWor
 
       {/* Main Monolithic Statement (BUNQ LABS Scale & Stance) */}
       <div className="max-w-7xl mx-auto w-full relative z-10 my-auto py-8 space-y-6">
-        <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black uppercase tracking-[-0.035em] text-white font-['Figtree'] leading-[0.92]">
+        <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black uppercase tracking-[-0.035em] text-white font-sans leading-[0.92]">
           We Create Stories. <br />
           <span className="text-[#139EF2]">We Make Them Move.</span>
         </h1>
 
         <div className="max-w-2xl space-y-4">
-          <p className="text-base sm:text-xl text-white/70 font-['Figtree'] font-light leading-relaxed">
+          <p className="text-base sm:text-xl text-white/70 font-sans font-light leading-relaxed">
             A content-led brand growth partner for ambitious commercial enterprises. We combine cinema-grade physical production with high-velocity 9:16 vertical storytelling and systematic distribution.
           </p>
 

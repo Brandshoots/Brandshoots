@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Plus,
   Edit3,
@@ -6,31 +6,75 @@ import {
   RefreshCw,
   CheckCircle2,
   X,
-  Upload,
-  Link as LinkIcon,
   Image as ImageIcon,
   Eye,
   EyeOff,
   Heart,
   Building2,
+  ArrowUp,
+  ArrowDown,
+  AlertCircle,
 } from 'lucide-react';
+import { ref, set } from 'firebase/database';
 import { CMSClientLogo } from '../../types/cms';
 import {
   fetchPublishedClients,
   saveAllClients,
-  resetClientsToDefaults,
 } from '../../lib/cms/cmsService';
 import { pushClientsUndoAction } from '../../lib/cms/cmsHistory';
+import { INITIAL_CLIENTS } from '../../lib/cms/seedData';
+import { firebaseDb } from '../../lib/firebase';
+import { CloudinaryUploader } from './CloudinaryUploader';
+
+type UploadingAwareUploaderProps = React.ComponentProps<typeof CloudinaryUploader> & {
+  onUploadingChange?: (isUploading: boolean) => void;
+};
+
+const UploadingAwareCloudinaryUploader = CloudinaryUploader as React.ComponentType<UploadingAwareUploaderProps>;
+
+const isAllowedMediaUrl = (value: string): boolean => {
+  const clean = value.trim();
+  return /^https:\/\//i.test(clean) || /^\/(?!\/)/.test(clean);
+};
+
+const normalizeClients = (items: CMSClientLogo[]): CMSClientLogo[] =>
+  items.map((item, index) => ({
+    ...item,
+    order: index,
+    visible: item.visible !== false,
+    updatedAt: Date.now(),
+  }));
+
+const persistClients = async (items: CMSClientLogo[]): Promise<CMSClientLogo[]> => {
+  const normalized = normalizeClients(items);
+  const record: Record<string, CMSClientLogo> = {};
+  normalized.forEach((item) => {
+    const { views, likes, slug, ...required } = item;
+    record[item.id] = {
+      ...required,
+      ...(slug ? { slug } : {}),
+      ...(views ? { views } : {}),
+      ...(likes ? { likes } : {}),
+    };
+  });
+  await set(ref(firebaseDb, 'published/clients'), record);
+  await saveAllClients(normalized);
+  return normalized;
+};
+
+const errorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : 'The change could not be saved.';
 
 export const ClienteleCMS: React.FC = () => {
   const [clients, setClients] = useState<CMSClientLogo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [saveToast, setSaveToast] = useState<string | null>(null);
+  const [toastIsError, setToastIsError] = useState(false);
+  const [isMutating, setIsMutating] = useState(false);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<CMSClientLogo | null>(null);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   // Form Inputs
   const [formName, setFormName] = useState('');
@@ -38,11 +82,7 @@ export const ClienteleCMS: React.FC = () => {
   const [formViews, setFormViews] = useState('');
   const [formLikes, setFormLikes] = useState('');
   const [formVisible, setFormVisible] = useState(true);
-
-  // File Upload State
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load clients on mount
   useEffect(() => {
@@ -74,167 +114,220 @@ export const ClienteleCMS: React.FC = () => {
     };
   }, []);
 
-  const showToast = (msg: string) => {
+  const showToast = (msg: string, isError = false) => {
+    setToastIsError(isError);
     setSaveToast(msg);
-    setTimeout(() => setSaveToast(null), 3500);
+    window.setTimeout(() => setSaveToast(null), 3500);
   };
 
   // Open Edit Modal
-  const openEditModal = (client: CMSClientLogo, index: number) => {
+  const openEditModal = (client: CMSClientLogo) => {
     setEditingClient(client);
-    setEditingIndex(index);
     setFormName(client.name || '');
     setFormLogoUrl(client.logoUrl || '');
     setFormViews(client.views || '');
     setFormLikes(client.likes || '');
     setFormVisible(client.visible !== false);
-    setUploadError(null);
+    setIsUploading(false);
     setIsModalOpen(true);
   };
 
   // Open Create Modal
   const openCreateModal = () => {
     setEditingClient(null);
-    setEditingIndex(null);
     setFormName('');
     setFormLogoUrl('/clients/optimized/Aabharan Logo.webp');
     setFormViews('');
     setFormLikes('');
     setFormVisible(true);
-    setUploadError(null);
+    setIsUploading(false);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
+    if (isMutating) return;
     setIsModalOpen(false);
     setEditingClient(null);
-    setEditingIndex(null);
-  };
-
-  // Handle Logo File Select
-  const handleFileSelect = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      setUploadError('Please select a valid image file (PNG, JPG, SVG, WebP).');
-      return;
-    }
-
-    setIsUploading(true);
-    setUploadError(null);
-
-    // Instant local object URL preview
-    const localUrl = URL.createObjectURL(file);
-    setFormLogoUrl(localUrl);
-
-    // Persist as base64 data URL
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setFormLogoUrl(reader.result);
-      }
-      setIsUploading(false);
-    };
-    reader.onerror = () => {
-      setIsUploading(false);
-    };
-    reader.readAsDataURL(file);
+    setIsUploading(false);
   };
 
   // Save Client Logo (Create or Edit)
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isUploading || isMutating) return;
+
     const nameClean = formName.trim();
+    const logoUrl = formLogoUrl.trim();
     if (!nameClean) return;
+    if (!isAllowedMediaUrl(logoUrl)) {
+      showToast('Use a secure HTTPS logo URL or a site-relative logo path.', true);
+      return;
+    }
 
     const previousState = [...clients];
+    const views = formViews.trim();
+    const likes = formLikes.trim();
     let updatedList: CMSClientLogo[];
+    let description: string;
+    let successMessage: string;
 
-    if (editingClient && editingIndex !== null) {
-      // Edit existing
-      pushClientsUndoAction(`Updated client logo: ${nameClean}`, previousState);
+    if (editingClient) {
+      const currentClient = clients.find((client) => client.id === editingClient.id);
+      if (!currentClient) {
+        showToast('This client no longer exists. Close the editor and try again.', true);
+        return;
+      }
 
+      const { views: _oldViews, likes: _oldLikes, ...clientWithoutStats } = currentClient;
       const updatedClient: CMSClientLogo = {
-        ...editingClient,
+        ...clientWithoutStats,
         name: nameClean,
-        logoUrl: formLogoUrl.trim(),
-        views: formViews.trim() || undefined,
-        likes: formLikes.trim() || undefined,
+        logoUrl,
+        ...(views ? { views } : {}),
+        ...(likes ? { likes } : {}),
         visible: formVisible,
         updatedAt: Date.now(),
       };
-
-      updatedList = clients.map((c, idx) => (idx === editingIndex ? updatedClient : c));
-      showToast(`Client "${nameClean}" updated & live synced!`);
+      updatedList = clients.map((client) =>
+        client.id === currentClient.id ? updatedClient : client
+      );
+      description = `Updated client logo: ${nameClean}`;
+      successMessage = `Client "${nameClean}" updated & live synced!`;
     } else {
-      // Create new
-      pushClientsUndoAction(`Added client logo: ${nameClean}`, previousState);
-
       const cleanSlug = nameClean.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
       const newClient: CMSClientLogo = {
         id: `client_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
         name: nameClean,
-        logoUrl: formLogoUrl.trim(),
+        logoUrl,
         slug: cleanSlug,
-        views: formViews.trim() || undefined,
-        likes: formLikes.trim() || undefined,
+        ...(views ? { views } : {}),
+        ...(likes ? { likes } : {}),
         order: clients.length,
         visible: formVisible,
         updatedAt: Date.now(),
       };
-
       updatedList = [...clients, newClient];
-      showToast(`Client "${nameClean}" added & live synced!`);
+      description = `Added client logo: ${nameClean}`;
+      successMessage = `Client "${nameClean}" added & live synced!`;
     }
 
-    setClients(updatedList);
-    await saveAllClients(updatedList);
-    closeModal();
+    setIsMutating(true);
+    try {
+      const persisted = await persistClients(updatedList);
+      setClients(persisted);
+      pushClientsUndoAction(description, previousState);
+      showToast(successMessage);
+      setIsModalOpen(false);
+      setEditingClient(null);
+    } catch (error) {
+      console.error('Failed to save client:', error);
+      showToast(`Could not save client: ${errorMessage(error)}`, true);
+    } finally {
+      setIsMutating(false);
+    }
   };
 
   // Delete Client
   const handleDelete = async (id: string, name: string) => {
+    if (isMutating) return;
     if (!window.confirm(`Delete client "${name}"? This can be undone anytime with the navbar Undo button.`)) {
       return;
     }
 
     const previousState = [...clients];
-    pushClientsUndoAction(`Deleted client: ${name}`, previousState);
-
-    const updatedList = clients.filter((c) => c.id !== id);
-    setClients(updatedList);
-    await saveAllClients(updatedList);
-    showToast(`Client "${name}" removed. Click Undo in navbar to restore.`);
+    const updatedList = clients.filter((client) => client.id !== id);
+    setIsMutating(true);
+    try {
+      const persisted = await persistClients(updatedList);
+      setClients(persisted);
+      pushClientsUndoAction(`Deleted client: ${name}`, previousState);
+      showToast(`Client "${name}" removed. Click Undo in navbar to restore.`);
+    } catch (error) {
+      console.error('Failed to delete client:', error);
+      showToast(`Could not delete client: ${errorMessage(error)}`, true);
+    } finally {
+      setIsMutating(false);
+    }
   };
 
   // Toggle Visibility
-  const handleToggleVisible = async (client: CMSClientLogo, index: number) => {
+  const handleToggleVisible = async (id: string) => {
+    if (isMutating) return;
+    const client = clients.find((item) => item.id === id);
+    if (!client) return;
+
     const previousState = [...clients];
-    const newStatus = !client.visible;
-    pushClientsUndoAction(
-      `${newStatus ? 'Showed' : 'Hidden'} client: ${client.name}`,
-      previousState
+    const newStatus = !(client.visible !== false);
+    const updated = clients.map((item) =>
+      item.id === id ? { ...item, visible: newStatus, updatedAt: Date.now() } : item
     );
 
-    const updated = clients.map((c, idx) =>
-      idx === index ? { ...c, visible: newStatus, updatedAt: Date.now() } : c
-    );
+    setIsMutating(true);
+    try {
+      const persisted = await persistClients(updated);
+      setClients(persisted);
+      pushClientsUndoAction(
+        `${newStatus ? 'Showed' : 'Hidden'} client: ${client.name}`,
+        previousState
+      );
+      showToast(`Client "${client.name}" is now ${newStatus ? 'VISIBLE' : 'HIDDEN'}.`);
+    } catch (error) {
+      console.error('Failed to change client visibility:', error);
+      showToast(`Could not change client visibility: ${errorMessage(error)}`, true);
+    } finally {
+      setIsMutating(false);
+    }
+  };
 
-    setClients(updated);
-    await saveAllClients(updated);
-    showToast(`Client "${client.name}" is now ${newStatus ? 'VISIBLE' : 'HIDDEN'}.`);
+  const handleMove = async (id: string, direction: -1 | 1) => {
+    if (isMutating) return;
+    const fromIndex = clients.findIndex((client) => client.id === id);
+    const toIndex = fromIndex + direction;
+    if (fromIndex < 0 || toIndex < 0 || toIndex >= clients.length) return;
+
+    const previousState = [...clients];
+    const updated = [...clients];
+    [updated[fromIndex], updated[toIndex]] = [updated[toIndex], updated[fromIndex]];
+    const moved = updated[toIndex];
+
+    setIsMutating(true);
+    try {
+      const persisted = await persistClients(updated);
+      setClients(persisted);
+      pushClientsUndoAction(`Moved client: ${moved.name}`, previousState);
+      showToast(`Client "${moved.name}" moved to position ${toIndex + 1}.`);
+    } catch (error) {
+      console.error('Failed to reorder clients:', error);
+      showToast(`Could not reorder clients: ${errorMessage(error)}`, true);
+    } finally {
+      setIsMutating(false);
+    }
   };
 
   // Reset to Defaults
   const handleResetDefaults = async () => {
+    if (isMutating) return;
     if (!window.confirm('Reset client logos to BrandShoots official defaults? This can be undone with the navbar Undo button.')) {
       return;
     }
 
     const previousState = [...clients];
-    pushClientsUndoAction('Reset client logos to defaults', previousState);
+    const defaults = Object.values(INITIAL_CLIENTS)
+      .sort((a, b) => a.order - b.order)
+      .map((client) => ({ ...client }));
 
-    const defaults = await resetClientsToDefaults();
-    setClients(defaults);
-    showToast('Client logos reset to defaults!');
+    setIsMutating(true);
+    try {
+      const persisted = await persistClients(defaults);
+      setClients(persisted);
+      pushClientsUndoAction('Reset client logos to defaults', previousState);
+      showToast('Client logos reset to defaults!');
+    } catch (error) {
+      console.error('Failed to reset clients:', error);
+      showToast(`Could not reset clients: ${errorMessage(error)}`, true);
+    } finally {
+      setIsMutating(false);
+    }
   };
 
   if (isLoading) {
@@ -254,8 +347,12 @@ export const ClienteleCMS: React.FC = () => {
     <div className="space-y-6">
       {/* Toast Notification */}
       {saveToast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-[#008CFF] text-white font-mono text-xs font-bold shadow-[0_10px_40px_rgba(0,140,255,0.4)] animate-in fade-in slide-in-from-bottom-3 duration-200">
-          <CheckCircle2 className="w-4 h-4 text-white" />
+        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-5 py-3 rounded-2xl text-white font-mono text-xs font-bold animate-in fade-in slide-in-from-bottom-3 duration-200 ${
+          toastIsError
+            ? 'bg-red-600 shadow-[0_10px_40px_rgba(220,38,38,0.35)]'
+            : 'bg-[#008CFF] shadow-[0_10px_40px_rgba(0,140,255,0.4)]'
+        }`}>
+          {toastIsError ? <AlertCircle className="w-4 h-4 text-white" /> : <CheckCircle2 className="w-4 h-4 text-white" />}
           <span>{saveToast}</span>
         </div>
       )}
@@ -281,7 +378,8 @@ export const ClienteleCMS: React.FC = () => {
           <button
             type="button"
             onClick={handleResetDefaults}
-            className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/15 flex items-center gap-2 text-xs font-mono font-bold transition-all cursor-pointer"
+            disabled={isMutating}
+            className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/15 flex items-center gap-2 text-xs font-mono font-bold transition-all cursor-pointer disabled:opacity-40"
             title="Reset to default client logos"
           >
             <RefreshCw className="w-3.5 h-3.5 text-white" />
@@ -291,7 +389,8 @@ export const ClienteleCMS: React.FC = () => {
           <button
             type="button"
             onClick={openCreateModal}
-            className="flex-1 md:flex-none px-4 py-2 rounded-xl bg-white hover:bg-white/90 text-black flex items-center justify-center gap-2 text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] active:scale-95 cursor-pointer"
+            disabled={isMutating}
+            className="flex-1 md:flex-none px-4 py-2 rounded-xl bg-white hover:bg-white/90 disabled:opacity-40 text-black flex items-center justify-center gap-2 text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4 text-black" />
             <span>Add Client Logo</span>
@@ -307,7 +406,7 @@ export const ClienteleCMS: React.FC = () => {
 
           return (
             <div
-              key={client.id || index}
+              key={client.id}
               className={`group relative bg-[#070B12]/95 border rounded-2xl p-3.5 sm:p-4 transition-all duration-300 flex flex-col justify-between shadow-lg ${
                 isVisible
                   ? 'border-white/15 hover:border-white/40 shadow-black/60 hover:-translate-y-0.5'
@@ -316,16 +415,39 @@ export const ClienteleCMS: React.FC = () => {
             >
               {/* Card Top Actions: Number, Status Toggle, Edit & Delete */}
               <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-white/10">
-                <span className="font-mono text-[11px] font-bold text-white bg-white/10 px-1.5 py-0.5 rounded border border-white/15">
-                  #{itemNum}
-                </span>
+                <div className="flex items-center gap-1">
+                  <span className="font-mono text-[11px] font-bold text-white bg-white/10 px-1.5 py-0.5 rounded border border-white/15">
+                    #{itemNum}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleMove(client.id, -1)}
+                    disabled={isMutating || index === 0}
+                    className="p-1 rounded-md bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+                    title="Move client up"
+                    aria-label={`Move ${client.name} up`}
+                  >
+                    <ArrowUp className="w-3 h-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleMove(client.id, 1)}
+                    disabled={isMutating || index === clients.length - 1}
+                    className="p-1 rounded-md bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+                    title="Move client down"
+                    aria-label={`Move ${client.name} down`}
+                  >
+                    <ArrowDown className="w-3 h-3" />
+                  </button>
+                </div>
 
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1">
                   {/* Visibility Toggle Button */}
                   <button
                     type="button"
-                    onClick={() => handleToggleVisible(client, index)}
-                    className={`p-1 rounded-md text-white/70 hover:text-white transition-colors cursor-pointer ${
+                    onClick={() => handleToggleVisible(client.id)}
+                    disabled={isMutating}
+                    className={`p-1 rounded-md text-white/70 hover:text-white transition-colors cursor-pointer disabled:opacity-40 ${
                       isVisible ? 'hover:bg-emerald-500/20 text-emerald-400' : 'hover:bg-white/10 text-white/40'
                     }`}
                     title={isVisible ? 'Visible on homepage (Click to hide)' : 'Hidden (Click to show)'}
@@ -336,8 +458,9 @@ export const ClienteleCMS: React.FC = () => {
                   {/* Edit Button */}
                   <button
                     type="button"
-                    onClick={() => openEditModal(client, index)}
-                    className="p-1 rounded-md bg-white/10 hover:bg-white text-white hover:text-black transition-colors cursor-pointer"
+                    onClick={() => openEditModal(client)}
+                    disabled={isMutating}
+                    className="p-1 rounded-md bg-white/10 hover:bg-white text-white hover:text-black transition-colors cursor-pointer disabled:opacity-40"
                     title={`Edit ${client.name}`}
                   >
                     <Edit3 className="w-3 h-3 text-current" />
@@ -347,7 +470,8 @@ export const ClienteleCMS: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleDelete(client.id, client.name)}
-                    className="p-1 rounded-md bg-white/10 hover:bg-red-500 text-white hover:text-white transition-colors cursor-pointer"
+                    disabled={isMutating}
+                    className="p-1 rounded-md bg-white/10 hover:bg-red-500 text-white hover:text-white transition-colors cursor-pointer disabled:opacity-40"
                     title={`Delete ${client.name}`}
                   >
                     <Trash2 className="w-3 h-3 text-current" />
@@ -373,8 +497,9 @@ export const ClienteleCMS: React.FC = () => {
                 {/* Quick Replace Button Hover Overlay */}
                 <button
                   type="button"
-                  onClick={() => openEditModal(client, index)}
-                  className="absolute bottom-1.5 right-1.5 w-7 h-7 rounded-lg bg-black/80 hover:bg-black text-white border border-white/30 flex items-center justify-center opacity-0 group-hover/tile:opacity-100 transition-all cursor-pointer shadow-md"
+                  onClick={() => openEditModal(client)}
+                  disabled={isMutating}
+                  className="absolute bottom-1.5 right-1.5 w-7 h-7 rounded-lg bg-black/80 hover:bg-black text-white border border-white/30 flex items-center justify-center opacity-0 group-hover/tile:opacity-100 transition-all cursor-pointer shadow-md disabled:opacity-30"
                   title="Replace this logo"
                   aria-label="Replace this logo"
                 >
@@ -474,46 +599,15 @@ export const ClienteleCMS: React.FC = () => {
 
               {/* 2. Client Logo Image */}
               <div className="space-y-3 pt-2 border-t border-white/10">
-                <label className="block text-xs font-mono uppercase text-white/70 font-bold flex items-center gap-1.5">
-                  <ImageIcon className="w-3.5 h-3.5 text-white" />
-                  <span>Client Logo (PNG, SVG, JPG, WebP)</span>
-                </label>
-
-                {/* Paste URL Input */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={formLogoUrl}
-                    onChange={(e) => setFormLogoUrl(e.target.value)}
-                    placeholder="e.g. /clients/optimized/Shanti Pipes.webp or https://..."
-                    required
-                    className="w-full px-4 py-2.5 pl-10 rounded-xl bg-black/70 border border-white/20 text-white text-sm font-mono placeholder:text-white/30 focus:outline-none focus:border-white/60 transition-colors"
-                  />
-                  <LinkIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-                </div>
-
-                {/* File Upload Trigger */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
-                  className="hidden"
+                <UploadingAwareCloudinaryUploader
+                  label="Client Logo (PNG, SVG, JPG, WebP)"
+                  value={formLogoUrl}
+                  onChange={setFormLogoUrl}
+                  onUploadingChange={setIsUploading}
+                  accept="image"
+                  requireCloudinary
+                  helpText="Upload a signed Cloudinary image, or enter a secure HTTPS/site-relative logo URL."
                 />
-
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-white/15 hover:border-white/40 rounded-2xl p-4 text-center cursor-pointer transition-colors bg-white/[0.02] flex items-center justify-center gap-3"
-                >
-                  <Upload className="w-4 h-4 text-white" />
-                  <span className="text-xs font-mono text-white/70">
-                    {isUploading ? 'Processing logo file...' : 'Click or drop logo image to upload'}
-                  </span>
-                </div>
-
-                {uploadError && (
-                  <p className="text-xs font-mono text-red-400">{uploadError}</p>
-                )}
 
                 {/* Live Preview Container with Real White Tile */}
                 {formLogoUrl && (
@@ -606,11 +700,11 @@ export const ClienteleCMS: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={isUploading}
+                  disabled={isUploading || isMutating}
                   className="px-6 py-2.5 rounded-xl bg-white hover:bg-white/90 disabled:opacity-50 text-black text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] active:scale-95 cursor-pointer flex items-center gap-2"
                 >
                   <CheckCircle2 className="w-4 h-4 text-black" />
-                  <span>{editingClient ? 'Save Client Logo' : 'Add Client Logo'}</span>
+                  <span>{isUploading ? 'Uploading Logo...' : isMutating ? 'Saving...' : editingClient ? 'Save Client Logo' : 'Add Client Logo'}</span>
                 </button>
               </div>
             </form>

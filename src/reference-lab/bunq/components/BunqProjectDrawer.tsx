@@ -92,7 +92,7 @@ export const BunqProjectDrawer: React.FC<BunqProjectDrawerProps> = ({
             <span className="text-xs font-mono tracking-widest text-[#139EF2] uppercase px-2.5 py-1 rounded bg-[#139EF2]/10 border border-[#139EF2]/20">
               CASE STUDY // {String(currentIndex + 1).padStart(2, '0')}
             </span>
-            <span className="text-sm font-semibold tracking-wide text-white/90 font-['Figtree']">
+            <span className="text-sm font-semibold tracking-wide text-white/90 font-sans">
               {project.name}
             </span>
           </div>
@@ -137,11 +137,11 @@ export const BunqProjectDrawer: React.FC<BunqProjectDrawerProps> = ({
               </div>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white font-['Figtree'] leading-[1.1]">
+            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white font-sans leading-[1.1]">
               {project.headline}
             </h1>
 
-            <p className="text-base sm:text-lg text-white/70 font-['Figtree'] max-w-3xl leading-relaxed">
+            <p className="text-base sm:text-lg text-white/70 font-sans max-w-3xl leading-relaxed">
               {project.story}
             </p>
           </div>
@@ -228,7 +228,7 @@ export const BunqProjectDrawer: React.FC<BunqProjectDrawerProps> = ({
                   <span className="text-xs font-mono uppercase tracking-widest text-[#139EF2]">
                     THE CHALLENGE
                   </span>
-                  <p className="text-sm text-white/80 leading-relaxed font-['Figtree']">
+                  <p className="text-sm text-white/80 leading-relaxed font-sans">
                     {project.challenge}
                   </p>
                 </div>
@@ -239,7 +239,7 @@ export const BunqProjectDrawer: React.FC<BunqProjectDrawerProps> = ({
                   <span className="text-xs font-mono uppercase tracking-widest text-white/50">
                     THE PRODUCTION SOLUTION
                   </span>
-                  <p className="text-sm text-white/80 leading-relaxed font-['Figtree']">
+                  <p className="text-sm text-white/80 leading-relaxed font-sans">
                     {project.solution}
                   </p>
                 </div>
@@ -254,7 +254,7 @@ export const BunqProjectDrawer: React.FC<BunqProjectDrawerProps> = ({
                   {project.deliverables.map((d, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center gap-3 p-2.5 rounded-lg bg-white/[0.02] border border-white/5 text-xs text-white/90 font-['Figtree']"
+                      className="flex items-center gap-3 p-2.5 rounded-lg bg-white/[0.02] border border-white/5 text-xs text-white/90 font-sans"
                     >
                       <CheckCircle2 size={14} className="text-[#139EF2] shrink-0" />
                       <span>{d}</span>
@@ -275,7 +275,7 @@ export const BunqProjectDrawer: React.FC<BunqProjectDrawerProps> = ({
                         key={idx}
                         className="p-3 rounded-lg bg-[#139EF2]/5 border border-[#139EF2]/20 text-center"
                       >
-                        <div className="text-lg font-bold text-white font-['Figtree']">
+                        <div className="text-lg font-bold text-white font-sans">
                           {m.value}
                         </div>
                         <div className="text-[10px] font-mono text-white/50 uppercase mt-0.5">
@@ -295,7 +295,7 @@ export const BunqProjectDrawer: React.FC<BunqProjectDrawerProps> = ({
               <span className="text-[11px] font-mono uppercase tracking-widest text-white/40 block">
                 Next In Portfolio
               </span>
-              <span className="text-lg font-bold text-white font-['Figtree']">
+              <span className="text-lg font-bold text-white font-sans">
                 {nextProject.name} — {nextProject.headline}
               </span>
             </div>

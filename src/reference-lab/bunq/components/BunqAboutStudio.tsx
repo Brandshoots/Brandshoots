@@ -20,10 +20,10 @@ export const BunqAboutStudio: React.FC<BunqAboutStudioProps> = ({ onStartInquiry
             <span className="w-8 h-[1px] bg-[#139EF2]/40" />
             <span>ORIGINAL CREATIVE DIRECTION</span>
           </div>
-          <h2 className="text-4xl sm:text-6xl font-black uppercase tracking-tight text-white font-['Figtree'] leading-[0.95]">
+          <h2 className="text-4xl sm:text-6xl font-black uppercase tracking-tight text-white font-sans leading-[0.95]">
             We Build Tasteful Content For Ambitious Brands
           </h2>
-          <p className="text-lg text-white/70 font-['Figtree'] leading-relaxed pt-2">
+          <p className="text-lg text-white/70 font-sans leading-relaxed pt-2">
             BrandShoots is a specialized creative branding and commercial video production house headquartered in Rajamahendravaram with production operations spanning Hyderabad and South India.
           </p>
         </div>
@@ -36,10 +36,10 @@ export const BunqAboutStudio: React.FC<BunqAboutStudioProps> = ({ onStartInquiry
               <span className="text-xs font-mono uppercase tracking-widest text-[#139EF2] block">
                 OUR ANTI-TEMPLATE PHILOSOPHY
               </span>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-white font-['Figtree'] leading-snug">
+              <h3 className="text-2xl sm:text-3xl font-extrabold text-white font-sans leading-snug">
                 Moving Beyond Generic Marketing Templates & Shaky Smartphone Footage
               </h3>
-              <p className="text-sm sm:text-base text-white/70 font-['Figtree'] leading-relaxed">
+              <p className="text-sm sm:text-base text-white/70 font-sans leading-relaxed">
                 Conventional digital marketing agencies rely on Canva templates, static stock graphics, or generic AI video snippets that fail to hold audience attention. BrandShoots takes the opposite stance: real factories, real goldsmiths, real products, and real architecture captured with cinema-grade cameras, motorized tracking sliders, and Hollywood-standard DaVinci color grading.
               </p>
             </div>
@@ -68,11 +68,11 @@ export const BunqAboutStudio: React.FC<BunqAboutStudioProps> = ({ onStartInquiry
                   key={idx}
                   className="p-5 rounded-xl bg-white/[0.02] border border-white/10 space-y-2 hover:border-[#139EF2]/40 transition-colors"
                 >
-                  <div className="text-xs font-bold text-white font-['Figtree'] flex items-center gap-2">
+                  <div className="text-xs font-bold text-white font-sans flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#139EF2]" />
                     {item.title}
                   </div>
-                  <p className="text-xs text-white/60 font-['Figtree'] leading-relaxed">
+                  <p className="text-xs text-white/60 font-sans leading-relaxed">
                     {item.desc}
                   </p>
                 </div>
@@ -112,13 +112,13 @@ export const BunqAboutStudio: React.FC<BunqAboutStudioProps> = ({ onStartInquiry
 
               {/* Bio & Leadership Role */}
               <div className="space-y-3">
-                <h4 className="text-2xl font-bold text-white font-['Figtree']">
+                <h4 className="text-2xl font-bold text-white font-sans">
                   Durgarao Vallepu
                 </h4>
-                <div className="text-xs font-mono text-[#139EF2] uppercase tracking-wider">
-                  Founder & Creative Director // BrandShoots
+                <div className="text-xs font-mono text-[#139EF2] tracking-wider">
+                  <span className="uppercase">Founder &amp; Creative Director // </span><span>BrandShoots</span>
                 </div>
-                <p className="text-xs text-white/70 font-['Figtree'] leading-relaxed">
+                <p className="text-xs text-white/70 font-sans leading-relaxed">
                   "Storytelling is not static; it lives in movement, visual rhythm, emotional resonance, and audience action. Our mission is to build commercial films that genuinely move people and compound enterprise value."
                 </p>
               </div>

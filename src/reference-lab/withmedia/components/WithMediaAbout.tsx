@@ -23,7 +23,7 @@ export const WithMediaAbout: React.FC<WithMediaAboutProps> = ({
             <span>Studio Manifesto & Leadership</span>
           </div>
           <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tight text-white leading-tight">
-            About <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-200">BrandShoots.</span>
+            About <span className="normal-case text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-200">BrandShoots.</span>
           </h2>
           <p className="mt-4 text-base sm:text-lg text-slate-300 leading-relaxed">
             We are not a social media management agency that happens to own a camera. We are commercial filmmakers who understand digital commercial velocity.
@@ -145,7 +145,7 @@ export const WithMediaAbout: React.FC<WithMediaAboutProps> = ({
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Official Email:</span>
-                  <span className="text-slate-200">contact@brandshoots.com</span>
+                  <span className="text-slate-200">brandshoots.in@gmail.com</span>
                 </div>
               </div>
             </div>

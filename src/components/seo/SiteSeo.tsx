@@ -13,7 +13,7 @@ interface SeoEntry {
 
 const PUBLIC_SEO: Record<string, SeoEntry> = {
   '/': {
-    title: 'BrandShoots | Brand Shoots, Reels & Social Media Management',
+    title: 'BrandShoots | Reels & Social Media Management',
     description: 'BrandShoots provides brand shoots, commercial reels, professional video production and social media management for businesses across Andhra Pradesh and Telangana, based in Rajahmundry and Hyderabad.',
     canonicalPath: '/',
     indexable: true,
@@ -30,6 +30,12 @@ const PUBLIC_SEO: Record<string, SeoEntry> = {
     canonicalPath: '/portfolio',
     indexable: true,
   },
+  '/results': {
+    title: 'Client Results & Case Studies | BrandShoots',
+    description: 'Explore published BrandShoots client case studies with verified before-and-after follower and view figures, screenshots and campaign timelines.',
+    canonicalPath: '/results',
+    indexable: true,
+  },
   '/contact': {
     title: 'Contact BrandShoots | Rajahmundry & Hyderabad',
     description: 'Contact BrandShoots for professional brand shoots, commercial reels, video production and social media management in Rajahmundry, Hyderabad and across AP and Telangana.',
@@ -37,7 +43,7 @@ const PUBLIC_SEO: Record<string, SeoEntry> = {
     indexable: true,
   },
   '/packages': {
-    title: 'Packages & Pricing | Brandshoots – Monthly Reels & Social Media Plans, Rajahmundry & Hyderabad',
+    title: 'Packages & Pricing | BrandShoots – Monthly Reels & Social Media Plans, Rajahmundry & Hyderabad',
     description: 'Monthly content packages from ₹40,000: reels, shoot days, editing and Instagram, Facebook & YouTube management for businesses in Rajahmundry and Hyderabad.',
     canonicalPath: '/packages',
     indexable: true,

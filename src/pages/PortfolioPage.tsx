@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { StrokeRevealPreloader } from '../components/about/StrokeRevealPreloader';
 import { PortfolioNavbar } from '../components/portfolio/PortfolioNavbar';
 import { PortfolioWormhole3D } from '../components/portfolio/PortfolioWormhole3D';
 import { PortfolioClienteleSection } from '../components/portfolio/PortfolioClienteleSection';
@@ -12,22 +11,15 @@ import { BrandShootsFooter } from '../components/footer/BrandShootsFooter';
 
 gsap.registerPlugin(ScrollTrigger);
 
-export const PortfolioPage: React.FC = () => {
-  const [preloaderActive, setPreloaderActive] = useState(() => {
-    if (typeof window !== 'undefined' && window.location.search.includes('nopreload')) {
-      return false;
-    }
-    return true;
-  });
+interface PortfolioPageProps {
+  transitionActive?: boolean;
+}
 
-  // Reset scroll on mount. SiteSeo owns metadata.
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+export const PortfolioPage: React.FC<PortfolioPageProps> = ({ transitionActive = false }) => {
 
   // Butter-Smooth Lenis Inertial Scrolling synced with GSAP ScrollTrigger
   useEffect(() => {
-    if (preloaderActive) return;
+    if (transitionActive) return;
 
     const lenis = new Lenis({
       duration: 1.35,
@@ -46,7 +38,7 @@ export const PortfolioPage: React.FC = () => {
     };
 
     gsap.ticker.add(ticker);
-    gsap.ticker.lagSmoothing(0);
+    gsap.ticker.lagSmoothing(500, 33);
 
     (window as any).__lenis = lenis;
 
@@ -65,16 +57,11 @@ export const PortfolioPage: React.FC = () => {
       gsap.ticker.remove(ticker);
       lenis.destroy();
     };
-  }, [preloaderActive]);
+  }, [transitionActive]);
 
   return (
     <main className="relative w-full min-h-screen bg-[#020306] text-white overflow-x-hidden">
-      {/* Page Preloader */}
-      {preloaderActive && (
-        <StrokeRevealPreloader onComplete={() => setPreloaderActive(false)} />
-      )}
-
-      {/* 1. HOMEPAGE-MATCHED NAVIGATION BAR */}
+      {/* HOMEPAGE-MATCHED NAVIGATION BAR */}
       <PortfolioNavbar />
       <h1 className="sr-only">BrandShoots Commercial Video Portfolio</h1>
 
@@ -87,7 +74,7 @@ export const PortfolioPage: React.FC = () => {
       {/* 4. CLIMAX CALL-TO-ACTION SECTION */}
       <FinalCtaSection />
 
-      {/* 5. FINAL BRANDSHOOTS CINEMATIC FOOTER */}
+      {/* 5. FINAL BrandShoots CINEMATIC FOOTER */}
       <BrandShootsFooter />
     </main>
   );

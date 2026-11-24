@@ -14,6 +14,8 @@ import {
   Inbox,
   Clock,
   Trash2,
+  Archive,
+  AlertCircle,
   Plus,
   X,
   Building,
@@ -31,6 +33,46 @@ import {
 } from '../../lib/cms/cmsService';
 import { pushContactUndoAction, triggerNavFlash } from '../../lib/cms/cmsHistory';
 
+const normalizeCollegeSpelling = (data: CMSContactPage): CMSContactPage => ({
+  ...data,
+  fullAddress: data.fullAddress.replace(/Collage/gi, 'College'),
+  googleMapsEmbedUrl: data.googleMapsEmbedUrl.replace(/Collage/gi, 'College'),
+  googleMapsSearchUrl: data.googleMapsSearchUrl.replace(/Collage/gi, 'College'),
+});
+
+const sanitizeWhatsAppNumber = (value: string): string => value.replace(/\D/g, '');
+
+const isSafeHttpsUrl = (value: string): boolean => {
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === 'https:' && Boolean(url.hostname) && !url.username && !url.password;
+  } catch {
+    return false;
+  }
+};
+
+const validateContactData = (data: CMSContactPage): string | null => {
+  if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) {
+    return 'Enter a valid contact email address.';
+  }
+  const whatsappNumber = sanitizeWhatsAppNumber(data.whatsappPhone);
+  if (data.whatsappPhone && !/^\d{7,15}$/.test(whatsappNumber)) {
+    return 'Enter a WhatsApp number with 7–15 digits, including its country code.';
+  }
+
+  const urls: Array<[string, string]> = [
+    ['Google Maps directions', data.googleMapsSearchUrl],
+    ['Google Maps embed', data.googleMapsEmbedUrl],
+    ['Instagram', data.instagramUrl],
+    ['YouTube', data.youtubeUrl],
+    ['Facebook', data.facebookUrl],
+  ];
+  const invalidUrl = urls.find(([, value]) => value.trim() && !isSafeHttpsUrl(value));
+  return invalidUrl ? `${invalidUrl[0]} must be a valid HTTPS URL.` : null;
+};
+
+const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
+
 export const ContactCMS: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'content' | 'leads'>('content');
 
@@ -39,8 +81,11 @@ export const ContactCMS: React.FC = () => {
   const [originalData, setOriginalData] = useState<CMSContactPage | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isResetting, setIsResetting] = useState<boolean>(false);
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
   const [saveToast, setSaveToast] = useState<string | null>(null);
+  const [saveNoticeType, setSaveNoticeType] = useState<'success' | 'error'>('success');
+  const [contactError, setContactError] = useState<string | null>(null);
 
   // New project type input state
   const [newProjectType, setNewProjectType] = useState<string>('');
@@ -48,25 +93,42 @@ export const ContactCMS: React.FC = () => {
   // Leads state
   const [leads, setLeads] = useState<CMSLead[]>([]);
   const [loadingLeads, setLoadingLeads] = useState<boolean>(false);
-  const [leadFilter, setLeadFilter] = useState<'all' | 'new' | 'contacted' | 'in_discussion' | 'closed'>('all');
+  const [leadFilter, setLeadFilter] = useState<'all' | CMSLead['status']>('all');
+  const [leadError, setLeadError] = useState<string | null>(null);
+  const [leadNotes, setLeadNotes] = useState<Record<string, string>>({});
+  const [leadActions, setLeadActions] = useState<Record<string, string>>({});
 
   // Load contact page data
   const loadContactData = async () => {
     setLoading(true);
-    const data = await fetchPublishedContactPage();
-    setContactData(JSON.parse(JSON.stringify(data)));
-    setOriginalData(JSON.parse(JSON.stringify(data)));
-    setLoading(false);
+    setContactError(null);
+    try {
+      const data = normalizeCollegeSpelling(await fetchPublishedContactPage());
+      setContactData(clone(data));
+      setOriginalData(clone(data));
+    } catch (err) {
+      console.error('Failed to load contact settings:', err);
+      setContactData(null);
+      setOriginalData(null);
+      setContactError('Contact settings could not be loaded. Check your connection and retry.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Load leads
   const loadLeadsData = async () => {
     setLoadingLeads(true);
+    setLeadError(null);
     try {
       const list = await fetchLeads();
       setLeads(list);
+      setLeadNotes(
+        Object.fromEntries(list.map((lead) => [lead.id, lead.notes || '']))
+      );
     } catch (err) {
-      console.warn('Failed to fetch leads:', err);
+      console.error('Failed to fetch leads:', err);
+      setLeadError('Leads could not be loaded. Check your connection and use Refresh Leads to retry.');
     } finally {
       setLoadingLeads(false);
     }
@@ -79,8 +141,9 @@ export const ContactCMS: React.FC = () => {
     // Listen to local & storage updates for instant 2-way sync
     const handleUpdate = (e: any) => {
       if (e?.detail && typeof e.detail === 'object') {
-        setContactData(JSON.parse(JSON.stringify(e.detail)));
-        setOriginalData(JSON.parse(JSON.stringify(e.detail)));
+        const normalized = normalizeCollegeSpelling(e.detail);
+        setContactData(JSON.parse(JSON.stringify(normalized)));
+        setOriginalData(JSON.parse(JSON.stringify(normalized)));
       } else {
         loadContactData();
       }
@@ -95,26 +158,49 @@ export const ContactCMS: React.FC = () => {
   // Save changes
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!contactData) return;
+    if (!contactData || isSaving || isResetting) return;
 
-    setIsSaving(true);
-    const desc = 'Updated Contact Page & Channels';
-    if (originalData) {
-      pushContactUndoAction(desc, originalData);
+    const normalized = normalizeCollegeSpelling({
+      ...contactData,
+      email: contactData.email.trim(),
+      whatsappPhone: sanitizeWhatsAppNumber(contactData.whatsappPhone),
+      instagramUrl: contactData.instagramUrl.trim(),
+      youtubeUrl: contactData.youtubeUrl.trim(),
+      facebookUrl: contactData.facebookUrl.trim(),
+      googleMapsEmbedUrl: contactData.googleMapsEmbedUrl.trim(),
+      googleMapsSearchUrl: contactData.googleMapsSearchUrl.trim(),
+    });
+    const validationError = validateContactData(normalized);
+    if (validationError) {
+      setSaveSuccess(false);
+      setSaveNoticeType('error');
+      setSaveToast(validationError);
+      return;
     }
 
+    const previousData = originalData ? clone(originalData) : null;
+    setIsSaving(true);
+    setSaveSuccess(false);
+    setSaveToast(null);
+
     try {
-      await saveContactPage(contactData);
-      setOriginalData(JSON.parse(JSON.stringify(contactData)));
+      await saveContactPage(normalized);
+      if (previousData) {
+        pushContactUndoAction('Updated Contact Page & Channels', previousData);
+      }
+      setContactData(clone(normalized));
+      setOriginalData(clone(normalized));
       setSaveSuccess(true);
-      setSaveToast('Contact page settings saved & published live to the website!');
+      setSaveNoticeType('success');
+      setSaveToast('Contact page settings saved and published live to the website.');
       triggerNavFlash('Contact settings saved & published to live site', 'action');
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to save contact settings:', err);
-      setSaveToast('Error saving contact settings. Please check network connection.');
+      setSaveNoticeType('error');
+      setSaveToast('Contact settings were not saved. Check your connection and try again.');
     } finally {
       setIsSaving(false);
-      setTimeout(() => {
+      window.setTimeout(() => {
         setSaveSuccess(false);
         setSaveToast(null);
       }, 4000);
@@ -123,20 +209,37 @@ export const ContactCMS: React.FC = () => {
 
   // Reset to defaults
   const handleReset = async () => {
+    if (isSaving || isResetting) return;
     if (!window.confirm('Reset all Contact page fields to factory defaults? Any unsaved edits will be discarded.')) {
       return;
     }
-    setLoading(true);
-    if (originalData) {
-      pushContactUndoAction('Reset Contact Page to Defaults', originalData);
+
+    const previousData = originalData ? clone(originalData) : null;
+    setIsResetting(true);
+    setSaveSuccess(false);
+    setSaveToast(null);
+    try {
+      const defaults = normalizeCollegeSpelling(await resetContactPageToDefaults());
+      if (previousData) {
+        pushContactUndoAction('Reset Contact Page to Defaults', previousData);
+      }
+      setContactData(clone(defaults));
+      setOriginalData(clone(defaults));
+      setSaveSuccess(true);
+      setSaveNoticeType('success');
+      setSaveToast('Contact page reset to factory defaults and synced to the live website.');
+      triggerNavFlash('Contact page reset to factory defaults', 'undo');
+    } catch (err) {
+      console.error('Failed to reset contact settings:', err);
+      setSaveNoticeType('error');
+      setSaveToast('Contact settings could not be reset. Check your connection and try again.');
+    } finally {
+      setIsResetting(false);
+      window.setTimeout(() => {
+        setSaveSuccess(false);
+        setSaveToast(null);
+      }, 4000);
     }
-    const defaults = await resetContactPageToDefaults();
-    setContactData(JSON.parse(JSON.stringify(defaults)));
-    setOriginalData(JSON.parse(JSON.stringify(defaults)));
-    setLoading(false);
-    setSaveToast('Contact page reset to factory defaults & synced to live website.');
-    triggerNavFlash('Contact page reset to factory defaults', 'undo');
-    setTimeout(() => setSaveToast(null), 4000);
   };
 
   // Add project type chip
@@ -161,36 +264,118 @@ export const ContactCMS: React.FC = () => {
     });
   };
 
+  const setLeadAction = (leadId: string, action?: string) => {
+    setLeadActions((previous) => {
+      const next = { ...previous };
+      if (action) next[leadId] = action;
+      else delete next[leadId];
+      return next;
+    });
+  };
+
   // Lead status update
   const handleStatusChange = async (leadId: string, newStatus: CMSLead['status']) => {
+    if (leadActions[leadId]) return;
+    setLeadError(null);
+    setLeadAction(leadId, 'status');
     try {
       await updateLeadStatus(leadId, newStatus);
       setLeads((prev) =>
-        prev.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l))
+        prev.map((lead) => (lead.id === leadId ? { ...lead, status: newStatus } : lead))
       );
       triggerNavFlash(`Lead status updated to ${newStatus}`, 'action');
     } catch (err) {
       console.error('Failed to update lead status:', err);
+      setLeadError('The lead status was not updated. Check your connection and try again.');
+    } finally {
+      setLeadAction(leadId);
+    }
+  };
+
+  const handleSaveNotes = async (lead: CMSLead) => {
+    if (leadActions[lead.id]) return;
+    const notes = (leadNotes[lead.id] || '').trim();
+    setLeadError(null);
+    setLeadAction(lead.id, 'notes');
+    try {
+      await updateLeadStatus(lead.id, lead.status, notes);
+      setLeads((previous) =>
+        previous.map((item) => (item.id === lead.id ? { ...item, notes } : item))
+      );
+      setLeadNotes((previous) => ({ ...previous, [lead.id]: notes }));
+      triggerNavFlash('Lead notes saved', 'action');
+    } catch (err) {
+      console.error('Failed to save lead notes:', err);
+      setLeadError('Lead notes were not saved. Check your connection and try again.');
+    } finally {
+      setLeadAction(lead.id);
+    }
+  };
+
+  const handleArchiveLead = async (lead: CMSLead) => {
+    if (leadActions[lead.id] || lead.status === 'archived') return;
+    setLeadError(null);
+    setLeadAction(lead.id, 'archive');
+    try {
+      await updateLeadStatus(lead.id, 'archived');
+      setLeads((previous) =>
+        previous.map((item) =>
+          item.id === lead.id ? { ...item, status: 'archived' } : item
+        )
+      );
+      triggerNavFlash('Lead archived', 'action');
+    } catch (err) {
+      console.error('Failed to archive lead:', err);
+      setLeadError('The lead was not archived. Check your connection and try again.');
+    } finally {
+      setLeadAction(lead.id);
     }
   };
 
   // Delete lead
   const handleDeleteLead = async (leadId: string) => {
-    if (!window.confirm('Are you sure you want to delete this lead?')) return;
+    if (leadActions[leadId]) return;
+    if (!window.confirm('Permanently delete this lead? This action cannot be undone.')) return;
+    setLeadError(null);
+    setLeadAction(leadId, 'delete');
     try {
       await deleteLead(leadId);
-      setLeads((prev) => prev.filter((l) => l.id !== leadId));
+      setLeads((prev) => prev.filter((lead) => lead.id !== leadId));
+      setLeadNotes((previous) => {
+        const next = { ...previous };
+        delete next[leadId];
+        return next;
+      });
       triggerNavFlash('Lead deleted successfully', 'action');
     } catch (err) {
       console.error('Failed to delete lead:', err);
+      setLeadError('The lead was not deleted. Check your connection and try again.');
+    } finally {
+      setLeadAction(leadId);
     }
   };
 
-  if (loading || !contactData) {
+  if (loading) {
     return (
       <div className="w-full flex flex-col items-center justify-center py-24 text-white/50">
         <div className="w-9 h-9 border-2 border-[#008CFF] border-t-transparent rounded-full animate-spin mb-4" />
         <span className="font-mono text-xs tracking-wider uppercase">Loading Contact CMS...</span>
+      </div>
+    );
+  }
+
+  if (!contactData) {
+    return (
+      <div className="w-full rounded-3xl border border-rose-500/30 bg-rose-500/10 p-8 text-center text-rose-100">
+        <AlertCircle className="mx-auto mb-3 h-7 w-7 text-rose-400" />
+        <p className="text-sm">{contactError || 'Contact settings are unavailable.'}</p>
+        <button
+          type="button"
+          onClick={() => void loadContactData()}
+          className="mt-5 rounded-xl bg-white/10 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/15"
+        >
+          Retry loading
+        </button>
       </div>
     );
   }
@@ -225,7 +410,7 @@ export const ContactCMS: React.FC = () => {
           </h1>
 
           <p className="mt-1.5 text-xs sm:text-sm text-white/60 max-w-2xl font-light leading-relaxed">
-            Manage inquiry channels, phone numbers, WhatsApp, physical studio location, Google Maps embeds, site visit pricing, and inspect client leads.
+            Manage contact-page copy, studio location, site-visit pricing, social display handles, and incoming client leads. Site-wide phone and social links live under Global Settings / Footer.
           </p>
         </div>
 
@@ -287,18 +472,19 @@ export const ContactCMS: React.FC = () => {
             <>
               <button
                 type="button"
-                onClick={handleReset}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-white/80 hover:text-white font-sans text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95"
+                onClick={() => void handleReset()}
+                disabled={isSaving || isResetting}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-white/80 hover:text-white font-sans text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reset Defaults</span>
+                <RotateCcw className={`w-3.5 h-3.5 ${isResetting ? 'animate-spin' : ''}`} />
+                <span>{isResetting ? 'Resetting...' : 'Reset Defaults'}</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => handleSave()}
-                disabled={isSaving}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#008CFF] hover:bg-[#1a97ff] text-white font-sans text-xs font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 cursor-pointer shadow-[0_0_20px_rgba(0,140,255,0.35)] disabled:opacity-50"
+                onClick={() => void handleSave()}
+                disabled={isSaving || isResetting}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#008CFF] hover:bg-[#1a97ff] text-white font-sans text-xs font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 cursor-pointer shadow-[0_0_20px_rgba(0,140,255,0.35)] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Save className="w-3.5 h-3.5" />
                 <span>{isSaving ? 'Saving...' : 'Save & Publish'}</span>
@@ -310,20 +496,34 @@ export const ContactCMS: React.FC = () => {
 
       {/* Save Notification Toast Banner */}
       {saveToast && (
-        <div className="p-4 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-200 text-sm font-mono flex items-center justify-between gap-3 animate-fadeIn shadow-lg">
+        <div
+          role={saveNoticeType === 'error' ? 'alert' : 'status'}
+          aria-live={saveNoticeType === 'error' ? 'assertive' : 'polite'}
+          className={`p-4 rounded-xl border text-sm font-mono flex items-center justify-between gap-3 animate-fadeIn shadow-lg ${
+            saveNoticeType === 'success'
+              ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200'
+              : 'bg-rose-500/15 border-rose-500/40 text-rose-100'
+          }`}
+        >
           <div className="flex items-center gap-2.5">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            {saveNoticeType === 'success' ? (
+              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            ) : (
+              <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+            )}
             <span className="font-semibold">{saveToast}</span>
           </div>
-          <a
-            href="/contact"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-3.5 py-1.5 rounded-lg bg-emerald-500/25 hover:bg-emerald-500/40 border border-emerald-400/40 text-emerald-100 text-xs font-mono font-bold flex items-center gap-1.5 transition-all"
-          >
-            <span>View Live Page</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
+          {saveNoticeType === 'success' && (
+            <a
+              href="/contact"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3.5 py-1.5 rounded-lg bg-emerald-500/25 hover:bg-emerald-500/40 border border-emerald-400/40 text-emerald-100 text-xs font-mono font-bold flex items-center gap-1.5 transition-all"
+            >
+              <span>View Live Page</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          )}
         </div>
       )}
 
@@ -415,9 +615,12 @@ export const ContactCMS: React.FC = () => {
               <Phone className="w-4 h-4" />
               <span>Section 02</span>
             </div>
-            <h2 className="font-display font-black text-xl uppercase tracking-tight text-white mb-6">
-              Direct Phone, WhatsApp & Email
+            <h2 className="font-display font-black text-xl uppercase tracking-tight text-white mb-2">
+              Contact-page Channel Fallbacks
             </h2>
+            <p className="mb-6 text-xs leading-relaxed text-amber-200/75">
+              Public phone, email, WhatsApp, Instagram, and YouTube links are controlled by Global Settings / Footer. These values remain as contact-page fallbacks for older or incomplete settings records.
+            </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
@@ -466,7 +669,7 @@ export const ContactCMS: React.FC = () => {
                   onChange={(e) =>
                     setContactData({ ...contactData, email: e.target.value })
                   }
-                  placeholder="contact@brandshoots.com"
+                  placeholder="brandshoots.in@gmail.com"
                   className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/12 text-white placeholder:text-white/20 text-sm focus:outline-none focus:border-[#008CFF] transition-all"
                 />
               </div>
@@ -694,9 +897,12 @@ export const ContactCMS: React.FC = () => {
               <Instagram className="w-4 h-4" />
               <span>Section 05</span>
             </div>
-            <h2 className="font-display font-black text-xl uppercase tracking-tight text-white mb-6">
+            <h2 className="font-display font-black text-xl uppercase tracking-tight text-white mb-2">
               Official Social Media Handles & Profiles
             </h2>
+            <p className="mb-6 text-xs leading-relaxed text-amber-200/75">
+              Global Settings / Footer controls the public Instagram and YouTube URLs. Contact CMS keeps display handles and fallback URLs; Facebook remains shared contact/footer content.
+            </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Instagram */}
@@ -869,8 +1075,8 @@ export const ContactCMS: React.FC = () => {
             </a>
             <button
               type="submit"
-              disabled={isSaving}
-              className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-[#008CFF] hover:bg-[#1a97ff] text-white font-sans text-xs sm:text-sm font-bold uppercase tracking-[0.16em] transition-all duration-200 active:scale-95 cursor-pointer shadow-[0_0_30px_rgba(0,140,255,0.4)] disabled:opacity-50"
+              disabled={isSaving || isResetting}
+              className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-[#008CFF] hover:bg-[#1a97ff] text-white font-sans text-xs sm:text-sm font-bold uppercase tracking-[0.16em] transition-all duration-200 active:scale-95 cursor-pointer shadow-[0_0_30px_rgba(0,140,255,0.4)] disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
               <span>{isSaving ? 'SAVING CHANGES...' : 'SAVE & PUBLISH ALL CHANGES'}</span>
@@ -888,7 +1094,7 @@ export const ContactCMS: React.FC = () => {
           <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-[#070B14]/80 border border-white/10">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-mono uppercase tracking-wider text-white/50 mr-2">Filter:</span>
-              {(['all', 'new', 'contacted', 'in_discussion', 'closed'] as const).map((filter) => {
+              {(['all', 'new', 'contacted', 'in_discussion', 'closed', 'archived'] as const).map((filter) => {
                 const count =
                   filter === 'all'
                     ? leads.length
@@ -924,13 +1130,38 @@ export const ContactCMS: React.FC = () => {
             </button>
           </div>
 
+          {leadError && (
+            <div
+              role="alert"
+              aria-live="assertive"
+              className="flex items-center justify-between gap-4 rounded-xl border border-rose-500/40 bg-rose-500/15 p-4 text-sm text-rose-100"
+            >
+              <span className="flex items-center gap-2.5">
+                <AlertCircle className="h-5 w-5 shrink-0 text-rose-400" />
+                {leadError}
+              </span>
+              <button
+                type="button"
+                onClick={() => setLeadError(null)}
+                className="shrink-0 text-xs font-bold uppercase tracking-wider text-rose-200 hover:text-white"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
+
           {/* Leads List */}
-          {filteredLeads.length === 0 ? (
+          {loadingLeads ? (
+            <div className="flex items-center justify-center gap-3 rounded-3xl border border-white/8 bg-[#070B14]/60 p-12 text-white/50">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#008CFF] border-t-transparent" />
+              <span className="font-mono text-xs uppercase tracking-wider">Loading leads...</span>
+            </div>
+          ) : filteredLeads.length === 0 ? (
             <div className="p-12 rounded-3xl bg-[#070B14]/60 border border-white/8 text-center flex flex-col items-center">
               <Inbox className="w-12 h-12 text-white/20 mb-3" />
               <h3 className="font-display font-black text-lg uppercase text-white/80">No Leads Found</h3>
               <p className="text-xs text-white/40 mt-1 max-w-sm">
-                No inquiries matching the selected filter. Leads submitted via the contact form or site visit booking will appear here in real time.
+                No inquiries match the selected filter. New submissions appear after you refresh this inbox.
               </p>
             </div>
           ) : (
@@ -942,11 +1173,13 @@ export const ContactCMS: React.FC = () => {
                       timeStyle: 'short',
                     })
                   : 'Recent';
+                const leadWhatsappNumber = sanitizeWhatsAppNumber(lead.phone || '');
+                const leadBusy = Boolean(leadActions[lead.id]);
 
                 return (
                   <div
                     key={lead.id}
-                    className="p-5 sm:p-6 rounded-2xl bg-[#070B14]/90 border border-white/10 hover:border-white/20 transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-6 shadow-xl"
+                    className="p-5 sm:p-6 rounded-2xl bg-[#070B14]/90 border border-white/10 hover:border-white/20 transition-all grid grid-cols-1 gap-6 shadow-xl xl:grid-cols-[minmax(0,1fr)_auto]"
                   >
                     {/* Left: Client info & message */}
                     <div className="flex-1 space-y-3">
@@ -968,12 +1201,26 @@ export const ContactCMS: React.FC = () => {
                               : 'bg-[#008CFF]/20 text-[#008CFF] border border-[#008CFF]/30'
                           }`}
                         >
-                          {lead.type === 'site_visit' ? 'Site Visit (₹2,000)' : 'General Inquiry'}
+                          {lead.type === 'site_visit'
+                            ? `Site Visit (${contactData.siteVisitPrice})`
+                            : 'General Inquiry'}
                         </span>
 
                         {lead.serviceType && (
                           <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-mono text-[11px] border border-emerald-500/20">
                             {lead.serviceType}
+                          </span>
+                        )}
+
+                        {lead.budget && (
+                          <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-300 font-mono text-[11px] border border-amber-500/20">
+                            Budget: {lead.budget}
+                          </span>
+                        )}
+
+                        {lead.timeline && (
+                          <span className="px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-300 font-mono text-[11px] border border-purple-500/20">
+                            Timeline: {lead.timeline}
                           </span>
                         )}
                       </div>
@@ -1004,15 +1251,53 @@ export const ContactCMS: React.FC = () => {
                           <span>{createdDate}</span>
                         </span>
                       </div>
+
+                      <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                        <div className="mb-2 flex items-center justify-between gap-3">
+                          <label
+                            htmlFor={`lead-notes-${lead.id}`}
+                            className="font-mono text-[11px] font-bold uppercase tracking-wider text-white/60"
+                          >
+                            Internal notes
+                          </label>
+                          {lead.notes && leadNotes[lead.id] === lead.notes && (
+                            <span className="font-mono text-[10px] text-emerald-400/80">Saved</span>
+                          )}
+                        </div>
+                        <textarea
+                          id={`lead-notes-${lead.id}`}
+                          rows={3}
+                          value={leadNotes[lead.id] || ''}
+                          onChange={(event) =>
+                            setLeadNotes((previous) => ({
+                              ...previous,
+                              [lead.id]: event.target.value,
+                            }))
+                          }
+                          disabled={leadBusy}
+                          placeholder="Add follow-up context, requirements, or next steps..."
+                          className="w-full resize-y rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs leading-relaxed text-white placeholder:text-white/25 focus:border-[#008CFF] focus:outline-none disabled:opacity-60"
+                        />
+                        <div className="mt-2 flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => void handleSaveNotes(lead)}
+                            disabled={leadBusy || (leadNotes[lead.id] || '').trim() === (lead.notes || '').trim()}
+                            className="rounded-lg bg-[#008CFF]/20 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#45aaff] transition-colors hover:bg-[#008CFF]/30 disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            {leadActions[lead.id] === 'notes' ? 'Saving...' : 'Save notes'}
+                          </button>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Right: Actions & Status */}
                     <div className="flex flex-wrap items-center gap-3 shrink-0">
                       {/* WhatsApp Quick Connect */}
-                      {lead.phone && (
+                      {leadWhatsappNumber && (
                         <a
-                          href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-                            `Hi ${lead.name}, thank you for contacting BRANDSHOOTS!`
+                          href={`https://wa.me/${leadWhatsappNumber}?text=${encodeURIComponent(
+                            `Hi ${lead.name}, thank you for contacting BrandShoots!`
                           )}`}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -1026,16 +1311,20 @@ export const ContactCMS: React.FC = () => {
                       {/* Status Dropdown */}
                       <select
                         value={lead.status}
+                        disabled={leadBusy}
                         onChange={(e) =>
-                          handleStatusChange(lead.id, e.target.value as CMSLead['status'])
+                          void handleStatusChange(lead.id, e.target.value as CMSLead['status'])
                         }
-                        className={`px-3 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider border cursor-pointer focus:outline-none transition-all ${
+                        aria-label={`Status for ${lead.name}`}
+                        className={`px-3 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider border cursor-pointer focus:outline-none transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
                           lead.status === 'new'
                             ? 'bg-blue-500/20 text-blue-300 border-blue-500/40'
                             : lead.status === 'contacted'
                             ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
                             : lead.status === 'in_discussion'
                             ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                            : lead.status === 'archived'
+                            ? 'bg-slate-500/20 text-slate-300 border-slate-500/40'
                             : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                         }`}
                       >
@@ -1043,14 +1332,30 @@ export const ContactCMS: React.FC = () => {
                         <option value="contacted" className="bg-[#070B14] text-white">Contacted</option>
                         <option value="in_discussion" className="bg-[#070B14] text-white">In Discussion</option>
                         <option value="closed" className="bg-[#070B14] text-white">Closed</option>
+                        <option value="archived" className="bg-[#070B14] text-white">Archived</option>
                       </select>
+
+                      {lead.status !== 'archived' && (
+                        <button
+                          type="button"
+                          onClick={() => void handleArchiveLead(lead)}
+                          disabled={leadBusy}
+                          className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-bold uppercase tracking-wider text-white/60 transition-colors hover:border-slate-400/40 hover:bg-slate-500/20 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
+                          title="Archive Lead"
+                        >
+                          <Archive className="w-3.5 h-3.5" />
+                          <span>{leadActions[lead.id] === 'archive' ? 'Archiving...' : 'Archive'}</span>
+                        </button>
+                      )}
 
                       {/* Delete Lead */}
                       <button
                         type="button"
-                        onClick={() => handleDeleteLead(lead.id)}
-                        className="p-2 rounded-xl bg-white/[0.04] hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/40 text-white/50 hover:text-rose-400 transition-all cursor-pointer"
-                        title="Delete Lead"
+                        onClick={() => void handleDeleteLead(lead.id)}
+                        disabled={leadBusy}
+                        className="p-2 rounded-xl bg-white/[0.04] hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/40 text-white/50 hover:text-rose-400 transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                        title="Permanently delete lead"
+                        aria-label={`Permanently delete lead from ${lead.name}`}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

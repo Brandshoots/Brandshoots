@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Home,
   Film,
+  BarChart3,
   Mail,
   Sparkles,
   Briefcase,
@@ -20,6 +21,7 @@ import {
   Menu,
   X,
   Undo2,
+  Settings2,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { HeroSectionCMS } from './HeroSectionCMS';
@@ -28,14 +30,16 @@ import { AnnouncementsCMS } from './AnnouncementsCMS';
 import { ClienteleCMS } from './ClienteleCMS';
 import { TestimonialsCMS } from './TestimonialsCMS';
 import { PortfolioCMS } from './PortfolioCMS';
+import { ResultsCMS } from './ResultsCMS';
 import { ContactCMS } from './ContactCMS';
+import { GlobalSettingsCMS } from './GlobalSettingsCMS';
 import { canUndo, getLastActionDescription, undoLastAction } from '../../lib/cms/cmsHistory';
 
 interface AdminDashboardProps {
   user: User | AdminUserSession;
 }
 
-type MainSection = 'home' | 'portfolio' | 'contact';
+type MainSection = 'home' | 'portfolio' | 'results' | 'contact' | 'settings';
 type HomeSubSection = 'hero' | 'whatwedo' | 'announcements' | 'clientele' | 'testimonials';
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
@@ -370,6 +374,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
               <span className="font-sans text-base font-bold tracking-wide">Portfolio</span>
             </button>
 
+            {/* 3. RESULTS */}
+            <button
+              type="button"
+              onClick={() => {
+                setActiveMain('results');
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all cursor-pointer ${
+                activeMain === 'results'
+                  ? 'bg-[#008CFF] text-white font-bold shadow-[0_0_20px_rgba(0,140,255,0.4)]'
+                  : 'text-white/85 hover:bg-white/[0.05] hover:text-white'
+              }`}
+            >
+              <BarChart3 className="w-5 h-5 text-white" />
+              <span className="font-sans text-base font-bold tracking-wide">Results</span>
+            </button>
+
             {/* 4. CONTACT */}
             <button
               type="button"
@@ -385,6 +406,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
             >
               <Mail className="w-5 h-5 text-white" />
               <span className="font-sans text-base font-bold tracking-wide">Contact</span>
+            </button>
+
+            {/* 5. GLOBAL SETTINGS / FOOTER */}
+            <button
+              type="button"
+              onClick={() => {
+                setActiveMain('settings');
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all cursor-pointer ${
+                activeMain === 'settings'
+                  ? 'bg-[#008CFF] text-white font-bold shadow-[0_0_20px_rgba(0,140,255,0.4)]'
+                  : 'text-white/85 hover:bg-white/[0.05] hover:text-white'
+              }`}
+            >
+              <Settings2 className="w-5 h-5 text-white" />
+              <span className="font-sans text-base font-bold tracking-wide">Global Settings / Footer</span>
             </button>
           </div>
 
@@ -415,7 +453,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
               <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-white flex items-center gap-3">
                 {activeMain === 'home' && `Home Page — ${activeHomeSub.toUpperCase()} SECTION`}
                 {activeMain === 'portfolio' && 'Portfolio — Project Reels Showcase'}
+                {activeMain === 'results' && 'Results — Client Case Studies'}
                 {activeMain === 'contact' && 'Contact — Inquiries & Lead Channels'}
+                {activeMain === 'settings' && 'Global Settings — Contact Channels & Footer'}
               </h1>
             </div>
           )}
@@ -435,8 +475,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
             <TestimonialsCMS />
           ) : activeMain === 'portfolio' ? (
             <PortfolioCMS />
+          ) : activeMain === 'results' ? (
+            <ResultsCMS />
           ) : activeMain === 'contact' ? (
             <ContactCMS />
+          ) : activeMain === 'settings' ? (
+            <GlobalSettingsCMS />
           ) : (
             /* =============================================================== */
             /* OTHER SECTIONS: PHASE 1.1 CLEAN STATUS CARD                    */

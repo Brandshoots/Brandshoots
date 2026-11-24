@@ -1,118 +1,133 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 
 interface StrokeRevealPreloaderProps {
   onComplete: () => void;
+  readyToExit?: boolean;
+  minimumDurationMs?: number;
+  maximumDurationMs?: number;
 }
 
-export const StrokeRevealPreloader: React.FC<StrokeRevealPreloaderProps> = ({ onComplete }) => {
+export const StrokeRevealPreloader: React.FC<StrokeRevealPreloaderProps> = ({
+  onComplete,
+  readyToExit = true,
+  minimumDurationMs = 850,
+  maximumDurationMs = 8000,
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLImageElement>(null);
+  const timelineRef = useRef<gsap.core.Timeline | null>(null);
   const onCompleteRef = useRef(onComplete);
+  const readyRef = useRef(readyToExit);
+  const minimumElapsedRef = useRef(false);
+  const completedRef = useRef(false);
+  const exitStartedRef = useRef(false);
   onCompleteRef.current = onComplete;
+  readyRef.current = readyToExit;
+
+  const finish = useCallback(() => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    onCompleteRef.current();
+  }, []);
+
+  const startExit = useCallback(() => {
+    if (exitStartedRef.current || !minimumElapsedRef.current || !readyRef.current) return;
+    exitStartedRef.current = true;
+    timelineRef.current?.play('exit');
+  }, []);
 
   useEffect(() => {
-    let completed = false;
-    const safeComplete = () => {
-      if (completed) return;
-      completed = true;
-      onCompleteRef.current();
-    };
+    if (readyToExit) startExit();
+  }, [readyToExit, startExit]);
 
-    const ctx = gsap.context(() => {
-      // 1. Initial State: clean, deep cinematic black canvas
-      gsap.set(containerRef.current, { opacity: 1 });
-      gsap.set(glowRef.current, { scale: 0.6, opacity: 0 });
-      gsap.set(logoRef.current, { scale: 0.94, opacity: 0 });
+  useEffect(() => {
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const minimumTimer = window.setTimeout(() => {
+      minimumElapsedRef.current = true;
+      startExit();
+    }, reducedMotion ? 250 : minimumDurationMs);
+    const maximumTimer = window.setTimeout(() => {
+      minimumElapsedRef.current = true;
+      readyRef.current = true;
+      startExit();
+    }, maximumDurationMs);
 
-      // 2. Master Page-to-Page Preloader Timeline
-      const tl = gsap.timeline({
-        onComplete: () => {
-          if (containerRef.current) {
-            gsap.to(containerRef.current, {
-              opacity: 0,
-              scale: 1.02,
-              duration: 0.25,
-              ease: 'power2.inOut',
-              onComplete: safeComplete,
-            });
-          } else {
-            safeComplete();
-          }
-        },
-      });
+    let context: gsap.Context | undefined;
+    try {
+      context = gsap.context(() => {
+        gsap.set(containerRef.current, { opacity: 1, scale: 1 });
+        gsap.set(glowRef.current, { scale: 0.6, opacity: 0 });
+        gsap.set(logoRef.current, { scale: 0.94, opacity: 0 });
 
-      // A. Electric blue ambient aura blooms in center
-      tl.to(
-        glowRef.current,
-        {
-          scale: 1.25,
-          opacity: 0.6,
-          duration: 0.35,
-          ease: 'power2.out',
-        },
-        0.02
-      )
-        // B. Official Logo reveals with smooth scale and crystal-clear opacity
-        .to(
-          logoRef.current,
-          {
+        const timeline = gsap.timeline({ paused: true, onComplete: finish });
+        timelineRef.current = timeline;
+        timeline
+          .to(glowRef.current, {
+            scale: 1.25,
+            opacity: reducedMotion ? 0.3 : 0.6,
+            duration: reducedMotion ? 0.1 : 0.35,
+            ease: 'power2.out',
+          }, 0)
+          .to(logoRef.current, {
             opacity: 1,
             scale: 1,
-            duration: 0.35,
+            duration: reducedMotion ? 0.1 : 0.35,
             ease: 'power2.out',
-          },
-          0.05
-        )
-        // C. Subtle cinematic hold for brand presence
-        .to(
-          logoRef.current,
-          {
-            scale: 1.015,
-            duration: 0.2,
+          }, 0.03)
+          .to(logoRef.current, {
+            scale: reducedMotion ? 1 : 1.015,
+            duration: reducedMotion ? 0.05 : 0.2,
             ease: 'sine.inOut',
-          },
-          0.4
-        )
-        // D. Gentle fade as container dissolves into the page
-        .to(
-          logoRef.current,
-          {
-            opacity: 0.95,
-            duration: 0.15,
-          },
-          0.6
-        );
-    }, containerRef);
-
-    // Guaranteed safety timeout: releases page within 950ms regardless of any event
-    const safetyTimeout = setTimeout(safeComplete, 950);
+          }, reducedMotion ? 0.12 : 0.4)
+          .addLabel('hold')
+          .addPause('hold')
+          .addLabel('exit')
+          .to(containerRef.current, {
+            opacity: 0,
+            scale: reducedMotion ? 1 : 1.02,
+            duration: reducedMotion ? 0.15 : 0.25,
+            ease: 'power2.inOut',
+          }, 'exit');
+        timeline.play();
+      }, containerRef);
+    } catch (error) {
+      console.error('Route preloader setup failed', error);
+      minimumElapsedRef.current = true;
+      readyRef.current = true;
+      finish();
+    }
 
     return () => {
-      clearTimeout(safetyTimeout);
-      ctx.revert();
+      window.clearTimeout(minimumTimer);
+      window.clearTimeout(maximumTimer);
+      timelineRef.current?.kill();
+      timelineRef.current = null;
+      context?.revert();
     };
-  }, []);
+  }, [finish, maximumDurationMs, minimumDurationMs, startExit]);
 
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-[100] bg-[#04060A] flex items-center justify-center select-none overflow-hidden"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading BrandShoots page"
+      className="fixed inset-0 z-[99999] flex items-center justify-center overflow-hidden bg-[#04060A] select-none"
     >
-      {/* Central Volumetric Electric Blue Ambient Aura */}
       <div
         ref={glowRef}
-        className="absolute w-[520px] h-[320px] rounded-full bg-[#008CFF]/25 blur-[120px] pointer-events-none"
+        className="pointer-events-none absolute h-[320px] w-[520px] rounded-full bg-[#008CFF]/25 blur-[120px]"
       />
-
-      {/* Official BRANDSHOOTS Vector Logo Only */}
-      <div className="relative z-10 w-[84vw] max-w-[620px] flex items-center justify-center px-6 pointer-events-none">
+      <div className="pointer-events-none relative z-10 flex w-[84vw] max-w-[620px] items-center justify-center px-6">
         <img
           ref={logoRef}
           src="/Logo Official.svg"
           alt="BrandShoots Official Logo"
-          className="w-full h-auto max-h-[35vh] object-contain filter drop-shadow-[0_12px_45px_rgba(0,140,255,0.45)]"
+          width={1600}
+          height={365}
+          className="h-auto max-h-[35vh] w-full object-contain drop-shadow-[0_12px_45px_rgba(0,140,255,0.45)]"
         />
       </div>
     </div>

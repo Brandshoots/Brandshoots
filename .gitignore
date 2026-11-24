@@ -38,4 +38,8 @@ public/Reels Folder
 # Backups and local scratch files
 asset-backups/
 fix.txt
+# Local workspace state and recovery credentials
+.kiro/
+.playwright-mcp/
+vercel-recovery-codes-*.txt
 

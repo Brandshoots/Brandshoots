@@ -15,6 +15,7 @@ export interface PreloaderTimelineRefs {
 
 export interface PreloaderTimelineCallbacks {
   onComplete: () => void;
+  onHoldForReadiness?: () => void;
 }
 
 /**
@@ -197,6 +198,9 @@ export function createPreloaderTimeline(
   // Clean, instantaneous dissolve handoff into the Hero
   // ----------------------------------------------------
   tl.addLabel('expand', expandTime);
+  tl.addPause('expand', () => {
+    callbacks.onHoldForReadiness?.();
+  });
   tl.call(() => {
     if (logoOverlayRef.current) {
       logoOverlayRef.current.setStage('expand');
@@ -204,7 +208,7 @@ export function createPreloaderTimeline(
     if (tilesRef.current) {
       tilesRef.current.exit();
     }
-  }, undefined, 'expand');
+  }, undefined, 'expand+=0.001');
 
   // Clean dissolve of tiles
   tl.to(tilesContainerRef.current, {

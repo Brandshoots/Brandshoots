@@ -5,14 +5,19 @@ import { Volume2, VolumeX, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ReelWall3D } from './ReelWall3D';
 import { useCMSContent } from '../../lib/cms/useCMSContent';
 import { getOptimizedImageUrl } from '../../utils/mediaAssets';
+import { waitForCriticalImage, waitForVideoMetadata } from '../../utils/criticalAssets';
 
 gsap.registerPlugin(ScrollTrigger);
 
 interface BrandShootsHeroProps {
   isPreloaderActive?: boolean;
+  onCriticalReady?: () => void;
 }
 
-export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderActive = false }) => {
+export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({
+  isPreloaderActive = false,
+  onCriticalReady,
+}) => {
   const { hero, heroReels } = useCMSContent();
   const heroRef = useRef<HTMLDivElement>(null);
   const titleBrandRef = useRef<HTMLSpanElement>(null);
@@ -22,6 +27,9 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
   const mobileVideoRef = useRef<HTMLVideoElement>(null);
   const taglineRef = useRef<HTMLDivElement>(null);
   const scrollIndicatorRef = useRef<HTMLDivElement>(null);
+  const onCriticalReadyRef = useRef(onCriticalReady);
+  const criticalReadyReportedRef = useRef(false);
+  onCriticalReadyRef.current = onCriticalReady;
 
   const [isMuted, setIsMuted] = useState(true);
 
@@ -46,54 +54,91 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
     setIsMuted((prev) => !prev);
   };
 
-  // Mobile Full Screen Reels List (uses CMS custom mobile video or hero reels)
+  const visibleHeroReels = useMemo(
+    () => (heroReels || []).filter((reel) => reel.visible !== false),
+    [heroReels]
+  );
+
+  // Mobile Full Screen Reels List (uses the configured mobile mode and visible CMS reels only)
   const mobileReelsList = useMemo(() => {
-    if (hero?.mobileVideoUrl) {
-      return [
-        {
+    const cmsReels = visibleHeroReels.map((reel) => ({
+      src: reel.src,
+      poster: getOptimizedImageUrl(reel.poster),
+      title: reel.title,
+      client: reel.client,
+    }));
+    const configuredMobileReel = hero?.mobileVideoUrl
+      ? {
           src: hero.mobileVideoUrl,
-          poster: getOptimizedImageUrl(
-            hero.mobilePosterUrl ||
-            '/reels/posters/wearebrandshoots_1777444216_3885805244420742638_77785749886.webp'
-          ),
+          poster: hero.mobilePosterUrl ? getOptimizedImageUrl(hero.mobilePosterUrl) : '',
           title: hero.mobileFeaturedTitle || 'BrandShoots Studio Reel',
-        },
-        ...(heroReels || []).map((r) => ({
-          src: r.src,
-          poster: getOptimizedImageUrl(r.poster),
-          title: r.title,
-        })),
-      ];
+          client: hero.mobileFeaturedClient || '',
+        }
+      : null;
+
+    if (hero?.mobileDisplayMode === 'featured-single-reel') {
+      const featuredReel = configuredMobileReel || cmsReels[0];
+      if (!featuredReel) return [];
+      return [{
+        ...featuredReel,
+        title: hero.mobileFeaturedTitle || featuredReel.title,
+        client: hero.mobileFeaturedClient || featuredReel.client,
+      }];
     }
-    if (heroReels && heroReels.length > 0) {
-      return heroReels.map((r) => ({
-        src: r.src,
-        poster: getOptimizedImageUrl(r.poster),
-        title: r.title,
-      }));
-    }
-    return [
-      {
-        src: '/reels/wearebrandshoots_1777444216_3885805244420742638_77785749886.mp4',
-        poster: getOptimizedImageUrl(
-          '/reels/posters/wearebrandshoots_1777444216_3885805244420742638_77785749886.webp'
-        ),
-        title: 'BrandShoots Flagship Reel',
-      },
-    ];
-  }, [hero, heroReels]);
+
+    const uniqueReels = new Map<string, (typeof cmsReels)[number]>();
+    if (configuredMobileReel) uniqueReels.set(configuredMobileReel.src, configuredMobileReel);
+    cmsReels.forEach((reel) => {
+      if (!uniqueReels.has(reel.src)) uniqueReels.set(reel.src, reel);
+    });
+    return Array.from(uniqueReels.values());
+  }, [hero, visibleHeroReels]);
 
   const [mobileReelIndex, setMobileReelIndex] = useState(0);
-  const currentMobileReel = mobileReelsList[mobileReelIndex % mobileReelsList.length];
+  useEffect(() => {
+    setMobileReelIndex((index) => mobileReelsList.length > 0 ? index % mobileReelsList.length : 0);
+  }, [mobileReelsList.length]);
+  const currentMobileReel = mobileReelsList.length > 0
+    ? mobileReelsList[mobileReelIndex % mobileReelsList.length]
+    : undefined;
   const currentMobileSrc = currentMobileReel?.src;
   const currentMobilePoster = currentMobileReel?.poster;
   const currentMobileTitle = currentMobileReel?.title;
+  const currentMobileClient = currentMobileReel?.client;
+  const desktopCriticalReel = visibleHeroReels[0];
+  const criticalPoster = isMobile
+    ? currentMobilePoster
+    : getOptimizedImageUrl(desktopCriticalReel?.poster);
+  const criticalVideo = isMobile
+    ? currentMobileSrc
+    : desktopCriticalReel?.lightSrc || desktopCriticalReel?.src;
+
+  useEffect(() => {
+    if (criticalReadyReportedRef.current) return;
+    let cancelled = false;
+
+    Promise.all([
+      waitForCriticalImage(criticalPoster),
+      waitForCriticalImage('/Logo Official.svg', 1800),
+      waitForVideoMetadata(criticalVideo),
+    ]).finally(() => {
+      if (cancelled || criticalReadyReportedRef.current) return;
+      criticalReadyReportedRef.current = true;
+      onCriticalReadyRef.current?.();
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [criticalPoster, criticalVideo]);
 
   const handleMobileNext = () => {
+    if (mobileReelsList.length < 2) return;
     setMobileReelIndex((prev) => (prev + 1) % mobileReelsList.length);
   };
 
   const handleMobilePrev = () => {
+    if (mobileReelsList.length < 2) return;
     setMobileReelIndex((prev) => (prev - 1 + mobileReelsList.length) % mobileReelsList.length);
   };
 
@@ -329,30 +374,33 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
         className="block md:hidden absolute inset-0 w-full h-full overflow-hidden z-0 select-none"
       >
         {/* Instant high-res poster - prevents black flash */}
-        <img
-          src={currentMobilePoster}
-          alt={currentMobileTitle || 'BrandShoots Reel'}
-          width={720}
-          height={1280}
-          sizes="100vw"
-          fetchPriority="high"
-          loading="eager"
-          decoding="async"
-          className="absolute inset-0 w-full h-full object-cover object-center scale-[1.01] pointer-events-none select-none transition-opacity duration-300"
-        />
+        {currentMobilePoster && (
+          <img
+            src={currentMobilePoster}
+            alt={currentMobileTitle || 'BrandShoots Reel'}
+            width={720}
+            height={1280}
+            sizes="100vw"
+            loading="eager"
+            decoding="async"
+            className="absolute inset-0 w-full h-full object-cover object-center scale-[1.01] pointer-events-none select-none transition-opacity duration-300"
+          />
+        )}
 
         {/* Full-bleed vertical video */}
-        <video
-          ref={mobileVideoRef}
-          src={currentMobileSrc}
-          poster={currentMobilePoster}
-          autoPlay={!isPreloaderActive}
-          loop
-          muted={isMuted}
-          playsInline
-          preload={isPreloaderActive ? 'none' : 'metadata'}
-          className="absolute inset-0 w-full h-full object-cover object-center scale-[1.01] pointer-events-none select-none"
-        />
+        {currentMobileSrc && (
+          <video
+            ref={mobileVideoRef}
+            src={currentMobileSrc}
+            poster={currentMobilePoster || undefined}
+            autoPlay={!isPreloaderActive}
+            loop
+            muted={isMuted}
+            playsInline
+            preload={isPreloaderActive ? 'none' : 'metadata'}
+            className="absolute inset-0 w-full h-full object-cover object-center scale-[1.01] pointer-events-none select-none"
+          />
+        )}
 
         {/* Top Gradient for Navbar, Logo & Menu Clarity */}
         <div className="absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-[#04060A]/95 via-[#04060A]/60 to-transparent pointer-events-none z-10" />
@@ -377,46 +425,67 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
         />
 
         {/* Mobile Swipe Left / Right Navigation Controls */}
-        <div className="absolute inset-y-0 left-2 flex items-center z-20 pointer-events-auto">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleMobilePrev();
-            }}
-            aria-label="Previous Reel"
-            className="w-8 h-8 rounded-full bg-black/45 backdrop-blur-md border border-white/20 text-white/90 flex items-center justify-center active:scale-90 shadow-md cursor-pointer"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-        </div>
-        <div className="absolute inset-y-0 right-2 flex items-center z-20 pointer-events-auto">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleMobileNext();
-            }}
-            aria-label="Next Reel"
-            className="w-8 h-8 rounded-full bg-black/45 backdrop-blur-md border border-white/20 text-white/90 flex items-center justify-center active:scale-90 shadow-md cursor-pointer"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
+        {mobileReelsList.length > 1 && (
+          <>
+            <div className="absolute inset-y-0 left-2 flex items-center z-20 pointer-events-auto">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleMobilePrev();
+                }}
+                aria-label="Previous Reel"
+                className="w-8 h-8 rounded-full bg-black/45 backdrop-blur-md border border-white/20 text-white/90 flex items-center justify-center active:scale-90 shadow-md cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="absolute inset-y-0 right-2 flex items-center z-20 pointer-events-auto">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleMobileNext();
+                }}
+                aria-label="Next Reel"
+                className="w-8 h-8 rounded-full bg-black/45 backdrop-blur-md border border-white/20 text-white/90 flex items-center justify-center active:scale-90 shadow-md cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </>
+        )}
+
+        {(currentMobileClient || currentMobileTitle) && (
+          <div className="absolute bottom-[34vh] inset-x-0 z-20 px-12 text-center pointer-events-none">
+            {currentMobileClient && (
+              <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.22em] text-[#008CFF]">
+                {currentMobileClient}
+              </p>
+            )}
+            {currentMobileTitle && (
+              <p className="mt-1 truncate font-sans text-xs font-semibold uppercase tracking-[0.08em] text-white/85">
+                {currentMobileTitle}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Mobile Reel Progress Capsule Dots */}
-        <div className="absolute bottom-[17vh] inset-x-0 flex items-center justify-center gap-1.5 z-20 pointer-events-none">
-          {Array.from({ length: Math.min(mobileReelsList.length, 10) }).map((_, idx) => (
-            <span
-              key={idx}
-              className={`h-1 rounded-full transition-all duration-300 ${
-                idx === (mobileReelIndex % Math.min(mobileReelsList.length, 10))
-                  ? 'w-4 bg-[#008CFF] shadow-[0_0_8px_rgba(0,140,255,0.9)]'
-                  : 'w-1 bg-white/35'
-              }`}
-            />
-          ))}
-        </div>
+        {mobileReelsList.length > 1 && (
+          <div className="absolute bottom-[32vh] inset-x-0 flex items-center justify-center gap-1.5 z-20 pointer-events-none">
+            {Array.from({ length: Math.min(mobileReelsList.length, 10) }).map((_, idx) => (
+              <span
+                key={idx}
+                className={`h-1 rounded-full transition-all duration-300 ${
+                  idx === (mobileReelIndex % Math.min(mobileReelsList.length, 10))
+                    ? 'w-4 bg-[#008CFF] shadow-[0_0_8px_rgba(0,140,255,0.9)]'
+                    : 'w-1 bg-white/35'
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 2. DESKTOP PORTFOLIO BACKDROP */}
@@ -427,7 +496,8 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
       {/* ========================================================= */}
       <div
         ref={taglineRef}
-        className="absolute top-[16vh] sm:top-[17vh] md:top-[18vh] lg:top-[19vh] left-0 right-0 z-30 font-sans text-[10px] sm:text-xs md:text-[13px] tracking-[0.2em] uppercase font-medium text-center pointer-events-none px-4"
+        data-mobile-tagline
+        className="absolute inset-x-0 bottom-[17.5vh] top-auto z-30 whitespace-nowrap px-4 text-center font-mono text-[11px] font-bold uppercase tracking-[0.28em] pointer-events-none md:bottom-auto md:top-[18vh] md:text-[14px] lg:top-[19vh]"
       >
         <span className="text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
           {hero?.taglinePrefix || 'CREATE. '}
@@ -447,12 +517,12 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
         ref={reelWallContainerRef}
         className="hidden md:block absolute top-[44%] sm:top-[44.5%] md:top-[45%] lg:top-[45.5%] left-0 right-0 -translate-y-1/2 w-full h-[430px] sm:h-[470px] md:h-[520px] lg:h-[550px] z-10 pointer-events-none overflow-hidden"
       >
-        {!isMobile && (
+        {!isMobile && visibleHeroReels.length > 0 && (
           <ReelWall3D
             isPreloaderActive={isPreloaderActive}
             isMuted={isMuted}
             onToggleMute={toggleAudio}
-            reels={heroReels}
+            reels={visibleHeroReels}
           />
         )}
       </div>
@@ -467,10 +537,10 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
       />
 
       {/* ========================================================= */}
-      {/* 5. CENTRAL TITLE: BRANDSHOOTS                             */}
+      {/* 5. CENTRAL TITLE: BrandShoots                             */}
       {/* ========================================================= */}
-      <div className="absolute bottom-[10vh] sm:bottom-[10.5vh] md:bottom-[11vh] lg:bottom-[11.5vh] left-0 right-0 z-30 text-center select-none pointer-events-none px-4 sm:px-10">
-        <h1 className="font-display font-black tracking-[-0.038em] uppercase text-[11vw] sm:text-[9vw] lg:text-[7.2vw] xl:text-[112px] 2xl:text-[120px] leading-[0.88] flex items-center justify-center">
+      <div data-mobile-wordmark className="absolute inset-x-0 bottom-[24vh] z-30 px-5 text-center select-none pointer-events-none md:bottom-[11vh] md:px-10 lg:bottom-[11.5vh]">
+        <h1 className="mx-auto flex w-full max-w-[calc(100vw-2.5rem)] items-center justify-center whitespace-nowrap font-display text-[clamp(2.4rem,10.5vw,3.25rem)] font-black uppercase leading-[0.88] tracking-[-0.038em] md:max-w-none md:text-[9vw] lg:text-[7.2vw] xl:text-[112px] 2xl:text-[120px]">
           {/* BRAND — clean flat electric blue with glowing shadow */}
           <span
             ref={titleBrandRef}
@@ -494,6 +564,7 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
       {/* Scroll Down Indicator */}
       <div
         ref={scrollIndicatorRef}
+        data-scroll-indicator
         className="absolute bottom-[2.2vh] sm:bottom-[2.5vh] md:bottom-[2.8vh] left-0 right-0 z-30 flex flex-col items-center gap-1 cursor-pointer text-white/60 hover:text-white transition-colors duration-200"
         onClick={() => {
           scrollToAbout();
@@ -520,7 +591,8 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({ isPreloaderAct
       <button
         type="button"
         onClick={toggleAudio}
-        className="absolute bottom-[3vh] right-4 sm:right-8 z-40 p-2.5 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white/80 hover:text-white transition-all duration-200 active:scale-90 select-auto pointer-events-auto shadow-lg"
+        data-mute-control
+        className="absolute right-4 top-[22vh] bottom-auto z-40 p-2.5 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white/80 hover:text-white transition-all duration-200 active:scale-90 select-auto pointer-events-auto shadow-lg md:top-auto md:bottom-[11.5rem] md:right-8"
         aria-label={isMuted ? 'Unmute reel audio' : 'Mute reel audio'}
       >
         {isMuted ? (

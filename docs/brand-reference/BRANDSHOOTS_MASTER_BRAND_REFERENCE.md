@@ -1,10 +1,10 @@
-# BRANDSHOOTS — MASTER BRAND & COMPANY REFERENCE
+# BrandShoots — MASTER BRAND & COMPANY REFERENCE
 ### THE DEFINITIVE BRAND ARCHITECTURE, CREATIVE DIRECTION, PRODUCTION CAPABILITIES & UNIVERSAL ASSET DIRECTORY
 
 ```
 DOCUMENT ID:       BS-MBR-2026-V3.0
 CLASSIFICATION:    UNIVERSAL BRAND REFERENCE & SPECIFICATION HANDBOOK
-PRIMARY SOURCE:    BRANDSHOOTS PRODUCTION CODEBASE & OFFICIAL STUDIO ASSETS
+PRIMARY SOURCE:    BrandShoots PRODUCTION CODEBASE & OFFICIAL STUDIO ASSETS
 TARGET AUDIENCE:   DESIGNERS, CREATIVE DIRECTORS, DEVELOPERS, STRATEGISTS & AI AGENTS
 LAST UPDATED:      NOVEMBER 2026
 STUDIO HEADQUARTERS: RAJAMAHENDRAVARAM, ANDHRA PRADESH, INDIA
@@ -15,8 +15,8 @@ METROPOLITAN HUB:    HYDERABAD, TELANGANA, INDIA
 
 > [!IMPORTANT]
 > **UNIVERSAL OPERATING DIRECTIVE FOR ALL FUTURE TEAMS & AI ASSISTANTS**
-> This reference manual represents the single, authoritative, immutable source of truth for **BRANDSHOOTS**. Every aesthetic choice, architectural principle, verified client relationship, color code, typographic rule, and workflow documented herein has been extracted, cross-referenced, and verified against the actual BrandShoots production codebase, physical media directory, client deliverables, and official studio profile. 
-> 
+> This reference manual represents the single, authoritative, immutable source of truth for **BrandShoots**. Every aesthetic choice, architectural principle, verified client relationship, color code, typographic rule, and workflow documented herein has been extracted, cross-referenced, and verified against the actual BrandShoots production codebase, physical media directory, client deliverables, and official studio profile.
+>
 > **Never fabricate** client accounts, revenue figures, awards, metrics, or company history. If a data point is marked as `[REQUIRES CONFIRMATION]` or `[CODEBASE DEMO DATA]`, treat it strictly as unverified until formal written documentation is provided by company leadership.
 
 ---
@@ -115,7 +115,7 @@ METROPOLITAN HUB:    HYDERABAD, TELANGANA, INDIA
 
 | Dimension | Verified Studio Specification |
 | :--- | :--- |
-| **Official Brand Name** | **BRANDSHOOTS** (Primary Display: `BRAND` in Electric Blue, `SHOOTS` in White/Dark) |
+| **Official Brand Name** | **BrandShoots** (Primary Display: `BRAND` in Electric Blue, `SHOOTS` in White/Dark) |
 | **Official Tagline** | **CREATE. SHOOT. GROW.** |
 | **Secondary Motto** | **WE CREATE STORIES. WE MAKE THEM MOVE.** |
 | **Industry Category** | Commercial Video Production, Creative Branding & Content-Led Digital Growth |
@@ -123,7 +123,7 @@ METROPOLITAN HUB:    HYDERABAD, TELANGANA, INDIA
 | **Metropolitan Hub** | Hyderabad, Telangana, India |
 | **Leadership** | **Durgarao Vallepu** — Founder & Creative Director |
 | **Core Phone / WhatsApp**| **+91 70759 60672** (International Format: `+91 70759 60672`, WhatsApp API: `917075960672`) |
-| **Official Email** | **contact@brandshoots.com** |
+| **Official Email** | **brandshoots.in@gmail.com** |
 | **Primary Instagram** | **@wearebrandshoots** (`https://instagram.com/wearebrandshoots`) |
 | **Official YouTube** | **@wearebrandshoots** / `@brandshoots` (`https://youtube.com/@wearebrandshoots`) |
 | **Primary Brand Font** | **Figtree** exclusively (Weights: 300 to 900; sans-serif, display, and monospace telemetry) |
@@ -136,7 +136,7 @@ METROPOLITAN HUB:    HYDERABAD, TELANGANA, INDIA
 ## 01. COMPANY OVERVIEW
 
 ### 1.1 Company Introduction
-**BRANDSHOOTS** is a high-end creative branding studio, commercial film production house, and digital growth agency headquartered in Rajamahendravaram, Andhra Pradesh, with production operations extending into Hyderabad and across South India.
+**BrandShoots** is a high-end creative branding studio, commercial film production house, and digital growth agency headquartered in Rajamahendravaram, Andhra Pradesh, with production operations extending into Hyderabad and across South India.
 
 The company was founded to solve a pervasive market failure in regional and national business communication: the disconnect between traditional slow-moving film production houses, superficial freelance videographers, and generic digital marketing agencies that rely on recycled stock graphics. 
 
@@ -203,9 +203,9 @@ BrandShoots takes the opposite stance:
 
 ### 2.1 Official Brand Name & Typography
 The official corporate brand name is:
-* **Display / Wordmark Format**: **BRANDSHOOTS** (written as a single unified word, styled with uppercase styling in official wordmarks).
-* **Editorial / Prose Format**: **BrandShoots** (PascalCase preferred) or **Brand Shoots** (two words, recognized in company profile documentation).
-* **Prohibited**: Brandshoots (lowercase 's' in prose), Brand-Shoots (hyphenated), Brand Shoot (singular).
+* **Display / Wordmark Format**: **BrandShoots** (written as a single unified word, styled with uppercase styling in official wordmarks).
+* **Editorial / Prose Format**: **BrandShoots** (PascalCase preferred) or **BrandShoots** (two words, recognized in company profile documentation).
+* **Prohibited**: BrandShoots (lowercase 's' in prose), Brand-Shoots (hyphenated), Brand Shoot (singular).
 
 ### 2.2 Logo Architecture & Vector Geometry
 The official BrandShoots logo is a monumental dual-tone typographic wordmark engineered for maximum visual contrast on dark obsidian environments:
@@ -324,7 +324,7 @@ BrandShoots delivers seven distinct commercial capabilities. Each service addres
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│                   BRANDSHOOTS CORE CAPABILITIES                        │
+│                   BrandShoots CORE CAPABILITIES                        │
 ├───────────────────────────────────┬────────────────────────────────────┤
 │ 01 // BRAND & CREATIVE STRATEGY   │ 05 // SOCIAL MEDIA EXECUTION       │
 │ 02 // COMMERCIAL VIDEO PRODUCTION │ 06 // DIGITAL GROWTH SYSTEMS       │
@@ -862,7 +862,7 @@ BrandShoots organizes every creative undertaking around three strict, interdepen
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│                     THE BRANDSHOOTS CREATIVE CYCLE                     │
+│                     THE BrandShoots CREATIVE CYCLE                     │
 ├───────────────────┬──────────────────────┬─────────────────────────────┤
 │ 01 // CREATE      │ 02 // SHOOT          │ 03 // GROW                  │
 │ • Brand Audit     │ • Technical Recce    │ • DaVinci Color Grading     │
@@ -978,7 +978,7 @@ For ongoing retainer partners, this lifecycle operates on a continuous 30-day rh
 ### 10.3 Direct Commercial Contact Channels
 * **Primary Phone**: **+91 70759 60672**
 * **Direct WhatsApp Gateway**: `https://wa.me/917075960672` (Pre-filled intake routing)
-* **Official Commercial Email**: **contact@brandshoots.com**
+* **Official Commercial Email**: **brandshoots.in@gmail.com**
 * **Site Visit Booking**: Dedicated portal on `/contact` route (₹2,000 / visit)
 
 ### 10.4 Physical Studio Addresses & Geographic Footprint
@@ -1137,11 +1137,11 @@ To maintain absolute credibility across legal, financial, and future design cont
 ```
 
 ### 13.1 Tier 1: Formally Confirmed Facts
-* **Company Name**: BRANDSHOOTS (BrandShoots / Brand Shoots).
+* **Company Name**: BrandShoots (BrandShoots / BrandShoots).
 * **Official Tagline**: "Create. Shoot. Grow."
 * **Leadership**: Durgarao Vallepu (Founder & Creative Director).
 * **Headquarters Address**: `26-2-7/2, Jayakrishnapuram, near Kambala Cheruvu, Rajamahendravaram, Andhra Pradesh, India 533105`.
-* **Verified Contact Channels**: Phone/WhatsApp: `+91 70759 60672`, Email: `contact@brandshoots.com`.
+* **Verified Contact Channels**: Phone/WhatsApp: `+91 70759 60672`, Email: `brandshoots.in@gmail.com`.
 * **Verified Social Media**: Instagram (`@wearebrandshoots`), YouTube (`@wearebrandshoots`).
 * **Official Visual System**: Figtree typography exclusively; Electric Blue (`#139EF2` / `#008CFF`), Deep Navy (`#0B104E`), Obsidian Void (`#04060A`).
 * **Verified Client Relationships (16 Brands)**: Santhi Pipes, Viswatuff Glass, Bags World, Aabharan Jewellers, Fresh & Fresh, Dayanidhi Creations, Jain Beauty Studio, RK Home Living, SB Ventures, KC Overseas, Jain Enterprises, Nirmala, Rudra, Sahana Dry Fruits, SRK Doors World, Tea3 Café.
@@ -1218,7 +1218,7 @@ When generating future code, design assets, marketing campaigns, or presentation
 ```
 ================================================================================
 END OF MASTER BRAND & COMPANY REFERENCE HANDBOOK
-BRANDSHOOTS // CREATE. SHOOT. GROW.
+BrandShoots // CREATE. SHOOT. GROW.
 ALL RIGHTS RESERVED // RAJAMAHENDRAVARAM & HYDERABAD, INDIA // 2026
 ================================================================================
 ```

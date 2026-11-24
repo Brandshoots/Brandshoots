@@ -9,16 +9,20 @@ const ALLOWED_ORIGINS = new Set([
   'http://localhost:5173',
 ]);
 
-const ALLOWED_SIGNED_PARAMS = new Set(['timestamp', 'folder']);
+const UPLOAD_FOLDER = 'brandshoots';
 
 export default async function handler(req: any, res: any) {
   const origin = typeof req.headers?.origin === 'string' ? req.headers.origin : '';
-  if (origin && ALLOWED_ORIGINS.has(origin)) {
+  if (origin && !ALLOWED_ORIGINS.has(origin)) {
+    res.status(403).json({ error: 'Origin is not allowed' });
+    return;
+  }
+  if (origin) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
   }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Cache-Control', 'no-store');
 
   if (req.method === 'OPTIONS') {
@@ -32,55 +36,71 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
+  const authorization =
+    typeof req.headers?.authorization === 'string' ? req.headers.authorization : '';
+  const idToken = authorization.startsWith('Bearer ')
+    ? authorization.slice('Bearer '.length).trim()
+    : '';
+  if (!idToken) {
+    res.status(401).json({ error: 'Firebase authentication is required' });
+    return;
+  }
+
+  const firebaseApiKey = process.env.FIREBASE_API_KEY || process.env.VITE_FIREBASE_API_KEY;
+  if (!firebaseApiKey) {
+    res.status(503).json({ error: 'Firebase token verification is not configured' });
+    return;
+  }
+
+  try {
+    const verifyResponse = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(firebaseApiKey)}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      }
+    );
+    const verification = await verifyResponse.json();
+    const account = Array.isArray(verification?.users) ? verification.users[0] : null;
+    if (!verifyResponse.ok || !account?.localId || account.disabled === true) {
+      res.status(403).json({ error: 'Firebase session is invalid or expired' });
+      return;
+    }
+  } catch {
+    res.status(503).json({ error: 'Firebase session could not be verified' });
+    return;
+  }
+
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME?.trim();
+  const apiKey = process.env.CLOUDINARY_API_KEY?.trim();
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
-  const apiKey = process.env.CLOUDINARY_API_KEY || process.env.VITE_CLOUDINARY_API_KEY;
-  if (!apiSecret || !apiKey) {
+  if (!cloudName || !apiKey || !apiSecret) {
     res.status(503).json({ error: 'Upload signing is not configured' });
     return;
   }
-
-  let body: any;
-  try {
-    body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-  } catch {
-    res.status(400).json({ error: 'Invalid JSON body' });
-    return;
-  }
-
-  const paramsToSign = body?.paramsToSign;
-  if (!paramsToSign || typeof paramsToSign !== 'object' || Array.isArray(paramsToSign)) {
-    res.status(400).json({ error: 'paramsToSign must be an object' });
-    return;
-  }
-
-  const keys = Object.keys(paramsToSign);
-  if (keys.some((key) => !ALLOWED_SIGNED_PARAMS.has(key))) {
-    res.status(400).json({ error: 'Unsupported signing parameter' });
-    return;
-  }
-
-  const timestamp = Number(paramsToSign.timestamp);
-  const now = Math.floor(Date.now() / 1000);
-  if (!Number.isInteger(timestamp) || Math.abs(now - timestamp) > 3600) {
-    res.status(400).json({ error: 'Invalid or expired timestamp' });
-    return;
-  }
-
-  const folder = paramsToSign.folder;
-  if (folder !== 'brandshoots') {
-    res.status(400).json({ error: 'Invalid upload folder' });
+  if (!/^[a-zA-Z0-9_-]+$/.test(cloudName)) {
+    res.status(503).json({ error: 'Upload signing configuration is invalid' });
     return;
   }
 
   try {
-    const normalizedParams = { folder, timestamp };
-    const stringToSign = Object.keys(normalizedParams)
-      .sort()
-      .map((key) => `${key}=${normalizedParams[key as keyof typeof normalizedParams]}`)
-      .join('&') + apiSecret;
+    const timestamp = Math.floor(Date.now() / 1000);
+    const paramsToSign = { folder: UPLOAD_FOLDER, timestamp };
+    const stringToSign =
+      Object.keys(paramsToSign)
+        .sort()
+        .map((key) => `${key}=${paramsToSign[key as keyof typeof paramsToSign]}`)
+        .join('&') + apiSecret;
     const signature = crypto.createHash('sha1').update(stringToSign).digest('hex');
 
-    res.status(200).json({ signature, apiKey, timestamp });
+    res.status(200).json({
+      cloudName,
+      apiKey,
+      signature,
+      timestamp,
+      folder: UPLOAD_FOLDER,
+    });
   } catch (error) {
     console.error('Cloudinary signing failed', error);
     res.status(500).json({ error: 'Failed to generate upload signature' });

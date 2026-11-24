@@ -83,7 +83,7 @@ export const BunqInquiryDrawer: React.FC<BunqInquiryDrawerProps> = ({
   };
 
   const handleSubmitWhatsApp = () => {
-    const text = `*NEW BRANDSHOOTS PROJECT INQUIRY*
+    const text = `*NEW BrandShoots PROJECT INQUIRY*
 ━━━━━━━━━━━━━━━━━━━━
 *Client / Brand:* ${formData.name || 'Not specified'} (${formData.company || 'Direct'})
 *Phone / Contact:* ${formData.phone || 'Not specified'}
@@ -130,7 +130,7 @@ Sent from BrandShoots Reference Lab`;
               <span className="w-2 h-2 rounded-full bg-[#139EF2] animate-pulse" />
               DIRECT STUDIO INQUIRY
             </div>
-            <h2 className="text-xl font-bold tracking-tight text-white font-['Figtree']">
+            <h2 className="text-xl font-bold tracking-tight text-white font-sans">
               Let's Start With Your Idea
             </h2>
           </div>
@@ -186,7 +186,7 @@ Sent from BrandShoots Reference Lab`;
           {/* STEP 0: DETAILS */}
           {currentStep === 0 && (
             <div className="space-y-4 animate-in fade-in duration-300">
-              <p className="text-sm text-white/60 font-['Figtree'] leading-relaxed">
+              <p className="text-sm text-white/60 font-sans leading-relaxed">
                 Tell us who you are and where we can reach you. We reply within 4 business hours.
               </p>
               <div>
@@ -246,7 +246,7 @@ Sent from BrandShoots Reference Lab`;
           {/* STEP 1: SERVICE SELECTION */}
           {currentStep === 1 && (
             <div className="space-y-4 animate-in fade-in duration-300">
-              <p className="text-sm text-white/60 font-['Figtree'] leading-relaxed">
+              <p className="text-sm text-white/60 font-sans leading-relaxed">
                 What creative capability does your brand need to produce next?
               </p>
               <div className="space-y-2.5">
@@ -266,7 +266,7 @@ Sent from BrandShoots Reference Lab`;
                           : 'border-white/10 bg-white/5 text-white/70 hover:border-white/25 hover:text-white'
                       }`}
                     >
-                      <span className="text-sm font-['Figtree']">{opt}</span>
+                      <span className="text-sm font-sans">{opt}</span>
                       {isSelected ? (
                         <span className="w-5 h-5 rounded-full bg-[#139EF2] flex items-center justify-center text-white">
                           <Check size={12} strokeWidth={3} />
@@ -391,7 +391,7 @@ Sent from BrandShoots Reference Lab`;
             </span>
             <span className="flex items-center gap-1.5">
               <Mail size={12} className="text-[#139EF2]" />
-              contact@brandshoots.com
+              brandshoots.in@gmail.com
             </span>
           </div>
         </div>

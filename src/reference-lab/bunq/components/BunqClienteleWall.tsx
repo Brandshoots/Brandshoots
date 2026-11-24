@@ -47,7 +47,7 @@ export const BunqClienteleWall: React.FC<BunqClienteleWallProps> = ({ onSelectPr
               <span className="w-8 h-[1px] bg-[#139EF2]/40" />
               <span>CATEGORY LEADERSHIP</span>
             </div>
-            <h2 className="text-4xl sm:text-6xl font-black uppercase tracking-tight text-white font-['Figtree'] leading-[0.95]">
+            <h2 className="text-4xl sm:text-6xl font-black uppercase tracking-tight text-white font-sans leading-[0.95]">
               Clientele
             </h2>
           </div>
@@ -94,14 +94,14 @@ export const BunqClienteleWall: React.FC<BunqClienteleWallProps> = ({ onSelectPr
                     loading="lazy"
                   />
                 ) : (
-                  <span className="text-base font-bold text-white font-['Figtree']">
+                  <span className="text-base font-bold text-white font-sans">
                     {project.name}
                   </span>
                 )}
               </div>
 
               <div>
-                <div className="text-xs font-semibold text-white/90 font-['Figtree'] group-hover:text-[#139EF2] transition-colors">
+                <div className="text-xs font-semibold text-white/90 font-sans group-hover:text-[#139EF2] transition-colors">
                   {project.name}
                 </div>
                 <div className="text-[10px] font-mono text-white/40 uppercase tracking-widest mt-0.5">

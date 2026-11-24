@@ -36,7 +36,7 @@ export const MONTHLY_PACKAGES: MonthlyPackage[] = [
       'Festival posters',
       'Monthly performance report',
     ],
-    whatsappUrl: 'https://wa.me/917075960672?text=Hi%20Brandshoots%2C%20I%27m%20interested%20in%20the%20Starter%20plan',
+    whatsappUrl: 'https://wa.me/917075960672?text=Hi%20BrandShoots%2C%20I%27m%20interested%20in%20the%20Starter%20plan',
   },
   {
     id: 'growth',
@@ -55,7 +55,7 @@ export const MONTHLY_PACKAGES: MonthlyPackage[] = [
       'Festival posters',
       'Monthly performance report',
     ],
-    whatsappUrl: 'https://wa.me/917075960672?text=Hi%20Brandshoots%2C%20I%27m%20interested%20in%20the%20Growth%20plan',
+    whatsappUrl: 'https://wa.me/917075960672?text=Hi%20BrandShoots%2C%20I%27m%20interested%20in%20the%20Growth%20plan',
   },
   {
     id: 'premium',
@@ -75,7 +75,7 @@ export const MONTHLY_PACKAGES: MonthlyPackage[] = [
       'Festival posters',
       'Monthly performance report',
     ],
-    whatsappUrl: 'https://wa.me/917075960672?text=Hi%20Brandshoots%2C%20I%27m%20interested%20in%20the%20Premium%20plan',
+    whatsappUrl: 'https://wa.me/917075960672?text=Hi%20BrandShoots%2C%20I%27m%20interested%20in%20the%20Premium%20plan',
   },
 ];
 

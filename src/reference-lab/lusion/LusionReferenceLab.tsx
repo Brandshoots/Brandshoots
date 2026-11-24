@@ -32,7 +32,7 @@ export const LusionReferenceLab: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    document.title = 'BRANDSHOOTS // Lusion Architecture Reference Lab';
+    document.title = 'BrandShoots // Lusion Architecture Reference Lab';
     window.scrollTo(0, 0);
 
     const handleScroll = () => {
@@ -85,7 +85,7 @@ export const LusionReferenceLab: React.FC = () => {
   return (
     <div
       ref={containerRef}
-      className="relative w-full min-h-screen bg-[#05070B] text-white selection:bg-[#139EF2] selection:text-white font-['Figtree'] overflow-x-hidden"
+      className="relative w-full min-h-screen bg-[#05070B] text-white selection:bg-[#139EF2] selection:text-white font-sans overflow-x-hidden"
     >
       {/* 1. Master Digital Preloader */}
       {preloaderActive && (

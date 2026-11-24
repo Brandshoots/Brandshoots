@@ -56,15 +56,15 @@ export const TheLeadershipSection: React.FC = () => {
         </figure>
 
         <div ref={contentRef} className="flex flex-col justify-center lg:col-span-7 lg:border-l lg:border-white/20 lg:pl-16">
-          <h2 className="text-5xl font-semibold uppercase leading-[0.86] tracking-[-0.06em] sm:text-7xl lg:text-8xl">
+          <h2 className="text-5xl sm:text-7xl lg:text-8xl font-sans font-black uppercase leading-[0.88] tracking-[-0.025em]">
             <span className="block">{firstName.toUpperCase()}</span>
-            <span className="block text-[#1497F5]">{lastName.toUpperCase()}<span className="text-white">.</span></span>
+            <span className="block text-[#008CFF]">{lastName.toUpperCase()}<span className="text-white">.</span></span>
           </h2>
-          <p className="mt-6 text-xs font-medium tracking-[0.16em] text-white/55 uppercase">
+          <p className="mt-6 font-mono text-xs sm:text-sm tracking-[0.24em] uppercase text-white/75 font-semibold">
             {leadership?.founderRole || 'FOUNDER & CREATIVE DIRECTOR'}
           </p>
-          <div className="my-8 h-px w-20 bg-[#1497F5]" />
-          <p className="max-w-2xl text-lg leading-8 text-white/70 sm:text-xl sm:leading-9">
+          <div className="my-7 h-[2px] w-24 bg-gradient-to-r from-[#008CFF] to-transparent" />
+          <p className="max-w-2xl font-sans font-light text-base sm:text-lg lg:text-xl text-white/80 leading-relaxed">
             {leadership?.founderBio ||
               '"Every frame is calculated. Every cut has intent. We don’t just capture visuals — we architect cultural presence and commercial momentum for brands that refuse to be ignored."'}
           </p>

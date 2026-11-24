@@ -228,7 +228,7 @@ export const WithMediaContact: React.FC<WithMediaContactProps> = ({ initialServi
                 </div>
                 <div className="flex items-center justify-between text-slate-300">
                   <span>Email:</span>
-                  <span className="text-slate-200">contact@brandshoots.com</span>
+                  <span className="text-slate-200">brandshoots.in@gmail.com</span>
                 </div>
                 <div className="flex items-center justify-between text-slate-300">
                   <span>Instagram:</span>

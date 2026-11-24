@@ -9,16 +9,16 @@ export const NotFoundPage: React.FC = () => (
     <MainNavbar />
     <section className="flex min-h-[78vh] items-center px-5 pb-20 pt-32 sm:px-8 lg:px-12">
       <div className="mx-auto w-full max-w-[1380px] border-t border-white/15 pt-10">
-        <p className="text-[11px] font-semibold tracking-[0.16em] text-[#1497F5]">ERROR 404</p>
-        <h1 className="mt-6 max-w-4xl text-[clamp(3.5rem,10vw,9rem)] font-semibold leading-[0.82] tracking-[-0.07em]">
+        <p className="font-mono text-xs uppercase tracking-[0.24em] font-semibold text-[#008CFF]">ERROR 404</p>
+        <h1 className="mt-6 max-w-4xl text-[clamp(3.5rem,10vw,8.5rem)] font-sans font-black uppercase leading-[0.88] tracking-[-0.025em]">
           Page not found.
         </h1>
-        <p className="mt-8 max-w-xl text-base leading-8 text-white/60 sm:text-lg">
+        <p className="mt-6 max-w-xl font-sans font-light text-base leading-relaxed text-white/75 sm:text-lg">
           The page you requested does not exist or may have moved. Return to the BrandShoots homepage to continue.
         </p>
         <Link
           to="/"
-          className="mt-10 inline-flex min-h-12 items-center gap-3 bg-[#1497F5] px-5 py-3 text-xs font-semibold tracking-[0.12em] text-white transition-colors hover:bg-white hover:text-[#08090C]"
+          className="mt-8 inline-flex min-h-12 items-center gap-3 bg-[#008CFF] px-6 py-3 font-mono text-xs uppercase tracking-[0.2em] font-bold text-white transition-colors hover:bg-white hover:text-[#08090C]"
         >
           <ArrowLeft className="h-4 w-4" /> BACK TO HOME
         </Link>

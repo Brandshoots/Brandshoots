@@ -4,21 +4,43 @@ import { MessageCircle, Phone, MapPin, ArrowUpRight } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useCMSContent } from '../../lib/cms/useCMSContent';
+import { INITIAL_CONTACT_PAGE, INITIAL_SITE_SETTINGS } from '../../lib/cms/seedData';
 
 gsap.registerPlugin(ScrollTrigger);
+
+const sanitizeWhatsAppNumber = (...values: Array<string | undefined>): string => {
+  for (const value of values) {
+    const digits = (value || '').replace(/\D/g, '');
+    if (/^\d{7,15}$/.test(digits)) return digits;
+  }
+  return INITIAL_SITE_SETTINGS.whatsappPhone;
+};
+
+const sanitizeTelephone = (value: string): string => {
+  const trimmed = value.trim();
+  const digits = trimmed.replace(/\D/g, '');
+  return `${trimmed.startsWith('+') ? '+' : ''}${digits}`;
+};
 
 interface FinalCtaSectionProps {
   onOpenContact?: () => void;
 }
 
 export const FinalCtaSection: React.FC<FinalCtaSectionProps> = () => {
-  const { contact } = useCMSContent();
+  const { settings, contact } = useCMSContent();
   const sectionRef = useRef<HTMLElement>(null);
   const headlineRef = useRef<HTMLDivElement>(null);
   const contactGridRef = useRef<HTMLDivElement>(null);
-  const whatsappPhone = '917075960672';
-  const displayPhone = contact?.displayPhone || '+91 70759 60672';
-  const cityState = contact?.cityState || 'Rajamahendravaram, AP';
+  const whatsappPhone = sanitizeWhatsAppNumber(
+    settings?.whatsappPhone,
+    contact?.whatsappPhone,
+    INITIAL_SITE_SETTINGS.whatsappPhone
+  );
+  const displayPhone =
+    settings?.contactPhone || contact?.displayPhone || INITIAL_SITE_SETTINGS.contactPhone;
+  const telephoneNumber =
+    sanitizeTelephone(displayPhone) || sanitizeTelephone(INITIAL_SITE_SETTINGS.contactPhone);
+  const cityState = contact?.cityState || INITIAL_CONTACT_PAGE.cityState;
 
   useEffect(() => {
     const context = gsap.context(() => {
@@ -50,16 +72,16 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = () => {
     <section ref={sectionRef} id="cta" className="w-full border-b border-white/10 bg-[#0a0d12] py-24 text-white sm:py-32 lg:py-40">
       <div className="mx-auto w-full max-w-[1380px] px-5 sm:px-8 lg:px-12">
         <div ref={headlineRef} className="max-w-5xl">
-          <h2 className="text-5xl font-semibold uppercase leading-[0.88] tracking-[-0.065em] sm:text-7xl lg:text-8xl">
+          <h2 className="text-5xl sm:text-7xl lg:text-8xl font-sans font-black uppercase leading-[0.88] tracking-[-0.025em]">
             <span className="block">LET'S CREATE SOMETHING</span>
-            <span className="mt-2 block text-[#1497F5]">EXTRAORDINARY<span className="text-white">.</span></span>
+            <span className="mt-2 block text-[#008CFF]">EXTRAORDINARY<span className="text-white">.</span></span>
           </h2>
         </div>
 
         <div className="mt-14 flex flex-col gap-10 border-t border-white/20 pt-8 sm:mt-20 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="max-w-md text-base leading-7 text-white/60">Start a conversation with the BrandShoots studio.</p>
-            <Link to="/contact" className="mt-6 inline-flex items-center gap-3 border border-white/50 px-5 py-3 text-xs font-semibold tracking-[0.16em] text-white transition-colors hover:border-[#1497F5] hover:bg-[#1497F5] uppercase">
+            <p className="max-w-md font-sans font-light text-base leading-relaxed text-white/75">Start a conversation with the BrandShoots studio.</p>
+            <Link to="/contact" className="mt-6 inline-flex items-center gap-3 border border-white/50 px-6 py-3 font-mono text-xs font-bold tracking-[0.2em] text-white transition-colors hover:border-[#008CFF] hover:bg-[#008CFF] uppercase">
               START YOUR PROJECT <ArrowUpRight className="h-4 w-4" />
             </Link>
           </div>
@@ -70,7 +92,7 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = () => {
               <span className="block text-[10px] tracking-[0.14em] text-white/45 uppercase">WhatsApp</span>
               <span className="mt-1 block text-sm text-white">Direct Studio Chat</span>
             </a>
-            <a href={`tel:${displayPhone.replace(/[^\d+]/g, '')}`} className="border-t border-white/25 pt-3 transition-colors hover:border-[#1497F5]">
+            <a href={`tel:${telephoneNumber}`} className="border-t border-white/25 pt-3 transition-colors hover:border-[#1497F5]">
               <Phone className="mb-4 h-4 w-4 text-[#1497F5]" />
               <span className="block text-[10px] tracking-[0.14em] text-white/45 uppercase">Hotline</span>
               <span className="mt-1 block text-sm text-white">{displayPhone}</span>

@@ -46,9 +46,22 @@ export const OurClientsSection: React.FC = () => {
   const firstTweenRef = useRef<gsap.core.Tween | null>(null);
   const secondTweenRef = useRef<gsap.core.Tween | null>(null);
   const activeClientsList = useMemo<ClientItem[]>(() => {
-    const source = clients && clients.length > 0
-      ? clients.map((client) => ({ id: client.id, name: client.name, logo: client.logoUrl, slug: client.slug || client.id, views: client.views, likes: client.likes }))
-      : CLIENTS_LIST;
+    const source = clients
+      .filter((client) => client.visible !== false)
+      .map((client) => {
+        const matchingClient = CLIENTS_LIST.find((item) =>
+          item.id === client.id || item.slug === client.slug || item.name.toLowerCase() === client.name.toLowerCase()
+        );
+        return {
+          id: client.id,
+          name: client.name,
+          category: matchingClient?.category,
+          logo: client.logoUrl,
+          slug: client.slug || client.id,
+          views: client.views,
+          likes: client.likes,
+        };
+      });
     return source.filter((client) => {
       const key = `${client.id} ${client.name}`.toLowerCase();
       return !key.includes('araneaden');
@@ -75,12 +88,15 @@ export const OurClientsSection: React.FC = () => {
 
       const first = rowOneRef.current;
       const second = rowTwoRef.current;
-      if (!first || !second) return;
-      const firstTween = gsap.to(first, { xPercent: -50, duration: 42, repeat: -1, ease: 'none' });
-      gsap.set(second, { xPercent: -50 });
-      const secondTween = gsap.to(second, { xPercent: 0, duration: 46, repeat: -1, ease: 'none' });
-      firstTweenRef.current = firstTween;
-      secondTweenRef.current = secondTween;
+      if (first) {
+        const firstTween = gsap.to(first, { xPercent: -50, duration: 42, repeat: -1, ease: 'none' });
+        firstTweenRef.current = firstTween;
+      }
+      if (second) {
+        gsap.set(second, { xPercent: -50 });
+        const secondTween = gsap.to(second, { xPercent: 0, duration: 46, repeat: -1, ease: 'none' });
+        secondTweenRef.current = secondTween;
+      }
     });
     return () => {
       context.revert();
@@ -88,6 +104,8 @@ export const OurClientsSection: React.FC = () => {
       secondTweenRef.current = null;
     };
   }, [activeClientsList.length]);
+
+  if (activeClientsList.length === 0) return null;
 
   const renderLogo = (client: ClientItem, index: number) => (
     <button
@@ -108,8 +126,8 @@ export const OurClientsSection: React.FC = () => {
   return (
     <section id="clients" className="w-full overflow-hidden border-b border-white/10 bg-[#08090C] py-24 text-white sm:py-32">
       <div ref={headerRef} className="mx-auto mb-14 flex w-full max-w-[1380px] flex-col gap-6 border-b border-white/20 px-5 pb-8 sm:flex-row sm:items-end sm:justify-between sm:px-8 lg:px-12">
-        <h2 className="text-4xl font-semibold uppercase tracking-[-0.055em] sm:text-6xl">OUR CLIENTS<span className="text-[#1497F5]">.</span></h2>
-        <button type="button" onClick={() => navigate('/portfolio')} className="inline-flex items-center gap-2 self-start border border-white/35 px-4 py-2.5 text-[11px] font-semibold tracking-[0.14em] text-white transition-colors hover:border-[#1497F5] hover:bg-[#1497F5] uppercase sm:self-auto">
+        <h2 className="text-4xl sm:text-5xl lg:text-6xl font-sans font-black uppercase tracking-[-0.025em] text-white">OUR CLIENTS<span className="text-[#008CFF]">.</span></h2>
+        <button type="button" onClick={() => navigate('/portfolio')} className="inline-flex items-center gap-2 self-start border border-white/35 px-5 py-2.5 font-mono text-xs font-semibold tracking-[0.2em] text-white transition-colors hover:border-[#008CFF] hover:bg-[#008CFF] uppercase sm:self-auto">
           EXPLORE ALL PROJECTS <ArrowUpRight className="h-4 w-4" />
         </button>
       </div>
@@ -118,9 +136,11 @@ export const OurClientsSection: React.FC = () => {
         <div className="overflow-hidden" onMouseEnter={() => { firstTweenRef.current?.pause(); secondTweenRef.current?.pause(); }} onMouseLeave={() => { firstTweenRef.current?.resume(); secondTweenRef.current?.resume(); }}>
           <div ref={rowOneRef} className="flex w-max items-start will-change-transform">{repeatedRowOne.map(renderLogo)}</div>
         </div>
-        <div className="overflow-hidden" onMouseEnter={() => { firstTweenRef.current?.pause(); secondTweenRef.current?.pause(); }} onMouseLeave={() => { firstTweenRef.current?.resume(); secondTweenRef.current?.resume(); }}>
-          <div ref={rowTwoRef} className="flex w-max items-start will-change-transform">{repeatedRowTwo.map(renderLogo)}</div>
-        </div>
+        {rowTwo.length > 0 && (
+          <div className="overflow-hidden" onMouseEnter={() => { firstTweenRef.current?.pause(); secondTweenRef.current?.pause(); }} onMouseLeave={() => { firstTweenRef.current?.resume(); secondTweenRef.current?.resume(); }}>
+            <div ref={rowTwoRef} className="flex w-max items-start will-change-transform">{repeatedRowTwo.map(renderLogo)}</div>
+          </div>
+        )}
       </div>
     </section>
   );

@@ -234,7 +234,7 @@ export const AboutLeadershipSection: React.FC = () => {
             <div ref={designationRef} className="flex items-center gap-2.5 mb-5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#139EF2]" />
               <p className="font-mono text-xs sm:text-sm md:text-base tracking-[0.26em] uppercase text-white/80 font-semibold">
-                {leadership?.founderRole ? leadership.founderRole.toUpperCase() : 'FOUNDER — BRANDSHOOTS'}
+                {leadership?.founderRole ? leadership.founderRole.toUpperCase() : <>FOUNDER — <span className="normal-case tracking-normal">BrandShoots</span></>}
               </p>
             </div>
 

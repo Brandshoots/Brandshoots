@@ -111,7 +111,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
               <span>Facebook</span>
             </a>
             <a
-              href="mailto:contact@brandshoots.com"
+              href="mailto:brandshoots.in@gmail.com"
               className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-white/[0.06] hover:bg-[#008CFF]/20 border border-white/10 hover:border-[#008CFF]/60 text-white/90 hover:text-white transition-all duration-200 text-xs font-medium"
             >
               <Mail className="w-4 h-4 text-[#008CFF]" />

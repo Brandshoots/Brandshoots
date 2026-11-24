@@ -21,12 +21,12 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['"Figtree"', 'sans-serif'],
-        mono: ['"Figtree"', 'monospace'],
-        display: ['"Figtree"', 'sans-serif'],
-        editorial: ['"Figtree"', 'sans-serif'],
-        figtree: ['"Figtree"', 'sans-serif'],
-        syne: ['"Figtree"', 'sans-serif'],
+        sans: ['"Source Sans 3"', 'sans-serif'],
+        mono: ['"Source Sans 3"', 'sans-serif'],
+        display: ['"Source Sans 3"', 'sans-serif'],
+        editorial: ['"Source Sans 3"', 'sans-serif'],
+        serif: ['"Source Sans 3"', 'sans-serif'],
+        syne: ['"Source Sans 3"', 'sans-serif'],
       },
       boxShadow: {
         'glow-blue': '0 0 40px -10px rgba(20, 151, 245, 0.45)',
