@@ -239,9 +239,9 @@ export const INITIAL_CONTACT_PAGE: CMSContactPage = {
   fullAddress: '26-2-7/2, Jayakrishnapuram, near Kambala Cheruvu, Rajamahendravaram, Andhra Pradesh, India',
 
   googleMapsEmbedUrl:
-    'https://maps.google.com/maps?q=26-2-7%2F2%2C%20Jayakrishnapuram%2C%20near%20kambala%20cheruvu%2C%20Rajamahendravaram%20533105%2C%20Andhra%20Pradesh%2C%20India&t=&z=16&ie=UTF8&iwloc=&output=embed',
+    'https://maps.google.com/maps?q=17.0142274,81.7796371+(BrandShoots+Studio)&t=&z=17&ie=UTF8&iwloc=B&output=embed',
   googleMapsSearchUrl:
-    'https://www.google.com/maps/search/?api=1&query=26-2-7%2F2%2C+Jayakrishnapuram%2C+near+kambala+cheruvu%2C+Rajamahendravaram+533105%2C+Andhra+Pradesh%2C+India',
+    'https://www.google.com/maps/place/Brand+Shoots+Social+Media+Agency,+opp.+Kambalacheruvu+Park,+near+Mega+Junior+College,+Jaya+Krishna+Puram,+Ganesh+Nagar,+Rajamahendravaram,+Andhra+Pradesh+533105/@17.0142274,81.7796371,19z/data=!4m6!3m5!1s0x3a37a35ef14b1595:0xa08ad66326ee2bcf!8m2!3d17.0142274!4d81.7796371!16s%2Fg%2F11zb59nyj7',
 
   siteVisitTag: 'ON-LOCATION RECCE',
   siteVisitTitle: 'SITE VISIT.',

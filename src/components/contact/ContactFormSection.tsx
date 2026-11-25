@@ -68,11 +68,12 @@ export const ContactFormSection: React.FC = () => {
     /\bCollage\b/gi,
     'College'
   );
+  const rawEmbedUrl = (contact?.googleMapsEmbedUrl || INITIAL_CONTACT_PAGE.googleMapsEmbedUrl).replace(
+    /Collage/gi,
+    'College'
+  );
   const googleMapsEmbedUrl = safeHttpsUrl(
-    (contact?.googleMapsEmbedUrl || INITIAL_CONTACT_PAGE.googleMapsEmbedUrl).replace(
-      /Collage/gi,
-      'College'
-    ),
+    rawEmbedUrl.includes('q=26-2-7') ? INITIAL_CONTACT_PAGE.googleMapsEmbedUrl : rawEmbedUrl,
     INITIAL_CONTACT_PAGE.googleMapsEmbedUrl
   );
   const googleMapsSearchUrl = safeHttpsUrl(
