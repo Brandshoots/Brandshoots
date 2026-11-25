@@ -401,8 +401,8 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({
           />
         )}
 
-        {/* Full-bleed vertical video */}
-        {currentMobileSrc && (
+        {/* Full-bleed vertical video (mount ONLY on mobile so desktop never plays hidden mobile audio) */}
+        {isMobile && currentMobileSrc && (
           <video
             ref={mobileVideoRef}
             src={currentMobileSrc}

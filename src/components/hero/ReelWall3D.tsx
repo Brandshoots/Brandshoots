@@ -116,6 +116,7 @@ const CylinderCard: React.FC<CylinderCardProps> = React.memo(
         video.removeEventListener('loadeddata', startPlayback);
         video.removeEventListener('canplay', startPlayback);
         video.removeEventListener('loadedmetadata', startPlayback);
+        video.muted = true;
         video.pause();
         // Immediately release hardware video decoder
         video.removeAttribute('src');
