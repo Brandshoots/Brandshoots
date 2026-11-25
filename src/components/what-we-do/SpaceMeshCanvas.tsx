@@ -24,28 +24,39 @@ export const SpaceMeshCanvas: React.FC<SpaceMeshCanvasProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let animId: number;
+    let animId: number | null = null;
     let width = 0;
     let height = 0;
+    let rectLeft = 0;
+    let rectTop = 0;
     let mouseX = 0;
     let mouseY = 0;
     let targetMouseX = 0;
     let targetMouseY = 0;
     let time = 0;
+    let inView = true;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const updateRect = () => {
+      const rect = canvas.getBoundingClientRect();
+      rectLeft = rect.left;
+      rectTop = rect.top;
+    };
 
     const resize = () => {
       width = canvas.width = canvas.parentElement?.clientWidth || window.innerWidth;
       height = canvas.height = canvas.parentElement?.clientHeight || window.innerHeight;
+      updateRect();
     };
     resize();
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', resize, { passive: true });
 
     const handlePointerMove = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      targetMouseX = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
-      targetMouseY = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+      if (!inView || width === 0 || height === 0) return;
+      targetMouseX = ((e.clientX - rectLeft) / width - 0.5) * 2;
+      targetMouseY = ((e.clientY - rectTop) / height - 0.5) * 2;
     };
-    window.addEventListener('mousemove', handlePointerMove);
+    window.addEventListener('mousemove', handlePointerMove, { passive: true });
 
     // Grid configuration: spans 100% full screen with margin bleed
     const cols = 32;
@@ -138,13 +149,52 @@ export const SpaceMeshCanvas: React.FC<SpaceMeshCanvasProps> = ({
         }
       }
 
-      animId = requestAnimationFrame(render);
+      if (!prefersReducedMotion && inView && !document.hidden) {
+        animId = requestAnimationFrame(render);
+      } else {
+        animId = null;
+      }
     };
 
-    animId = requestAnimationFrame(render);
+    const startLoop = () => {
+      if (animId === null && inView && !document.hidden) {
+        animId = requestAnimationFrame(render);
+      }
+    };
+
+    const stopLoop = () => {
+      if (animId !== null) {
+        cancelAnimationFrame(animId);
+        animId = null;
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        inView = entry.isIntersecting;
+        if (inView) {
+          updateRect();
+          startLoop();
+        } else {
+          stopLoop();
+        }
+      },
+      { threshold: 0.01 }
+    );
+    observer.observe(canvas);
+
+    const handleVisibility = () => {
+      if (document.hidden) stopLoop();
+      else if (inView) startLoop();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    startLoop();
 
     return () => {
-      cancelAnimationFrame(animId);
+      stopLoop();
+      observer.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('resize', resize);
       window.removeEventListener('mousemove', handlePointerMove);
     };

@@ -71,26 +71,26 @@ function PackageCard({ plan, whatsappPhone }: { plan: MonthlyPackage; whatsappPh
       }`}
     >
       <div className="flex min-h-6 items-start justify-between gap-4">
-        <h2 className="text-sm font-sans font-bold uppercase tracking-wider text-white">{plan.name}</h2>
+        <h2 className="text-base sm:text-lg font-sans font-bold uppercase tracking-wider text-white">{plan.name}</h2>
         {plan.label && (
-          <span className={`text-[10px] font-mono uppercase tracking-[0.2em] font-semibold ${plan.id === 'growth' ? 'text-[#008CFF]' : 'text-white/50'}`}>
+          <span className={`text-xs font-mono uppercase tracking-[0.18em] font-semibold ${plan.id === 'growth' ? 'text-[#008CFF]' : 'text-white/60'}`}>
             {plan.label}
           </span>
         )}
       </div>
 
       <div className="mt-8 flex items-end gap-2">
-        <span className="text-[clamp(2.4rem,4vw,3.6rem)] font-sans font-black leading-none tracking-tight text-white">
+        <span className="text-[clamp(2.5rem,4.2vw,3.75rem)] font-sans font-black leading-none tracking-tight text-white">
           {plan.price}
         </span>
-        <span className="pb-1 text-sm font-sans font-light text-white/50">/ month</span>
+        <span className="pb-1 text-base font-sans text-white/60">/ month</span>
       </div>
-      <p className="mt-5 min-h-[52px] text-sm font-sans font-light leading-relaxed text-white/75">{plan.description}</p>
+      <p className="mt-5 min-h-[56px] text-base font-sans leading-relaxed text-white/85">{plan.description}</p>
 
-      <ul className="mt-8 space-y-3.5 border-t border-white/10 pt-7">
+      <ul className="mt-8 mb-8 space-y-4 border-t border-white/10 pt-7">
         {plan.features.map((feature) => (
-          <li key={feature} className="flex gap-3 text-sm font-sans leading-relaxed text-white/80">
-            <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#008CFF]" strokeWidth={2} />
+          <li key={feature} className="flex gap-3 text-base font-sans leading-relaxed text-white/90">
+            <Check className="mt-1 h-4 w-4 shrink-0 text-[#008CFF]" strokeWidth={2.2} />
             <span>{feature}</span>
           </li>
         ))}
@@ -100,7 +100,7 @@ function PackageCard({ plan, whatsappPhone }: { plan: MonthlyPackage; whatsappPh
         href={packageWhatsAppUrl(plan.whatsappUrl, whatsappPhone)}
         target="_blank"
         rel="noopener noreferrer"
-        className={`mt-auto inline-flex min-h-12 items-center justify-between gap-4 border px-5 py-3.5 text-xs font-mono uppercase tracking-[0.2em] font-semibold transition-colors duration-200 ${
+        className={`mt-auto inline-flex min-h-12 items-center justify-between gap-4 border px-5 py-3.5 text-sm font-mono uppercase tracking-[0.18em] font-semibold transition-colors duration-200 ${
           plan.id === 'growth'
             ? 'border-[#008CFF] bg-[#008CFF] text-white hover:bg-white hover:text-[#08090C]'
             : 'border-white/35 text-white hover:border-[#008CFF] hover:text-[#008CFF]'
@@ -119,7 +119,10 @@ export const PackagesPage: React.FC = () => {
     contact?.whatsappPhone,
     INITIAL_SITE_SETTINGS.whatsappPhone
   );
-  const siteVisitPrice = contact?.siteVisitPrice || INITIAL_CONTACT_PAGE.siteVisitPrice;
+  const siteVisitPrice =
+    !contact?.siteVisitPrice || contact.siteVisitPrice.includes('999')
+      ? INITIAL_CONTACT_PAGE.siteVisitPrice
+      : contact.siteVisitPrice;
   const pageRef = useRef<HTMLElement>(null);
   const introRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
@@ -231,14 +234,14 @@ export const PackagesPage: React.FC = () => {
       <header className="relative overflow-hidden px-5 pb-20 pt-36 sm:px-8 sm:pb-24 sm:pt-44 lg:px-12 lg:pb-28">
         <div className="pointer-events-none absolute left-1/2 top-0 h-[420px] w-[80vw] -translate-x-1/2 bg-[radial-gradient(ellipse_at_top,rgba(0,140,255,0.15),transparent_68%)]" />
         <div ref={introRef} className="relative mx-auto w-full max-w-[1380px]">
-          <p className="font-mono text-xs uppercase tracking-[0.24em] font-semibold text-[#008CFF]">MONTHLY PACKAGES</p>
+          <p className="font-mono text-sm uppercase tracking-[0.24em] font-semibold text-[#008CFF]">MONTHLY PACKAGES</p>
           <h1 className="mt-5 max-w-5xl text-[clamp(2.8rem,6.5vw,6rem)] font-sans font-black uppercase leading-[0.95] tracking-[-0.025em] text-white">
             Monthly Content Packages
           </h1>
-          <h2 className="mt-6 max-w-3xl text-xl sm:text-2xl font-sans font-light text-[#008CFF] tracking-wide">
+          <h2 className="mt-6 max-w-3xl text-xl sm:text-2xl font-sans font-medium text-[#008CFF] tracking-wide">
             Content that builds a brand, every month.
           </h2>
-          <p className="mt-4 max-w-2xl text-sm sm:text-base font-sans font-light text-white/75 leading-relaxed">
+          <p className="mt-4 max-w-2xl text-base sm:text-lg font-sans text-white/85 leading-relaxed">
             Complete monthly content for Instagram, Facebook and YouTube: planned, shot, edited and posted by our team.
           </p>
         </div>
@@ -253,7 +256,7 @@ export const PackagesPage: React.FC = () => {
       <section ref={comparisonRef} id="comparison" className="border-y border-white/10 bg-[#0a0d12] px-5 py-24 sm:px-8 sm:py-32 lg:px-12">
         <div className="mx-auto w-full max-w-[1380px]">
           <div className="mb-12 max-w-2xl">
-            <p className="font-mono text-xs uppercase tracking-[0.24em] font-semibold text-[#008CFF]">COMPARE</p>
+            <p className="font-mono text-sm uppercase tracking-[0.24em] font-semibold text-[#008CFF]">COMPARE</p>
             <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-sans font-black uppercase tracking-[-0.025em] text-white">Choose the right monthly plan.</h2>
           </div>
 
@@ -262,19 +265,19 @@ export const PackagesPage: React.FC = () => {
               <caption className="sr-only">Comparison of Starter, Growth and Premium monthly packages</caption>
               <thead className="bg-white/[0.035]">
                 <tr>
-                  <th scope="col" className="w-[31%] px-6 py-5 text-xs font-mono uppercase tracking-wider text-white/50">Feature</th>
+                  <th scope="col" className="w-[31%] px-6 py-5 text-sm font-mono uppercase tracking-wider text-white/65">Feature</th>
                   {MONTHLY_PACKAGES.map((plan) => (
-                    <th key={plan.id} scope="col" className={`px-5 py-5 text-xs font-mono uppercase tracking-wider ${plan.id === 'growth' ? 'text-[#008CFF] font-bold' : 'text-white'}`}>{plan.name}</th>
+                    <th key={plan.id} scope="col" className={`px-5 py-5 text-sm font-mono uppercase tracking-wider ${plan.id === 'growth' ? 'text-[#008CFF] font-bold' : 'text-white'}`}>{plan.name}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {PACKAGE_COMPARISON_ROWS.map((row) => (
                   <tr key={row.feature} className="border-t border-white/10">
-                    <th scope="row" className="px-6 py-4 text-sm font-sans font-normal leading-6 text-white/80">{row.feature}</th>
-                    <td className="px-5 py-4 text-sm font-sans leading-6 text-white/60"><ComparisonValue value={row.starter} /></td>
-                    <td className="bg-[#008CFF]/[0.04] px-5 py-4 text-sm font-sans leading-6 text-white/80"><ComparisonValue value={row.growth} /></td>
-                    <td className="px-5 py-4 text-sm font-sans leading-6 text-white/60"><ComparisonValue value={row.premium} /></td>
+                    <th scope="row" className="px-6 py-4 text-base font-sans font-normal leading-6 text-white/90">{row.feature}</th>
+                    <td className="px-5 py-4 text-base font-sans leading-6 text-white/75"><ComparisonValue value={row.starter} /></td>
+                    <td className="bg-[#008CFF]/[0.04] px-5 py-4 text-base font-sans leading-6 text-white/90"><ComparisonValue value={row.growth} /></td>
+                    <td className="px-5 py-4 text-base font-sans leading-6 text-white/75"><ComparisonValue value={row.premium} /></td>
                   </tr>
                 ))}
               </tbody>
@@ -286,15 +289,15 @@ export const PackagesPage: React.FC = () => {
               const key = plan.id as 'starter' | 'growth' | 'premium';
               return (
                 <details key={plan.id} open={plan.id === 'growth'} className="group border border-white/15 bg-[#08090C]">
-                  <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-sans font-bold tracking-wide [&::-webkit-details-marker]:hidden">
+                  <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-base font-sans font-bold tracking-wide [&::-webkit-details-marker]:hidden">
                     <span className={plan.id === 'growth' ? 'text-[#008CFF]' : 'text-white'}>{plan.name}</span>
-                    <ChevronDown className="h-4 w-4 text-white/45 transition-transform group-open:rotate-180" />
+                    <ChevronDown className="h-5 w-5 text-white/55 transition-transform group-open:rotate-180" />
                   </summary>
                   <div className="border-t border-white/10 px-5">
                     {PACKAGE_COMPARISON_ROWS.map((row) => (
                       <div key={row.feature} className="flex items-start justify-between gap-5 border-b border-white/10 py-4 last:border-b-0">
-                        <span className="max-w-[64%] text-sm font-sans font-light leading-5 text-white/60">{row.feature}</span>
-                        <span className="max-w-[36%] text-right text-sm font-sans leading-5 text-white/85"><ComparisonValue value={row[key]} /></span>
+                        <span className="max-w-[64%] text-base font-sans leading-6 text-white/75">{row.feature}</span>
+                        <span className="max-w-[36%] text-right text-base font-sans leading-6 text-white/95"><ComparisonValue value={row[key]} /></span>
                       </div>
                     ))}
                   </div>
@@ -308,7 +311,7 @@ export const PackagesPage: React.FC = () => {
       <section ref={workflowRef} id="how-it-works" className="px-5 py-24 sm:px-8 sm:py-32 lg:px-12">
         <div className="mx-auto w-full max-w-[1380px]">
           <div className="mb-14 max-w-2xl">
-            <p className="font-mono text-xs uppercase tracking-[0.24em] font-semibold text-[#008CFF]">HOW IT WORKS</p>
+            <p className="font-mono text-sm uppercase tracking-[0.24em] font-semibold text-[#008CFF]">HOW IT WORKS</p>
             <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-sans font-black uppercase tracking-[-0.025em] text-white">One team. One monthly rhythm.</h2>
           </div>
           <div className="grid grid-cols-1 gap-x-7 gap-y-10 sm:grid-cols-2 lg:grid-cols-6">
@@ -318,10 +321,10 @@ export const PackagesPage: React.FC = () => {
                 <article key={step.number} data-workflow-step className="border-t border-white/20 pt-5">
                   <div className="flex items-center justify-between gap-4">
                     <Icon className="h-5 w-5 text-[#008CFF]" strokeWidth={1.75} />
-                    <span className="font-mono text-xs tracking-wider text-[#008CFF] font-semibold">{step.number}</span>
+                    <span className="font-mono text-sm tracking-wider text-[#008CFF] font-semibold">{step.number}</span>
                   </div>
-                  <h3 className="mt-6 text-xs font-sans font-bold uppercase tracking-wider text-white">{step.title}</h3>
-                  <p className="mt-2.5 text-sm font-sans font-light leading-relaxed text-white/70">{step.description}</p>
+                  <h3 className="mt-6 text-sm sm:text-base font-sans font-bold uppercase tracking-wider text-white">{step.title}</h3>
+                  <p className="mt-2.5 text-base font-sans leading-relaxed text-white/80">{step.description}</p>
                 </article>
               );
             })}
@@ -332,14 +335,14 @@ export const PackagesPage: React.FC = () => {
       <section ref={addOnsRef} id="add-ons" className="border-y border-white/10 bg-[#0a0d12] px-5 py-24 sm:px-8 sm:py-32 lg:px-12">
         <div className="mx-auto grid w-full max-w-[1380px] grid-cols-1 gap-14 lg:grid-cols-12 lg:gap-20">
           <div className="lg:col-span-5">
-            <p className="font-mono text-xs uppercase tracking-[0.24em] font-semibold text-[#008CFF]">ADD-ONS</p>
+            <p className="font-mono text-sm uppercase tracking-[0.24em] font-semibold text-[#008CFF]">ADD-ONS</p>
             <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-sans font-black uppercase tracking-[-0.025em] text-white">NEED SOMETHING EXTRA?</h2>
-            <p className="mt-4 text-base font-sans font-light leading-relaxed text-white/75">Anything outside your plan is quoted separately.</p>
+            <p className="mt-4 text-lg font-sans leading-relaxed text-white/85">Anything outside your plan is quoted separately.</p>
             <div className="mt-8 flex flex-wrap gap-4">
-              <Link to="/contact#site-visit" className="inline-flex min-h-12 items-center gap-2 bg-[#008CFF] px-6 py-3 text-xs font-mono uppercase tracking-[0.2em] font-bold text-white transition-colors hover:bg-white hover:text-[#08090C]">
+              <Link to="/contact#site-visit" className="inline-flex min-h-12 items-center gap-2 bg-[#008CFF] px-6 py-3 text-sm font-mono uppercase tracking-[0.18em] font-bold text-white transition-colors hover:bg-white hover:text-[#08090C]">
                 BOOK A SITE VISIT — {siteVisitPrice}
               </Link>
-              <a href={`https://wa.me/${whatsappPhone}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-12 items-center border border-white/35 px-6 py-3 text-xs font-mono uppercase tracking-[0.2em] font-bold text-white transition-colors hover:border-white hover:bg-white hover:text-[#08090C]">
+              <a href={`https://wa.me/${whatsappPhone}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-12 items-center border border-white/35 px-6 py-3 text-sm font-mono uppercase tracking-[0.18em] font-bold text-white transition-colors hover:border-white hover:bg-white hover:text-[#08090C]">
                 CHAT ON WHATSAPP
               </a>
             </div>
@@ -347,7 +350,7 @@ export const PackagesPage: React.FC = () => {
 
           <ul className="grid grid-cols-1 gap-x-10 sm:grid-cols-2 lg:col-span-7">
             {PACKAGE_ADD_ONS.map((item) => (
-              <li key={item} className="border-t border-white/15 py-5 text-sm font-sans font-light leading-relaxed text-white/80">{item}</li>
+              <li key={item} className="border-t border-white/15 py-5 text-base font-sans leading-relaxed text-white/90">{item}</li>
             ))}
           </ul>
         </div>
@@ -355,10 +358,10 @@ export const PackagesPage: React.FC = () => {
 
       <section aria-label="Package terms" className="px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
         <div className="mx-auto w-full max-w-[1380px]">
-          <h2 className="text-xs font-mono uppercase tracking-[0.24em] font-semibold text-white/60">PACKAGE NOTES</h2>
-          <ul className="mt-6 grid grid-cols-1 gap-x-12 gap-y-3 lg:grid-cols-2">
+          <h2 className="text-sm font-mono uppercase tracking-[0.24em] font-semibold text-white/75">PACKAGE NOTES</h2>
+          <ul className="mt-6 grid grid-cols-1 gap-x-12 gap-y-4 lg:grid-cols-2">
             {PACKAGE_FINE_PRINT.map((item) => (
-              <li key={item} className="flex gap-3 text-xs font-sans font-light leading-relaxed text-white/70">
+              <li key={item} className="flex gap-3 text-sm sm:text-base font-sans leading-relaxed text-white/80">
                 <span aria-hidden="true" className="text-[#008CFF]">{'\u2022'}</span>
                 <span>{item}</span>
               </li>

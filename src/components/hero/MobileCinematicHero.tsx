@@ -169,7 +169,7 @@ export const MobileCinematicHero: React.FC = () => {
         {/* BrandShoots Title in Source Sans 3 */}
         <h1
           ref={titleRef}
-          className="font-sans font-black uppercase tracking-[-0.038em] text-[clamp(2.5rem,11.8vw,4.1rem)] leading-[0.92] select-none flex items-center justify-center drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]"
+          className="font-sans font-black uppercase tracking-[0.025em] text-[clamp(2.5rem,11.8vw,4.1rem)] leading-[0.92] select-none flex items-center justify-center drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]"
         >
           <span
             className="text-[#008CFF]"
@@ -178,7 +178,7 @@ export const MobileCinematicHero: React.FC = () => {
             BRAND
           </span>
           <span
-            className="text-white ml-[0.02em]"
+            className="text-white"
             style={{ textShadow: '0 4px 28px rgba(0,0,0,0.95)' }}
           >
             SHOOTS

@@ -40,11 +40,11 @@ export function createPreloaderTimeline(
 
   const focusTime = PRELOADER_CONFIG.focusTiming;
   const snapTime = PRELOADER_CONFIG.logoSnapTiming;
-  const flashTime = snapTime + 0.06;
+  const flashTime = snapTime + 0.04;
   const flashEndPosition = `flash+=${PRELOADER_CONFIG.flashDuration}`;
   const expandTime = PRELOADER_CONFIG.totalSequenceDuration - PRELOADER_CONFIG.exitDuration;
-  const collectTime = Math.max(0.5, focusTime - 0.2);
-  const shutterTime = Math.max(focusTime + 0.15, snapTime - 0.1);
+  const collectTime = Math.max(0.28, focusTime - 0.16);
+  const shutterTime = Math.max(focusTime + 0.08, snapTime - 0.08);
 
   const tl = gsap.timeline({
     paused: true,
@@ -70,37 +70,37 @@ export function createPreloaderTimeline(
   tl.addLabel('intro', 0.0);
   tl.to(backdropHazeRef.current, {
     opacity: 0.5,
-    duration: 0.42,
+    duration: 0.24,
     ease: 'power2.inOut'
-  }, 'intro+=0.05');
+  }, 'intro+=0.02');
 
   tl.to(tilesContainerRef.current, {
     opacity: 1,
     scale: 1,
-    duration: 0.5,
+    duration: 0.28,
     ease: 'power3.out'
-  }, 'intro+=0.1');
+  }, 'intro+=0.04');
 
   // ----------------------------------------------------
-  // LABEL: streaming (0.35s)
+  // LABEL: streaming (0.18s)
   // Rapid 3D multigrade tiles stream across the viewport
   // ----------------------------------------------------
-  tl.addLabel('streaming', 0.35);
+  tl.addLabel('streaming', 0.18);
 
   // Mid-stream camera exposure flash
   tl.to(flashRef.current, {
-    opacity: 0.6,
-    duration: 0.07,
+    opacity: 0.55,
+    duration: 0.05,
     ease: 'power4.in'
-  }, 'streaming+=0.45');
+  }, 'streaming+=0.18');
   tl.to(flashRef.current, {
     opacity: 0,
-    duration: 0.1,
+    duration: 0.08,
     ease: 'power3.out'
-  }, 'streaming+=0.52');
+  }, 'streaming+=0.23');
 
   // ----------------------------------------------------
-  // LABEL: collect (~0.55s)
+  // LABEL: collect (~0.36s)
   // Convergence: tiles gather together, perspective flattens
   // ----------------------------------------------------
   tl.addLabel('collect', collectTime);
@@ -112,18 +112,18 @@ export function createPreloaderTimeline(
 
   tl.to(tilesContainerRef.current, {
     opacity: 0.75,
-    duration: 0.7,
+    duration: 0.35,
     ease: 'power2.out'
   }, 'collect');
 
   tl.to(atmosphereRef.current, {
     opacity: 1,
-    duration: 0.6,
+    duration: 0.32,
     ease: 'power2.out'
   }, 'collect');
 
   // ----------------------------------------------------
-  // LABEL: focus (~0.75s)
+  // LABEL: focus (~0.52s)
   // Center autofocus target initiates
   // ----------------------------------------------------
   tl.addLabel('focus', focusTime);
@@ -135,7 +135,7 @@ export function createPreloaderTimeline(
 
   tl.to(tilesContainerRef.current, {
     opacity: 0.55,
-    duration: 0.45,
+    duration: 0.25,
     ease: 'power2.out'
   }, 'focus');
 

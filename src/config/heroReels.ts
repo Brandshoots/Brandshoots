@@ -2,144 +2,171 @@ export interface HeroReelVideo {
   id: string;
   title: string;
   client: string;
-  src: string;         // Full 1080p high-resolution stream (for center/focal reels)
-  lightSrc: string;    // Lightweight 540p stream (for visible peripheral reels)
-  poster: string;      // Crystal-clear HD poster
+  description?: string;
+  src: string;
+  lightSrc: string;
+  poster: string;
 }
 
 export const HERO_REEL_VIDEOS: HeroReelVideo[] = [
-  // 1. BrandShoots Team in Studio
   {
-    id: 'hero-bs-team',
-    title: 'BrandShoots Creative Studio',
-    client: 'BrandShoots',
-    src: '/reels/wearebrandshoots/wearebrandshoots_2026-04-02_19-52-00_3866474098000140140_77785749886_2.mp4',
-    lightSrc: '/reels_light/wearebrandshoots_2026-04-02.mp4',
-    poster: '/reels/thumbnails-webp/wearebrandshoots_2026-04-02_19-52-00_3866474098000140140_77785749886_2.webp'
-  },
-  // 2. CERA / Dayanidhi Interiors
-  {
-    id: 'hero-dayanidhi',
-    title: 'Dayanidhi Creations',
-    client: 'Dayanidhi Interiors',
-    src: '/reels/dayanidhi.interiors_rjy/dayanidhi.interiors_rjy_2025-10-07_12-00-25_3737951699329041277_72884206961.mp4',
-    lightSrc: '/reels_light/dayanidhi.interiors_rjy_2025-10-07.mp4',
-    poster: '/reels/thumbnails-webp/dayanidhi.interiors_rjy_2025-10-07_12-00-25_3737951699329041277_72884206961.webp'
-  },
-  // 3. Aabharan Jewellers - Temple Garland Heritage
-  {
-    id: 'hero-aabharan',
+    id: 'hero-final-aabharan',
     title: 'Aabharan Fine Jewellery',
     client: 'Aabharan Jewellers',
-    src: '/reels/aabharan_womens_accessories/aabharan_womens_accessories_2025-10-17_10-00-00_3745139393318603226_45301478774.mp4',
-    lightSrc: '/reels_light/aabharan_womens_accessories_2025-10-17.mp4',
-    poster: '/reels/thumbnails-webp/aabharan_womens_accessories_2025-10-17_10-00-00_3745139393318603226_45301478774.webp'
+    description: 'Luxury bridal and heritage jewellery showcase reel.',
+    src: '/reels/hero-final/instagram-aabharan_womens_accessories-DW1KGuDkXf6.mp4',
+    lightSrc: '/reels/hero-final/instagram-aabharan_womens_accessories-DW1KGuDkXf6.mp4',
+    poster: '/reels/hero-final/posters/instagram-aabharan_womens_accessories-DW1KGuDkXf6.webp',
   },
-  // 4. Santhi Pipes - Factory & Phone
   {
-    id: 'hero-santhi',
-    title: 'Santhi Pipes Engineering',
-    client: 'Santhi Pipes',
-    src: '/reels/santhi.pipes_rjy/santhi.pipes_rjy_2026-09-06_10-01-41_3979966688738161477_48644092133.mp4',
-    lightSrc: '/reels_light/santhi.pipes_rjy_2026-09-06.mp4',
-    poster: '/reels/thumbnails-webp/santhi.pipes_rjy_2026-09-06_10-01-41_3979966688738161477_48644092133.webp'
-  },
-  // 5. Bags World - Red Train Journey
-  {
-    id: 'hero-bags',
-    title: 'Bags World Travel',
+    id: 'hero-final-bags-world',
+    title: 'Bags World Showcase',
     client: 'Bags World',
-    src: '/reels/bags.world_rjy/bags.world_rjy_2025-09-09_09-40-28_3717579195573459823_54511918250.mp4',
-    lightSrc: '/reels_light/bags.world_rjy_2025-09-09.mp4',
-    poster: '/reels/thumbnails-webp/bags.world_rjy_2025-09-09_09-40-28_3717579195573459823_54511918250.webp'
+    description: 'Retail storytelling and festive collection reel for Bags World.',
+    src: '/reels/hero-final/instagram-bags.world_rjy-DeQ925lpHXR.mp4',
+    lightSrc: '/reels/hero-final/instagram-bags.world_rjy-DeQ925lpHXR.mp4',
+    poster: '/reels/hero-final/posters/instagram-bags.world_rjy-DeQ925lpHXR.webp',
   },
-  // 6. BrandShoots Team Polo Walk
   {
-    id: 'hero-bs-walk',
-    title: 'BrandShoots Direction',
-    client: 'BrandShoots',
-    src: '/reels/wearebrandshoots/wearebrandshoots_2025-10-16_15-04-28_3744567634965812934_77785749886.mp4',
-    lightSrc: '/reels_light/wearebrandshoots_2025-10-16.mp4',
-    poster: '/reels/thumbnails-webp/wearebrandshoots_2025-10-16_15-04-28_3744567634965812934_77785749886.webp'
+    id: 'hero-final-dayanidhi',
+    title: 'Dayanidhi Interiors',
+    client: 'Dayanidhi Interiors',
+    description: 'Architectural and luxury bathware showroom feature.',
+    src: '/reels/hero-final/instagram-dayanidhi.interiors_rjy-DRHjyE4kyY1.mp4',
+    lightSrc: '/reels/hero-final/instagram-dayanidhi.interiors_rjy-DRHjyE4kyY1.mp4',
+    poster: '/reels/hero-final/posters/instagram-dayanidhi.interiors_rjy-DRHjyE4kyY1.webp',
   },
-  // 7. New Playzone - Festival Gathering
   {
-    id: 'hero-playzone',
-    title: 'New Playzone Entertainment',
-    client: 'New Playzone',
-    src: '/reels/newplayzone_rjy/newplayzone_rjy_2025-09-23_09-49-41_3727739247089824309_76443365829.mp4',
-    lightSrc: '/reels_light/newplayzone_rjy_2025-09-23.mp4',
-    poster: '/reels/thumbnails-webp/newplayzone_rjy_2025-09-23_09-49-41_3727739247089824309_76443365829.webp'
+    id: 'hero-final-freshandfresh-1',
+    title: 'Fresh & Fresh Campaign I',
+    client: 'Fresh & Fresh',
+    description: 'High-retention product and store storytelling reel.',
+    src: '/reels/hero-final/instagram-freshandfresh_official-Ddsiv4hSx3a.mp4',
+    lightSrc: '/reels/hero-final/instagram-freshandfresh_official-Ddsiv4hSx3a.mp4',
+    poster: '/reels/hero-final/posters/instagram-freshandfresh_official-Ddsiv4hSx3a.webp',
   },
-  // 8. Viswatuff Glass - Architectural Glass Factory
   {
-    id: 'hero-viswatuff',
-    title: 'Viswatuff Architectural Glass',
-    client: 'Viswatuff Glass',
-    src: '/reels/viswatuff.glass_rjy/viswatuff.glass_rjy_2026-05-28_18-00-28_3907005057329571857_78432309239.mp4',
-    lightSrc: '/reels_light/viswatuff.glass_rjy_2026-05-28.mp4',
-    poster: '/reels/thumbnails-webp/viswatuff.glass_rjy_2026-05-28_18-00-28_3907005057329571857_78432309239.webp'
+    id: 'hero-final-freshandfresh-2',
+    title: 'Fresh & Fresh Campaign II',
+    client: 'Fresh & Fresh',
+    description: 'Dynamic retail hook and customer engagement reel.',
+    src: '/reels/hero-final/instagram-freshandfresh_official-DfGpfzCyhFv.mp4',
+    lightSrc: '/reels/hero-final/instagram-freshandfresh_official-DfGpfzCyhFv.mp4',
+    poster: '/reels/hero-final/posters/instagram-freshandfresh_official-DfGpfzCyhFv.webp',
   },
-  // 9. Jain Beauty Studio
   {
-    id: 'hero-jain',
-    title: 'Jain Beauty Studio',
+    id: 'hero-final-jain-beauty',
+    title: 'Jain Beauty Concepts',
     client: 'Jain Beauty Concepts',
-    src: '/reels/jain_beauty_concepts/jain_beauty_concepts_2025-10-16_09-55-09_3744410345428741931_48808965364.mp4',
-    lightSrc: '/reels_light/jain_beauty_concepts_2025-10-16.mp4',
-    poster: '/reels/thumbnails-webp/jain_beauty_concepts_2025-10-16_09-55-09_3744410345428741931_48808965364.webp'
+    description: 'Beauty retail and studio product showcase.',
+    src: '/reels/hero-final/instagram-jain_beauty_concepts-DcxaehTxSCx.mp4',
+    lightSrc: '/reels/hero-final/instagram-jain_beauty_concepts-DcxaehTxSCx.mp4',
+    poster: '/reels/hero-final/posters/instagram-jain_beauty_concepts-DcxaehTxSCx.webp',
   },
-  // 10. KC Overseas Global Education
   {
-    id: 'hero-kc',
+    id: 'hero-final-kc-overseas',
     title: 'KC Overseas Education',
     client: 'KC Overseas',
-    src: '/reels/kc_overseas_rjy/kc_overseas_rjy_2025-10-28_11-56-25_3753167479003838060_46988266664.mp4',
-    lightSrc: '/reels_light/kc_overseas_rjy_2025-10-28.mp4',
-    poster: '/reels/thumbnails-webp/kc_overseas_rjy_2025-10-28_11-56-25_3753167479003838060_46988266664.webp'
+    description: 'Global study abroad consultancy campaign reel.',
+    src: '/reels/hero-final/instagram-kc_overseas_rjy-DTDHx1REsW0.mp4',
+    lightSrc: '/reels/hero-final/instagram-kc_overseas_rjy-DTDHx1REsW0.mp4',
+    poster: '/reels/hero-final/posters/instagram-kc_overseas_rjy-DTDHx1REsW0.webp',
   },
-  // 11. SB Ventures Real Estate
   {
-    id: 'hero-sb',
-    title: 'SB Ventures Development',
-    client: 'SB Ventures',
-    src: '/reels/sbventures_official/sbventures_official_2026-09-15_17-10-21_3986704799434897519_5720346010.mp4',
-    lightSrc: '/reels_light/sbventures_official_2026-09-15.mp4',
-    poster: '/reels/thumbnails-webp/sbventures_official_2026-09-15_17-10-21_3986704799434897519_5720346010.webp'
+    id: 'hero-final-nirmala-1',
+    title: 'Nirmala Group Showcase I',
+    client: 'Nirmala Group',
+    description: 'Commercial brand film and real-world customer narrative.',
+    src: '/reels/hero-final/instagram-nirmala.group_bvrm-DbiXfcgoXxB.mp4',
+    lightSrc: '/reels/hero-final/instagram-nirmala.group_bvrm-DbiXfcgoXxB.mp4',
+    poster: '/reels/hero-final/posters/instagram-nirmala.group_bvrm-DbiXfcgoXxB.webp',
   },
-  // 12. Tea3 Official Hospitality
   {
-    id: 'hero-tea3',
-    title: 'Tea3 Hospitality & Food',
-    client: 'Tea3 Official',
-    src: '/reels/tea3_official/tea3_official_2025-10-29_09-54-59_3753833688871293700_76713485685.mp4',
-    lightSrc: '/reels_light/tea3_official_2025-10-29.mp4',
-    poster: '/reels/thumbnails-webp/tea3_official_2025-10-29_09-54-59_3753833688871293700_76713485685.webp'
+    id: 'hero-final-nirmala-2',
+    title: 'Nirmala Group Showcase II',
+    client: 'Nirmala Group',
+    description: 'High-impact regional brand storytelling reel.',
+    src: '/reels/hero-final/instagram-nirmala.group_bvrm-DdIjh8VInS2.mp4',
+    lightSrc: '/reels/hero-final/instagram-nirmala.group_bvrm-DdIjh8VInS2.mp4',
+    poster: '/reels/hero-final/posters/instagram-nirmala.group_bvrm-DdIjh8VInS2.webp',
   },
-  // 13. Sahana Dryfruits FMCG
   {
-    id: 'hero-sahana',
-    title: 'Sahana Dryfruits Brand',
+    id: 'hero-final-rudra-silver',
+    title: 'Rudra Sterling Silver',
+    client: 'Rudra Sterling Silver',
+    description: 'Fine sterling silver craftsmanship and collection reel.',
+    src: '/reels/hero-final/instagram-rudra.sterlingsilver_rjy-De8baNYx0AT.mp4',
+    lightSrc: '/reels/hero-final/instagram-rudra.sterlingsilver_rjy-De8baNYx0AT.mp4',
+    poster: '/reels/hero-final/posters/instagram-rudra.sterlingsilver_rjy-De8baNYx0AT.webp',
+  },
+  {
+    id: 'hero-final-sahana-dryfruits',
+    title: 'Sahana Dryfruits',
     client: 'Sahana Dryfruits',
-    src: '/reels/sahana.dryfruits_rjy/sahana.dryfruits_rjy_2026-07-05_17-57-04_3934543118156154206_38485858909.mp4',
-    lightSrc: '/reels_light/sahana.dryfruits_rjy_2026-07-05.mp4',
-    poster: '/reels/thumbnails-webp/sahana.dryfruits_rjy_2026-07-05_17-57-04_3934543118156154206_38485858909.webp'
+    description: 'FMCG packaging and brand growth video campaign.',
+    src: '/reels/hero-final/instagram-sahana.dryfruits_rjy-DWtbi7_CTZa.mp4',
+    lightSrc: '/reels/hero-final/instagram-sahana.dryfruits_rjy-DWtbi7_CTZa.mp4',
+    poster: '/reels/hero-final/posters/instagram-sahana.dryfruits_rjy-DWtbi7_CTZa.webp',
   },
-  // 14. Born Pretty Studios
   {
-    id: 'hero-bornpretty',
-    title: 'Born Pretty Styling',
-    client: 'Born Pretty Studios',
-    src: '/reels/bornprettystudios_by_ranjita/bornprettystudios_by_ranjita_2025-10-26_10-10-05_3751666692112642806_67162035256.mp4',
-    lightSrc: '/reels_light/bornprettystudios_by_ranjita_2025-10-26.mp4',
-    poster: '/reels/thumbnails-webp/bornprettystudios_by_ranjita_2025-10-26_10-10-05_3751666692112642806_67162035256.webp'
-  }
+    id: 'hero-final-saileela',
+    title: 'Saileela Corporation',
+    client: 'Saileela Corporation',
+    description: 'Industrial and enterprise brand presentation reel.',
+    src: '/reels/hero-final/instagram-saileela.corporation_rjy-DfroKUNqXsW.mp4',
+    lightSrc: '/reels/hero-final/instagram-saileela.corporation_rjy-DfroKUNqXsW.mp4',
+    poster: '/reels/hero-final/posters/instagram-saileela.corporation_rjy-DfroKUNqXsW.webp',
+  },
+  {
+    id: 'hero-final-santhi-pipes-1',
+    title: 'Santhi Pipes Showcase I',
+    client: 'Santhi Pipes',
+    description: 'High-velocity industrial cinematography and product feature.',
+    src: '/reels/hero-final/instagram-santhi.pipes_rjy-Dcixda7oj6N.mp4',
+    lightSrc: '/reels/hero-final/instagram-santhi.pipes_rjy-Dcixda7oj6N.mp4',
+    poster: '/reels/hero-final/posters/instagram-santhi.pipes_rjy-Dcixda7oj6N.webp',
+  },
+  {
+    id: 'hero-final-santhi-pipes-2',
+    title: 'Santhi Pipes Showcase II',
+    client: 'Santhi Pipes',
+    description: 'Dealer-focused industrial brand film and vertical reel.',
+    src: '/reels/hero-final/instagram-santhi.pipes_rjy-DdDZPGxoTy9.mp4',
+    lightSrc: '/reels/hero-final/instagram-santhi.pipes_rjy-DdDZPGxoTy9.mp4',
+    poster: '/reels/hero-final/posters/instagram-santhi.pipes_rjy-DdDZPGxoTy9.webp',
+  },
+  {
+    id: 'hero-final-sb-ventures',
+    title: 'SB Ventures',
+    client: 'SB Ventures',
+    description: 'Real estate and commercial development showcase.',
+    src: '/reels/hero-final/instagram-sbventures_official-De37jSli5r3.mp4',
+    lightSrc: '/reels/hero-final/instagram-sbventures_official-De37jSli5r3.mp4',
+    poster: '/reels/hero-final/posters/instagram-sbventures_official-De37jSli5r3.webp',
+  },
+  {
+    id: 'hero-final-srk-doors',
+    title: 'SRK Doors World',
+    client: 'SRK Doors World',
+    description: 'Architectural doors and interior craftsmanship reel.',
+    src: '/reels/hero-final/instagram-srk.doorsworld_rjy-Db4vJMYRkwe.mp4',
+    lightSrc: '/reels/hero-final/instagram-srk.doorsworld_rjy-Db4vJMYRkwe.mp4',
+    poster: '/reels/hero-final/posters/instagram-srk.doorsworld_rjy-Db4vJMYRkwe.webp',
+  },
+  {
+    id: 'hero-final-tea3',
+    title: 'Tea3 Official',
+    client: 'Tea3 Official',
+    description: 'Hospitality, café culture, and culinary storytelling reel.',
+    src: '/reels/hero-final/instagram-tea3_official-DUPeMSJEZ6N.mp4',
+    lightSrc: '/reels/hero-final/instagram-tea3_official-DUPeMSJEZ6N.mp4',
+    poster: '/reels/hero-final/posters/instagram-tea3_official-DUPeMSJEZ6N.webp',
+  },
 ];
 
 /**
- * Warm only the first hero frame while the preloader is visible. The hero
- * carousel lazy-loads the remaining posters after handoff, so startup does
- * not compete with the preloader for image decoders and network sockets.
+ * Warm only the first two hero poster frames while the preloader is visible.
+ * Remaining posters and video streams load on demand so initial rendering stays fast.
  */
 export function preloadAllHeroReels(): void {
   if (typeof window === 'undefined') return;
@@ -150,8 +177,6 @@ export function preloadAllHeroReels(): void {
     img.decoding = 'async';
     img.src = reel.poster;
 
-    // Warm only the first lightweight streams. The full stream is requested
-    // by the hero once the preloader has handed control back.
     if (idx === 0) {
       try {
         const v = document.createElement('video');

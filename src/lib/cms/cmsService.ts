@@ -507,12 +507,36 @@ export async function resetTestimonialsToDefaults(): Promise<CMSTestimonial[]> {
   return initialList;
 }
 
+const normalizeEmail = (email?: string): string => {
+  if (!email || email.trim().toLowerCase() === 'contact@brandshoots.com') {
+    return 'brandshoots.in@gmail.com';
+  }
+  return email.trim();
+};
+
+const normalizePrice = (price?: string): string => {
+  if (!price || price.includes('999')) {
+    return '₹2,000';
+  }
+  return price.trim();
+};
+
 // ----------------------------------------------------
 // SITE SETTINGS CRUD
 // ----------------------------------------------------
 export async function fetchSiteSettings(): Promise<CMSSiteSettings | null> {
   const snapshot = await get(ref(firebaseDb, 'published/siteSettings'));
-  return snapshot.exists() ? snapshot.val() : null;
+  if (snapshot.exists()) {
+    const val = snapshot.val();
+    if (val && typeof val === 'object') {
+      return {
+        ...INITIAL_SITE_SETTINGS,
+        ...val,
+        contactEmail: normalizeEmail(val.contactEmail),
+      };
+    }
+  }
+  return null;
 }
 
 export async function saveSiteSettings(settings: CMSSiteSettings): Promise<void> {
@@ -705,6 +729,8 @@ export async function fetchPublishedContactPage(): Promise<CMSContactPage> {
         return {
           ...INITIAL_CONTACT_PAGE,
           ...val,
+          email: normalizeEmail(val.email),
+          siteVisitPrice: normalizePrice(val.siteVisitPrice),
         };
       }
     }
@@ -720,6 +746,8 @@ export async function fetchPublishedContactPage(): Promise<CMSContactPage> {
         return {
           ...INITIAL_CONTACT_PAGE,
           ...parsed,
+          email: normalizeEmail(parsed.email),
+          siteVisitPrice: normalizePrice(parsed.siteVisitPrice),
         };
       }
     }
@@ -988,4 +1016,29 @@ export async function deleteResultPermanently(resultId: string): Promise<void> {
     [`${RESULTS_DRAFTS_PATH}/${resultId}`]: null,
     [`${RESULTS_PUBLISHED_PATH}/${resultId}`]: null,
   });
+}
+
+export async function syncClientMetadataToResults(
+  clientId: string,
+  clientName: string,
+  clientLogoUrl: string
+): Promise<void> {
+  if (!clientId) return;
+  const adminResults = await fetchAdminResults();
+  const linked = adminResults.filter((result) => result.clientId === clientId);
+  if (linked.length === 0) return;
+
+  const now = Date.now();
+  const updates: Record<string, unknown> = {};
+  linked.forEach((result) => {
+    updates[`${RESULTS_DRAFTS_PATH}/${result.id}/clientName`] = clientName;
+    updates[`${RESULTS_DRAFTS_PATH}/${result.id}/clientLogoUrl`] = clientLogoUrl;
+    updates[`${RESULTS_DRAFTS_PATH}/${result.id}/updatedAt`] = now;
+    if (result.status === 'published') {
+      updates[`${RESULTS_PUBLISHED_PATH}/${result.id}/clientName`] = clientName;
+      updates[`${RESULTS_PUBLISHED_PATH}/${result.id}/clientLogoUrl`] = clientLogoUrl;
+      updates[`${RESULTS_PUBLISHED_PATH}/${result.id}/updatedAt`] = now;
+    }
+  });
+  await update(ref(firebaseDb), updates);
 }

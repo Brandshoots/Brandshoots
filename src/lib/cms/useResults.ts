@@ -9,6 +9,7 @@ import {
 } from 'firebase/database';
 import { firebaseDb } from '../firebase';
 import { CMSResult } from '../../types/cms';
+import { INITIAL_RESULTS } from './seedData';
 
 const RESULTS_PATH = 'published/results';
 export const INITIAL_RESULTS_LIMIT = 6;
@@ -68,13 +69,20 @@ export function useFeaturedResults(): FeaturedResultsState {
           .filter((result) => result.status === 'published' && result.featured)
           .slice(0, 3);
 
-        setResults(publishedFeatured);
+        setResults(
+          publishedFeatured.length > 0
+            ? publishedFeatured
+            : INITIAL_RESULTS.filter((result) => result.status === 'published' && result.featured).slice(0, 3)
+        );
         setError(null);
         setIsLoading(false);
       },
       (listenerError) => {
-        setResults([]);
-        setError(asError(listenerError));
+        const fallbackFeatured = INITIAL_RESULTS.filter(
+          (result) => result.status === 'published' && result.featured
+        ).slice(0, 3);
+        setResults(fallbackFeatured);
+        setError(fallbackFeatured.length > 0 ? null : asError(listenerError));
         setIsLoading(false);
       }
     );
@@ -105,15 +113,26 @@ export function useResults(): PaginatedResultsState {
       (snapshot) => {
         const queriedResults = snapshotResults(snapshot);
         const publishedResults = queriedResults.filter((result) => result.status === 'published');
+        const resolvedResults =
+          publishedResults.length > 0
+            ? publishedResults
+            : INITIAL_RESULTS.filter((result) => result.status === 'published');
 
-        setResults(publishedResults.slice(0, currentVisibleLimit));
-        setHasMore(queriedResults.length > currentVisibleLimit);
+        setResults(resolvedResults.slice(0, currentVisibleLimit));
+        setHasMore(
+          publishedResults.length > 0
+            ? queriedResults.length > currentVisibleLimit
+            : resolvedResults.length > currentVisibleLimit
+        );
         setError(null);
         setIsLoading(false);
         setIsLoadingMore(false);
       },
       (listenerError) => {
-        setError(asError(listenerError));
+        const fallbackResults = INITIAL_RESULTS.filter((result) => result.status === 'published');
+        setResults(fallbackResults.slice(0, currentVisibleLimit));
+        setHasMore(fallbackResults.length > currentVisibleLimit);
+        setError(fallbackResults.length > 0 ? null : asError(listenerError));
         setIsLoading(false);
         setIsLoadingMore(false);
       }

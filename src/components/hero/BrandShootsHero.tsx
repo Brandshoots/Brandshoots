@@ -5,7 +5,7 @@ import { Volume2, VolumeX, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ReelWall3D } from './ReelWall3D';
 import { useCMSContent } from '../../lib/cms/useCMSContent';
 import { getOptimizedImageUrl } from '../../utils/mediaAssets';
-import { waitForCriticalImage, waitForVideoMetadata } from '../../utils/criticalAssets';
+import { waitForCriticalImage } from '../../utils/criticalAssets';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -18,7 +18,7 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({
   isPreloaderActive = false,
   onCriticalReady,
 }) => {
-  const { hero, heroReels } = useCMSContent();
+  const { hero, heroReels, heroReelsLoading, heroReelsError } = useCMSContent();
   const heroRef = useRef<HTMLDivElement>(null);
   const titleBrandRef = useRef<HTMLSpanElement>(null);
   const titleShootsRef = useRef<HTMLSpanElement>(null);
@@ -51,7 +51,22 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({
 
   const toggleAudio = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    setIsMuted((prev) => !prev);
+    const nextMuted = !isMuted;
+    setIsMuted(nextMuted);
+
+    // Apply mute/unmute synchronously inside the user gesture so browsers immediately unlock audio
+    const videos = heroRef.current?.querySelectorAll('video') ?? [];
+    videos.forEach((video) => {
+      video.muted = nextMuted;
+      video.defaultMuted = nextMuted;
+      if (nextMuted) {
+        video.setAttribute('muted', '');
+      } else {
+        video.removeAttribute('muted');
+        video.volume = 1;
+        video.play().catch(() => {});
+      }
+    });
   };
 
   const visibleHeroReels = useMemo(
@@ -59,40 +74,15 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({
     [heroReels]
   );
 
-  // Mobile Full Screen Reels List (uses the configured mobile mode and visible CMS reels only)
+  // Mobile Full Screen Reels List — always synced with the exact same visible Hero Reels as the 3D carousel
   const mobileReelsList = useMemo(() => {
-    const cmsReels = visibleHeroReels.map((reel) => ({
+    return visibleHeroReels.map((reel) => ({
       src: reel.src,
       poster: getOptimizedImageUrl(reel.poster),
       title: reel.title,
       client: reel.client,
     }));
-    const configuredMobileReel = hero?.mobileVideoUrl
-      ? {
-          src: hero.mobileVideoUrl,
-          poster: hero.mobilePosterUrl ? getOptimizedImageUrl(hero.mobilePosterUrl) : '',
-          title: hero.mobileFeaturedTitle || 'BrandShoots Studio Reel',
-          client: hero.mobileFeaturedClient || '',
-        }
-      : null;
-
-    if (hero?.mobileDisplayMode === 'featured-single-reel') {
-      const featuredReel = configuredMobileReel || cmsReels[0];
-      if (!featuredReel) return [];
-      return [{
-        ...featuredReel,
-        title: hero.mobileFeaturedTitle || featuredReel.title,
-        client: hero.mobileFeaturedClient || featuredReel.client,
-      }];
-    }
-
-    const uniqueReels = new Map<string, (typeof cmsReels)[number]>();
-    if (configuredMobileReel) uniqueReels.set(configuredMobileReel.src, configuredMobileReel);
-    cmsReels.forEach((reel) => {
-      if (!uniqueReels.has(reel.src)) uniqueReels.set(reel.src, reel);
-    });
-    return Array.from(uniqueReels.values());
-  }, [hero, visibleHeroReels]);
+  }, [visibleHeroReels]);
 
   const [mobileReelIndex, setMobileReelIndex] = useState(0);
   useEffect(() => {
@@ -109,18 +99,14 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({
   const criticalPoster = isMobile
     ? currentMobilePoster
     : getOptimizedImageUrl(desktopCriticalReel?.poster);
-  const criticalVideo = isMobile
-    ? currentMobileSrc
-    : desktopCriticalReel?.lightSrc || desktopCriticalReel?.src;
 
   useEffect(() => {
     if (criticalReadyReportedRef.current) return;
     let cancelled = false;
 
     Promise.all([
-      waitForCriticalImage(criticalPoster),
-      waitForCriticalImage('/Logo Official.svg', 1800),
-      waitForVideoMetadata(criticalVideo),
+      waitForCriticalImage(criticalPoster, 1400),
+      waitForCriticalImage('/Logo Official.svg', 1200),
     ]).finally(() => {
       if (cancelled || criticalReadyReportedRef.current) return;
       criticalReadyReportedRef.current = true;
@@ -130,7 +116,7 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [criticalPoster, criticalVideo]);
+  }, [criticalPoster]);
 
   const handleMobileNext = () => {
     if (mobileReelsList.length < 2) return;
@@ -165,20 +151,48 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({
     }
   };
 
+  // Mobile Full Screen Audio Mute Sync
+  useEffect(() => {
+    const video = mobileVideoRef.current;
+    if (!video) return;
+    video.muted = isMuted;
+    video.defaultMuted = isMuted;
+    if (isMuted) {
+      video.setAttribute('muted', '');
+    } else {
+      video.removeAttribute('muted');
+      video.volume = 1;
+      if (video.paused && isMobile && !isPreloaderActive) {
+        video.play().catch(() => {});
+      }
+    }
+  }, [isMuted, isMobile, isPreloaderActive]);
+
   // Mobile Full Screen Video Playback & Lifecycle
   useEffect(() => {
     if (!isMobile || isPreloaderActive) return;
     const video = mobileVideoRef.current;
     if (!video) return;
 
-    video.defaultMuted = true;
+    video.defaultMuted = isMuted;
     video.muted = isMuted;
     video.playsInline = true;
-    video.setAttribute('muted', '');
+    if (isMuted) {
+      video.setAttribute('muted', '');
+    } else {
+      video.removeAttribute('muted');
+      video.volume = 1;
+    }
     video.setAttribute('playsinline', '');
     video.setAttribute('webkit-playsinline', '');
     video.setAttribute('autoplay', '');
-    video.setAttribute('loop', '');
+    if (mobileReelsList.length <= 1) {
+      video.loop = true;
+      video.setAttribute('loop', '');
+    } else {
+      video.loop = false;
+      video.removeAttribute('loop');
+    }
 
     const tryPlay = () => {
       const p = video.play();
@@ -228,7 +242,7 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({
       video.removeEventListener('canplay', tryPlay);
       video.removeEventListener('loadeddata', tryPlay);
     };
-  }, [isMobile, isPreloaderActive, currentMobileSrc, isMuted]);
+  }, [isMobile, isPreloaderActive, currentMobileSrc]);
 
   // GSAP Entrance Timeline for the Hero (Synchronized with preloader completion)
   useEffect(() => {
@@ -394,10 +408,11 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({
             src={currentMobileSrc}
             poster={currentMobilePoster || undefined}
             autoPlay={!isPreloaderActive}
-            loop
+            loop={mobileReelsList.length <= 1}
             muted={isMuted}
             playsInline
             preload={isPreloaderActive ? 'none' : 'metadata'}
+            onEnded={mobileReelsList.length > 1 ? handleMobileNext : undefined}
             className="absolute inset-0 w-full h-full object-cover object-center scale-[1.01] pointer-events-none select-none"
           />
         )}
@@ -515,16 +530,28 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({
       {/* ========================================================= */}
       <div
         ref={reelWallContainerRef}
-        className="hidden md:block absolute top-[44%] sm:top-[44.5%] md:top-[45%] lg:top-[45.5%] left-0 right-0 -translate-y-1/2 w-full h-[430px] sm:h-[470px] md:h-[520px] lg:h-[550px] z-10 pointer-events-none overflow-hidden"
+        className="hidden md:block absolute top-[43%] sm:top-[43.5%] md:top-[44%] lg:top-[44.5%] left-0 right-0 -translate-y-1/2 w-full h-[460px] sm:h-[500px] md:h-[580px] lg:h-[620px] z-10 pointer-events-none overflow-hidden"
       >
-        {!isMobile && visibleHeroReels.length > 0 && (
+        {!isMobile && visibleHeroReels.length > 0 ? (
           <ReelWall3D
             isPreloaderActive={isPreloaderActive}
             isMuted={isMuted}
             onToggleMute={toggleAudio}
             reels={visibleHeroReels}
           />
-        )}
+        ) : !isMobile && heroReelsLoading ? (
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="w-[242px] aspect-[9/16] rounded-2xl bg-white/[0.04] border border-white/10 animate-pulse" />
+          </div>
+        ) : !isMobile ? (
+          <div className="w-full h-full flex items-center justify-center px-6">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-5 text-center backdrop-blur-md">
+              <p className="font-mono text-xs uppercase tracking-[0.22em] text-white/60">
+                {heroReelsError ? 'Unable to load hero reels right now' : 'No active hero reels published'}
+              </p>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {/* Desktop Atmospheric Horizon Gradient Buffer */}
@@ -540,7 +567,7 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({
       {/* 5. CENTRAL TITLE: BrandShoots                             */}
       {/* ========================================================= */}
       <div data-mobile-wordmark className="absolute inset-x-0 bottom-[24vh] z-30 px-5 text-center select-none pointer-events-none md:bottom-[11vh] md:px-10 lg:bottom-[11.5vh]">
-        <h1 className="mx-auto flex w-full max-w-[calc(100vw-2.5rem)] items-center justify-center whitespace-nowrap font-display text-[clamp(2.4rem,10.5vw,3.25rem)] font-black uppercase leading-[0.88] tracking-[-0.038em] md:max-w-none md:text-[9vw] lg:text-[7.2vw] xl:text-[112px] 2xl:text-[120px]">
+        <h1 className="mx-auto flex w-full max-w-[calc(100vw-2.5rem)] items-center justify-center whitespace-nowrap font-display text-[clamp(2.4rem,10.5vw,3.25rem)] font-black uppercase leading-[0.88] tracking-[0.025em] md:max-w-none md:text-[9vw] md:tracking-[0.035em] lg:text-[7.2vw] xl:text-[112px] 2xl:text-[120px]">
           {/* BRAND — clean flat electric blue with glowing shadow */}
           <span
             ref={titleBrandRef}
@@ -553,7 +580,7 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({
           {/* SHOOTS — clean flat white with crisp shadow */}
           <span
             ref={titleShootsRef}
-            className="inline-block text-white ml-[0.015em]"
+            className="inline-block text-white"
             style={{ textShadow: '0 4px 28px rgba(0,0,0,0.95)' }}
           >
             {hero?.shootsTitle || 'SHOOTS'}
@@ -587,19 +614,22 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({
         </span>
       </div>
 
-      {/* Audio Unmute / Mute Toggle Pill (Responsive) */}
+      {/* Audio Unmute / Mute Toggle Pill (Responsive - Bottom Left aligned with floating actions) */}
       <button
         type="button"
         onClick={toggleAudio}
         data-mute-control
-        className="absolute right-4 top-[22vh] bottom-auto z-40 p-2.5 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white/80 hover:text-white transition-all duration-200 active:scale-90 select-auto pointer-events-auto shadow-lg md:top-auto md:bottom-[11.5rem] md:right-8"
+        className="absolute bottom-[calc(0.85rem+env(safe-area-inset-bottom,0px))] left-3 sm:left-6 md:bottom-6 md:left-8 z-40 flex items-center justify-center gap-2 h-9 sm:h-10 md:h-11 px-2.5 sm:px-3.5 rounded-full bg-[#070A10]/90 backdrop-blur-xl border border-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.7)] text-white/80 hover:text-white hover:border-white/25 transition-all duration-200 active:scale-95 cursor-pointer group"
         aria-label={isMuted ? 'Unmute reel audio' : 'Mute reel audio'}
       >
         {isMuted ? (
-          <VolumeX className="w-3.5 h-3.5 text-white/70" />
+          <VolumeX className="w-4 h-4 text-white/70 group-hover:text-white transition-colors" />
         ) : (
-          <Volume2 className="w-3.5 h-3.5 text-[#008CFF] drop-shadow-[0_0_6px_rgba(0,140,255,0.8)]" />
+          <Volume2 className="w-4 h-4 text-[#008CFF] drop-shadow-[0_0_8px_rgba(0,140,255,0.8)]" />
         )}
+        <span className="hidden sm:inline-block font-mono text-[10px] md:text-[11px] tracking-[0.16em] uppercase font-semibold text-white/80 group-hover:text-white transition-colors">
+          {isMuted ? 'Sound Off' : 'Sound On'}
+        </span>
       </button>
     </section>
   );

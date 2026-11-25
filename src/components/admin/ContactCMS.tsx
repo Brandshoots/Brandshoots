@@ -35,6 +35,12 @@ import { pushContactUndoAction, triggerNavFlash } from '../../lib/cms/cmsHistory
 
 const normalizeCollegeSpelling = (data: CMSContactPage): CMSContactPage => ({
   ...data,
+  email: (!data.email || data.email.trim().toLowerCase() === 'contact@brandshoots.com')
+    ? 'brandshoots.in@gmail.com'
+    : data.email.trim(),
+  siteVisitPrice: (!data.siteVisitPrice || data.siteVisitPrice.includes('999'))
+    ? '₹2,000'
+    : data.siteVisitPrice.trim(),
   fullAddress: data.fullAddress.replace(/Collage/gi, 'College'),
   googleMapsEmbedUrl: data.googleMapsEmbedUrl.replace(/Collage/gi, 'College'),
   googleMapsSearchUrl: data.googleMapsSearchUrl.replace(/Collage/gi, 'College'),

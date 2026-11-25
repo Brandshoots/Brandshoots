@@ -31,6 +31,7 @@ test-*.html
 reports/
 scratch_*.png
 /Reels Folder
+/Reels Hero Section
 public/Reels Folder
 
 .env*

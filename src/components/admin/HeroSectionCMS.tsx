@@ -10,15 +10,12 @@ import {
   Play,
   Volume2,
   Type,
-  Film,
-  Layers,
   ArrowUp,
   ArrowDown,
   Eye,
   EyeOff,
   AlertCircle,
 } from 'lucide-react';
-import { ref, set } from 'firebase/database';
 import { CMSHero, CMSHeroReel } from '../../types/cms';
 import {
   fetchPublishedHeroReels,
@@ -28,9 +25,8 @@ import {
 } from '../../lib/cms/cmsService';
 import { INITIAL_HERO, INITIAL_HERO_REELS } from '../../lib/cms/seedData';
 import { SimpleReelModal } from './SimpleReelModal';
-import { CloudinaryUploader, isDurableMediaUrl } from './CloudinaryUploader';
+import { isDurableMediaUrl } from './CloudinaryUploader';
 import { pushUndoAction } from '../../lib/cms/cmsHistory';
-import { firebaseDb } from '../../lib/firebase';
 
 export const HeroSectionCMS: React.FC = () => {
   // Navigation Tabs: 'desktop-reels' vs 'mobile-view'
@@ -65,9 +61,6 @@ export const HeroSectionCMS: React.FC = () => {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSavingHero, setIsSavingHero] = useState(false);
   const [isSavingReels, setIsSavingReels] = useState(false);
-  const [mobileUploadState, setMobileUploadState] = useState({ video: false, poster: false });
-
-  const isMobileUploading = mobileUploadState.video || mobileUploadState.poster;
 
   // Replace reel modal state
   const [replacingReel, setReplacingReel] = useState<CMSHeroReel | null>(null);
@@ -127,17 +120,12 @@ export const HeroSectionCMS: React.FC = () => {
       updatedAt: timestamp,
     }));
 
-    await Promise.all([
-      set(ref(firebaseDb, 'published/heroReels'), normalized),
-      set(ref(firebaseDb, 'published/hero/reels'), normalized),
-    ]);
     await saveHeroReels(normalized);
     return normalized;
   };
 
   const persistHeroData = async (nextHero: CMSHero) => {
     const normalized = { ...nextHero, updatedAt: Date.now() };
-    await set(ref(firebaseDb, 'published/hero'), normalized);
     await saveHero(normalized);
     return normalized;
   };
@@ -301,11 +289,6 @@ export const HeroSectionCMS: React.FC = () => {
   };
 
   const handleSaveMobileHero = async () => {
-    if (isMobileUploading) {
-      setSaveError('Wait for the active media upload to finish before saving.');
-      return;
-    }
-
     const mediaUrls = [heroData.mobileVideoUrl, heroData.mobilePosterUrl].filter(
       (url): url is string => Boolean(url?.trim())
     );
@@ -552,149 +535,25 @@ export const HeroSectionCMS: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="text-base sm:text-lg font-display font-bold uppercase text-white">
-                    Mobile Reel Display Strategy
+                    Mobile Hero Reels (Synced with Desktop 3D Carousel)
                   </h2>
                   <p className="text-xs text-white/60">
-                    Controls how the hero reels are showcased on smartphone screens (&lt; 768px).
+                    Mobile view now plays the exact same visible reels from the Desktop 3D Hero Reels list ({reels.filter((r) => r.visible !== false).length} active).
                   </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                <label
-                  onClick={() =>
-                    setHeroData((prev) => ({ ...prev, mobileDisplayMode: 'single-reel-carousel' }))
-                  }
-                  className={`p-4 rounded-xl border flex flex-col gap-2 cursor-pointer transition-all ${
-                    (heroData.mobileDisplayMode || 'single-reel-carousel') === 'single-reel-carousel'
-                      ? 'bg-[#008CFF]/15 border-[#008CFF] shadow-[0_0_20px_rgba(0,140,255,0.25)]'
-                      : 'bg-white/[0.03] border-white/10 hover:border-white/25'
-                  }`}
+              <div className="p-4 rounded-xl bg-[#008CFF]/10 border border-[#008CFF]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <p className="text-xs text-white/75 leading-relaxed">
+                  Add, reorder, or hide reels in the <strong>Desktop 3D Reel Carousel</strong> tab to update both desktop and mobile hero videos simultaneously.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('desktop-reels')}
+                  className="shrink-0 px-4 py-2 rounded-lg bg-[#008CFF] hover:bg-[#0070CC] text-white font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="font-sans font-bold text-sm text-white flex items-center gap-2">
-                      <Layers className="w-4 h-4 text-[#008CFF]" />
-                      Single Reel Carousel
-                    </span>
-                    {(heroData.mobileDisplayMode || 'single-reel-carousel') === 'single-reel-carousel' && (
-                      <CheckCircle2 className="w-4 h-4 text-[#008CFF]" />
-                    )}
-                  </div>
-                  <p className="text-xs text-white/60 leading-relaxed">
-                    Shows <strong>strictly 1 reel at once</strong> centered. Users can touch-swipe or tap chevrons to snap between all {reels.length} reels.
-                  </p>
-                  <span className="text-[11px] font-mono text-[#008CFF] font-semibold mt-auto">
-                    Recommended (F1 Optimized)
-                  </span>
-                </label>
-
-                <label
-                  onClick={() =>
-                    setHeroData((prev) => ({ ...prev, mobileDisplayMode: 'featured-single-reel' }))
-                  }
-                  className={`p-4 rounded-xl border flex flex-col gap-2 cursor-pointer transition-all ${
-                    heroData.mobileDisplayMode === 'featured-single-reel'
-                      ? 'bg-[#008CFF]/15 border-[#008CFF] shadow-[0_0_20px_rgba(0,140,255,0.25)]'
-                      : 'bg-white/[0.03] border-white/10 hover:border-white/25'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-sans font-bold text-sm text-white flex items-center gap-2">
-                      <Film className="w-4 h-4 text-[#008CFF]" />
-                      Dedicated Featured Reel
-                    </span>
-                    {heroData.mobileDisplayMode === 'featured-single-reel' && (
-                      <CheckCircle2 className="w-4 h-4 text-[#008CFF]" />
-                    )}
-                  </div>
-                  <p className="text-xs text-white/60 leading-relaxed">
-                    Locks mobile view to a single high-definition flagship reel with dedicated video and poster URLs.
-                  </p>
-                  <span className="text-[11px] font-mono text-white/40 mt-auto">
-                    Custom Single Spotlight
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            {/* 2. Featured Reel Settings (Active when Featured Single Reel is chosen or for mobile fallback) */}
-            <div className="p-5 sm:p-6 rounded-2xl bg-[#090C12] border border-white/10 space-y-5">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400">
-                  <Film className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 className="text-base sm:text-lg font-display font-bold uppercase text-white">
-                    Mobile Hero Video & Poster Asset
-                  </h2>
-                  <p className="text-xs text-white/60">
-                    High-performance vertical 9:16 video stream and instant poster.
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <CloudinaryUploader
-                  label="Mobile Hero Video URL (.mp4)"
-                  accept="video"
-                  value={heroData.mobileVideoUrl || ''}
-                  onChange={(url) => {
-                    setSaveError(null);
-                    setHeroData((prev) => ({ ...prev, mobileVideoUrl: url }));
-                  }}
-                  onUploadingChange={(isUploading) =>
-                    setMobileUploadState((current) => ({ ...current, video: isUploading }))
-                  }
-                  helpText="Upload a crisp 9:16 vertical video optimized for mobile devices."
-                  requireCloudinary
-                />
-
-                <CloudinaryUploader
-                  label="Mobile Instant Poster Image (.jpg / .png)"
-                  accept="image"
-                  value={heroData.mobilePosterUrl || ''}
-                  onChange={(url) => {
-                    setSaveError(null);
-                    setHeroData((prev) => ({ ...prev, mobilePosterUrl: url }));
-                  }}
-                  onUploadingChange={(isUploading) =>
-                    setMobileUploadState((current) => ({ ...current, poster: isUploading }))
-                  }
-                  helpText="Displayed immediately while video is decoding to prevent black flash."
-                  requireCloudinary
-                />
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                  <div>
-                    <label className="block text-xs font-mono font-semibold uppercase text-white/70 mb-1.5">
-                      Reel Title (Display Overlay)
-                    </label>
-                    <input
-                      type="text"
-                      value={heroData.mobileFeaturedTitle || ''}
-                      onChange={(e) =>
-                        setHeroData((prev) => ({ ...prev, mobileFeaturedTitle: e.target.value }))
-                      }
-                      placeholder="e.g. BrandShoots Creative Studio"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-white text-sm focus:outline-none focus:border-[#008CFF] font-sans"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-mono font-semibold uppercase text-white/70 mb-1.5">
-                      Client / Brand Subtitle
-                    </label>
-                    <input
-                      type="text"
-                      value={heroData.mobileFeaturedClient || ''}
-                      onChange={(e) =>
-                        setHeroData((prev) => ({ ...prev, mobileFeaturedClient: e.target.value }))
-                      }
-                      placeholder="e.g. BrandShoots Official"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-white text-sm focus:outline-none focus:border-[#008CFF] font-sans"
-                    />
-                  </div>
-                </div>
+                  Manage Shared Reels
+                </button>
               </div>
             </div>
 
@@ -776,16 +635,12 @@ export const HeroSectionCMS: React.FC = () => {
               <button
                 type="button"
                 onClick={handleSaveMobileHero}
-                disabled={isSavingHero || isMobileUploading}
+                disabled={isSavingHero}
                 className="flex items-center gap-2.5 px-7 py-3 rounded-xl bg-[#008CFF] hover:bg-[#0070CC] text-white font-sans font-bold text-sm transition-all shadow-[0_0_25px_rgba(0,140,255,0.4)] cursor-pointer active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Save className="w-4 h-4 text-white" />
                 <span>
-                  {isMobileUploading
-                    ? 'Waiting for Upload...'
-                    : isSavingHero
-                      ? 'Saving Changes...'
-                      : 'Save Mobile Hero Changes'}
+                  {isSavingHero ? 'Saving Changes...' : 'Save Hero Copy Changes'}
                 </span>
               </button>
             </div>

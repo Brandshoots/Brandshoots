@@ -18,6 +18,25 @@ interface MissionData {
   tag: string;
 }
 
+const DEFAULT_SERVICE_IMAGES: Record<string, string> = {
+  'creative-content': '/what-we-do/creative-content.jpg',
+  'digital-growth': '/what-we-do/digital-growth.jpg',
+  'editing-posting': '/what-we-do/editing-posting.jpg',
+};
+
+function resolveServiceImage(id: string, imageUrl: string | undefined, index: number): string {
+  const trimmed = (imageUrl || '').trim();
+  const isLegacyOrEmpty =
+    !trimmed ||
+    trimmed.startsWith('/what-we-do/optimized/') ||
+    trimmed.includes('/reels/') ||
+    trimmed.includes('/reels_new/');
+  if (!isLegacyOrEmpty) return trimmed;
+  if (DEFAULT_SERVICE_IMAGES[id]) return DEFAULT_SERVICE_IMAGES[id];
+  const fallbackList = Object.values(DEFAULT_SERVICE_IMAGES);
+  return fallbackList[index % fallbackList.length];
+}
+
 export const WhatWeDoSection: React.FC = () => {
   const { services } = useCMSContent();
   const activeMissions: MissionData[] = services
@@ -28,8 +47,7 @@ export const WhatWeDoSection: React.FC = () => {
       titleLines: service.titleLines,
       category: service.category,
       description: service.description,
-      imageUrl: service.imageUrl,
-      videoUrl: service.videoUrl,
+      imageUrl: resolveServiceImage(service.id, service.imageUrl, index),
       aspectRatio: service.aspectRatio || 'portrait',
       tag: service.tag,
     }));
@@ -87,33 +105,31 @@ export const WhatWeDoSection: React.FC = () => {
               <figure className={`lg:col-span-7 ${reverse ? 'lg:order-1' : 'lg:order-2'}`}>
                 <div
                   ref={(element) => (imageRefs.current[index] = element)}
-                  className={`mx-auto w-full max-w-[560px] overflow-hidden bg-[#111419] lg:mx-0 ${
+                  className={`relative mx-auto w-full max-w-[560px] overflow-hidden bg-[#111419] lg:mx-0 ${
                     mission.aspectRatio === 'cinematic' ? 'aspect-video' : 'aspect-[4/5]'
                   }`}
                 >
-                  {mission.videoUrl ? (
-                    <video
-                      src={mission.videoUrl}
-                      poster={mission.imageUrl ? getOptimizedImageUrl(mission.imageUrl) : undefined}
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      preload="metadata"
-                      aria-label={`${mission.category} - ${mission.titleLines.join(' ')}`}
-                      className="h-full w-full object-cover transition-transform duration-700 hover:scale-[1.025]"
-                    />
-                  ) : mission.imageUrl ? (
-                    <img
-                      src={getOptimizedImageUrl(mission.imageUrl)}
-                      alt={`${mission.category} - ${mission.titleLines.join(' ')}`}
-                      width={mission.aspectRatio === 'cinematic' ? 1280 : 960}
-                      height={mission.aspectRatio === 'cinematic' ? 720 : 1280}
-                      sizes="(min-width: 1024px) 44vw, 100vw"
-                      loading="lazy"
-                      decoding="async"
-                      className="h-full w-full object-cover transition-transform duration-700 hover:scale-[1.025]"
-                    />
+                  {mission.imageUrl ? (
+                    <>
+                      <img
+                        src={getOptimizedImageUrl(mission.imageUrl)}
+                        alt={`${mission.category} - ${mission.titleLines.join(' ')}`}
+                        width={mission.aspectRatio === 'cinematic' ? 1280 : 960}
+                        height={mission.aspectRatio === 'cinematic' ? 720 : 1280}
+                        sizes="(min-width: 1024px) 44vw, 100vw"
+                        loading="lazy"
+                        decoding="async"
+                        className="h-full w-full object-cover transition-transform duration-700 hover:scale-[1.025]"
+                      />
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#08090C]/75 via-transparent to-transparent" />
+                      <div className="pointer-events-none absolute bottom-4 left-4 sm:bottom-5 sm:left-5 flex items-center rounded-full bg-[#08090C]/75 backdrop-blur-md border border-white/15 px-3.5 py-1.5 shadow-lg">
+                        <img
+                          src="/Logo-Official-Tight.svg"
+                          alt="BrandShoots"
+                          className="h-4 sm:h-5 w-auto object-contain"
+                        />
+                      </div>
+                    </>
                   ) : null}
                 </div>
               </figure>

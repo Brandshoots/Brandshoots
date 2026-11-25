@@ -7,7 +7,8 @@ import { getProjectSocialLink } from '../../data/clientSocialData';
 import { useCMSContent } from '../../lib/cms/useCMSContent';
 import { ProjectDetailModal } from './ProjectDetailModal';
 import { PortfolioMobileShowcase } from './PortfolioMobileShowcase';
-import { ArrowUpRight, X, ChevronRight, Volume2, Volume1, VolumeX, Play, Pause, Instagram } from 'lucide-react';
+import { ArrowUpRight, X, ChevronLeft, ChevronRight, Volume2, Volume1, VolumeX, Play, Pause, Instagram } from 'lucide-react';
+import { AnimatedMetricCounter } from './AnimatedMetricCounter';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -27,8 +28,8 @@ const PANEL_HEIGHT = (1.92 * 16) / 9; // ~3.413 (exact 9:16 vertical ratio)
 const CORNER_RADIUS = 0.125; // smooth, minimal border radius
 const CHASSIS_PADDING = 0.024;
 const CHASSIS_DEPTH = 0.018;
-const CAM_Z = 6.8;
-const DUST_COUNT = 55; // minimal and unobtrusive
+const CAM_Z = 6.6;
+const DUST_COUNT = 24; // minimal and unobtrusive
 
 // Helper: Create rounded rectangle shape in Three.js with smooth circular arcs
 function createRoundedRectShape(w: number, h: number, r: number): THREE.Shape {
@@ -446,14 +447,14 @@ export const PortfolioWormhole3D: React.FC = () => {
   useEffect(() => {
     if (isMobile) return;
     const el = editorialContentRef.current;
-    if (el) {
-      gsap.killTweensOf(el.children);
-      gsap.fromTo(
-        el.children,
-        { opacity: 0, y: 16 },
-        { opacity: 1, y: 0, duration: 0.38, stagger: 0.04, ease: 'power2.out' }
-      );
-    }
+    if (!el) return;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    gsap.killTweensOf(el.children);
+    gsap.fromTo(
+      el.children,
+      { opacity: 0, y: reducedMotion ? 0 : 18 },
+      { opacity: 1, y: 0, duration: reducedMotion ? 0.15 : 0.48, stagger: reducedMotion ? 0 : 0.055, ease: 'power3.out' }
+    );
   }, [activeIndex, isMobile]);
 
   // Setup Three.js Wormhole Corridor Engine
@@ -537,10 +538,10 @@ export const PortfolioWormhole3D: React.FC = () => {
     dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
     const dustParticleTexture = createDustParticleTexture();
     const dustMat = new THREE.PointsMaterial({
-      size: 0.10,
+      size: 0.085,
       map: dustParticleTexture,
       transparent: true,
-      opacity: 0.28,
+      opacity: 0.16,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
@@ -579,9 +580,9 @@ export const PortfolioWormhole3D: React.FC = () => {
       const panelGroup = new THREE.Group();
 
       const isLeft = i % 2 === 0;
-      const baseX = mob ? 0 : (isLeft ? -2.42 : 2.42);
+      const baseX = mob ? 0 : (isLeft ? -2.28 : 2.28);
       const baseY = mob ? 1.35 : 0.0;
-      const baseRotY = mob ? (isLeft ? 0.08 : -0.08) : (isLeft ? 0.35 : -0.35);
+      const baseRotY = mob ? (isLeft ? 0.06 : -0.06) : (isLeft ? 0.22 : -0.22);
 
       panelGroup.position.set(baseX, baseY, 0);
       panelGroup.rotation.y = baseRotY;
@@ -590,18 +591,18 @@ export const PortfolioWormhole3D: React.FC = () => {
       const shadowMat = new THREE.MeshBasicMaterial({
         map: shadowTexture,
         transparent: true,
-        opacity: 0.55,
+        opacity: 0.72,
         depthWrite: false,
       });
       const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
-      shadowMesh.position.set(0, -0.04, -0.06);
+      shadowMesh.position.set(isLeft ? 0.06 : -0.06, -0.08, -0.09);
       panelGroup.add(shadowMesh);
 
       // 2. Chassis Body: Minimal Obsidian Unibody matching rounded corner radius
       const chassisMat = new THREE.MeshStandardMaterial({
-        color: 0x070b14,
-        metalness: 0.65,
-        roughness: 0.35,
+        color: 0x090e1a,
+        metalness: 0.72,
+        roughness: 0.28,
       });
       const chassisMesh = new THREE.Mesh(chassisGeo, chassisMat);
       panelGroup.add(chassisMesh);
@@ -674,13 +675,14 @@ export const PortfolioWormhole3D: React.FC = () => {
         }
       }
 
-      // 6. Delicate Curved Rim Line Loop (Subtle electric blue glow)
+      // 6. No prominent blue outline — keep clean, borderless video edges
       const rimMat = new THREE.LineBasicMaterial({
         color: 0x008cff,
         transparent: true,
-        opacity: 0.45,
+        opacity: 0,
       });
       const rimLine = new THREE.LineLoop(rimLineGeo, rimMat);
+      rimLine.visible = false;
       panelGroup.add(rimLine);
 
       // Initially show ONLY Project 0 (Active hero)
@@ -866,9 +868,9 @@ export const PortfolioWormhole3D: React.FC = () => {
       }
       panels.forEach((p, idx) => {
         const isLeft = idx % 2 === 0;
-        p.baseX = isMob ? 0 : (isLeft ? -2.42 : 2.42);
+        p.baseX = isMob ? 0 : (isLeft ? -2.28 : 2.28);
         p.baseY = isMob ? 1.35 : 0.0;
-        p.baseRotY = isMob ? (isLeft ? 0.08 : -0.08) : (isLeft ? 0.35 : -0.35);
+        p.baseRotY = isMob ? (isLeft ? 0.06 : -0.06) : (isLeft ? 0.22 : -0.22);
       });
     };
     window.addEventListener('resize', handleResize);
@@ -876,9 +878,23 @@ export const PortfolioWormhole3D: React.FC = () => {
     // Animation Loop with Organic Dust Drift, Interactive Cursor Parallax, and Audio Fade Engine
     let animId: number;
     let lastTime = performance.now();
+    let isContainerVisible = true;
+    const visibilityObserver = new IntersectionObserver(
+      ([entry]) => {
+        isContainerVisible = entry.isIntersecting;
+      },
+      { threshold: 0.01 }
+    );
+    if (containerRef.current) visibilityObserver.observe(containerRef.current);
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
+
+      // Pause GPU WebGL rendering when tab is hidden or scrolled past the 3D corridor
+      if (document.hidden || !isContainerVisible) {
+        lastTime = performance.now();
+        return;
+      }
 
       const now = performance.now();
       const dt = Math.min(0.1, (now - lastTime) / 1000);
@@ -949,6 +965,7 @@ export const PortfolioWormhole3D: React.FC = () => {
 
     return () => {
       cancelAnimationFrame(animId);
+      visibilityObserver.disconnect();
       window.removeEventListener('mousemove', handlePointerMove);
       window.removeEventListener('pointerdown', handlePointerDown);
       window.removeEventListener('pointerup', handlePointerUp);
@@ -1123,9 +1140,7 @@ export const PortfolioWormhole3D: React.FC = () => {
       // Apply smooth opacity
       (p.screenMesh.material as THREE.MeshBasicMaterial).opacity = opacity;
       (p.chassisMesh.material as THREE.MeshStandardMaterial).opacity = opacity;
-      (p.shadowMesh.material as THREE.MeshBasicMaterial).opacity = opacity * 0.55;
-      const activeEmphasis = dist < 0.3 ? (1.0 - dist * 3.3) : 0;
-      (p.rimLine.material as THREE.LineBasicMaterial).opacity = (0.35 + activeEmphasis * 0.35) * opacity;
+      (p.shadowMesh.material as THREE.MeshBasicMaterial).opacity = opacity * 0.65;
 
       // =======================================================================
       // AUDIO FADE & VIDEO PLAYBACK ORCHESTRATION (0.5s - 1.0s Smooth Crossfade)
@@ -1488,22 +1503,33 @@ export const PortfolioWormhole3D: React.FC = () => {
           {/* 1. LUXURY STUDIO ATMOSPHERE BACKDROP                      */}
           {/* ========================================================= */}
           <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
-            {/* Subtle Central Studio Radial Aura */}
+            {/* Subtle Directional Radial Glow Behind Active Reel */}
             <div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] max-w-[1200px] h-[70vh] max-h-[700px] rounded-full pointer-events-none"
+              className={`absolute top-1/2 -translate-y-1/2 w-[55vw] max-w-[780px] h-[68vh] max-h-[680px] rounded-full pointer-events-none transition-all duration-700 ease-out ${
+                isLeft ? 'left-[8%]' : 'right-[8%]'
+              }`}
               style={{
                 background:
-                  'radial-gradient(ellipse at 50% 50%, rgba(0, 140, 255, 0.09) 0%, rgba(8, 20, 60, 0.22) 50%, transparent 75%)',
+                  'radial-gradient(circle at 50% 50%, rgba(0, 140, 255, 0.11) 0%, rgba(10, 24, 58, 0.18) 45%, transparent 74%)',
                 filter: 'blur(90px)',
+              }}
+            />
+
+            {/* Subtle Center Studio Depth Vignette */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background:
+                  'radial-gradient(ellipse at 50% 50%, rgba(8, 18, 42, 0.22) 0%, rgba(3, 5, 9, 0.72) 72%, #020306 100%)',
               }}
             />
 
             {/* Gentle Floor Sheen at Bottom */}
             <div
-              className="absolute bottom-0 inset-x-0 h-[30vh] pointer-events-none"
+              className="absolute bottom-0 inset-x-0 h-[28vh] pointer-events-none"
               style={{
                 background:
-                  'linear-gradient(to top, rgba(0, 140, 255, 0.04) 0%, rgba(3, 5, 9, 0.6) 60%, transparent 100%)',
+                  'linear-gradient(to top, rgba(0, 140, 255, 0.035) 0%, rgba(3, 5, 9, 0.65) 55%, transparent 100%)',
               }}
             />
           </div>
@@ -1573,45 +1599,42 @@ export const PortfolioWormhole3D: React.FC = () => {
 
                 {/* Animated Editorial Content Block */}
                 <div ref={editorialContentRef} className="relative z-10 flex flex-col items-center md:items-start pointer-events-auto">
-                  {/* Subtle Client Logo on Mobile */}
-                  {isMobile && currentProject.logoUrl && (
-                    <div className="flex items-center justify-center mb-1 max-h-5">
-                      <img
-                        src={currentProject.logoUrl}
-                        alt={`${currentProject.name} logo`}
-                        className="max-h-5 max-w-[100px] object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]"
-                        loading="eager"
-                      />
-                    </div>
-                  )}
+                  {/* Subtle Project Index & Category Eyebrow */}
+                  <div className="mb-3 flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.22em] font-semibold">
+                    <span className="text-[#008CFF]">{String(activeIndex + 1).padStart(2, '0')}</span>
+                    <span className="text-white/25">/</span>
+                    <span className="text-white/60">{currentProject.category || 'COMMERCIAL FILM'}</span>
+                  </div>
 
                   {/* Monumental Brand Title */}
-                  <h2 className="text-xl sm:text-2xl md:text-5xl lg:text-[44px] xl:text-[54px] font-sans font-black tracking-[-0.025em] text-white uppercase leading-[1.0] drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
+                  <h2 className="text-3xl sm:text-4xl lg:text-[46px] xl:text-[54px] 2xl:text-[58px] font-sans font-black tracking-[-0.025em] text-white uppercase leading-[0.98] drop-shadow-[0_4px_24px_rgba(0,0,0,0.85)]">
                     {currentProject.name}
                   </h2>
 
-                  {/* Refined Matter / Story Below */}
-                  <p className="mt-1 sm:mt-2 md:mt-3.5 text-[11px] sm:text-xs md:text-base font-sans font-light text-white/75 leading-tight sm:leading-relaxed max-w-[280px] sm:max-w-xs md:max-w-md line-clamp-1 md:line-clamp-none">
+                  {/* Refined Subtitle Below */}
+                  <p className="mt-3 md:mt-3.5 text-sm sm:text-base lg:text-[17px] font-sans font-normal text-white/75 leading-relaxed max-w-md">
                     {currentProject.headline}
                   </p>
 
-                  {/* Middle: Client Stat Badges (Views, Followers, Likes) */}
+                  {/* Middle: Borderless Editorial Metrics with GSAP Animated Counters */}
                   {currentProject.metrics && currentProject.metrics.length > 0 && (
-                    <div
-                      className={`mt-2 sm:mt-3 md:mt-5 grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-2.5 max-w-[250px] sm:max-w-[280px] md:max-w-[330px] ${
-                        isMobile ? 'mx-auto' : ''
-                      }`}
-                    >
+                    <div className="mt-7 grid grid-cols-3 divide-x divide-white/15 w-full max-w-[460px]">
                       {currentProject.metrics.map((metric, idx) => (
                         <div
-                          key={`${metric.label}-${idx}`}
-                          className="animate-glow-blink-slow px-1.5 py-1 sm:px-2.5 sm:py-2 md:px-3 md:py-2.5 rounded-lg sm:rounded-xl bg-[#008CFF]/[0.05] border border-[#008CFF]/25 hover:border-[#008CFF]/45 backdrop-blur-md flex flex-col items-center justify-center text-center transition-all duration-300 shadow-[0_0_12px_rgba(0,140,255,0.08)]"
-                          style={{ animationDelay: `${idx * 0.28}s` }}
+                          key={`${currentProject.id}-${metric.label}-${idx}`}
+                          className={`flex flex-col items-start justify-center ${
+                            idx === 0 ? 'pr-4 sm:pr-6' : idx === 1 ? 'px-4 sm:px-6' : 'pl-4 sm:pl-6'
+                          }`}
                         >
-                          <span className="text-[11px] sm:text-sm md:text-base font-sans font-semibold text-white tracking-tight leading-none drop-shadow-[0_0_8px_rgba(0,140,255,0.45)]">
-                            {metric.value}
-                          </span>
-                          <span className="mt-0.5 sm:mt-1 text-[7px] sm:text-[8px] md:text-[9px] font-sans font-medium uppercase tracking-[0.12em] text-white/55 leading-none">
+                          <AnimatedMetricCounter
+                            value={metric.value}
+                            triggerKey={currentProject.id}
+                            active={!isMobile}
+                            delay={idx * 0.08}
+                            duration={1.35}
+                            className="text-2xl sm:text-[28px] lg:text-[32px] font-sans font-black text-white tracking-tight leading-none"
+                          />
+                          <span className="mt-2 text-[10px] font-mono font-medium uppercase tracking-[0.16em] text-white/55 leading-tight">
                             {metric.label}
                           </span>
                         </div>
@@ -1623,7 +1646,7 @@ export const PortfolioWormhole3D: React.FC = () => {
                   {(() => {
                     const socialLink = getProjectSocialLink(currentProject);
                     return (
-                      <div className={`mt-2 sm:mt-3 md:mt-6 flex flex-wrap items-center gap-2.5 sm:gap-3 ${isMobile ? 'justify-center' : 'justify-start'} pointer-events-auto relative z-30`}>
+                      <div className="mt-6 flex flex-wrap items-center gap-3 justify-start pointer-events-auto relative z-30">
                         <button
                           type="button"
                           onClick={(e) => {
@@ -1637,10 +1660,10 @@ export const PortfolioWormhole3D: React.FC = () => {
                             });
                             setIsDetailModalOpen(true);
                           }}
-                          className="pointer-events-auto relative z-30 group inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 md:px-7 py-1.5 sm:py-2.5 md:py-3 rounded-full bg-[#008CFF] hover:bg-[#1a97ff] text-white font-mono text-[9px] sm:text-xs font-bold tracking-[0.18em] uppercase transition-all duration-300 shadow-[0_0_20px_rgba(0,140,255,0.4)] hover:shadow-[0_0_35px_rgba(0,140,255,0.65)] active:scale-95 cursor-pointer"
+                          className="pointer-events-auto relative z-30 group inline-flex h-11 items-center gap-2 px-6 rounded-full bg-[#008CFF] hover:bg-[#1a97ff] text-white font-mono text-xs font-bold tracking-[0.18em] uppercase transition-all duration-200 shadow-[0_0_24px_rgba(0,140,255,0.35)] hover:shadow-[0_0_32px_rgba(0,140,255,0.55)] active:scale-95 cursor-pointer"
                         >
                           <span>MORE INFO</span>
-                          <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                          <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                         </button>
 
                         {socialLink && (
@@ -1651,11 +1674,11 @@ export const PortfolioWormhole3D: React.FC = () => {
                             onClick={(e) => e.stopPropagation()}
                             aria-label={`Visit ${currentProject.name} on Instagram (${socialLink.instagram})`}
                             title={`Instagram: ${socialLink.instagram}`}
-                            className="pointer-events-auto relative z-30 group inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 md:px-6 py-1.5 sm:py-2.5 md:py-3 rounded-full bg-white/[0.08] hover:bg-white/[0.16] border border-white/20 hover:border-[#008CFF]/60 text-white font-mono text-[9px] sm:text-xs font-bold tracking-[0.12em] uppercase transition-all duration-300 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.5)] hover:shadow-[0_0_20px_rgba(0,140,255,0.35)] active:scale-95 cursor-pointer"
+                            className="pointer-events-auto relative z-30 group inline-flex h-11 items-center gap-2 px-5 rounded-full bg-[#0A101C]/85 hover:bg-white/[0.1] border border-white/15 hover:border-[#008CFF]/50 text-white font-mono text-xs font-medium tracking-[0.12em] uppercase transition-all duration-200 shadow-[0_4px_16px_rgba(0,0,0,0.45)] active:scale-95 cursor-pointer"
                           >
-                            <Instagram className="w-3.5 h-3.5 text-[#008CFF] transition-transform group-hover:scale-110" />
+                            <Instagram className="w-3.5 h-3.5 text-[#008CFF] transition-transform duration-200 group-hover:scale-110" />
                             <span className="text-white/90 group-hover:text-white transition-colors">{socialLink.instagram}</span>
-                            <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white/50 group-hover:text-white transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                            <ArrowUpRight className="w-3.5 h-3.5 text-white/50 group-hover:text-white transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                           </a>
                         )}
                       </div>
@@ -1666,19 +1689,17 @@ export const PortfolioWormhole3D: React.FC = () => {
             </div>
           </div>
           {/* ========================================================= */}
-          {/* 4. BOTTOM MIDDLE DOCK: PLAY/PAUSE, AUDIO & REEL COUNTER   */}
+          {/* 4. BOTTOM MIDDLE DOCK: COHESIVE NAVIGATION & MEDIA BAR    */}
           {/* ========================================================= */}
-          <div
-            className="absolute bottom-3 sm:bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 pointer-events-none select-none z-30"
-          >
-            <div className="flex items-center gap-2.5 sm:gap-3 pointer-events-auto">
-              {/* Play / Pause Toggle Button (Borderless) */}
+          <div className="absolute bottom-5 md:bottom-7 left-1/2 -translate-x-1/2 pointer-events-none select-none z-30">
+            <div className="inline-flex items-center gap-1 p-1.5 rounded-full bg-[#070B14]/85 backdrop-blur-xl shadow-[0_12px_36px_rgba(0,0,0,0.75)] pointer-events-auto">
+              {/* Play / Pause Toggle Button */}
               <button
                 type="button"
                 onClick={togglePlayPause}
                 aria-label={isUserPaused ? 'Play Reel' : 'Pause Reel'}
                 title={isUserPaused ? 'Play Reel' : 'Pause Reel'}
-                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#070B14]/85 hover:bg-[#131b2e] backdrop-blur-md flex items-center justify-center text-white transition-all active:scale-95 cursor-pointer shadow-[0_4px_24px_rgba(0,0,0,0.6)]"
+                className="w-9 h-9 rounded-full hover:bg-white/[0.08] flex items-center justify-center text-white transition-all active:scale-95 cursor-pointer"
               >
                 {isUserPaused ? (
                   <Play className="w-4 h-4 text-[#008CFF] fill-current translate-x-0.5" />
@@ -1752,10 +1773,10 @@ export const PortfolioWormhole3D: React.FC = () => {
                   onClick={toggleMute}
                   aria-label={isMuted ? 'Unmute Audio' : 'Mute Audio'}
                   title={isMuted ? 'Unmute Audio' : `Mute Audio (${Math.round(volumeLevel * 100)}%)`}
-                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#070B14]/85 hover:bg-[#131b2e] backdrop-blur-md flex items-center justify-center text-white transition-all active:scale-95 cursor-pointer shadow-[0_4px_24px_rgba(0,0,0,0.6)]"
+                  className="w-9 h-9 rounded-full hover:bg-white/[0.08] flex items-center justify-center text-white transition-all active:scale-95 cursor-pointer"
                 >
                   {isMuted || volumeLevel <= 0.01 ? (
-                    <VolumeX className="w-4 h-4 text-white/45 hover:text-white" />
+                    <VolumeX className="w-4 h-4 text-white/55 hover:text-white" />
                   ) : volumeLevel < 0.5 ? (
                     <Volume1 className="w-4 h-4 text-[#008CFF]" />
                   ) : (
@@ -1764,17 +1785,43 @@ export const PortfolioWormhole3D: React.FC = () => {
                 </button>
               </div>
 
-              {/* Clean Counter / Index Pill (Borderless) */}
+              <div className="h-4 w-[1px] bg-white/15 mx-1" aria-hidden="true" />
+
+              {/* Previous Slide */}
+              <button
+                type="button"
+                onClick={() => scrollToProject(Math.max(0, activeIndex - 1))}
+                disabled={activeIndex === 0}
+                aria-label="Previous Project"
+                title="Previous Project"
+                className="w-8 h-9 rounded-full hover:bg-white/[0.08] flex items-center justify-center text-white/75 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-95 cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              {/* Clean Counter / Index Trigger */}
               <button
                 type="button"
                 onClick={() => setIsIndexDrawerOpen(true)}
                 title="View All Reels"
                 aria-label="View All Reels"
-                className="h-10 sm:h-11 flex items-center gap-2 px-4 rounded-full bg-[#070B14]/85 hover:bg-[#131b2e] backdrop-blur-md font-mono text-xs tracking-[0.22em] text-white transition-all cursor-pointer shadow-[0_4px_24px_rgba(0,0,0,0.6)] active:scale-95"
+                className="h-9 flex items-center gap-1.5 px-2.5 rounded-full hover:bg-white/[0.08] font-mono text-xs tracking-[0.2em] text-white transition-all cursor-pointer active:scale-95 tabular-nums"
               >
                 <span className="text-[#008CFF] font-bold">{String(activeIndex + 1).padStart(2, '0')}</span>
                 <span className="text-white/25">/</span>
-                <span className="text-white/60">{String(totalProjects).padStart(2, '0')}</span>
+                <span className="text-white/65">{String(totalProjects).padStart(2, '0')}</span>
+              </button>
+
+              {/* Next Slide */}
+              <button
+                type="button"
+                onClick={() => scrollToProject(Math.min(totalProjects - 1, activeIndex + 1))}
+                disabled={activeIndex >= totalProjects - 1}
+                aria-label="Next Project"
+                title="Next Project"
+                className="w-8 h-9 rounded-full hover:bg-white/[0.08] flex items-center justify-center text-white/75 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-95 cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>

@@ -38,6 +38,16 @@ const sanitizeWhatsAppNumber = (...values: Array<string | undefined>): string =>
   return INITIAL_SITE_SETTINGS.whatsappPhone;
 };
 
+const sanitizeEmail = (...values: Array<string | undefined>): string => {
+  for (const value of values) {
+    const trimmed = (value || '').trim();
+    if (trimmed && trimmed.toLowerCase() !== 'contact@brandshoots.com') {
+      return trimmed;
+    }
+  }
+  return 'brandshoots.in@gmail.com';
+};
+
 export const ContactFormSection: React.FC = () => {
   const { settings, contact } = useCMSContent();
 
@@ -48,8 +58,11 @@ export const ContactFormSection: React.FC = () => {
   );
   const displayPhone =
     settings?.contactPhone || contact?.displayPhone || INITIAL_SITE_SETTINGS.contactPhone;
-  const studioEmail =
-    settings?.contactEmail || contact?.email || INITIAL_SITE_SETTINGS.contactEmail;
+  const studioEmail = sanitizeEmail(
+    settings?.contactEmail,
+    contact?.email,
+    INITIAL_SITE_SETTINGS.contactEmail
+  );
   const studioCityState = contact?.cityState || INITIAL_CONTACT_PAGE.cityState;
   const studioFullAddress = (contact?.fullAddress || INITIAL_CONTACT_PAGE.fullAddress).replace(
     /\bCollage\b/gi,
@@ -79,7 +92,10 @@ export const ContactFormSection: React.FC = () => {
   const siteVisitTitle = contact?.siteVisitTitle || INITIAL_CONTACT_PAGE.siteVisitTitle;
   const siteVisitDescription =
     contact?.siteVisitDescription || INITIAL_CONTACT_PAGE.siteVisitDescription;
-  const siteVisitPrice = contact?.siteVisitPrice || INITIAL_CONTACT_PAGE.siteVisitPrice;
+  const siteVisitPrice =
+    !contact?.siteVisitPrice || contact.siteVisitPrice.includes('999')
+      ? INITIAL_CONTACT_PAGE.siteVisitPrice
+      : contact.siteVisitPrice;
   const siteVisitPriceUnit =
     contact?.siteVisitPriceUnit || INITIAL_CONTACT_PAGE.siteVisitPriceUnit;
   const siteVisitCtaText = contact?.siteVisitCtaText || INITIAL_CONTACT_PAGE.siteVisitCtaText;

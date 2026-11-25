@@ -128,7 +128,7 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-[120] border-b transition-colors duration-300 ${
+        className={`fixed inset-x-0 top-0 z-[260] border-b transition-colors duration-300 ${
           isScrolled || menuOpen
             ? 'border-white/10 bg-[#08090C]/95 backdrop-blur-md'
             : 'border-transparent bg-[#08090C]/25'
@@ -148,9 +148,6 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
             <Link to="/" onClick={handleHomeClick} className={navLinkClass(isHome)}>
               HOME
             </Link>
-            <Link to="/about" onClick={(event) => handleSameRouteTop(event, isAbout)} className={navLinkClass(isAbout)}>
-              ABOUT
-            </Link>
             <Link to="/portfolio" onClick={(event) => handleSameRouteTop(event, isPortfolio)} className={navLinkClass(isPortfolio)}>
               PORTFOLIO
             </Link>
@@ -159,6 +156,9 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
             </Link>
             <Link to="/packages" onClick={(event) => handleSameRouteTop(event, isPackages)} className={navLinkClass(isPackages)}>
               PACKAGES
+            </Link>
+            <Link to="/about" onClick={(event) => handleSameRouteTop(event, isAbout)} className={navLinkClass(isAbout)}>
+              ABOUT
             </Link>
             <Link
               to="/contact"
@@ -186,13 +186,10 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
       </header>
 
       {menuOpen && (
-        <div className="fixed inset-0 z-[110] flex flex-col overflow-y-auto bg-[#08090C] px-6 pb-8 pt-28 lg:hidden">
+        <div className="fixed inset-0 z-[250] flex flex-col overflow-y-auto bg-[#08090C] px-6 pb-8 pt-28 lg:hidden">
           <nav className="flex flex-col border-t border-white/15" aria-label="Mobile navigation">
             <Link to="/" onClick={handleHomeClick} className="border-b border-white/15 py-5 font-sans text-2xl font-black uppercase tracking-tight text-white">
               HOME
-            </Link>
-            <Link to="/about" onClick={(event) => handleSameRouteTop(event, isAbout)} className="border-b border-white/15 py-5 font-sans text-2xl font-black uppercase tracking-tight text-white">
-              ABOUT
             </Link>
             <Link to="/portfolio" onClick={(event) => handleSameRouteTop(event, isPortfolio)} className="border-b border-white/15 py-5 font-sans text-2xl font-black uppercase tracking-tight text-white">
               PORTFOLIO
@@ -203,24 +200,53 @@ export const MainNavbar: React.FC<MainNavbarProps> = ({ onOpenContact }) => {
             <Link to="/packages" onClick={(event) => handleSameRouteTop(event, isPackages)} className="border-b border-white/15 py-5 font-sans text-2xl font-black uppercase tracking-tight text-white">
               PACKAGES
             </Link>
+            <Link to="/about" onClick={(event) => handleSameRouteTop(event, isAbout)} className="border-b border-white/15 py-5 font-sans text-2xl font-black uppercase tracking-tight text-white">
+              ABOUT
+            </Link>
             <Link to="/contact" onClick={handleContactClick} className="border-b border-white/15 py-5 font-sans text-2xl font-black uppercase tracking-tight text-[#008CFF]">
               CONTACT
             </Link>
           </nav>
 
-          <div className="mt-auto flex flex-wrap items-center gap-5 border-t border-white/15 pt-5 text-sm text-white/55">
-            <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 hover:text-white">
-              <Instagram className="h-4 w-4" /> Instagram
-            </a>
-            <a href={youtubeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 hover:text-white">
-              <Youtube className="h-4 w-4" /> YouTube
-            </a>
-            <a href={facebookUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 hover:text-white">
-              <Facebook className="h-4 w-4" /> Facebook
-            </a>
-            <a href={`https://wa.me/${whatsappPhone}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 hover:text-white">
-              <MessageCircle className="h-4 w-4" /> WhatsApp
-            </a>
+          <div className="mt-auto border-t border-white/15 pt-6 pb-2">
+            <div className="flex items-center justify-around sm:justify-start sm:gap-6 text-white/70">
+              <a
+                href={instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/80 hover:text-[#E1306C] hover:border-[#E1306C]/40 hover:bg-[#E1306C]/10 transition-all duration-200 active:scale-95"
+              >
+                <Instagram className="h-5 w-5" />
+              </a>
+              <a
+                href={youtubeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="YouTube"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/80 hover:text-[#FF0000] hover:border-[#FF0000]/40 hover:bg-[#FF0000]/10 transition-all duration-200 active:scale-95"
+              >
+                <Youtube className="h-5 w-5" />
+              </a>
+              <a
+                href={facebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/80 hover:text-[#1877F2] hover:border-[#1877F2]/40 hover:bg-[#1877F2]/10 transition-all duration-200 active:scale-95"
+              >
+                <Facebook className="h-5 w-5" />
+              </a>
+              <a
+                href={`https://wa.me/${whatsappPhone}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="WhatsApp"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/80 hover:text-[#25D366] hover:border-[#25D366]/40 hover:bg-[#25D366]/10 transition-all duration-200 active:scale-95"
+              >
+                <MessageCircle className="h-5 w-5" />
+              </a>
+            </div>
           </div>
         </div>
       )}

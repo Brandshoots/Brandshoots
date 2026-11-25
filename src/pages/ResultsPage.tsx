@@ -138,12 +138,16 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ transitionActive = fal
             </p>
           </header>
 
-          <div className="min-w-0 pt-10" aria-busy={isLoading || isLoadingMore}>
+          <div className="min-w-0 min-h-[640px] pt-10" aria-busy={isLoading || isLoadingMore}>
             {isLoading && (
-              <div data-results-loading role="status" className="border-y border-white/15 py-20 text-center">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">
-                  Loading published results…
-                </p>
+              <div data-results-loading role="status" className="grid grid-cols-1 gap-10 lg:grid-cols-2">
+                <div className="h-[580px] border-t border-white/20 pt-5">
+                  <div className="h-14 w-56 animate-pulse bg-white/[0.06]" />
+                  <div className="mt-5 grid grid-cols-2 gap-px border border-white/15 bg-white/15">
+                    <div className="aspect-[4/5] animate-pulse bg-white/[0.04]" />
+                    <div className="aspect-[4/5] animate-pulse bg-white/[0.04]" />
+                  </div>
+                </div>
               </div>
             )}
 

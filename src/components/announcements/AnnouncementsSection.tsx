@@ -37,6 +37,30 @@ function formatStoredTimestamp(createdAt: string, updatedAt: string): Pick<Annou
   };
 }
 
+const SAMPLE_ANNOUNCEMENT_IMAGES = [
+  '/announcements/hiring-editor-colorist.jpg',
+  '/announcements/usa-enterprise-client.jpg',
+  '/announcements/q4-brand-campaigns.jpg',
+  '/announcements/studio-cine-expansion.jpg',
+];
+
+function resolveAnnouncementImage(imageUrl: string | undefined, title: string, index: number): string {
+  const trimmed = (imageUrl || '').trim();
+  const isReelThumbnail =
+    !trimmed ||
+    trimmed.includes('/reels/') ||
+    trimmed.includes('/reels_new/') ||
+    trimmed.includes('/reels_light/');
+  if (!isReelThumbnail) return trimmed;
+
+  const lowerTitle = title.toLowerCase();
+  if (lowerTitle.includes('hiring') || lowerTitle.includes('editor')) return SAMPLE_ANNOUNCEMENT_IMAGES[0];
+  if (lowerTitle.includes('usa') || lowerTitle.includes('enterprise')) return SAMPLE_ANNOUNCEMENT_IMAGES[1];
+  if (lowerTitle.includes('campaign') || lowerTitle.includes('q4')) return SAMPLE_ANNOUNCEMENT_IMAGES[2];
+  if (lowerTitle.includes('expand') || lowerTitle.includes('cine')) return SAMPLE_ANNOUNCEMENT_IMAGES[3];
+  return SAMPLE_ANNOUNCEMENT_IMAGES[index % SAMPLE_ANNOUNCEMENT_IMAGES.length];
+}
+
 export const AnnouncementsSection: React.FC = () => {
   const { announcements: cmsAnnouncements } = useCMSContent();
   const announcements = useMemo<AnnouncementItem[]>(() => {
@@ -48,9 +72,11 @@ export const AnnouncementsSection: React.FC = () => {
         tag: announcement.title.toLowerCase().includes('hiring') ? 'CAREERS // HIRING' : 'LATEST HAPPENING',
         title: announcement.title.toUpperCase(),
         description: announcement.description,
-        buttonText: announcement.buttonText?.trim(),
-        buttonUrl: announcement.buttonUrl,
-        imageUrl: announcement.imageUrl,
+        buttonText:
+          announcement.buttonText?.trim() ||
+          (announcement.title.toLowerCase().includes('hiring') ? 'APPLY NOW' : 'MORE INFO'),
+        buttonUrl: announcement.buttonUrl?.trim() || '/contact',
+        imageUrl: resolveAnnouncementImage(announcement.imageUrl, announcement.title, index),
         ...formatStoredTimestamp(announcement.createdAt, announcement.updatedAt),
       }));
   }, [cmsAnnouncements]);
@@ -146,12 +172,21 @@ export const AnnouncementsSection: React.FC = () => {
   if (!currentItem) return null;
 
   const renderCTA = (item: AnnouncementItem) => {
-    const buttonText = item.buttonText?.trim();
-    const buttonUrl = item.buttonUrl?.trim();
-    if (!buttonText || !buttonUrl) return null;
+    const buttonUrl = item.buttonUrl?.trim() || '/contact';
+    const buttonText =
+      item.buttonText?.trim() ||
+      (item.title.toLowerCase().includes('hiring') ? 'APPLY NOW' : 'MORE INFO');
 
-    const content = <><span>{buttonText}</span><span aria-hidden="true">↗</span></>;
-    const className = 'inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] font-bold text-[#008CFF] transition-colors hover:text-white';
+    const content = (
+      <>
+        <span>{buttonText}</span>
+        <span aria-hidden="true" className="text-sm leading-none transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+          ↗
+        </span>
+      </>
+    );
+    const className =
+      'group inline-flex items-center gap-2.5 rounded-full bg-[#008CFF] px-6 py-3 font-mono text-xs font-bold uppercase tracking-[0.18em] text-white shadow-[0_0_24px_rgba(0,140,255,0.35)] transition-all duration-200 hover:bg-[#1a97ff] hover:shadow-[0_0_32px_rgba(0,140,255,0.55)] active:scale-95';
     if (buttonUrl.startsWith('//') || /^[a-z][a-z\d+.-]*:/i.test(buttonUrl)) {
       return <a href={buttonUrl} target="_blank" rel="noopener noreferrer" className={className}>{content}</a>;
     }
@@ -159,8 +194,8 @@ export const AnnouncementsSection: React.FC = () => {
   };
 
   return (
-    <section ref={sectionRef} id="announcements" className="w-full bg-[#08090C] py-20 text-white sm:py-24">
-      <div className="mx-auto w-full max-w-[1380px] px-5 sm:px-8 lg:px-12">
+    <section ref={sectionRef} id="announcements" className="relative w-full bg-[#08090C] py-20 text-white sm:py-24">
+      <div className="mx-auto w-full max-w-[1380px] px-5 sm:px-8 md:px-16 lg:px-20">
         <div ref={headingRef} className="mb-9 flex items-baseline justify-between gap-6 sm:mb-12">
           <h2 className="max-w-3xl text-[clamp(1.85rem,3vw,2.35rem)] font-sans font-black uppercase leading-none tracking-[-0.025em] text-white">ANNOUNCEMENTS &amp; HAPPENINGS</h2>
           <span className="shrink-0 font-mono text-xs font-semibold tracking-[0.2em] text-[#008CFF]">0{currentIndex + 1} / 0{announcements.length}</span>
@@ -170,6 +205,27 @@ export const AnnouncementsSection: React.FC = () => {
           <div className={`grid grid-cols-1 items-center gap-8 md:grid-cols-12 md:gap-12 lg:gap-16 ${reversed ? 'md:[&>figure]:order-2 md:[&>article]:order-1' : ''}`}>
             <figure ref={mediaRef} className="relative order-1 col-span-1 aspect-[4/3] overflow-hidden bg-[#111419] md:col-span-7 md:aspect-[16/10]">
               <img src={getOptimizedImageUrl(currentItem.imageUrl)} alt={currentItem.title} width={720} height={1280} sizes="(min-width: 768px) 58vw, 100vw" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+
+              {announcements.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={previousSlide}
+                    aria-label="Previous Announcement"
+                    className="md:hidden absolute left-2.5 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-[#070A10]/85 backdrop-blur-md border border-white/25 text-white shadow-lg active:scale-90 transition-all"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={nextSlide}
+                    aria-label="Next Announcement"
+                    className="md:hidden absolute right-2.5 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-[#070A10]/85 backdrop-blur-md border border-white/25 text-white shadow-lg active:scale-90 transition-all"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+                </>
+              )}
             </figure>
 
             <article ref={copyRef} className="order-2 col-span-1 flex flex-col justify-center md:col-span-5 md:py-8 lg:py-12">
@@ -188,10 +244,24 @@ export const AnnouncementsSection: React.FC = () => {
           </div>
 
           {announcements.length > 1 && (
-            <div className="mt-7 flex items-center justify-end gap-2">
-              <button type="button" onClick={previousSlide} aria-label="Previous Announcement" className="p-1 text-white/45 transition-colors hover:text-white"><ChevronLeft className="h-4 w-4" /></button>
-              <button type="button" onClick={nextSlide} aria-label="Next Announcement" className="p-1 text-white/45 transition-colors hover:text-white"><ChevronRight className="h-4 w-4" /></button>
-            </div>
+            <>
+              <button
+                type="button"
+                onClick={previousSlide}
+                aria-label="Previous Announcement"
+                className="hidden md:flex absolute -left-12 lg:-left-14 top-1/2 -translate-y-1/2 z-20 h-11 w-11 lg:h-12 lg:w-12 items-center justify-center rounded-full bg-[#0B0F17]/90 backdrop-blur-xl border border-white/25 text-white shadow-[0_8px_24px_rgba(0,0,0,0.65)] transition-all duration-200 hover:border-[#008CFF] hover:bg-[#008CFF]/20 hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                <ChevronLeft className="h-5 w-5 lg:h-6 lg:w-6" />
+              </button>
+              <button
+                type="button"
+                onClick={nextSlide}
+                aria-label="Next Announcement"
+                className="hidden md:flex absolute -right-12 lg:-right-14 top-1/2 -translate-y-1/2 z-20 h-11 w-11 lg:h-12 lg:w-12 items-center justify-center rounded-full bg-[#0B0F17]/90 backdrop-blur-xl border border-white/25 text-white shadow-[0_8px_24px_rgba(0,0,0,0.65)] transition-all duration-200 hover:border-[#008CFF] hover:bg-[#008CFF]/20 hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                <ChevronRight className="h-5 w-5 lg:h-6 lg:w-6" />
+              </button>
+            </>
           )}
         </div>
       </div>

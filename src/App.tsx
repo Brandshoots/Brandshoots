@@ -160,8 +160,21 @@ export function App() {
     waitForBrandFonts().finally(() => {
       if (!cancelled) setFontsReady(true);
     });
+
+    // Idle-prefetch primary routes so internal navigation is instantaneous
+    const prefetchRoutes = () => {
+      if (cancelled) return;
+      void import('./pages/PortfolioPage');
+      void import('./pages/ResultsPage');
+      void import('./pages/PackagesPage');
+      void import('./pages/AboutPage');
+      void import('./pages/ContactPage');
+    };
+    const idleTimer = window.setTimeout(prefetchRoutes, 1400);
+
     return () => {
       cancelled = true;
+      window.clearTimeout(idleTimer);
     };
   }, []);
 
@@ -397,7 +410,7 @@ export function App() {
         <StrokeRevealPreloader
           key={transition.key}
           readyToExit={readyToExit}
-          minimumDurationMs={transition.initial ? 1000 : 750}
+          minimumDurationMs={transition.initial ? 180 : 0}
           onComplete={() => finishTransition(transition)}
         />
       )}

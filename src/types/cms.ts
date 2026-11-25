@@ -44,6 +44,7 @@ export interface CMSHeroReel {
   id: string;
   title: string;
   client: string;
+  description?: string;
   src: string;         // Full 1080p high-resolution stream (for center/focal reels)
   lightSrc?: string;    // Lightweight 540p stream (for visible peripheral reels)
   poster: string;      // Crystal-clear HD poster

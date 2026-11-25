@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { Volume2, VolumeX, ChevronLeft, ChevronRight } from 'lucide-react';
-import { INITIAL_HERO_REELS } from '../../lib/cms/seedData';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { CMSHeroReel } from '../../types/cms';
 import { getOptimizedImageUrl } from '../../utils/mediaAssets';
 
@@ -12,30 +11,34 @@ export interface ReelWall3DProps {
   reels?: CMSHeroReel[];
 }
 
-// 14 slots for a seamless 360-degree cylinder
-const TOTAL_SLOTS = 14;
-const SLOT_ANGLE = 360 / TOTAL_SLOTS; // ~25.7142857deg per slot
-const REEL_DWELL_MS = 5200; // Time active center reel plays before snapping
+const MIN_SLOTS = 14;
+const BASE_TAN_HALF = Math.tan(Math.PI / MIN_SLOTS);
 
 interface CylinderCardProps {
   item: CMSHeroReel & { slotIndex: number };
+  totalSlots: number;
+  tanHalf: number;
   isCenter: boolean;
   isPreloaderActive: boolean;
   isMuted: boolean;
-  onToggleMute?: () => void;
   onSelectSlot: (slotIndex: number) => void;
+  onReelEnded?: () => void;
 }
 
 const CylinderCard: React.FC<CylinderCardProps> = React.memo(
   ({
     item,
+    totalSlots,
+    tanHalf,
     isCenter,
     isPreloaderActive,
     isMuted,
-    onToggleMute,
     onSelectSlot,
+    onReelEnded,
   }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
+    const onReelEndedRef = useRef(onReelEnded);
+    onReelEndedRef.current = onReelEnded;
 
     // Audio volume & mute synchronization
     useEffect(() => {
@@ -47,22 +50,39 @@ const CylinderCard: React.FC<CylinderCardProps> = React.memo(
         video.setAttribute('muted', '');
       } else {
         video.removeAttribute('muted');
+        video.volume = 1;
+        if (video.paused && isCenter && !isPreloaderActive) {
+          video.play().catch(() => {});
+        }
       }
-    }, [isMuted]);
+    }, [isMuted, isCenter, isPreloaderActive]);
 
     // Active center reel video lifecycle & reliable autoplay
     useEffect(() => {
       const video = videoRef.current;
       if (!video || !isCenter || isPreloaderActive) return;
 
-      video.defaultMuted = true;
+      video.defaultMuted = isMuted;
       video.muted = isMuted;
       video.playsInline = true;
-      video.setAttribute('muted', '');
+      if (isMuted) {
+        video.setAttribute('muted', '');
+      } else {
+        video.removeAttribute('muted');
+        video.volume = 1;
+      }
       video.setAttribute('playsinline', '');
       video.setAttribute('webkit-playsinline', '');
       video.setAttribute('autoplay', '');
-      video.setAttribute('loop', '');
+      video.loop = false;
+      video.removeAttribute('loop');
+
+      const handleEnded = () => {
+        if (onReelEndedRef.current) {
+          onReelEndedRef.current();
+        }
+      };
+      video.addEventListener('ended', handleEnded);
 
       const startPlayback = () => {
         const p = video.play();
@@ -92,6 +112,7 @@ const CylinderCard: React.FC<CylinderCardProps> = React.memo(
       return () => {
         window.removeEventListener('click', unlock);
         window.removeEventListener('touchstart', unlock);
+        video.removeEventListener('ended', handleEnded);
         video.removeEventListener('loadeddata', startPlayback);
         video.removeEventListener('canplay', startPlayback);
         video.removeEventListener('loadedmetadata', startPlayback);
@@ -114,7 +135,8 @@ const CylinderCard: React.FC<CylinderCardProps> = React.memo(
         }`}
         style={{
           ['--i' as string]: item.slotIndex,
-          ['--n' as string]: TOTAL_SLOTS,
+          ['--n' as string]: totalSlots,
+          ['--tan-half' as string]: tanHalf.toFixed(5),
         }}
         title={isCenter ? item.title : `Switch to ${item.title}`}
       >
@@ -138,7 +160,6 @@ const CylinderCard: React.FC<CylinderCardProps> = React.memo(
               src={item.src}
               poster={getOptimizedImageUrl(item.poster)}
               autoPlay
-              loop
               muted={isMuted}
               playsInline
               preload="metadata"
@@ -149,28 +170,7 @@ const CylinderCard: React.FC<CylinderCardProps> = React.memo(
           {/* 3. Subtle Inner Bezel Glass Glare */}
           <div className="absolute inset-0 pointer-events-none rounded-[15px] bg-gradient-to-b from-white/10 via-transparent to-black/40 z-20" />
 
-          {/* 4. Center Reel Audio Toggle & Indicator */}
-          {isCenter && onToggleMute && (
-            <div className="absolute top-3 right-3 z-30 flex items-center gap-1.5 pointer-events-auto">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onToggleMute();
-                }}
-                className="p-1.5 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white transition-all active:scale-90 shadow-md cursor-pointer"
-                aria-label={isMuted ? 'Unmute video audio' : 'Mute video audio'}
-              >
-                {isMuted ? (
-                  <VolumeX className="w-3.5 h-3.5 text-white/80" />
-                ) : (
-                  <Volume2 className="w-3.5 h-3.5 text-[#008CFF] drop-shadow-[0_0_6px_rgba(0,140,255,0.8)]" />
-                )}
-              </button>
-            </div>
-          )}
-
-          {/* 5. Subtle Cyan Rim for Center Reel */}
+          {/* 4. Subtle Cyan Rim for Center Reel */}
           {isCenter && (
             <div className="absolute inset-0 rounded-[15px] border border-[#008CFF]/35 pointer-events-none shadow-[inset_0_0_24px_rgba(0,140,255,0.2)] z-20" />
           )}
@@ -185,32 +185,34 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
   onLoaded,
   isPreloaderActive = false,
   isMuted: controlledMuted,
-  onToggleMute: controlledToggleMute,
   reels,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const rotGroupRef = useRef<HTMLDivElement>(null);
 
-  // Internal audio state fallback if not controlled from parent
-  const [internalMuted, setInternalMuted] = useState(true);
-  const isMuted = controlledMuted !== undefined ? controlledMuted : internalMuted;
-  const toggleMute = controlledToggleMute || (() => setInternalMuted((prev) => !prev));
+  const isMuted = controlledMuted !== undefined ? controlledMuted : true;
 
   const activeReels: CMSHeroReel[] = useMemo(() => {
-    if (reels && reels.length > 0) {
-      const visible = reels.filter((reel) => reel.visible !== false);
-      if (visible.length > 0) return visible;
-    }
-    return INITIAL_HERO_REELS;
+    if (!reels || reels.length === 0) return [];
+    return reels.filter((reel) => reel.visible !== false);
   }, [reels]);
 
-  // Seamless 14-slot cylinder arrangement
+  const totalSlots = Math.max(MIN_SLOTS, activeReels.length);
+  const slotAngle = 360 / totalSlots;
+  const tanHalf = Math.tan(Math.PI / totalSlots);
+  const zComp =
+    totalSlots > MIN_SLOTS
+      ? Math.round(132 / tanHalf - 132 / BASE_TAN_HALF)
+      : 0;
+
+  // Seamless cylinder arrangement — includes all active reels without skipping
   const cylinderItems = useMemo(() => {
-    return Array.from({ length: TOTAL_SLOTS }, (_, i) => ({
+    if (activeReels.length === 0) return [];
+    return Array.from({ length: totalSlots }, (_, i) => ({
       ...activeReels[i % activeReels.length],
       slotIndex: i,
     }));
-  }, [activeReels]);
+  }, [activeReels, totalSlots]);
 
   // Rotational State Management for Snapping Carousel
   const [stepIndex, setStepIndex] = useState(0);
@@ -223,8 +225,8 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
 
   // Active Center Slot Index
   const centerSlotIndex = useMemo(() => {
-    return ((stepIndex % TOTAL_SLOTS) + TOTAL_SLOTS) % TOTAL_SLOTS;
-  }, [stepIndex]);
+    return ((stepIndex % totalSlots) + totalSlots) % totalSlots;
+  }, [stepIndex, totalSlots]);
 
   // Smooth Snap Transition to a Target Step
   const snapTo = useCallback((targetStep: number) => {
@@ -245,22 +247,17 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
     (targetSlotIndex: number) => {
       if (isDragging || hasDraggedRef.current || targetSlotIndex === centerSlotIndex) return;
       let diff = targetSlotIndex - centerSlotIndex;
-      if (diff > TOTAL_SLOTS / 2) diff -= TOTAL_SLOTS;
-      if (diff < -TOTAL_SLOTS / 2) diff += TOTAL_SLOTS;
+      if (diff > totalSlots / 2) diff -= totalSlots;
+      if (diff < -totalSlots / 2) diff += totalSlots;
       snapTo(stepIndex + diff);
     },
-    [centerSlotIndex, isDragging, snapTo, stepIndex]
+    [centerSlotIndex, isDragging, snapTo, stepIndex, totalSlots]
   );
 
-  // Dwell timer: plays active center video, then snaps to next reel
-  useEffect(() => {
+  // Advance to next reel only after the active center video finishes playing completely
+  const handleReelEnded = useCallback(() => {
     if (isPreloaderActive || isHovered || isDragging || !isInView) return;
-
-    const timer = setInterval(() => {
-      snapNext();
-    }, REEL_DWELL_MS);
-
-    return () => clearInterval(timer);
+    snapNext();
   }, [isPreloaderActive, isHovered, isDragging, isInView, snapNext]);
 
   // Mouse Parallax & Intersection Observer
@@ -391,7 +388,7 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
   const handlePointerUp = () => {
     if (!isDragging) return;
     setIsDragging(false);
-    const draggedSlots = Math.round(dragOffsetAngle / SLOT_ANGLE);
+    const draggedSlots = Math.round(dragOffsetAngle / slotAngle);
     setDragOffsetAngle(0);
 
     if (draggedSlots !== 0) {
@@ -406,7 +403,11 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
   };
 
   // Base rotation angle from stepIndex + optional drag offset
-  const baseRotationY = -(stepIndex * SLOT_ANGLE) + dragOffsetAngle;
+  const baseRotationY = -(stepIndex * slotAngle) + dragOffsetAngle;
+
+  if (cylinderItems.length === 0) {
+    return null;
+  }
 
   return (
     <div
@@ -417,7 +418,7 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
       {/* 1. CINEMATIC 3D CYLINDER INSTALLATION SCENE              */}
       {/* ======================================================== */}
       <div
-        className="cylinder-scene relative w-full h-[430px] sm:h-[470px] md:h-[540px] lg:h-[580px] flex items-center justify-center pointer-events-auto"
+        className="cylinder-scene relative w-full h-[460px] sm:h-[500px] md:h-[580px] lg:h-[620px] flex items-center justify-center pointer-events-auto"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => {
           setIsHovered(false);
@@ -445,6 +446,7 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
             placeSelf: 'center',
             transformStyle: 'preserve-3d',
             willChange: 'transform',
+            ['--z-comp' as string]: `${zComp}px`,
           }}
         >
           {/* Layer 2: Rotational Carousel (smooth snapping transition) */}
@@ -462,11 +464,13 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
               <CylinderCard
                 key={`${item.id}-${item.slotIndex}`}
                 item={item}
+                totalSlots={totalSlots}
+                tanHalf={tanHalf}
                 isCenter={item.slotIndex === centerSlotIndex}
                 isPreloaderActive={isPreloaderActive}
                 isMuted={isMuted}
-                onToggleMute={toggleMute}
                 onSelectSlot={snapToSlot}
+                onReelEnded={handleReelEnded}
               />
             ))}
           </div>
@@ -502,11 +506,11 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
 
         {/* Mobile Single Reel Pagination Cue */}
         <div className="sm:hidden absolute bottom-1.5 inset-x-0 flex items-center justify-center gap-1.5 z-30 pointer-events-none">
-          {Array.from({ length: Math.min(activeReels.length, 14) }).map((_, idx) => (
+          {Array.from({ length: activeReels.length }).map((_, idx) => (
             <span
               key={idx}
               className={`h-1 rounded-full transition-all duration-300 ${
-                idx === (centerSlotIndex % Math.min(activeReels.length, 14))
+                idx === (centerSlotIndex % activeReels.length)
                   ? 'w-4 bg-[#008CFF] shadow-[0_0_8px_rgba(0,140,255,0.85)]'
                   : 'w-1 bg-white/30'
               }`}
@@ -524,6 +528,12 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
           /* Zero transition so mouse parallax is instantaneous at 60fps */
         }
 
+        @media (min-width: 768px) {
+          .cylinder-parallax {
+            transform: translateZ(calc(65px + var(--z-comp, 0px))) rotateX(var(--mouse-rx, 0deg)) rotateY(var(--mouse-ry, 0deg));
+          }
+        }
+
         .cylinder-rotator {
           transition: transform 0.85s cubic-bezier(0.25, 1, 0.5, 1);
           transform: rotateY(var(--rot-y, 0deg));
@@ -534,10 +544,9 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
         }
 
         .cylinder-card {
-          --w: 236px;
+          --w: 268px;
           --ba: calc(360deg / var(--n));
-          /* tan(180deg / 14) = tan(12.857deg) = 0.22824 */
-          --radius: calc((0.5 * var(--w) + 7px) / 0.22824);
+          --radius: calc((0.5 * var(--w) + 7px) / var(--tan-half, 0.22824));
           grid-area: 1 / 1;
           width: var(--w);
           aspect-ratio: 9 / 16;
@@ -550,21 +559,21 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
         }
 
         .cylinder-card-center {
-          filter: brightness(1.05);
+          filter: brightness(1.06);
         }
 
         @media (max-width: 1440px) {
           .cylinder-card {
-            --w: 215px;
+            --w: 242px;
           }
         }
 
         @media (max-width: 1024px) {
           .cylinder-card {
-            --w: 190px;
+            --w: 210px;
           }
           .cylinder-scene {
-            perspective: 34rem !important;
+            perspective: 36rem !important;
           }
         }
 
@@ -575,7 +584,7 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
             perspective: 32rem !important;
           }
           .cylinder-parallax {
-            transform: translateZ(190px) rotateX(var(--mouse-rx, 0deg)) rotateY(var(--mouse-ry, 0deg)) !important;
+            transform: translateZ(calc(190px + var(--z-comp, 0px))) rotateX(var(--mouse-rx, 0deg)) rotateY(var(--mouse-ry, 0deg)) !important;
           }
           .cylinder-rotator {
             transition: transform 0.85s cubic-bezier(0.25, 1, 0.5, 1);
@@ -586,7 +595,7 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
           }
           .cylinder-card {
             --w: min(245px, 68vw) !important;
-            --radius: calc((0.5 * var(--w) + 6px) / 0.22824) !important;
+            --radius: calc((0.5 * var(--w) + 6px) / var(--tan-half, 0.22824)) !important;
             opacity: 0 !important;
             visibility: hidden !important;
             pointer-events: none !important;
@@ -610,11 +619,11 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
             perspective: 28rem !important;
           }
           .cylinder-parallax {
-            transform: translateZ(160px) rotateX(var(--mouse-rx, 0deg)) rotateY(var(--mouse-ry, 0deg)) !important;
+            transform: translateZ(calc(160px + var(--z-comp, 0px))) rotateX(var(--mouse-rx, 0deg)) rotateY(var(--mouse-ry, 0deg)) !important;
           }
           .cylinder-card {
             --w: min(218px, 68vw) !important;
-            --radius: calc((0.5 * var(--w) + 5px) / 0.22824) !important;
+            --radius: calc((0.5 * var(--w) + 5px) / var(--tan-half, 0.22824)) !important;
             opacity: 0 !important;
             visibility: hidden !important;
             pointer-events: none !important;

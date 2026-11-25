@@ -29,7 +29,7 @@ export const BrandShootsLogo3D: React.FC = () => {
       powerPreference: 'high-performance',
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, window.innerWidth < 768 ? 1.5 : 1.75));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.25;
     container.appendChild(renderer.domElement);
@@ -209,13 +209,18 @@ export const BrandShootsLogo3D: React.FC = () => {
       cursorLight.position.z = 220;
     };
 
-    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
 
-    // 6. RENDER LOOP WITH ELEGANT DAMPING
-    let reqId: number;
+    // 6. RENDER LOOP WITH ELEGANT DAMPING & VISIBILITY GATING
+    let reqId: number | null = null;
+    let inView = true;
     const clock = new THREE.Clock();
 
     const animate = () => {
+      if (!inView || document.hidden) {
+        reqId = null;
+        return;
+      }
       reqId = requestAnimationFrame(animate);
       const elapsedTime = clock.getElapsedTime();
 
@@ -243,7 +248,27 @@ export const BrandShootsLogo3D: React.FC = () => {
       renderer.render(scene, camera);
     };
 
-    animate();
+    const startLoop = () => {
+      if (reqId === null && inView && !document.hidden) {
+        reqId = requestAnimationFrame(animate);
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        inView = entry.isIntersecting;
+        if (inView) startLoop();
+      },
+      { threshold: 0.01 }
+    );
+    observer.observe(container);
+
+    const handleVisibility = () => {
+      if (!document.hidden && inView) startLoop();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    startLoop();
 
     // 7. RESPONSIVE RESIZE OBSERVER
     const handleResize = () => {
@@ -261,7 +286,9 @@ export const BrandShootsLogo3D: React.FC = () => {
 
     // 8. CLEANUP ON UNMOUNT
     return () => {
-      cancelAnimationFrame(reqId);
+      if (reqId !== null) cancelAnimationFrame(reqId);
+      observer.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibility);
       resizeObserver.disconnect();
       st.kill();
       window.removeEventListener('mousemove', onMouseMove);

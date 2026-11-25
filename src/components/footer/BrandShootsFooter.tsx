@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowUpRight, Instagram, Youtube, Facebook, MessageCircle, MapPin } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useCMSContent } from '../../lib/cms/useCMSContent';
@@ -69,66 +70,166 @@ export const BrandShootsFooter: React.FC<BrandShootsFooterProps> = () => {
   };
 
   useEffect(() => {
+    const footerEl = footerRef.current;
+    if (!footerEl) return;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) return;
+
     const context = gsap.context(() => {
-      if (!footerRef.current) return;
-      gsap.fromTo(footerRef.current.querySelectorAll('nav a, footer a, footer button'), { opacity: 0, y: 14 }, {
-        opacity: 1,
-        y: 0,
-        duration: 0.5,
-        stagger: 0.05,
-        ease: 'power2.out',
-        scrollTrigger: { trigger: footerRef.current, start: 'top 88%', once: true },
-      });
+      const blocks = footerEl.querySelectorAll('[data-footer-block]');
+      gsap.fromTo(
+        blocks,
+        { opacity: 0, y: 20 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.65,
+          stagger: 0.08,
+          ease: 'power3.out',
+          scrollTrigger: { trigger: footerEl, start: 'top 88%', once: true },
+        }
+      );
     }, footerRef);
     return () => context.revert();
   }, []);
 
+  const navLinks = [
+    { label: 'Home', to: '/' },
+    { label: 'Portfolio', to: '/portfolio' },
+    { label: 'Results', to: '/results' },
+    { label: 'Packages', to: '/packages' },
+    { label: 'About', to: '/about' },
+    { label: 'Services', to: '/#what-we-do', onClick: handleServicesClick },
+    { label: 'Contact', to: '/contact', accent: true },
+  ];
+
+  const socialLinks = [
+    { label: 'Instagram', href: instagramUrl, icon: Instagram },
+    { label: 'YouTube', href: youtubeUrl, icon: Youtube },
+    { label: 'Facebook', href: facebookUrl, icon: Facebook },
+    { label: 'WhatsApp', href: whatsappUrl, icon: MessageCircle },
+  ];
+
   return (
-    <footer ref={footerRef} id="footer" className="w-full bg-[#08090C] text-white">
-      <div className="mx-auto w-full max-w-[1380px] px-5 pb-8 pt-16 sm:px-8 sm:pt-20 lg:px-12">
-        <div className="flex flex-col gap-10 border-b border-white/20 pb-12 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <Link to="/" onClick={() => window.location.pathname === '/' && scrollToTop()} className="inline-block">
-              <img src="/Logo Official.svg" alt="BrandShoots Official Logo" width={1600} height={365} loading="lazy" decoding="async" className="h-12 w-auto sm:h-14" />
+    <footer
+      ref={footerRef}
+      id="footer"
+      className="relative w-full overflow-hidden border-t border-white/10 bg-[#05070B] text-white"
+    >
+      {/* Subtle Top Rim Glow */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-px"
+        style={{
+          background:
+            'linear-gradient(90deg, transparent 0%, rgba(0, 140, 255, 0.45) 50%, transparent 100%)',
+        }}
+      />
+      <div
+        className="pointer-events-none absolute -top-28 left-1/2 -translate-x-1/2 h-56 w-[70vw] max-w-[900px] rounded-full opacity-25"
+        style={{
+          background: 'radial-gradient(ellipse at center, rgba(0, 140, 255, 0.22) 0%, transparent 72%)',
+          filter: 'blur(70px)',
+        }}
+      />
+
+      <div className="relative mx-auto w-full max-w-[1380px] px-5 pt-16 pb-10 sm:px-8 sm:pt-20 lg:px-12 lg:pt-24">
+        {/* Main Structured Agency Grid */}
+        <div className="grid grid-cols-1 gap-12 border-b border-white/10 pb-14 md:grid-cols-2 lg:grid-cols-12 lg:gap-10">
+          {/* Brand Identity Column */}
+          <div data-footer-block className="lg:col-span-5 flex flex-col items-start">
+            <Link
+              to="/"
+              onClick={() => window.location.pathname === '/' && scrollToTop()}
+              className="inline-block transition-opacity duration-200 hover:opacity-90"
+            >
+              <img
+                src="/Logo Official.svg"
+                alt="BrandShoots Official Logo"
+                width={1600}
+                height={365}
+                loading="lazy"
+                decoding="async"
+                className="h-14 w-auto sm:h-16"
+              />
             </Link>
-            <p className="mt-4 font-mono text-xs font-semibold tracking-[0.28em] text-white/55 uppercase">
-              CREATE. <span className="text-[#008CFF]">SHOOT.</span> GROW.
+
+            <p className="mt-4 font-mono text-xs sm:text-sm font-semibold tracking-[0.28em] text-white/75 uppercase">
+              Create. <span className="text-[#008CFF]">Shoot.</span> Grow.
             </p>
-            <p className="mt-5 max-w-md font-sans font-light text-sm leading-relaxed text-white/60">
+
+            <p className="mt-5 max-w-md font-sans text-sm sm:text-base font-normal leading-relaxed text-white/65">
               A high-end creative agency engineering commercial films, visual architecture, and high-retention content systems for ambitious brands.
             </p>
           </div>
 
-          <nav className="grid grid-cols-2 gap-x-10 gap-y-4 font-mono text-xs font-semibold tracking-[0.2em] text-white/65 uppercase sm:flex sm:flex-wrap sm:gap-8">
-            <Link to="/" className="transition-colors hover:text-[#008CFF]">HOME</Link>
-            <Link to="/about" className="transition-colors hover:text-[#008CFF]">ABOUT</Link>
-            <Link to="/portfolio" className="transition-colors hover:text-[#008CFF]">PORTFOLIO</Link>
-            <Link to="/results" className="transition-colors hover:text-[#008CFF]">RESULTS</Link>
-            <Link to="/packages" className="transition-colors hover:text-[#008CFF]">PACKAGES</Link>
-            <Link to="/#what-we-do" onClick={handleServicesClick} className="transition-colors hover:text-[#008CFF]">SERVICES</Link>
-            <Link to="/contact" className="text-[#008CFF] transition-colors hover:text-white">CONTACT</Link>
-          </nav>
-        </div>
-
-        <div className="flex flex-col gap-8 border-b border-white/20 py-8 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm font-sans font-light text-white/65">
-            <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="hover:text-white">Instagram</a>
-            <a href={youtubeUrl} target="_blank" rel="noopener noreferrer" className="hover:text-white">YouTube</a>
-            <a href={facebookUrl} target="_blank" rel="noopener noreferrer" className="hover:text-white">Facebook</a>
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="hover:text-white">WhatsApp</a>
+          {/* Navigation Column */}
+          <div data-footer-block className="lg:col-span-3">
+            <h2 className="font-mono text-[11px] font-semibold uppercase tracking-[0.24em] text-[#008CFF]">
+              Navigation
+            </h2>
+            <nav aria-label="Footer navigation" className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3.5 sm:grid-cols-1">
+              {navLinks.map((item) => (
+                <Link
+                  key={item.label}
+                  to={item.to}
+                  onClick={item.onClick}
+                  className={`group inline-flex items-center gap-2 font-mono text-xs sm:text-[13px] font-semibold uppercase tracking-[0.18em] transition-all duration-200 hover:translate-x-1 ${
+                    item.accent
+                      ? 'text-[#008CFF] hover:text-white'
+                      : 'text-white/70 hover:text-white'
+                  }`}
+                >
+                  <span>{item.label}</span>
+                  <ArrowUpRight className="h-3.5 w-3.5 opacity-0 -translate-x-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0 text-[#008CFF]" />
+                </Link>
+              ))}
+            </nav>
           </div>
-          <button type="button" onClick={scrollToTop} className="self-start font-mono text-xs tracking-[0.2em] text-white/50 uppercase transition-colors hover:text-[#008CFF] sm:self-auto">
-            Back to Top ↑
-          </button>
+
+          {/* Connect & Studio Address Column */}
+          <div data-footer-block className="md:col-span-2 lg:col-span-4 flex flex-col justify-between gap-8">
+            <div>
+              <h2 className="font-mono text-[11px] font-semibold uppercase tracking-[0.24em] text-[#008CFF]">
+                Connect
+              </h2>
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                {socialLinks.map(({ label, href, icon: Icon }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 text-sm font-sans font-medium text-white/75 transition-all duration-200 hover:border-[#008CFF]/45 hover:bg-[#008CFF]/[0.08] hover:text-white"
+                  >
+                    <span className="inline-flex items-center gap-2.5">
+                      <Icon className="h-4 w-4 text-[#008CFF] transition-transform duration-200 group-hover:scale-110" />
+                      <span>{label}</span>
+                    </span>
+                    <ArrowUpRight className="h-3.5 w-3.5 text-white/35 transition-all duration-200 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 sm:p-5">
+              <div className="flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-white/50">
+                <MapPin className="h-3.5 w-3.5 text-[#008CFF]" />
+                <span>Studio</span>
+              </div>
+              <address className="mt-2.5 font-sans text-sm font-normal not-italic leading-relaxed text-white/75 [overflow-wrap:anywhere]">
+                {fullAddress}
+              </address>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 pt-6 font-mono text-[10px] tracking-[0.12em] text-white/50 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end sm:gap-8">
-          <address className="min-w-0 max-w-3xl whitespace-normal break-words font-normal not-italic normal-case leading-relaxed [overflow-wrap:anywhere]">
-            {fullAddress}
-          </address>
-          <span className="whitespace-normal sm:whitespace-nowrap sm:text-right">
-            © {new Date().getFullYear()} BrandShoots. ALL RIGHTS RESERVED.
-          </span>
+        {/* Bottom Copyright Bar (with clean clearance for bottom-right floating controls) */}
+        <div
+          data-footer-block
+          className="flex flex-col gap-3 pt-7 pb-14 sm:flex-row sm:items-center sm:justify-between md:pb-10 lg:pr-44 font-mono text-[11px] tracking-[0.14em] text-white/50 uppercase"
+        >
+          <span>© {new Date().getFullYear()} BrandShoots. All Rights Reserved.</span>
+          <span className="text-white/40">Commercial Film &amp; Digital Growth Studio</span>
         </div>
       </div>
     </footer>

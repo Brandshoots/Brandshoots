@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { ArrowUpRight, Play, Volume2, VolumeX, Instagram } from 'lucide-react';
 import { ClientProject } from '../../data/clientsData';
 import { getProjectSocialLink } from '../../data/clientSocialData';
+import { AnimatedMetricCounter } from './AnimatedMetricCounter';
 
 interface PortfolioMobileShowcaseProps {
   activeProjects: ClientProject[];
@@ -28,8 +29,9 @@ const MobileReelCard: React.FC<MobileReelCardProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [metricsActive, setMetricsActive] = useState<boolean>(index === 0);
 
-  // Play/pause dynamically based on viewport intersection
+  // Play/pause dynamically and trigger counter animation when card enters viewport
   useEffect(() => {
     const container = containerRef.current;
     const video = videoRef.current;
@@ -41,6 +43,7 @@ const MobileReelCard: React.FC<MobileReelCardProps> = ({
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
+            setMetricsActive(true);
             video
               .play()
               .then(() => setIsPlaying(true))
@@ -52,7 +55,7 @@ const MobileReelCard: React.FC<MobileReelCardProps> = ({
         });
       },
       {
-        threshold: 0.45,
+        threshold: 0.35,
       }
     );
 
@@ -99,11 +102,11 @@ const MobileReelCard: React.FC<MobileReelCardProps> = ({
       className="relative w-full py-7 first:pt-2 last:pb-10 flex flex-col items-center"
     >
       {/* ========================================================= */}
-      {/* 1. DOMINANT 9:16 REEL (78–88vw, CENTERED, CLEAN BORDER) */}
+      {/* 1. DOMINANT 9:16 REEL (CLEAN, BORDERLESS EDGES)          */}
       {/* ========================================================= */}
       <div
         onClick={togglePlay}
-        className="relative w-[80vw] max-w-[325px] aspect-[9/16] mx-auto rounded-2xl sm:rounded-3xl overflow-hidden bg-[#070B14] shadow-[0_16px_40px_rgba(0,0,0,0.85)] border border-white/10 cursor-pointer select-none group"
+        className="relative w-[82vw] max-w-[330px] aspect-[9/16] mx-auto rounded-2xl overflow-hidden bg-[#070B14] shadow-[0_24px_60px_rgba(0,0,0,0.85)] cursor-pointer select-none group"
       >
         {/* Real Reel Video */}
         <video
@@ -182,17 +185,22 @@ const MobileReelCard: React.FC<MobileReelCardProps> = ({
           {project.headline}
         </p>
 
-        {/* 2.4 Client Stats Pills */}
-        <div className="mt-3 grid grid-cols-3 gap-2 w-full max-w-[280px]">
+        {/* 2.4 Borderless Editorial Client Metrics with GSAP Animated Counters */}
+        <div className="mt-5 grid grid-cols-3 divide-x divide-white/15 w-full max-w-[320px]">
           {stats.map((metric, idx) => (
             <div
-              key={idx}
-              className="px-2 py-1.5 rounded-xl bg-[#008CFF]/[0.05] border border-[#008CFF]/25 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-[0_0_12px_rgba(0,140,255,0.08)]"
+              key={`${project.id}-${metric.label}-${idx}`}
+              className="px-2 py-0.5 flex flex-col items-center justify-center text-center"
             >
-              <span className="text-xs sm:text-sm font-sans font-bold text-white tracking-tight leading-none drop-shadow-[0_0_8px_rgba(0,140,255,0.45)]">
-                {metric.value}
-              </span>
-              <span className="mt-1 text-[8px] font-sans font-medium uppercase tracking-[0.12em] text-white/55 leading-none">
+              <AnimatedMetricCounter
+                value={metric.value}
+                triggerKey={project.id}
+                active={metricsActive}
+                delay={idx * 0.08}
+                duration={1.35}
+                className="text-lg sm:text-xl font-sans font-black text-white tracking-tight leading-none"
+              />
+              <span className="mt-1.5 text-[9px] font-mono font-medium uppercase tracking-[0.14em] text-white/55 leading-tight">
                 {metric.label}
               </span>
             </div>

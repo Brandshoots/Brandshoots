@@ -1,4 +1,4 @@
-import { CMSProject, CMSClientLogo, CMSHero, CMSHeroReel, CMSService, CMSTestimonial, CMSLeadership, CMSSiteSettings, CMSAnnouncement, CMSContactPage } from '../../types/cms';
+import { CMSProject, CMSClientLogo, CMSHero, CMSHeroReel, CMSService, CMSTestimonial, CMSLeadership, CMSSiteSettings, CMSAnnouncement, CMSContactPage, CMSResult } from '../../types/cms';
 import { CLIENT_PROJECTS, ALL_CLIENT_LOGOS } from '../../data/clientsData';
 import { HERO_REEL_VIDEOS } from '../../config/heroReels';
 
@@ -6,6 +6,7 @@ export const INITIAL_HERO_REELS: CMSHeroReel[] = HERO_REEL_VIDEOS.map((item, ind
   id: item.id,
   title: item.title,
   client: item.client,
+  description: item.description,
   src: item.src,
   lightSrc: item.lightSrc,
   poster: item.poster,
@@ -51,12 +52,12 @@ export const INITIAL_HERO: CMSHero = {
   taglinePrefix: 'CREATE. ',
   taglineAccent: 'SHOOT.',
   taglineSuffix: ' GROW.',
-  desktopVideoUrl: '/reels/wearebrandshoots_1777444216_3885805244420742638_77785749886.mp4',
-  mobileVideoUrl: '/reels/wearebrandshoots_1777444216_3885805244420742638_77785749886.mp4',
-  mobilePosterUrl: '/reels/posters/wearebrandshoots_1777444216_3885805244420742638_77785749886.webp',
+  desktopVideoUrl: INITIAL_HERO_REELS[0]?.src || '',
+  mobileVideoUrl: INITIAL_HERO_REELS[0]?.src || '',
+  mobilePosterUrl: INITIAL_HERO_REELS[0]?.poster || '',
   mobileDisplayMode: 'single-reel-carousel',
-  mobileFeaturedTitle: 'BrandShoots Studio Reel',
-  mobileFeaturedClient: 'BrandShoots',
+  mobileFeaturedTitle: INITIAL_HERO_REELS[0]?.title || 'BrandShoots Studio Reel',
+  mobileFeaturedClient: INITIAL_HERO_REELS[0]?.client || 'BrandShoots',
   reels: INITIAL_HERO_REELS,
   updatedAt: Date.now(),
 };
@@ -68,8 +69,7 @@ export const INITIAL_SERVICES: Record<string, CMSService> = {
     titleLines: ['CREATIVE', 'CONTENT'],
     category: 'CREATIVE CONTENT',
     description: 'High-impact social films, vertical storytelling, viral hooks, and creative campaign direction engineered to captivate algorithmic feeds.',
-    imageUrl: '/what-we-do/optimized/creative-content.webp',
-    videoUrl: '/reels/aabharan_womens_accessories/aabharan_womens_accessories_2026-05-30_10-01-21_3908213461611903133_45301478774.mp4',
+    imageUrl: '/what-we-do/creative-content.jpg',
     aspectRatio: 'portrait',
     tag: 'CREATIVE DIRECTION & HOOKS',
     order: 0,
@@ -82,8 +82,7 @@ export const INITIAL_SERVICES: Record<string, CMSService> = {
     titleLines: ['DIGITAL', 'GROWTH'],
     category: 'DIGITAL GROWTH',
     description: 'Full-funnel digital creative systems, visual campaigns, and scalable brand momentum engineered to convert viewers into lifelong advocates.',
-    imageUrl: '/what-we-do/optimized/digital-growth.webp',
-    videoUrl: '/reels/viswatuff.glass_rjy/viswatuff.glass_rjy_2026-05-28_18-00-28_3907005057329571857_78432309239.mp4',
+    imageUrl: '/what-we-do/digital-growth.jpg',
     aspectRatio: 'portrait',
     tag: 'CATEGORY LEADERSHIP & SCALE',
     order: 1,
@@ -96,8 +95,7 @@ export const INITIAL_SERVICES: Record<string, CMSService> = {
     titleLines: ['EDITING &', 'POSTING'],
     category: 'EDITING & POSTING',
     description: 'Precision cinematic editing, luxury Hollywood color grading, immersive spatial sound design, and scheduled high-impact posting across platforms.',
-    imageUrl: '/what-we-do/optimized/editing-posting.webp',
-    videoUrl: '/reels/sbventures_official/sbventures_official_2026-09-15_17-10-21_3986704799434897519_5720346010.mp4',
+    imageUrl: '/what-we-do/editing-posting.jpg',
     aspectRatio: 'portrait',
     tag: 'PRECISION FINISHING & DISTRIBUTION',
     order: 2,
@@ -180,9 +178,10 @@ export const INITIAL_SITE_SETTINGS: CMSSiteSettings = {
 export const INITIAL_ANNOUNCEMENTS: Record<string, CMSAnnouncement> = {
   'ann_1': {
     id: 'ann_1',
-    imageUrl: '/reels/thumbnails-webp/sbventures_official_2026-09-15_17-10-21_3986704799434897519_5720346010.webp',
+    imageUrl: '/announcements/hiring-editor-colorist.jpg',
     title: 'We Are Hiring: Senior Video Editor & Colorist',
     description: 'Join the BrandShoots studio core. We are scouting ambitious video editors & DaVinci colorists skilled in high-retention commercial cuts.',
+    buttonText: 'APPLY NOW',
     buttonUrl: '/contact',
     isActive: true,
     order: 0,
@@ -191,9 +190,10 @@ export const INITIAL_ANNOUNCEMENTS: Record<string, CMSAnnouncement> = {
   },
   'ann_2': {
     id: 'ann_2',
-    imageUrl: '/reels/thumbnails-webp/viswatuff.glass_rjy_2026-05-28_18-00-28_3907005057329571857_78432309239.webp',
+    imageUrl: '/announcements/usa-enterprise-client.jpg',
     title: 'Welcoming Our New USA Enterprise Client',
     description: 'BrandShoots goes international! Thrilled to partner with a leading tech & architectural firm in California to craft their global commercial film series.',
+    buttonText: 'EXPLORE CASE STUDY',
     buttonUrl: '/portfolio',
     isActive: true,
     order: 1,
@@ -202,9 +202,10 @@ export const INITIAL_ANNOUNCEMENTS: Record<string, CMSAnnouncement> = {
   },
   'ann_3': {
     id: 'ann_3',
-    imageUrl: '/reels/thumbnails-webp/aabharan_womens_accessories_2026-05-30_10-01-21_3908213461611903133_45301478774.webp',
+    imageUrl: '/announcements/q4-brand-campaigns.jpg',
     title: 'Now Booking Q4 Brand Campaigns & Studio Shoots',
     description: 'Direct collaboration with our creative directors for high-retention social-first video campaigns, luxury brand films, and multi-platform launches.',
+    buttonText: 'BOOK A SHOOT',
     buttonUrl: '/contact',
     isActive: true,
     order: 2,
@@ -213,9 +214,10 @@ export const INITIAL_ANNOUNCEMENTS: Record<string, CMSAnnouncement> = {
   },
   'ann_4': {
     id: 'ann_4',
-    imageUrl: '/reels/thumbnails-webp/santhi.pipes_rjy_2026-09-06_10-01-41_3979966688738161477_48644092133.webp',
+    imageUrl: '/announcements/studio-cine-expansion.jpg',
     title: 'BrandShoots Expands Studio & Commercial Cine Production',
     description: 'Elevating commercial filmmaking, high-velocity vertical reels, custom anamorphic cine lenses, and full-spectrum visual direction across South India.',
+    buttonText: 'VIEW PORTFOLIO',
     buttonUrl: '/portfolio',
     isActive: true,
     order: 3,
@@ -266,3 +268,32 @@ export const INITIAL_CONTACT_PAGE: CMSContactPage = {
   ],
   updatedAt: Date.now(),
 };
+
+const santhiPipesProject = CLIENT_PROJECTS.find((p) => p.id === 'santhi-pipes') ?? CLIENT_PROJECTS[0];
+
+export const INITIAL_RESULTS: CMSResult[] = [
+  {
+    id: 'sample-santhi-pipes-result',
+    clientId: 'santhi-pipes',
+    clientName: 'Santhi Pipes',
+    clientLogoUrl: '/clients/optimized/Shanti Pipes.webp',
+    beforeFollowers: 1800,
+    afterFollowers: 24500,
+    beforeViews: 12000,
+    afterViews: 250000,
+    durationMonths: 3,
+    beforeScreenshotUrl: '/results/before-analytics.svg',
+    afterScreenshotUrl: '/results/after-analytics.svg',
+    testimonial:
+      'BrandShoots transformed how our industrial brand shows up online. Within 90 days, our reels went from quiet local posts to 250K+ organic views and a +142% lift in direct dealer and customer inquiries.',
+    videoUrl: santhiPipesProject?.videoUrl || '',
+    videoPosterUrl: santhiPipesProject?.posterUrl || '',
+    featured: true,
+    order: 0,
+    homepageOrder: 0,
+    status: 'published',
+    createdAt: 1730000000000,
+    updatedAt: 1730000000000,
+    publishedAt: 1730000000000,
+  },
+];

@@ -15,15 +15,14 @@ import {
   ArrowDown,
   AlertCircle,
 } from 'lucide-react';
-import { ref, set } from 'firebase/database';
 import { CMSClientLogo } from '../../types/cms';
 import {
   fetchPublishedClients,
   saveAllClients,
+  syncClientMetadataToResults,
 } from '../../lib/cms/cmsService';
 import { pushClientsUndoAction } from '../../lib/cms/cmsHistory';
 import { INITIAL_CLIENTS } from '../../lib/cms/seedData';
-import { firebaseDb } from '../../lib/firebase';
 import { CloudinaryUploader } from './CloudinaryUploader';
 
 type UploadingAwareUploaderProps = React.ComponentProps<typeof CloudinaryUploader> & {
@@ -47,17 +46,6 @@ const normalizeClients = (items: CMSClientLogo[]): CMSClientLogo[] =>
 
 const persistClients = async (items: CMSClientLogo[]): Promise<CMSClientLogo[]> => {
   const normalized = normalizeClients(items);
-  const record: Record<string, CMSClientLogo> = {};
-  normalized.forEach((item) => {
-    const { views, likes, slug, ...required } = item;
-    record[item.id] = {
-      ...required,
-      ...(slug ? { slug } : {}),
-      ...(views ? { views } : {}),
-      ...(likes ? { likes } : {}),
-    };
-  });
-  await set(ref(firebaseDb, 'published/clients'), record);
   await saveAllClients(normalized);
   return normalized;
 };
@@ -164,6 +152,16 @@ export const ClienteleCMS: React.FC = () => {
       return;
     }
 
+    const duplicate = clients.find(
+      (client) =>
+        client.id !== editingClient?.id &&
+        client.name.trim().toLowerCase() === nameClean.toLowerCase()
+    );
+    if (duplicate) {
+      showToast(`A client named "${duplicate.name}" already exists.`, true);
+      return;
+    }
+
     const previousState = [...clients];
     const views = formViews.trim();
     const likes = formLikes.trim();
@@ -214,6 +212,11 @@ export const ClienteleCMS: React.FC = () => {
     setIsMutating(true);
     try {
       const persisted = await persistClients(updatedList);
+      if (editingClient) {
+        await syncClientMetadataToResults(editingClient.id, nameClean, logoUrl).catch((syncErr) => {
+          console.warn('Linked results metadata sync notice:', syncErr);
+        });
+      }
       setClients(persisted);
       pushClientsUndoAction(description, previousState);
       showToast(successMessage);

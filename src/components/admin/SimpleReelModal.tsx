@@ -1,21 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { AlertCircle, CheckCircle2, Loader2, Plus, RefreshCw, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Edit3, Loader2, Plus, RefreshCw, X } from 'lucide-react';
 import { CloudinaryUploader, isDurableMediaUrl } from './CloudinaryUploader';
 
 export interface SimpleReelModalProps {
   isOpen: boolean;
-  mode: 'add' | 'replace';
+  mode: 'add' | 'edit' | 'replace';
   slotNumber?: number;
   initialData?: {
     src?: string;
     title?: string;
     client?: string;
+    description?: string;
     poster?: string;
   };
   onSave: (data: {
     src: string;
     title: string;
     client: string;
+    description?: string;
     poster: string;
   }) => Promise<void> | void;
   onClose: () => void;
@@ -33,6 +35,7 @@ export const SimpleReelModal: React.FC<SimpleReelModalProps> = ({
   const [posterUrl, setPosterUrl] = useState('/Logo Official.svg');
   const [title, setTitle] = useState('');
   const [client, setClient] = useState('');
+  const [description, setDescription] = useState('');
   const [isVideoUploading, setIsVideoUploading] = useState(false);
   const [isPosterUploading, setIsPosterUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -44,6 +47,7 @@ export const SimpleReelModal: React.FC<SimpleReelModalProps> = ({
     setPosterUrl(initialData?.poster || '/Logo Official.svg');
     setTitle(initialData?.title || '');
     setClient(initialData?.client || '');
+    setDescription(initialData?.description || '');
     setIsVideoUploading(false);
     setIsPosterUploading(false);
     setIsSaving(false);
@@ -54,6 +58,7 @@ export const SimpleReelModal: React.FC<SimpleReelModalProps> = ({
     initialData?.poster,
     initialData?.title,
     initialData?.client,
+    initialData?.description,
   ]);
 
   if (!isOpen) return null;
@@ -83,10 +88,11 @@ export const SimpleReelModal: React.FC<SimpleReelModalProps> = ({
         src: cleanVideoUrl,
         title:
           title.trim() ||
-          (mode === 'replace' ? initialData?.title || 'Brand Reel' : 'Brand Reel'),
+          (mode !== 'add' ? initialData?.title || 'Brand Reel' : 'Brand Reel'),
         client:
           client.trim() ||
-          (mode === 'replace' ? initialData?.client || 'BrandShoots' : 'BrandShoots'),
+          (mode !== 'add' ? initialData?.client || 'BrandShoots' : 'BrandShoots'),
+        description: description.trim() || undefined,
         poster: cleanPosterUrl,
       });
     } catch (saveError) {
@@ -107,13 +113,19 @@ export const SimpleReelModal: React.FC<SimpleReelModalProps> = ({
             <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-white">
               {mode === 'replace' ? (
                 <RefreshCw className="w-4 h-4 text-white" />
+              ) : mode === 'edit' ? (
+                <Edit3 className="w-4 h-4 text-white" />
               ) : (
                 <Plus className="w-4 h-4 text-white" />
               )}
             </div>
             <div>
               <h3 className="text-lg font-bold text-white uppercase tracking-wider font-display">
-                {mode === 'replace' ? `Replace Reel (Slot #${slotNumber})` : 'Add Reel'}
+                {mode === 'replace'
+                  ? `Replace Reel (Slot #${slotNumber})`
+                  : mode === 'edit'
+                  ? `Edit Reel (Slot #${slotNumber})`
+                  : 'Add Reel'}
               </h3>
               {slotNumber && (
                 <p className="text-xs font-mono text-white/50">
@@ -189,6 +201,39 @@ export const SimpleReelModal: React.FC<SimpleReelModalProps> = ({
               />
             </div>
           </div>
+
+          <div>
+            <label className="block text-xs font-mono uppercase text-white/70 mb-1 font-semibold">
+              Description (Optional)
+            </label>
+            <textarea
+              rows={2}
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              placeholder="Brief campaign or production context for this reel..."
+              disabled={isBusy}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/20 text-white text-sm font-sans focus:outline-none focus:border-white/50 disabled:opacity-50 resize-none"
+            />
+          </div>
+
+          {isDurableMediaUrl(videoUrl) && (
+            <div className="rounded-2xl border border-white/10 bg-black/50 p-3">
+              <p className="mb-2 text-[11px] font-mono uppercase tracking-wider text-white/55">
+                Live Video Preview
+              </p>
+              <div className="mx-auto w-36 aspect-[9/16] overflow-hidden rounded-xl border border-white/15 bg-black">
+                <video
+                  src={videoUrl}
+                  poster={isDurableMediaUrl(posterUrl) ? posterUrl : undefined}
+                  controls
+                  muted
+                  playsInline
+                  preload="metadata"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            </div>
+          )}
 
           {error && (
             <div

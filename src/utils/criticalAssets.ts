@@ -62,13 +62,13 @@ export const waitForVideoMetadata = (src?: string, timeoutMs = 1600): Promise<vo
   );
 };
 
-export const waitForBrandFonts = (timeoutMs = 2500): Promise<void> => {
+export const waitForBrandFonts = (timeoutMs = 900): Promise<void> => {
   if (!document.fonts) return Promise.resolve();
 
   return settleWithin(
     Promise.all([
-      document.fonts.load('400 16px "Source Sans 3"'),
-      document.fonts.load('700 48px "Source Sans 3"'),
+      document.fonts.load('400 16px "Figtree"'),
+      document.fonts.load('700 48px "Bebas Neue"'),
       document.fonts.ready,
     ]),
     timeoutMs

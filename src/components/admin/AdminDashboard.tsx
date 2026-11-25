@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { HeroSectionCMS } from './HeroSectionCMS';
+import { HeroReelsCMS } from './HeroReelsCMS';
 import { WhatWeDoCMS } from './WhatWeDoCMS';
 import { AnnouncementsCMS } from './AnnouncementsCMS';
 import { ClienteleCMS } from './ClienteleCMS';
@@ -40,7 +41,7 @@ interface AdminDashboardProps {
 }
 
 type MainSection = 'home' | 'portfolio' | 'results' | 'contact' | 'settings';
-type HomeSubSection = 'hero' | 'whatwedo' | 'announcements' | 'clientele' | 'testimonials';
+type HomeSubSection = 'hero' | 'hero-reels' | 'whatwedo' | 'announcements' | 'clientele' | 'testimonials';
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
   // Navigation State
@@ -326,6 +327,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                 <div className="pl-5 pr-2 py-2 space-y-1 bg-black/25 border-t border-white/5">
                   {[
                     { id: 'hero', label: 'Hero Section', icon: Sparkles },
+                    { id: 'hero-reels', label: 'Hero Reels Management', icon: Film },
                     { id: 'whatwedo', label: 'What We Do Section', icon: Briefcase },
                     { id: 'announcements', label: 'Announcements Section', icon: Megaphone },
                     { id: 'clientele', label: 'Clientele Section', icon: Users },
@@ -438,7 +440,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
         {/* ================================================================= */}
         <main className="flex-1 p-6 sm:p-8 md:p-10 flex flex-col w-full max-w-[1700px] mx-auto overflow-y-auto">
           {/* Breadcrumb / Section Header for other sections (Hero, What We Do, Announcements, Clientele, & Testimonials have their own unified header) */}
-          {!(activeMain === 'home' && (activeHomeSub === 'hero' || activeHomeSub === 'whatwedo' || activeHomeSub === 'announcements' || activeHomeSub === 'clientele' || activeHomeSub === 'testimonials')) && (
+          {!(activeMain === 'home' && (activeHomeSub === 'hero' || activeHomeSub === 'hero-reels' || activeHomeSub === 'whatwedo' || activeHomeSub === 'announcements' || activeHomeSub === 'clientele' || activeHomeSub === 'testimonials')) && (
             <div className="mb-6">
               <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-white/40 mb-2">
                 <span className="capitalize">{activeMain}</span>
@@ -465,6 +467,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
           {/* =============================================================== */}
           {activeMain === 'home' && activeHomeSub === 'hero' ? (
             <HeroSectionCMS />
+          ) : activeMain === 'home' && activeHomeSub === 'hero-reels' ? (
+            <HeroReelsCMS />
           ) : activeMain === 'home' && activeHomeSub === 'whatwedo' ? (
             <WhatWeDoCMS />
           ) : activeMain === 'home' && activeHomeSub === 'announcements' ? (

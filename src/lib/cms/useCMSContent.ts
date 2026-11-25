@@ -74,6 +74,20 @@ export function sanitizeServicesList(list: CMSService[]): CMSService[] {
   return Array.isArray(list) ? list : [];
 }
 
+export function sanitizeEmail(email?: string): string {
+  if (!email || email.trim().toLowerCase() === 'contact@brandshoots.com') {
+    return 'brandshoots.in@gmail.com';
+  }
+  return email.trim();
+}
+
+export function sanitizeSiteVisitPrice(price?: string): string {
+  if (!price || price.includes('999')) {
+    return '₹2,000';
+  }
+  return price.trim();
+}
+
 export function useCMSContent() {
   const [projects, setProjects] = useState<CMSProject[]>(() => {
     try {
@@ -141,7 +155,13 @@ export function useCMSContent() {
       const cached = localStorage.getItem('brandshoots_site_settings');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed && typeof parsed === 'object') return { ...INITIAL_SITE_SETTINGS, ...parsed };
+        if (parsed && typeof parsed === 'object') {
+          return {
+            ...INITIAL_SITE_SETTINGS,
+            ...parsed,
+            contactEmail: sanitizeEmail(parsed.contactEmail),
+          };
+        }
       }
     } catch {}
     return INITIAL_SITE_SETTINGS;
@@ -161,15 +181,24 @@ export function useCMSContent() {
       const cached = localStorage.getItem('brandshoots_contact');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed && typeof parsed === 'object') return { ...INITIAL_CONTACT_PAGE, ...parsed };
+        if (parsed && typeof parsed === 'object') {
+          return {
+            ...INITIAL_CONTACT_PAGE,
+            ...parsed,
+            email: sanitizeEmail(parsed.email),
+            siteVisitPrice: sanitizeSiteVisitPrice(parsed.siteVisitPrice),
+          };
+        }
       }
     } catch {}
     return INITIAL_CONTACT_PAGE;
   });
   const [isLive, setIsLive] = useState<boolean>(false);
+  const [heroReelsLoading, setHeroReelsLoading] = useState<boolean>(true);
+  const [heroReelsError, setHeroReelsError] = useState<string | null>(null);
 
   useEffect(() => {
-    const applyStaticFallback = () => {
+    const applyStaticFallback = (errorMessage?: string) => {
       setProjects(fallbackProjects);
       setClients(fallbackClients);
       setHero(INITIAL_HERO);
@@ -181,6 +210,8 @@ export function useCMSContent() {
       setAnnouncements(fallbackAnnouncements);
       setContact(INITIAL_CONTACT_PAGE);
       setIsLive(false);
+      setHeroReelsLoading(false);
+      setHeroReelsError(errorMessage || null);
     };
 
     try {
@@ -200,7 +231,17 @@ export function useCMSContent() {
           setProjects(sanitizeProjectList(normalizeVisibleList<CMSProject>(data.projects)));
           setClients(sanitizeClientList(normalizeVisibleList<CMSClientLogo>(data.clients)));
           setHero((heroData || {}) as unknown as CMSHero);
-          setHeroReels(normalizeVisibleList<CMSHeroReel>(data.heroReels ?? heroData?.reels));
+          const rawHeroReels = data.heroReels ?? heroData?.reels;
+          if (rawHeroReels === undefined || rawHeroReels === null) {
+            setHeroReels(INITIAL_HERO_REELS);
+          } else {
+            const normalizedReels = normalizeVisibleList<CMSHeroReel>(rawHeroReels).filter(
+              (reel) => typeof reel.src === 'string' && !reel.src.startsWith('blob:')
+            );
+            setHeroReels(normalizedReels);
+          }
+          setHeroReelsLoading(false);
+          setHeroReelsError(null);
           setServices(sanitizeServicesList(normalizeVisibleList<CMSService>(data.services)));
           setTestimonials(normalizeVisibleList<CMSTestimonial>(data.testimonials));
           setAnnouncements(normalizeAnnouncements(data.announcements));
@@ -210,24 +251,34 @@ export function useCMSContent() {
               ? data.leadership as CMSLeadership
               : INITIAL_LEADERSHIP
           );
-          setSettings(
-            data.siteSettings && typeof data.siteSettings === 'object'
-              ? data.siteSettings as CMSSiteSettings
-              : INITIAL_SITE_SETTINGS
-          );
-          const liveContact = data.contact && typeof data.contact === 'object'
+          const rawSettings = data.siteSettings && typeof data.siteSettings === 'object'
+            ? data.siteSettings as CMSSiteSettings
+            : INITIAL_SITE_SETTINGS;
+          const liveSettings = {
+            ...rawSettings,
+            contactEmail: sanitizeEmail(rawSettings.contactEmail),
+          };
+          setSettings(liveSettings);
+
+          const rawContact = data.contact && typeof data.contact === 'object'
             ? data.contact as CMSContactPage
             : INITIAL_CONTACT_PAGE;
+          const liveContact = {
+            ...rawContact,
+            email: sanitizeEmail(rawContact.email),
+            siteVisitPrice: sanitizeSiteVisitPrice(rawContact.siteVisitPrice),
+          };
           setContact(liveContact);
           try {
             localStorage.setItem('brandshoots_contact', JSON.stringify(liveContact));
+            localStorage.setItem('brandshoots_site_settings', JSON.stringify(liveSettings));
           } catch {}
 
           setIsLive(true);
         },
         (error) => {
           console.warn('Firebase RTDB listener failed; using static content:', error.message);
-          applyStaticFallback();
+          applyStaticFallback(error.message);
         }
       );
 
@@ -269,12 +320,23 @@ export function useCMSContent() {
 
       const handleLocalContactUpdate = (event: Event) => {
         const detail = (event as CustomEvent<CMSContactPage>).detail;
-        if (detail && typeof detail === 'object') setContact(detail);
+        if (detail && typeof detail === 'object') {
+          setContact({
+            ...detail,
+            email: sanitizeEmail(detail.email),
+            siteVisitPrice: sanitizeSiteVisitPrice(detail.siteVisitPrice),
+          });
+        }
       };
 
       const handleLocalSettingsUpdate = (event: Event) => {
         const detail = (event as CustomEvent<CMSSiteSettings>).detail;
-        if (detail && typeof detail === 'object') setSettings(detail);
+        if (detail && typeof detail === 'object') {
+          setSettings({
+            ...detail,
+            contactEmail: sanitizeEmail(detail.contactEmail),
+          });
+        }
       };
 
       // Storage events mirror confirmed updates from another tab, including deliberate empty arrays.
@@ -285,7 +347,12 @@ export function useCMSContent() {
           } else {
             try {
               const parsed = JSON.parse(event.newValue);
-              if (parsed && typeof parsed === 'object') setSettings(parsed as CMSSiteSettings);
+              if (parsed && typeof parsed === 'object') {
+                setSettings({
+                  ...parsed,
+                  contactEmail: sanitizeEmail(parsed.contactEmail),
+                } as CMSSiteSettings);
+              }
             } catch {}
           }
         }
@@ -312,7 +379,13 @@ export function useCMSContent() {
         if (event.key === 'brandshoots_contact' && event.newValue) {
           try {
             const parsed = JSON.parse(event.newValue);
-            if (parsed && typeof parsed === 'object') setContact(parsed as CMSContactPage);
+            if (parsed && typeof parsed === 'object') {
+              setContact({
+                ...parsed,
+                email: sanitizeEmail(parsed.email),
+                siteVisitPrice: sanitizeSiteVisitPrice(parsed.siteVisitPrice),
+              } as CMSContactPage);
+            }
           } catch {}
         }
         if (event.key === 'brandshoots_hero_reels') {
@@ -402,6 +475,8 @@ export function useCMSContent() {
     clients,
     hero,
     heroReels,
+    heroReelsLoading,
+    heroReelsError,
     services,
     testimonials,
     leadership,

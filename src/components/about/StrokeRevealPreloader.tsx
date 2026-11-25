@@ -11,8 +11,8 @@ interface StrokeRevealPreloaderProps {
 export const StrokeRevealPreloader: React.FC<StrokeRevealPreloaderProps> = ({
   onComplete,
   readyToExit = true,
-  minimumDurationMs = 850,
-  maximumDurationMs = 8000,
+  minimumDurationMs = 0,
+  maximumDurationMs = 3000,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
@@ -20,7 +20,7 @@ export const StrokeRevealPreloader: React.FC<StrokeRevealPreloaderProps> = ({
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
   const onCompleteRef = useRef(onComplete);
   const readyRef = useRef(readyToExit);
-  const minimumElapsedRef = useRef(false);
+  const minimumElapsedRef = useRef(minimumDurationMs <= 0);
   const completedRef = useRef(false);
   const exitStartedRef = useRef(false);
   onCompleteRef.current = onComplete;
@@ -35,6 +35,9 @@ export const StrokeRevealPreloader: React.FC<StrokeRevealPreloaderProps> = ({
   const startExit = useCallback(() => {
     if (exitStartedRef.current || !minimumElapsedRef.current || !readyRef.current) return;
     exitStartedRef.current = true;
+    if (containerRef.current) {
+      containerRef.current.style.pointerEvents = 'none';
+    }
     timelineRef.current?.play('exit');
   }, []);
 
@@ -44,10 +47,16 @@ export const StrokeRevealPreloader: React.FC<StrokeRevealPreloaderProps> = ({
 
   useEffect(() => {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const minimumTimer = window.setTimeout(() => {
+    const minDelay = reducedMotion ? Math.min(minimumDurationMs, 100) : minimumDurationMs;
+    const minimumTimer = minDelay > 0
+      ? window.setTimeout(() => {
+          minimumElapsedRef.current = true;
+          startExit();
+        }, minDelay)
+      : undefined;
+    if (minDelay <= 0) {
       minimumElapsedRef.current = true;
-      startExit();
-    }, reducedMotion ? 250 : minimumDurationMs);
+    }
     const maximumTimer = window.setTimeout(() => {
       minimumElapsedRef.current = true;
       readyRef.current = true;
@@ -58,37 +67,36 @@ export const StrokeRevealPreloader: React.FC<StrokeRevealPreloaderProps> = ({
     try {
       context = gsap.context(() => {
         gsap.set(containerRef.current, { opacity: 1, scale: 1 });
-        gsap.set(glowRef.current, { scale: 0.6, opacity: 0 });
-        gsap.set(logoRef.current, { scale: 0.94, opacity: 0 });
+        gsap.set(glowRef.current, { scale: 0.85, opacity: 0.25 });
+        gsap.set(logoRef.current, { scale: 0.96, opacity: 0.85 });
 
         const timeline = gsap.timeline({ paused: true, onComplete: finish });
         timelineRef.current = timeline;
         timeline
           .to(glowRef.current, {
-            scale: 1.25,
-            opacity: reducedMotion ? 0.3 : 0.6,
-            duration: reducedMotion ? 0.1 : 0.35,
+            scale: 1.1,
+            opacity: reducedMotion ? 0.25 : 0.45,
+            duration: reducedMotion ? 0.08 : 0.16,
             ease: 'power2.out',
           }, 0)
           .to(logoRef.current, {
             opacity: 1,
             scale: 1,
-            duration: reducedMotion ? 0.1 : 0.35,
+            duration: reducedMotion ? 0.08 : 0.16,
             ease: 'power2.out',
-          }, 0.03)
-          .to(logoRef.current, {
-            scale: reducedMotion ? 1 : 1.015,
-            duration: reducedMotion ? 0.05 : 0.2,
-            ease: 'sine.inOut',
-          }, reducedMotion ? 0.12 : 0.4)
+          }, 0)
           .addLabel('hold')
-          .addPause('hold')
+          .addPause('hold', () => {
+            if (minimumElapsedRef.current && readyRef.current) {
+              startExit();
+            }
+          })
           .addLabel('exit')
           .to(containerRef.current, {
             opacity: 0,
-            scale: reducedMotion ? 1 : 1.02,
-            duration: reducedMotion ? 0.15 : 0.25,
-            ease: 'power2.inOut',
+            scale: reducedMotion ? 1 : 1.015,
+            duration: reducedMotion ? 0.1 : 0.2,
+            ease: 'power2.out',
           }, 'exit');
         timeline.play();
       }, containerRef);
@@ -100,7 +108,7 @@ export const StrokeRevealPreloader: React.FC<StrokeRevealPreloaderProps> = ({
     }
 
     return () => {
-      window.clearTimeout(minimumTimer);
+      if (minimumTimer !== undefined) window.clearTimeout(minimumTimer);
       window.clearTimeout(maximumTimer);
       timelineRef.current?.kill();
       timelineRef.current = null;
@@ -114,20 +122,23 @@ export const StrokeRevealPreloader: React.FC<StrokeRevealPreloaderProps> = ({
       role="status"
       aria-live="polite"
       aria-label="Loading BrandShoots page"
-      className="fixed inset-0 z-[99999] flex items-center justify-center overflow-hidden bg-[#04060A] select-none"
+      className="fixed inset-0 z-[99999] flex items-center justify-center overflow-hidden bg-[#04060A] select-none will-change-[opacity,transform]"
     >
       <div
         ref={glowRef}
-        className="pointer-events-none absolute h-[320px] w-[520px] rounded-full bg-[#008CFF]/25 blur-[120px]"
+        className="pointer-events-none absolute h-[420px] w-[620px] rounded-full will-change-[opacity,transform]"
+        style={{
+          background: 'radial-gradient(ellipse at center, rgba(0, 140, 255, 0.18) 0%, rgba(0, 140, 255, 0.05) 45%, transparent 72%)',
+        }}
       />
-      <div className="pointer-events-none relative z-10 flex w-[84vw] max-w-[620px] items-center justify-center px-6">
+      <div className="pointer-events-none relative z-10 flex w-[76vw] max-w-[460px] items-center justify-center px-6">
         <img
           ref={logoRef}
           src="/Logo Official.svg"
           alt="BrandShoots Official Logo"
           width={1600}
           height={365}
-          className="h-auto max-h-[35vh] w-full object-contain drop-shadow-[0_12px_45px_rgba(0,140,255,0.45)]"
+          className="h-auto max-h-[28vh] w-full object-contain will-change-[opacity,transform]"
         />
       </div>
     </div>

@@ -31,6 +31,7 @@ import {
   subscribeAdminResults,
 } from '../../lib/cms/cmsService';
 import { pushResultsUndoAction } from '../../lib/cms/cmsHistory';
+import { INITIAL_RESULTS } from '../../lib/cms/seedData';
 import { validateResultVideoUrl } from '../../lib/results/video';
 import { CloudinaryUploader } from './CloudinaryUploader';
 
@@ -546,6 +547,36 @@ export const ResultsCMS = () => {
     }
   };
 
+  const seedSampleResult = async () => {
+    if (!beginMutation('seed:sample')) return;
+    const sample = INITIAL_RESULTS[0];
+    if (!sample) {
+      endMutation();
+      return;
+    }
+
+    const now = Date.now();
+    try {
+      const saved = await saveResult({
+        ...sample,
+        createdAt: now,
+        updatedAt: now,
+        publishedAt: now,
+      });
+      setResults((current) =>
+        sortByOrder(current.some((item) => item.id === saved.id) ? current : [...current, saved])
+      );
+      setToast({
+        message: `Sample result (${saved.clientName}) saved to CMS.`,
+        tone: 'success',
+      });
+    } catch (error) {
+      setPageError(errorMessage(error, 'Firebase could not save the sample result.'));
+    } finally {
+      endMutation();
+    }
+  };
+
   const moveResult = async (id: string, direction: -1 | 1, field: OrderField) => {
     if (!beginMutation(`move:${field}:${id}`)) return;
     const previousState = cloneResults(results);
@@ -803,9 +834,20 @@ export const ResultsCMS = () => {
             <h2 className="mt-4 text-base font-semibold">No matching results</h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-white/45">
               {results.length === 0
-                ? 'Add the first result when verified client data is ready.'
+                ? 'Add the first result when verified client data is ready, or load the pre-configured sample result.'
                 : 'Change the search or filters to see other result records.'}
             </p>
+            {results.length === 0 && (
+              <button
+                type="button"
+                onClick={seedSampleResult}
+                disabled={isBusy}
+                className="mt-5 inline-flex items-center gap-2 rounded-xl border border-[#008CFF]/35 bg-[#008CFF]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-[#7CC4FF] transition hover:bg-[#008CFF]/25 disabled:opacity-50"
+              >
+                <Sparkles className="h-4 w-4" aria-hidden="true" />
+                Load Sample Result
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid gap-4 xl:grid-cols-2">

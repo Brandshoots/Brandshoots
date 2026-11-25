@@ -31,20 +31,42 @@ export const MetricCard: React.FC<MetricCardProps> = ({ metric, index, isTrigger
   const cardRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    if (!isTriggered || !numberRef.current) return;
+    const numberEl = numberRef.current;
+    const cardEl = cardRef.current;
+    if (!numberEl) return;
+
+    if (!isTriggered) {
+      numberEl.textContent = '0';
+      if (cardEl) gsap.set(cardEl, { opacity: 0, y: 20 });
+      return;
+    }
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) {
+      numberEl.textContent = String(metric.value);
+      if (cardEl) gsap.set(cardEl, { opacity: 1, y: 0 });
+      return;
+    }
+
     const counter = { value: 0 };
     const animation = gsap.to(counter, {
       value: metric.value,
-      duration: 1.1,
-      delay: index * 0.08,
-      ease: 'power2.out',
+      duration: 1.8,
+      delay: index * 0.1,
+      ease: 'power3.out',
       onUpdate: () => {
-        if (numberRef.current) numberRef.current.textContent = Math.round(counter.value).toString();
+        if (numberRef.current) {
+          numberRef.current.textContent = Math.round(counter.value).toString();
+        }
       },
     });
     let cardAnimation: gsap.core.Tween | undefined;
-    if (cardRef.current) {
-      cardAnimation = gsap.fromTo(cardRef.current, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.65, delay: index * 0.08, ease: 'power2.out' });
+    if (cardEl) {
+      cardAnimation = gsap.fromTo(
+        cardEl,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.75, delay: index * 0.1, ease: 'power3.out' }
+      );
     }
     return () => {
       animation.kill();
@@ -55,7 +77,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({ metric, index, isTrigger
   return (
     <article ref={cardRef} className={`border-t border-white/25 ${compact ? 'py-5' : 'py-7 sm:py-9'}`}>
       <div className="flex items-baseline gap-1">
-        <span ref={numberRef} className="text-5xl sm:text-6xl lg:text-7xl font-sans font-black leading-none tracking-tight text-white">0</span>
+        <span ref={numberRef} className="text-5xl sm:text-6xl lg:text-7xl font-sans font-black leading-none tracking-tight text-white tabular-nums">0</span>
         <span className="text-2xl sm:text-3xl font-sans font-black leading-none text-[#008CFF]">{metric.suffix}</span>
       </div>
       <h3 className="mt-4 font-mono text-xs uppercase tracking-[0.2em] font-semibold text-white/90">{metric.label}</h3>
@@ -81,14 +103,26 @@ export const BrandMetricsSection: React.FC<{ className?: string; id?: string }> 
   const [isTriggered, setIsTriggered] = useState(false);
 
   useEffect(() => {
-    if (!sectionRef.current) return;
-    const trigger = ScrollTrigger.create({
-      trigger: sectionRef.current,
-      start: 'top 82%',
-      once: true,
-      onEnter: () => setIsTriggered(true),
-    });
-    return () => trigger.kill();
+    const sectionEl = sectionRef.current;
+    if (!sectionEl) return;
+
+    // Trigger only when the section is genuinely visible in the viewport (works reliably with Lenis & deferred mounting)
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsTriggered(true);
+            observer.disconnect();
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+    observer.observe(sectionEl);
+
+    return () => {
+      observer.disconnect();
+    };
   }, []);
 
   return (
