@@ -21,6 +21,7 @@ export const StrokeRevealPreloader: React.FC<StrokeRevealPreloaderProps> = ({
   const onCompleteRef = useRef(onComplete);
   const readyRef = useRef(readyToExit);
   const minimumElapsedRef = useRef(minimumDurationMs <= 0);
+  const holdReachedRef = useRef(false);
   const completedRef = useRef(false);
   const exitStartedRef = useRef(false);
   onCompleteRef.current = onComplete;
@@ -33,12 +34,21 @@ export const StrokeRevealPreloader: React.FC<StrokeRevealPreloaderProps> = ({
   }, []);
 
   const startExit = useCallback(() => {
-    if (exitStartedRef.current || !minimumElapsedRef.current || !readyRef.current) return;
+    if (
+      exitStartedRef.current ||
+      !minimumElapsedRef.current ||
+      !readyRef.current ||
+      !holdReachedRef.current
+    ) {
+      return;
+    }
+    const timeline = timelineRef.current;
+    if (!timeline) return;
     exitStartedRef.current = true;
     if (containerRef.current) {
       containerRef.current.style.pointerEvents = 'none';
     }
-    timelineRef.current?.play('exit');
+    timeline.play('exit');
   }, []);
 
   useEffect(() => {
@@ -57,10 +67,13 @@ export const StrokeRevealPreloader: React.FC<StrokeRevealPreloaderProps> = ({
     if (minDelay <= 0) {
       minimumElapsedRef.current = true;
     }
+    let forceFinishTimer: number | undefined;
     const maximumTimer = window.setTimeout(() => {
       minimumElapsedRef.current = true;
       readyRef.current = true;
+      holdReachedRef.current = true;
       startExit();
+      forceFinishTimer = window.setTimeout(finish, 350);
     }, maximumDurationMs);
 
     let context: gsap.Context | undefined;
@@ -87,8 +100,9 @@ export const StrokeRevealPreloader: React.FC<StrokeRevealPreloaderProps> = ({
           }, 0)
           .addLabel('hold')
           .addPause('hold', () => {
+            holdReachedRef.current = true;
             if (minimumElapsedRef.current && readyRef.current) {
-              startExit();
+              window.requestAnimationFrame(startExit);
             }
           })
           .addLabel('exit')
@@ -109,7 +123,10 @@ export const StrokeRevealPreloader: React.FC<StrokeRevealPreloaderProps> = ({
 
     return () => {
       if (minimumTimer !== undefined) window.clearTimeout(minimumTimer);
+      if (forceFinishTimer !== undefined) window.clearTimeout(forceFinishTimer);
       window.clearTimeout(maximumTimer);
+      holdReachedRef.current = false;
+      exitStartedRef.current = false;
       timelineRef.current?.kill();
       timelineRef.current = null;
       context?.revert();
