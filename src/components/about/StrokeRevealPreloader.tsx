@@ -89,13 +89,13 @@ export const StrokeRevealPreloader: React.FC<StrokeRevealPreloaderProps> = ({
           .to(glowRef.current, {
             scale: 1.1,
             opacity: reducedMotion ? 0.25 : 0.45,
-            duration: reducedMotion ? 0.08 : 0.16,
+            duration: reducedMotion ? 0.08 : 0.22,
             ease: 'power2.out',
           }, 0)
           .to(logoRef.current, {
             opacity: 1,
             scale: 1,
-            duration: reducedMotion ? 0.08 : 0.16,
+            duration: reducedMotion ? 0.08 : 0.22,
             ease: 'power2.out',
           }, 0)
           .addLabel('hold')
@@ -108,9 +108,9 @@ export const StrokeRevealPreloader: React.FC<StrokeRevealPreloaderProps> = ({
           .addLabel('exit')
           .to(containerRef.current, {
             opacity: 0,
-            scale: reducedMotion ? 1 : 1.015,
-            duration: reducedMotion ? 0.1 : 0.2,
-            ease: 'power2.out',
+            scale: reducedMotion ? 1 : 1.02,
+            duration: reducedMotion ? 0.12 : 0.36,
+            ease: 'power3.inOut',
           }, 'exit');
         timeline.play();
       }, containerRef);

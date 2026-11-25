@@ -221,7 +221,7 @@ export function createPreloaderTimeline(
   tl.to(containerRef.current, {
     opacity: 0,
     duration: PRELOADER_CONFIG.exitDuration,
-    ease: 'power2.out'
+    ease: 'power3.inOut'
   }, 'expand');
 
   return tl;
