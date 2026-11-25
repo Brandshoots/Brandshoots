@@ -113,7 +113,7 @@ export const ManifestoScrollSection: React.FC = () => {
 
       // Phase 1 (0.00 -> 0.35): CREATE is centered, sharp, and dominant
       tl.to(progressBarRef.current, { width: '33%', duration: 0.45, ease: 'none' }, 0)
-        .to(createTextRef.current, { letterSpacing: '-0.02em', duration: 0.4 }, 0)
+        .to(createTextRef.current, { letterSpacing: '0.04em', duration: 0.4 }, 0)
 
         // Stage 1 Exit (0.35 -> 0.55): CREATE glides forward and out
         .to(
@@ -167,7 +167,7 @@ export const ManifestoScrollSection: React.FC = () => {
 
         // Phase 2 Hold (0.75 -> 1.10): SHOOT is centered, sharp, and dominant
         .to(progressBarRef.current, { width: '66%', duration: 0.55, ease: 'none' }, 0.55)
-        .to(shootTextRef.current, { letterSpacing: '-0.02em', duration: 0.35 }, 0.6)
+        .to(shootTextRef.current, { letterSpacing: '0.04em', duration: 0.35 }, 0.6)
 
         // Stage 2 Exit (1.10 -> 1.30): SHOOT glides forward and out
         .to(
@@ -218,7 +218,7 @@ export const ManifestoScrollSection: React.FC = () => {
           },
           1.3
         )
-        .to(growTextRef.current, { letterSpacing: '-0.02em', duration: 0.35 }, 1.35)
+        .to(growTextRef.current, { letterSpacing: '0.04em', duration: 0.35 }, 1.35)
 
         // Phase 3 Hold (1.50 -> 1.85): GROW holds dominant
         .to(progressBarRef.current, { width: '100%', duration: 0.55, ease: 'none' }, 1.3)
@@ -287,7 +287,7 @@ export const ManifestoScrollSection: React.FC = () => {
           >
             <h2
               ref={createTextRef}
-              className="font-display font-black uppercase text-[15vw] sm:text-[14vw] md:text-[13vw] lg:text-[160px] xl:text-[200px] leading-[0.84] tracking-[-0.04em] text-[#F7F9FF] will-change-transform filter drop-shadow-[0_25px_60px_rgba(0,0,0,0.95)]"
+              className="font-display font-black uppercase text-[15vw] sm:text-[14vw] md:text-[13vw] lg:text-[160px] xl:text-[200px] leading-[0.84] tracking-[0.02em] text-[#F7F9FF] will-change-transform filter drop-shadow-[0_25px_60px_rgba(0,0,0,0.95)]"
               style={{
                 textShadow:
                   '0 2px 0 #CBD5E1, 0 6px 1px rgba(0,0,0,0.7), 0 20px 40px rgba(0,0,0,0.95)',
@@ -317,7 +317,7 @@ export const ManifestoScrollSection: React.FC = () => {
           >
             <h2
               ref={shootTextRef}
-              className="font-display font-black uppercase text-[15vw] sm:text-[14vw] md:text-[13vw] lg:text-[160px] xl:text-[200px] leading-[0.84] tracking-[-0.04em] text-[#F7F9FF] will-change-transform filter drop-shadow-[0_25px_60px_rgba(0,0,0,0.95)]"
+              className="font-display font-black uppercase text-[15vw] sm:text-[14vw] md:text-[13vw] lg:text-[160px] xl:text-[200px] leading-[0.84] tracking-[0.02em] text-[#F7F9FF] will-change-transform filter drop-shadow-[0_25px_60px_rgba(0,0,0,0.95)]"
               style={{
                 textShadow:
                   '0 2px 0 #60B8FF, 0 6px 1px rgba(0,0,0,0.7), 0 20px 40px rgba(0,140,255,0.4)',
@@ -347,7 +347,7 @@ export const ManifestoScrollSection: React.FC = () => {
           >
             <h2
               ref={growTextRef}
-              className="font-display font-black uppercase text-[15vw] sm:text-[14vw] md:text-[13vw] lg:text-[160px] xl:text-[200px] leading-[0.84] tracking-[-0.04em] text-[#008CFF] will-change-transform filter drop-shadow-[0_25px_70px_rgba(0,140,255,0.6)]"
+              className="font-display font-black uppercase text-[15vw] sm:text-[14vw] md:text-[13vw] lg:text-[160px] xl:text-[200px] leading-[0.84] tracking-[0.02em] text-[#008CFF] will-change-transform filter drop-shadow-[0_25px_70px_rgba(0,140,255,0.6)]"
               style={{
                 textShadow:
                   '0 2px 0 #28A0FF, 0 8px 2px rgba(0,0,0,0.8), 0 25px 50px rgba(0,140,255,0.5)',
