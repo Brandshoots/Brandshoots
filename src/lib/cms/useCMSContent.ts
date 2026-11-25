@@ -235,10 +235,21 @@ export function useCMSContent() {
           if (rawHeroReels === undefined || rawHeroReels === null) {
             setHeroReels(INITIAL_HERO_REELS);
           } else {
-            const normalizedReels = normalizeVisibleList<CMSHeroReel>(rawHeroReels).filter(
-              (reel) => typeof reel.src === 'string' && !reel.src.startsWith('blob:')
+            const allCollectionReels = collectionValues<CMSHeroReel>(rawHeroReels);
+            const hasModernOrUploadedReel = allCollectionReels.some(
+              (reel) =>
+                typeof reel.src === 'string' &&
+                (reel.src.startsWith('/reels/hero-final/') || reel.src.startsWith('https://'))
             );
-            setHeroReels(normalizedReels);
+            if (allCollectionReels.length > 0 && !hasModernOrUploadedReel) {
+              // Legacy pre-migration Firebase list (old /reels/ or blob: URLs) -> serve approved 17 reels
+              setHeroReels(INITIAL_HERO_REELS);
+            } else {
+              const normalizedReels = normalizeVisibleList<CMSHeroReel>(rawHeroReels).filter(
+                (reel) => typeof reel.src === 'string' && !reel.src.startsWith('blob:')
+              );
+              setHeroReels(normalizedReels);
+            }
           }
           setHeroReelsLoading(false);
           setHeroReelsError(null);

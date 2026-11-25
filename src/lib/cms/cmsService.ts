@@ -315,8 +315,18 @@ export async function fetchPublishedHeroReels(): Promise<CMSHeroReel[]> {
     const snapshot = await get(ref(firebaseDb, 'published/heroReels'));
     const value = snapshot.exists() ? snapshot.val() : [];
     const list: CMSHeroReel[] = Array.isArray(value) ? value.filter(Boolean) : Object.values(value);
-    const sorted = list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-    return sorted;
+    const hasModernOrUploadedReel = list.some(
+      (reel) =>
+        typeof reel.src === 'string' &&
+        (reel.src.startsWith('/reels/hero-final/') || reel.src.startsWith('https://'))
+    );
+    if (list.length > 0 && !hasModernOrUploadedReel) {
+      return INITIAL_HERO_REELS;
+    }
+    const sorted = list
+      .filter((reel) => typeof reel.src === 'string' && !reel.src.startsWith('blob:'))
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    return sorted.length > 0 ? sorted : INITIAL_HERO_REELS;
   } catch (err) {
     console.warn('Firebase RTDB read note for hero reels, checking local cache:', err);
   }
