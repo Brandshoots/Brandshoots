@@ -28,6 +28,80 @@ import {
 } from './seedData';
 import { parseResultVideoUrl } from '../results/video';
 
+export type CMSSyncOperationState = 'idle' | 'saving' | 'synced' | 'error';
+
+export interface CMSSyncStatus {
+  connected: boolean;
+  operationState: CMSSyncOperationState;
+  lastSyncedAt: number | null;
+  lastError: string | null;
+}
+
+const syncStatusListeners = new Set<(status: CMSSyncStatus) => void>();
+let currentSyncStatus: CMSSyncStatus = {
+  connected: true,
+  operationState: 'idle',
+  lastSyncedAt: null,
+  lastError: null,
+};
+let connectedListenerAttached = false;
+
+function emitSyncStatus(): void {
+  syncStatusListeners.forEach((listener) => listener({ ...currentSyncStatus }));
+}
+
+export function markSyncSaving(): void {
+  currentSyncStatus = { ...currentSyncStatus, operationState: 'saving', lastError: null };
+  emitSyncStatus();
+}
+
+export function markSyncSuccess(): void {
+  currentSyncStatus = {
+    ...currentSyncStatus,
+    operationState: 'synced',
+    lastSyncedAt: Date.now(),
+    lastError: null,
+  };
+  emitSyncStatus();
+}
+
+export function markSyncError(error: unknown): void {
+  const message = error instanceof Error ? error.message : 'Database synchronization failed.';
+  currentSyncStatus = { ...currentSyncStatus, operationState: 'error', lastError: message };
+  emitSyncStatus();
+}
+
+export function subscribeCMSSyncStatus(listener: (status: CMSSyncStatus) => void): () => void {
+  if (!connectedListenerAttached && typeof window !== 'undefined') {
+    connectedListenerAttached = true;
+    try {
+      onValue(ref(firebaseDb, '.info/connected'), (snapshot) => {
+        currentSyncStatus = { ...currentSyncStatus, connected: snapshot.val() === true };
+        emitSyncStatus();
+      });
+    } catch {
+      // Ignore if database is not initialized
+    }
+  }
+  syncStatusListeners.add(listener);
+  listener({ ...currentSyncStatus });
+  return () => {
+    syncStatusListeners.delete(listener);
+  };
+}
+
+async function runTrackedWrite<T>(operation: () => Promise<T>): Promise<T> {
+  markSyncSaving();
+  try {
+    const result = await operation();
+    markSyncSuccess();
+    return result;
+  } catch (error) {
+    markSyncError(error);
+    throw error;
+  }
+}
+
 function cacheLocally<T>(storageKey: string, value: T): void {
   try {
     localStorage.setItem(storageKey, JSON.stringify(value));
@@ -37,6 +111,7 @@ function cacheLocally<T>(storageKey: string, value: T): void {
 }
 
 function cacheAndDispatch<T>(storageKey: string, eventName: string, value: T): void {
+  markSyncSuccess();
   cacheLocally(storageKey, value);
   try {
     window.dispatchEvent(new CustomEvent(eventName, { detail: value }));
@@ -315,16 +390,16 @@ export async function fetchPublishedHeroReels(): Promise<CMSHeroReel[]> {
     const snapshot = await get(ref(firebaseDb, 'published/heroReels'));
     const value = snapshot.exists() ? snapshot.val() : [];
     const list: CMSHeroReel[] = Array.isArray(value) ? value.filter(Boolean) : Object.values(value);
-    const hasModernOrUploadedReel = list.some(
+    const hasCarouselOrUploadedReel = list.some(
       (reel) =>
         typeof reel.src === 'string' &&
-        (reel.src.startsWith('/reels/hero-final/') || reel.src.startsWith('https://'))
+        (reel.src.startsWith('/reels/hero-carousel/') || reel.src.startsWith('https://'))
     );
-    if (list.length > 0 && !hasModernOrUploadedReel) {
+    if (list.length > 0 && !hasCarouselOrUploadedReel) {
       return INITIAL_HERO_REELS;
     }
     const sorted = list
-      .filter((reel) => typeof reel.src === 'string' && !reel.src.startsWith('blob:'))
+      .filter((reel) => typeof reel.src === 'string' && reel.src.trim().length > 0 && !reel.src.startsWith('blob:'))
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     return sorted.length > 0 ? sorted : INITIAL_HERO_REELS;
   } catch (err) {
@@ -374,11 +449,28 @@ export async function resetHeroReelsToDefaults(): Promise<CMSHeroReel[]> {
 // ----------------------------------------------------
 // SERVICES CRUD (CMS 1.4 - 3 Core Pillars)
 // ----------------------------------------------------
+const DEFAULT_SERVICE_FALLBACKS: Record<string, string> = {
+  'creative-content': '/what-we-do/creative-content.jpg',
+  'digital-growth': '/what-we-do/digital-growth.jpg',
+  'editing-posting': '/what-we-do/editing-posting.jpg',
+};
+
 export function sanitizeServicesList(list: CMSService[]): CMSService[] {
   if (!Array.isArray(list)) {
     return Object.values(INITIAL_SERVICES).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }
-  return list;
+  return list.map((service) => {
+    const rawUrl = (service.imageUrl || '').trim();
+    const isOldReelThumbnail =
+      !rawUrl ||
+      rawUrl.includes('/reels/') ||
+      rawUrl.includes('/reels_new/') ||
+      rawUrl.includes('/reels_light/');
+    if (isOldReelThumbnail && DEFAULT_SERVICE_FALLBACKS[service.id]) {
+      return { ...service, imageUrl: DEFAULT_SERVICE_FALLBACKS[service.id] };
+    }
+    return service;
+  });
 }
 
 export async function fetchPublishedServices(): Promise<CMSService[]> {
@@ -518,17 +610,18 @@ export async function resetTestimonialsToDefaults(): Promise<CMSTestimonial[]> {
 }
 
 const normalizeEmail = (email?: string): string => {
-  if (!email || email.trim().toLowerCase() === 'contact@brandshoots.com') {
-    return 'brandshoots.in@gmail.com';
+  if (!email || !email.trim()) {
+    return INITIAL_SITE_SETTINGS.contactEmail;
   }
   return email.trim();
 };
 
 const normalizePrice = (price?: string): string => {
-  if (!price || price.includes('999')) {
-    return '₹2,000';
+  const trimmed = (price || '').trim();
+  if (!trimmed || trimmed === '₹2,000' || trimmed === '2000') {
+    return INITIAL_CONTACT_PAGE.siteVisitPrice;
   }
-  return price.trim();
+  return trimmed;
 };
 
 // ----------------------------------------------------
@@ -587,10 +680,12 @@ export async function fetchPublishedLeadership(): Promise<CMSLeadership | null> 
 }
 
 export async function saveLeadership(leadership: CMSLeadership): Promise<void> {
-  await set(ref(firebaseDb, 'published/leadership'), {
+  const updated: CMSLeadership = {
     ...leadership,
     updatedAt: Date.now(),
-  });
+  };
+  await set(ref(firebaseDb, 'published/leadership'), updated);
+  cacheAndDispatch('brandshoots_leadership', 'brandshoots_leadership_updated', updated);
 }
 
 // ----------------------------------------------------
@@ -637,6 +732,44 @@ export async function deleteLead(leadId: string): Promise<void> {
 // ----------------------------------------------------
 // ANNOUNCEMENTS & UPDATES CRUD (CMS 1.3)
 // ----------------------------------------------------
+const DEFAULT_ANNOUNCEMENT_FALLBACKS = [
+  '/announcements/hiring-editor-colorist.jpg',
+  '/announcements/usa-enterprise-client.jpg',
+  '/announcements/q4-brand-campaigns.jpg',
+  '/announcements/studio-cine-expansion.jpg',
+];
+
+export function sanitizeAnnouncementsList(list: CMSAnnouncement[]): CMSAnnouncement[] {
+  if (!Array.isArray(list)) {
+    return Object.values(INITIAL_ANNOUNCEMENTS).sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+  }
+  return list.map((item, index) => {
+    const rawUrl = (item.imageUrl || '').trim();
+    const isOldReelThumbnail =
+      !rawUrl ||
+      rawUrl.includes('/reels/') ||
+      rawUrl.includes('/reels_new/') ||
+      rawUrl.includes('/reels_light/');
+    if (isOldReelThumbnail) {
+      const lower = item.title.toLowerCase();
+      let cleanUrl = DEFAULT_ANNOUNCEMENT_FALLBACKS[0];
+      if (lower.includes('hiring') || lower.includes('editor') || lower.includes('colorist')) {
+        cleanUrl = DEFAULT_ANNOUNCEMENT_FALLBACKS[0];
+      } else if (lower.includes('usa') || lower.includes('enterprise')) {
+        cleanUrl = DEFAULT_ANNOUNCEMENT_FALLBACKS[1];
+      } else if (lower.includes('campaign') || lower.includes('q4') || lower.includes('booking')) {
+        cleanUrl = DEFAULT_ANNOUNCEMENT_FALLBACKS[2];
+      } else if (lower.includes('expand') || lower.includes('cine') || lower.includes('studio')) {
+        cleanUrl = DEFAULT_ANNOUNCEMENT_FALLBACKS[3];
+      } else {
+        cleanUrl = DEFAULT_ANNOUNCEMENT_FALLBACKS[index % DEFAULT_ANNOUNCEMENT_FALLBACKS.length];
+      }
+      return { ...item, imageUrl: cleanUrl };
+    }
+    return item;
+  });
+}
+
 export async function getAnnouncements(): Promise<CMSAnnouncement[]> {
   const all = await fetchPublishedAnnouncements();
   return all.filter((a) => a && a.isActive !== false);
@@ -647,7 +780,7 @@ export async function fetchPublishedAnnouncements(): Promise<CMSAnnouncement[]> 
     const snapshot = await get(ref(firebaseDb, 'published/announcements'));
     const value = snapshot.exists() ? snapshot.val() : [];
     const list: CMSAnnouncement[] = Array.isArray(value) ? value.filter(Boolean) : Object.values(value);
-    const sorted = list.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+    const sorted = sanitizeAnnouncementsList(list).sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
     return sorted;
   } catch (err) {
     console.warn('Firebase RTDB read note for announcements:', err);
@@ -658,7 +791,7 @@ export async function fetchPublishedAnnouncements(): Promise<CMSAnnouncement[]> 
     if (cached) {
       const parsed = JSON.parse(cached);
       if (Array.isArray(parsed)) {
-        return parsed.sort(
+        return sanitizeAnnouncementsList(parsed).sort(
           (a: CMSAnnouncement, b: CMSAnnouncement) => (Number(a.order) || 0) - (Number(b.order) || 0)
         );
       }
@@ -976,7 +1109,7 @@ export async function saveResult(result: CMSResult): Promise<CMSResult> {
   const normalized = normalizeResult(result);
   const updates: Record<string, CMSResult | null> = {};
   addResultWrites(updates, normalized);
-  await update(ref(firebaseDb), updates);
+  await runTrackedWrite(() => update(ref(firebaseDb), updates));
   return normalized;
 }
 
@@ -985,7 +1118,7 @@ export async function reorderResults(results: CMSResult[]): Promise<CMSResult[]>
   const normalized = results.map((result, index) => normalizeResult({ ...result, order: index }, now));
   const updates: Record<string, CMSResult | null> = {};
   normalized.forEach((result) => addResultWrites(updates, result));
-  await update(ref(firebaseDb), updates);
+  await runTrackedWrite(() => update(ref(firebaseDb), updates));
   return normalized.sort(resultSort);
 }
 

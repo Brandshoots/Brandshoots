@@ -90,7 +90,7 @@ export const CapabilitiesSection: React.FC = () => {
           <div className="flex items-center gap-3 mb-3">
             <span className="w-2.5 h-2.5 rounded-full bg-[#139EF2] shadow-[0_0_10px_#139EF2]" />
             <span className="font-mono text-xs sm:text-[13px] tracking-[0.38em] uppercase text-[#139EF2] font-semibold">
-              05 // CAPABILITIES & SERVICES
+              05 · CAPABILITIES &amp; SERVICES
             </span>
           </div>
           <h2 className="font-display font-black uppercase text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#F7F9FF]">

@@ -17,17 +17,30 @@ import {
   ArrowDown,
   AlertCircle,
 } from 'lucide-react';
-import { get, ref, set } from 'firebase/database';
+import { get, ref } from 'firebase/database';
 import { CMSService } from '../../types/cms';
-import { saveAllServices } from '../../lib/cms/cmsService';
+import { saveAllServices, sanitizeServicesList } from '../../lib/cms/cmsService';
 import { pushServicesUndoAction } from '../../lib/cms/cmsHistory';
 import { INITIAL_SERVICES } from '../../lib/cms/seedData';
 import { firebaseDb } from '../../lib/firebase';
-import { CLIENT_PROJECTS } from '../../data/clientsData';
 import { CloudinaryUploader } from './CloudinaryUploader';
 
 type UploadingAwareUploaderProps = React.ComponentProps<typeof CloudinaryUploader> & {
   onUploadingChange?: (isUploading: boolean) => void;
+};
+
+const resolveCleanServiceImage = (id: string, imageUrl?: string): string => {
+  const trimmed = (imageUrl || '').trim();
+  const isOldReelThumbnail =
+    !trimmed ||
+    trimmed.includes('/reels/') ||
+    trimmed.includes('/reels_new/') ||
+    trimmed.includes('/reels_light/');
+  if (!isOldReelThumbnail) return trimmed;
+  if (id === 'creative-content') return '/what-we-do/creative-content.jpg';
+  if (id === 'digital-growth') return '/what-we-do/digital-growth.jpg';
+  if (id === 'editing-posting') return '/what-we-do/editing-posting.jpg';
+  return '/what-we-do/creative-content.jpg';
 };
 
 const UploadingAwareCloudinaryUploader = CloudinaryUploader as React.ComponentType<UploadingAwareUploaderProps>;
@@ -45,7 +58,7 @@ const loadServicesWithoutRepair = async (): Promise<CMSService[]> => {
     if (snapshot.exists()) {
       const value = snapshot.val();
       const list: CMSService[] = Array.isArray(value) ? value : Object.values(value);
-      return [...list].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      return sanitizeServicesList([...list]).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     }
   } catch (error) {
     remoteError = error;
@@ -56,7 +69,7 @@ const loadServicesWithoutRepair = async (): Promise<CMSService[]> => {
     if (cached) {
       const parsed: unknown = JSON.parse(cached);
       if (Array.isArray(parsed)) {
-        return [...(parsed as CMSService[])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        return sanitizeServicesList([...(parsed as CMSService[])]).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
       }
     }
   } catch (error) {
@@ -78,12 +91,6 @@ const normalizeServices = (items: CMSService[]): CMSService[] =>
 
 const persistServices = async (items: CMSService[]): Promise<CMSService[]> => {
   const normalized = normalizeServices(items);
-  const record: Record<string, CMSService> = {};
-  normalized.forEach((item) => {
-    const { videoUrl, ...required } = item;
-    record[item.id] = videoUrl ? { ...required, videoUrl } : required;
-  });
-  await set(ref(firebaseDb, 'published/services'), record);
   await saveAllServices(normalized);
   return normalized;
 };
@@ -188,7 +195,7 @@ export const WhatWeDoCMS: React.FC = () => {
     setFormDescription(service.description || '');
     setFormTag(service.tag || '');
     setFormVideoUrl(service.videoUrl || '');
-    setFormImageUrl(service.imageUrl || '');
+    setFormImageUrl(resolveCleanServiceImage(service.id, service.imageUrl));
     setIsImageUploading(false);
     setIsVideoUploading(false);
   };
@@ -199,12 +206,6 @@ export const WhatWeDoCMS: React.FC = () => {
     setEditingService(null);
     setIsImageUploading(false);
     setIsVideoUploading(false);
-  };
-
-  // Quick Preset Selection from portfolio clients
-  const handleSelectPresetReel = (videoUrl: string, posterUrl: string) => {
-    if (posterUrl) setFormImageUrl(posterUrl);
-    if (videoUrl) setFormVideoUrl(videoUrl);
   };
 
   const handleMoveService = async (id: string, direction: -1 | 1) => {
@@ -456,7 +457,7 @@ export const WhatWeDoCMS: React.FC = () => {
                 <div className="relative w-full aspect-[9/16] max-h-[380px] bg-black rounded-xl overflow-hidden border border-white/10 group/img shadow-inner">
                   {service.imageUrl ? (
                     <img
-                      src={service.imageUrl}
+                      src={resolveCleanServiceImage(service.id, service.imageUrl)}
                       alt={service.category}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover/img:scale-105"
                     />
@@ -698,30 +699,6 @@ export const WhatWeDoCMS: React.FC = () => {
                   requireCloudinary
                   helpText="Upload a signed Cloudinary image, or enter a secure HTTPS/site-relative image URL."
                 />
-
-                {/* Preset Dropdown Selection */}
-                <div>
-                  <label className="block text-[11px] font-mono uppercase text-white/50 mb-1">
-                    Quick Pick Cover Image from Portfolio Projects
-                  </label>
-                  <select
-                    onChange={(e) => {
-                      const proj = CLIENT_PROJECTS.find((p) => (p.posterUrl || p.videoUrl) === e.target.value);
-                      if (proj) {
-                        handleSelectPresetReel(proj.videoUrl, proj.posterUrl);
-                      }
-                    }}
-                    value={CLIENT_PROJECTS.some((p) => p.posterUrl === formImageUrl) ? formImageUrl : ''}
-                    className="w-full px-4 py-2.5 rounded-xl bg-black/70 border border-white/20 text-white text-xs font-mono focus:outline-none focus:border-[#008CFF] transition-colors cursor-pointer"
-                  >
-                    <option value="">-- Choose a Preset Client Cover Image (Optional) --</option>
-                    {CLIENT_PROJECTS.map((proj) => (
-                      <option key={proj.id} value={proj.posterUrl || proj.videoUrl}>
-                        {proj.name} — {proj.category}
-                      </option>
-                    ))}
-                  </select>
-                </div>
 
                 <UploadingAwareCloudinaryUploader
                   label="Optional Video Reel"

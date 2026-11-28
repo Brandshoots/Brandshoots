@@ -35,6 +35,7 @@ import { ResultsCMS } from './ResultsCMS';
 import { ContactCMS } from './ContactCMS';
 import { GlobalSettingsCMS } from './GlobalSettingsCMS';
 import { canUndo, getLastActionDescription, undoLastAction } from '../../lib/cms/cmsHistory';
+import { CMSSyncStatus, subscribeCMSSyncStatus } from '../../lib/cms/cmsService';
 
 interface AdminDashboardProps {
   user: User | AdminUserSession;
@@ -80,8 +81,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
     type: 'action' | 'undo' | 'info';
     id: number;
   } | null>(null);
+  const [syncStatus, setSyncStatus] = useState<CMSSyncStatus>({
+    connected: true,
+    operationState: 'idle',
+    lastSyncedAt: null,
+    lastError: null,
+  });
 
   useEffect(() => {
+    const unsubscribeSync = subscribeCMSSyncStatus(setSyncStatus);
     // Listen to history updates to enable/disable Undo button
     const handleHistoryChange = () => {
       setCanUndoState(canUndo());
@@ -108,6 +116,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
     window.addEventListener('brandshoots_nav_flash', handleNavFlash);
 
     return () => {
+      unsubscribeSync();
       window.removeEventListener('brandshoots_cms_history_change', handleHistoryChange);
       window.removeEventListener('brandshoots_nav_flash', handleNavFlash);
       if (flashTimer) clearTimeout(flashTimer);
@@ -171,7 +180,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
           </Link>
         </div>
 
-        {/* Center: Flash Scroll / Notification Marquee ("likt flash text then gone") */}
+        {/* Center: Genuine Database Sync Status & Flash Notification */}
         <div className="flex-1 flex items-center justify-center px-2 sm:px-4 min-w-0 max-w-xl mx-auto overflow-hidden">
           {flashMessage ? (
             <div
@@ -184,11 +193,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
             >
               <span className="relative flex h-2 w-2 shrink-0">
                 <span
-                  className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                    flashMessage.type === 'undo' ? 'bg-amber-400' : 'bg-emerald-400'
-                  }`}
-                />
-                <span
                   className={`relative inline-flex rounded-full h-2 w-2 ${
                     flashMessage.type === 'undo' ? 'bg-amber-500' : 'bg-emerald-500'
                   }`}
@@ -198,10 +202,42 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                 {flashMessage.message}
               </span>
               <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-white/10 text-white/80 shrink-0">
-                {flashMessage.type === 'undo' ? 'Restored' : 'Live Synced'}
+                {flashMessage.type === 'undo' ? 'Restored' : 'Published'}
               </span>
             </div>
-          ) : null}
+          ) : (
+            <div
+              className={`hidden sm:flex items-center gap-2 px-3 py-1 rounded-full border text-[11px] font-mono ${
+                !syncStatus.connected || syncStatus.operationState === 'error'
+                  ? 'bg-red-500/10 border-red-500/30 text-red-300'
+                  : syncStatus.operationState === 'saving'
+                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-200'
+                    : 'bg-white/[0.03] border-white/10 text-white/65'
+              }`}
+              title={syncStatus.lastError || undefined}
+            >
+              <span
+                className={`h-2 w-2 rounded-full ${
+                  !syncStatus.connected || syncStatus.operationState === 'error'
+                    ? 'bg-red-400'
+                    : syncStatus.operationState === 'saving'
+                      ? 'bg-amber-400 animate-pulse'
+                      : 'bg-emerald-400'
+                }`}
+              />
+              <span>
+                {!syncStatus.connected
+                  ? 'Database Offline'
+                  : syncStatus.operationState === 'error'
+                    ? 'Sync Failed'
+                    : syncStatus.operationState === 'saving'
+                      ? 'Saving to Database…'
+                      : syncStatus.lastSyncedAt
+                        ? `Published · ${new Date(syncStatus.lastSyncedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`
+                        : 'Database Connected'}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Right: Undo, Logged Time, Name, Live Site (_blank), Logout */}

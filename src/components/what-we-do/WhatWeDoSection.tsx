@@ -26,12 +26,13 @@ const DEFAULT_SERVICE_IMAGES: Record<string, string> = {
 
 function resolveServiceImage(id: string, imageUrl: string | undefined, index: number): string {
   const trimmed = (imageUrl || '').trim();
-  const isLegacyOrEmpty =
+  const isOldReelThumbnail =
     !trimmed ||
-    trimmed.startsWith('/what-we-do/optimized/') ||
     trimmed.includes('/reels/') ||
-    trimmed.includes('/reels_new/');
-  if (!isLegacyOrEmpty) return trimmed;
+    trimmed.includes('/reels_new/') ||
+    trimmed.includes('/reels_light/');
+
+  if (!isOldReelThumbnail) return trimmed;
   if (DEFAULT_SERVICE_IMAGES[id]) return DEFAULT_SERVICE_IMAGES[id];
   const fallbackList = Object.values(DEFAULT_SERVICE_IMAGES);
   return fallbackList[index % fallbackList.length];
@@ -78,6 +79,8 @@ export const WhatWeDoSection: React.FC = () => {
     }, sectionRef);
     return () => context.revert();
   }, [activeMissions.length]);
+
+  if (activeMissions.length === 0) return null;
 
   return (
     <section ref={sectionRef} id="what-we-do" className="w-full border-b border-white/10 bg-[#08090C] text-white">

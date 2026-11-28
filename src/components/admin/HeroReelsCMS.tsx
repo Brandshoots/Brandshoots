@@ -90,7 +90,9 @@ export const HeroReelsCMS: React.FC = () => {
       reels.some(
         (r) =>
           r.src.startsWith('blob:') ||
-          (!r.src.startsWith('/reels/hero-final/') && !r.src.startsWith('https://'))
+          (!r.src.startsWith('/reels/hero-carousel/') &&
+            !r.src.startsWith('/reels/hero-final/') &&
+            !r.src.startsWith('https://'))
       ),
     [reels]
   );

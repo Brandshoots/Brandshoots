@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowUp, MessageCircle } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { ArrowUp } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { useCMSContent } from '../../lib/cms/useCMSContent';
 import { INITIAL_CONTACT_PAGE, INITIAL_SITE_SETTINGS } from '../../lib/cms/seedData';
 
@@ -51,7 +51,6 @@ export const UniversalFloatingActions: React.FC = () => {
   const { settings, contact } = useCMSContent();
   const isAdmin = location.pathname.startsWith('/admin');
   const isReferenceLab = location.pathname.startsWith('/reference-lab');
-  const isContactPage = location.pathname === '/contact';
   const [showBackToTop, setShowBackToTop] = useState(false);
 
   useEffect(() => {
@@ -111,14 +110,14 @@ export const UniversalFloatingActions: React.FC = () => {
   );
 
   const actionClass =
-    'group relative flex h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11 shrink-0 items-center justify-center rounded-full transition-all duration-200 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#008CFF]';
+    'group relative flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full transition-all duration-200 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#008CFF]';
   const tooltipClass =
-    'pointer-events-none absolute md:bottom-full md:mb-2.5 md:left-1/2 md:-translate-x-1/2 hidden whitespace-nowrap rounded-md bg-[#0C1019]/95 border border-white/10 px-2.5 py-1 text-[11px] font-medium tracking-[0.06em] text-white/90 shadow-xl backdrop-blur-md opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 md:block';
+    'pointer-events-none absolute md:right-full md:mr-3 md:top-1/2 md:-translate-y-1/2 hidden whitespace-nowrap rounded-md bg-[#0C1019]/95 border border-white/10 px-2.5 py-1 text-[11px] font-medium tracking-[0.06em] text-white/90 shadow-xl backdrop-blur-md opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 md:block';
 
   return (
     <div
       data-floating-actions
-      className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] right-2.5 sm:right-5 md:bottom-6 md:right-8 z-[200] flex flex-col items-end gap-2.5 pointer-events-none"
+      className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] right-1 sm:right-2 md:right-2.5 md:bottom-5 z-[200] flex flex-col items-end gap-2.5 pointer-events-none"
     >
       {/* Global Floating Back to Top Button (appears after ~42% scroll) */}
       <button
@@ -126,7 +125,7 @@ export const UniversalFloatingActions: React.FC = () => {
         onClick={handleBackToTop}
         aria-label="Back to top"
         title="Back to top"
-        className={`group relative flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-[#070A10]/90 backdrop-blur-xl border border-white/15 text-white/80 hover:text-white hover:border-[#008CFF]/60 hover:bg-[#008CFF]/15 shadow-[0_8px_28px_rgba(0,0,0,0.65)] transition-all duration-300 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#008CFF] ${
+        className={`group relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-[#070A10]/90 backdrop-blur-xl border border-white/15 text-white/80 hover:text-white hover:border-[#008CFF]/60 hover:bg-[#008CFF]/15 shadow-[0_8px_28px_rgba(0,0,0,0.65)] transition-all duration-300 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#008CFF] ${
           showBackToTop
             ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto cursor-pointer'
             : 'opacity-0 translate-y-3 scale-90 pointer-events-none'
@@ -137,7 +136,7 @@ export const UniversalFloatingActions: React.FC = () => {
 
       <aside
         aria-label="Quick actions"
-        className="pointer-events-auto flex flex-col md:flex-row items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 rounded-full bg-[#070A10]/90 backdrop-blur-xl border border-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.7)]"
+        className="pointer-events-auto flex flex-col items-center gap-1.5 sm:gap-2 px-1.5 py-2 sm:px-1.5 sm:py-2.5 rounded-full bg-[#070A10]/90 backdrop-blur-xl border border-white/[0.14] shadow-[0_8px_32px_rgba(0,0,0,0.75)]"
       >
         <a
           href={instagramUrl}
@@ -148,10 +147,10 @@ export const UniversalFloatingActions: React.FC = () => {
           className={`${actionClass} hover:bg-[#E1306C]/15`}
         >
           <span className={tooltipClass}>Instagram</span>
-          <InstagramGlyph className="h-4 w-4 sm:h-[18px] sm:w-[18px] transition-transform duration-200 group-hover:scale-110 drop-shadow-[0_0_8px_rgba(225,48,108,0.35)]" />
+          <InstagramGlyph className="h-[18px] w-[18px] sm:h-5 sm:w-5 transition-transform duration-200 group-hover:scale-110 drop-shadow-[0_0_8px_rgba(225,48,108,0.35)]" />
         </a>
 
-        <div className="w-4 h-[1px] md:w-[1px] md:h-4 bg-white/[0.12]" aria-hidden="true" />
+        <div className="h-[1px] w-3.5 bg-white/[0.16]" aria-hidden="true" />
 
         <a
           href={whatsappUrl}
@@ -162,23 +161,8 @@ export const UniversalFloatingActions: React.FC = () => {
           className={`${actionClass} hover:bg-[#25D366]/15`}
         >
           <span className={tooltipClass}>WhatsApp</span>
-          <WhatsAppGlyph className="h-4 w-4 sm:h-[18px] sm:w-[18px] transition-transform duration-200 group-hover:scale-110 drop-shadow-[0_0_8px_rgba(37,211,102,0.35)]" />
+          <WhatsAppGlyph className="h-[18px] w-[18px] sm:h-5 sm:w-5 transition-transform duration-200 group-hover:scale-110 drop-shadow-[0_0_8px_rgba(37,211,102,0.35)]" />
         </a>
-
-        <div className="w-4 h-[1px] md:w-[1px] md:h-4 bg-white/[0.12]" aria-hidden="true" />
-
-        <Link
-          to="/contact"
-          aria-label="Contact BrandShoots"
-          title="Contact"
-          className={`${actionClass} hover:bg-[#008CFF]/15 ${isContactPage ? 'bg-[#008CFF]/20 ring-1 ring-[#008CFF]/50' : ''}`}
-        >
-          <span className={tooltipClass}>Contact</span>
-          <MessageCircle
-            className="h-4 w-4 sm:h-[18px] sm:w-[18px] text-[#008CFF] transition-transform duration-200 group-hover:scale-110 drop-shadow-[0_0_8px_rgba(0,140,255,0.4)]"
-            strokeWidth={2.2}
-          />
-        </Link>
       </aside>
     </div>
   );

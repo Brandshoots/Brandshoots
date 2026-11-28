@@ -46,18 +46,19 @@ const SAMPLE_ANNOUNCEMENT_IMAGES = [
 
 function resolveAnnouncementImage(imageUrl: string | undefined, title: string, index: number): string {
   const trimmed = (imageUrl || '').trim();
-  const isReelThumbnail =
+  const isOldReelThumbnail =
     !trimmed ||
     trimmed.includes('/reels/') ||
     trimmed.includes('/reels_new/') ||
     trimmed.includes('/reels_light/');
-  if (!isReelThumbnail) return trimmed;
+
+  if (!isOldReelThumbnail) return trimmed;
 
   const lowerTitle = title.toLowerCase();
-  if (lowerTitle.includes('hiring') || lowerTitle.includes('editor')) return SAMPLE_ANNOUNCEMENT_IMAGES[0];
+  if (lowerTitle.includes('hiring') || lowerTitle.includes('editor') || lowerTitle.includes('colorist')) return SAMPLE_ANNOUNCEMENT_IMAGES[0];
   if (lowerTitle.includes('usa') || lowerTitle.includes('enterprise')) return SAMPLE_ANNOUNCEMENT_IMAGES[1];
-  if (lowerTitle.includes('campaign') || lowerTitle.includes('q4')) return SAMPLE_ANNOUNCEMENT_IMAGES[2];
-  if (lowerTitle.includes('expand') || lowerTitle.includes('cine')) return SAMPLE_ANNOUNCEMENT_IMAGES[3];
+  if (lowerTitle.includes('campaign') || lowerTitle.includes('q4') || lowerTitle.includes('booking')) return SAMPLE_ANNOUNCEMENT_IMAGES[2];
+  if (lowerTitle.includes('expand') || lowerTitle.includes('cine') || lowerTitle.includes('studio')) return SAMPLE_ANNOUNCEMENT_IMAGES[3];
   return SAMPLE_ANNOUNCEMENT_IMAGES[index % SAMPLE_ANNOUNCEMENT_IMAGES.length];
 }
 
@@ -69,7 +70,7 @@ export const AnnouncementsSection: React.FC = () => {
       .slice(0, 3)
       .map((announcement, index) => ({
         id: announcement.id || `cms-ann-${index}`,
-        tag: announcement.title.toLowerCase().includes('hiring') ? 'CAREERS // HIRING' : 'LATEST HAPPENING',
+        tag: announcement.title.toLowerCase().includes('hiring') ? 'CAREERS · HIRING' : 'LATEST HAPPENING',
         title: announcement.title.toUpperCase(),
         description: announcement.description,
         buttonText:

@@ -52,12 +52,12 @@ export const INITIAL_HERO: CMSHero = {
   taglinePrefix: 'CREATE. ',
   taglineAccent: 'SHOOT.',
   taglineSuffix: ' GROW.',
-  desktopVideoUrl: INITIAL_HERO_REELS[0]?.src || '',
-  mobileVideoUrl: INITIAL_HERO_REELS[0]?.src || '',
-  mobilePosterUrl: INITIAL_HERO_REELS[0]?.poster || '',
+  desktopVideoUrl: INITIAL_HERO_REELS[2]?.src || INITIAL_HERO_REELS[0]?.src || '',
+  mobileVideoUrl: INITIAL_HERO_REELS[2]?.src || INITIAL_HERO_REELS[0]?.src || '',
+  mobilePosterUrl: INITIAL_HERO_REELS[2]?.poster || INITIAL_HERO_REELS[0]?.poster || '',
   mobileDisplayMode: 'single-reel-carousel',
-  mobileFeaturedTitle: INITIAL_HERO_REELS[0]?.title || 'BrandShoots Studio Reel',
-  mobileFeaturedClient: INITIAL_HERO_REELS[0]?.client || 'BrandShoots',
+  mobileFeaturedTitle: INITIAL_HERO_REELS[2]?.title || 'BrandShoots Studio Reel',
+  mobileFeaturedClient: INITIAL_HERO_REELS[2]?.client || 'BrandShoots',
   reels: INITIAL_HERO_REELS,
   updatedAt: Date.now(),
 };
@@ -160,7 +160,7 @@ export const INITIAL_TESTIMONIALS: Record<string, CMSTestimonial> = {
 export const INITIAL_LEADERSHIP: CMSLeadership = {
   founderName: 'Durgarao Vallepu',
   founderRole: 'Founder & Creative Director',
-  founderBio: 'Director, visual strategist, and commercial filmmaker dedicated to elevating Indian and global brands into cinematic legends.',
+  founderBio: `While building my own business, I realised that the same creativity, digital strategies, and branding could help other businesses grow too. That idea led to the birth of BrandShoots — built to help brands strengthen their digital presence and reach new heights.\n\nWe offer affordable digital marketing and high-impact visual production built for real brand growth — helping businesses scale their presence, reach the right audience, and turn attention into measurable revenue.`,
   founderImage: '/founder.webp',
   updatedAt: Date.now(),
 };
@@ -247,7 +247,7 @@ export const INITIAL_CONTACT_PAGE: CMSContactPage = {
   siteVisitTitle: 'SITE VISIT.',
   siteVisitDescription:
     'Need our team to inspect your factory, showroom, outdoor estate, or shoot location in person? We conduct comprehensive spatial recces, camera framing tests, and lighting assessments before production begins.',
-  siteVisitPrice: '₹2,000',
+  siteVisitPrice: '₹999',
   siteVisitPriceUnit: '/ visit',
   siteVisitCtaText: 'BOOK A SITE VISIT',
 

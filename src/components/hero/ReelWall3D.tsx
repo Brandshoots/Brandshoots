@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { CMSHeroReel } from '../../types/cms';
+import { INITIAL_HERO_REELS } from '../../lib/cms/seedData';
 import { getOptimizedImageUrl } from '../../utils/mediaAssets';
 
 export interface ReelWall3DProps {
@@ -194,11 +195,25 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
   const isMuted = controlledMuted !== undefined ? controlledMuted : true;
 
   const activeReels: CMSHeroReel[] = useMemo(() => {
-    if (!reels || reels.length === 0) return [];
-    return reels.filter((reel) => reel.visible !== false);
+    const list = reels && reels.length > 0 ? reels : INITIAL_HERO_REELS;
+    return list.filter((reel) => reel.visible !== false);
   }, [reels]);
 
-  const totalSlots = Math.max(MIN_SLOTS, activeReels.length);
+  const initialCenterIndex = useMemo(() => {
+    if (activeReels.length === 0) return 0;
+    const midIdx = activeReels.findIndex(
+      (r) =>
+        r.id.toLowerCase().includes('middle') ||
+        r.src.toLowerCase().includes('middle') ||
+        r.title.toLowerCase().includes('middle')
+    );
+    return midIdx >= 0 ? midIdx : activeReels.length >= 4 ? 2 : 0;
+  }, [activeReels]);
+
+  const totalSlots =
+    activeReels.length > 0
+      ? Math.max(MIN_SLOTS, Math.ceil(MIN_SLOTS / activeReels.length) * activeReels.length)
+      : MIN_SLOTS;
   const slotAngle = 360 / totalSlots;
   const tanHalf = Math.tan(Math.PI / totalSlots);
   const zComp =
@@ -216,13 +231,20 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
   }, [activeReels, totalSlots]);
 
   // Rotational State Management for Snapping Carousel
-  const [stepIndex, setStepIndex] = useState(0);
+  const [stepIndex, setStepIndex] = useState(() => initialCenterIndex);
   const [isHovered, setIsHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isInView, setIsInView] = useState(true);
   const [dragOffsetAngle, setDragOffsetAngle] = useState(0);
   const dragStartX = useRef(0);
   const hasDraggedRef = useRef(false);
+  const hasInteractedRef = useRef(false);
+
+  useEffect(() => {
+    if (!hasInteractedRef.current && initialCenterIndex !== undefined) {
+      setStepIndex(initialCenterIndex);
+    }
+  }, [initialCenterIndex]);
 
   // Active Center Slot Index
   const centerSlotIndex = useMemo(() => {
@@ -231,6 +253,7 @@ export const ReelWall3D: React.FC<ReelWall3DProps> = ({
 
   // Smooth Snap Transition to a Target Step
   const snapTo = useCallback((targetStep: number) => {
+    hasInteractedRef.current = true;
     setStepIndex(targetStep);
   }, []);
 

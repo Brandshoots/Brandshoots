@@ -94,14 +94,14 @@ export const GlobalSettingsCMS: React.FC = () => {
         ...INITIAL_SITE_SETTINGS,
         ...(savedSettings || {}),
       };
-      if (!nextSettings.contactEmail || nextSettings.contactEmail.trim().toLowerCase() === 'contact@brandshoots.com') {
+      if (!nextSettings.contactEmail?.trim()) {
         nextSettings.contactEmail = 'brandshoots.in@gmail.com';
       }
       const nextContact = {
         ...INITIAL_CONTACT_PAGE,
         ...savedContact,
       };
-      if (!nextContact.email || nextContact.email.trim().toLowerCase() === 'contact@brandshoots.com') {
+      if (!nextContact.email?.trim()) {
         nextContact.email = 'brandshoots.in@gmail.com';
       }
       setSettings(clone(nextSettings));

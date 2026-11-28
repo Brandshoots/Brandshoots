@@ -9,6 +9,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#08090C" />
 
+    <!-- Canonical Host & HTTPS Enforcer: Prevents apex/HTTP 500 errors -->
+    <script>
+      (function() {
+        try {
+          var h = window.location.hostname;
+          var p = window.location.protocol;
+          if (h === 'brandshoots.in' || (p === 'http:' && (h === 'www.brandshoots.in' || h === 'brandshoots.in'))) {
+            window.location.replace('https://www.brandshoots.in' + window.location.pathname + window.location.search + window.location.hash);
+          }
+        } catch (e) {}
+      })();
+    </script>
+
     <!-- Primary Meta Tags -->
     <title>BrandShoots | Reels &amp; Social Media Management</title>
     <meta name="title" content="BrandShoots | Reels &amp; Social Media Management" />
@@ -78,15 +91,9 @@
       }
     </script>
 
-    <!-- Global Brand Fonts: Bebas Neue for display type, Source Sans 3 for body copy -->
-    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
-    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap">
-    <noscript>
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap">
-    </noscript>
+    <!-- High-Performance Self-Hosted Brand Fonts: Zero External Third-Party Requests -->
+    <link rel="preload" href="/fonts/bebas-neue-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/source-sans-3-normal-latin.woff2" as="font" type="font/woff2" crossorigin />
   </head>
   <body class="bg-[#08090C] text-white selection:bg-[#1497F5] selection:text-white overflow-x-hidden antialiased">
     <div id="root"></div>

@@ -9,6 +9,53 @@ export interface HeroReelVideo {
 }
 
 export const HERO_REEL_VIDEOS: HeroReelVideo[] = [
+  // ----------------------------------------------------
+  // PRIMARY 4 HERO CAROUSEL REELS (User requested layout)
+  // Index 0: Left Left Reel (left of left reel)
+  // Index 1: Left Reel (left of middle)
+  // Index 2: Middle Reel (centered focal reel)
+  // Index 3: Right Reel (right of middle)
+  // ----------------------------------------------------
+  {
+    id: 'hero-left-left',
+    title: 'Left Left Reel',
+    client: 'BrandShoots Visuals',
+    description: 'High-impact dynamic commercial storytelling and viral hook reel.',
+    src: '/reels/hero-carousel/left-left-reel.mp4',
+    lightSrc: '/reels/hero-carousel/left-left-reel.mp4',
+    poster: '/reels/hero-carousel/posters/left-left-reel.webp',
+  },
+  {
+    id: 'hero-left',
+    title: 'Left Reel',
+    client: 'BrandShoots Production',
+    description: 'Cinematic brand commercial and creative visual production.',
+    src: '/reels/hero-carousel/left-reel.mp4',
+    lightSrc: '/reels/hero-carousel/left-reel.mp4',
+    poster: '/reels/hero-carousel/posters/left-reel.webp',
+  },
+  {
+    id: 'hero-middle',
+    title: 'Middle Reel (Featured)',
+    client: 'BrandShoots Studios',
+    description: 'Flagship brand showcase and high-retention social media reel.',
+    src: '/reels/hero-carousel/middle-reel.mp4',
+    lightSrc: '/reels/hero-carousel/middle-reel.mp4',
+    poster: '/reels/hero-carousel/posters/middle-reel.webp',
+  },
+  {
+    id: 'hero-right',
+    title: 'Right Reel',
+    client: 'BrandShoots Scale',
+    description: 'Full-funnel digital growth, visual systems, and brand engagement.',
+    src: '/reels/hero-carousel/right-reel.mp4',
+    lightSrc: '/reels/hero-carousel/right-reel.mp4',
+    poster: '/reels/hero-carousel/posters/right-reel.webp',
+  },
+
+  // ----------------------------------------------------
+  // BRANDSHOOTS CLIENT REELS ARCHIVE (Preserved)
+  // ----------------------------------------------------
   {
     id: 'hero-final-aabharan',
     title: 'Aabharan Fine Jewellery',
@@ -165,19 +212,19 @@ export const HERO_REEL_VIDEOS: HeroReelVideo[] = [
 ];
 
 /**
- * Warm only the first two hero poster frames while the preloader is visible.
- * Remaining posters and video streams load on demand so initial rendering stays fast.
+ * Warm the hero carousel poster frames and middle video stream while the preloader is visible.
  */
 export function preloadAllHeroReels(): void {
   if (typeof window === 'undefined') return;
 
-  const initialReels = HERO_REEL_VIDEOS.slice(0, 2);
+  const initialReels = HERO_REEL_VIDEOS.slice(0, 4);
   initialReels.forEach((reel, idx) => {
     const img = new Image();
     img.decoding = 'async';
     img.src = reel.poster;
 
-    if (idx === 0) {
+    // Preload metadata for the featured middle reel (index 2) or first reel
+    if (idx === 2 || idx === 0) {
       try {
         const v = document.createElement('video');
         v.preload = 'metadata';

@@ -56,11 +56,18 @@ function normalizeVisibleList<T extends OrderedVisibleItem>(value: unknown): T[]
     .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
 }
 
-function normalizeAnnouncements(value: unknown): CMSAnnouncement[] {
-  return collectionValues<CMSAnnouncement>(value)
-    .filter((announcement) => announcement.isActive !== false)
-    .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
-}
+const DEFAULT_SERVICE_FALLBACKS: Record<string, string> = {
+  'creative-content': '/what-we-do/creative-content.jpg',
+  'digital-growth': '/what-we-do/digital-growth.jpg',
+  'editing-posting': '/what-we-do/editing-posting.jpg',
+};
+
+const DEFAULT_ANNOUNCEMENT_FALLBACKS = [
+  '/announcements/hiring-editor-colorist.jpg',
+  '/announcements/usa-enterprise-client.jpg',
+  '/announcements/q4-brand-campaigns.jpg',
+  '/announcements/studio-cine-expansion.jpg',
+];
 
 export function sanitizeProjectList(list: CMSProject[]): CMSProject[] {
   return Array.isArray(list) ? list : [];
@@ -71,21 +78,85 @@ export function sanitizeClientList(list: CMSClientLogo[]): CMSClientLogo[] {
 }
 
 export function sanitizeServicesList(list: CMSService[]): CMSService[] {
-  return Array.isArray(list) ? list : [];
+  if (!Array.isArray(list)) return [];
+  return list.map((service) => {
+    const rawUrl = (service.imageUrl || '').trim();
+    const isOldReelThumbnail =
+      !rawUrl ||
+      rawUrl.includes('/reels/') ||
+      rawUrl.includes('/reels_new/') ||
+      rawUrl.includes('/reels_light/');
+    if (isOldReelThumbnail && DEFAULT_SERVICE_FALLBACKS[service.id]) {
+      return { ...service, imageUrl: DEFAULT_SERVICE_FALLBACKS[service.id] };
+    }
+    return service;
+  });
+}
+
+export function sanitizeAnnouncementsList(list: CMSAnnouncement[]): CMSAnnouncement[] {
+  if (!Array.isArray(list)) return [];
+  return list.map((item, index) => {
+    const rawUrl = (item.imageUrl || '').trim();
+    const isOldReelThumbnail =
+      !rawUrl ||
+      rawUrl.includes('/reels/') ||
+      rawUrl.includes('/reels_new/') ||
+      rawUrl.includes('/reels_light/');
+    if (isOldReelThumbnail) {
+      const lower = item.title.toLowerCase();
+      let cleanUrl = DEFAULT_ANNOUNCEMENT_FALLBACKS[0];
+      if (lower.includes('hiring') || lower.includes('editor') || lower.includes('colorist')) {
+        cleanUrl = DEFAULT_ANNOUNCEMENT_FALLBACKS[0];
+      } else if (lower.includes('usa') || lower.includes('enterprise')) {
+        cleanUrl = DEFAULT_ANNOUNCEMENT_FALLBACKS[1];
+      } else if (lower.includes('campaign') || lower.includes('q4') || lower.includes('booking')) {
+        cleanUrl = DEFAULT_ANNOUNCEMENT_FALLBACKS[2];
+      } else if (lower.includes('expand') || lower.includes('cine') || lower.includes('studio')) {
+        cleanUrl = DEFAULT_ANNOUNCEMENT_FALLBACKS[3];
+      } else {
+        cleanUrl = DEFAULT_ANNOUNCEMENT_FALLBACKS[index % DEFAULT_ANNOUNCEMENT_FALLBACKS.length];
+      }
+      return { ...item, imageUrl: cleanUrl };
+    }
+    return item;
+  });
+}
+
+function normalizeAnnouncements(value: unknown): CMSAnnouncement[] {
+  const filtered = collectionValues<CMSAnnouncement>(value)
+    .filter((announcement) => announcement.isActive !== false)
+    .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+  return sanitizeAnnouncementsList(filtered);
 }
 
 export function sanitizeEmail(email?: string): string {
-  if (!email || email.trim().toLowerCase() === 'contact@brandshoots.com') {
-    return 'brandshoots.in@gmail.com';
+  if (!email || !email.trim()) {
+    return INITIAL_SITE_SETTINGS.contactEmail;
   }
   return email.trim();
 }
 
 export function sanitizeSiteVisitPrice(price?: string): string {
-  if (!price || price.includes('999')) {
-    return '₹2,000';
+  const clean = (price || '').trim();
+  if (!clean || clean === '₹2,000' || clean === '2000') {
+    return INITIAL_CONTACT_PAGE.siteVisitPrice;
   }
-  return price.trim();
+  return clean;
+}
+
+export function sanitizeLeadership(leadership?: Partial<CMSLeadership> | null): CMSLeadership {
+  if (!leadership || typeof leadership !== 'object') return INITIAL_LEADERSHIP;
+  const rawBio = (leadership.founderBio || '').trim();
+  const isOldBio =
+    !rawBio ||
+    rawBio.includes('dedicated to elevating Indian and global brands into cinematic legends') ||
+    rawBio === 'We offer affordable digital marketing and high-impact visual production built for real brand growth — helping businesses scale their presence, reach the right audience, and turn attention into measurable revenue.';
+  return {
+    ...INITIAL_LEADERSHIP,
+    ...leadership,
+    founderBio: isOldBio ? INITIAL_LEADERSHIP.founderBio : rawBio,
+    founderImage: leadership.founderImage?.trim() || INITIAL_LEADERSHIP.founderImage,
+  };
 }
 
 export function useCMSContent() {
@@ -149,7 +220,16 @@ export function useCMSContent() {
     } catch {}
     return fallbackTestimonials;
   });
-  const [leadership, setLeadership] = useState<CMSLeadership>(INITIAL_LEADERSHIP);
+  const [leadership, setLeadership] = useState<CMSLeadership>(() => {
+    try {
+      const cached = localStorage.getItem('brandshoots_leadership');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && typeof parsed === 'object') return sanitizeLeadership(parsed);
+      }
+    } catch {}
+    return INITIAL_LEADERSHIP;
+  });
   const [settings, setSettings] = useState<CMSSiteSettings>(() => {
     try {
       const cached = localStorage.getItem('brandshoots_site_settings');
@@ -228,40 +308,54 @@ export function useCMSContent() {
             : undefined;
 
           // Every successful snapshot is authoritative, including absent or empty collections.
-          setProjects(sanitizeProjectList(normalizeVisibleList<CMSProject>(data.projects)));
-          setClients(sanitizeClientList(normalizeVisibleList<CMSClientLogo>(data.clients)));
-          setHero((heroData || {}) as unknown as CMSHero);
+          const liveProjects = sanitizeProjectList(normalizeVisibleList<CMSProject>(data.projects));
+          const liveClients = sanitizeClientList(normalizeVisibleList<CMSClientLogo>(data.clients));
+          const liveHero = (heroData || {}) as unknown as CMSHero;
+          setProjects(liveProjects);
+          setClients(liveClients);
+          setHero(liveHero);
+
           const rawHeroReels = data.heroReels ?? heroData?.reels;
+          let liveHeroReels: CMSHeroReel[];
           if (rawHeroReels === undefined || rawHeroReels === null) {
-            setHeroReels(INITIAL_HERO_REELS);
+            liveHeroReels = INITIAL_HERO_REELS;
           } else {
             const allCollectionReels = collectionValues<CMSHeroReel>(rawHeroReels);
-            const hasModernOrUploadedReel = allCollectionReels.some(
+            const hasCarouselOrUploadedReel = allCollectionReels.some(
               (reel) =>
                 typeof reel.src === 'string' &&
-                (reel.src.startsWith('/reels/hero-final/') || reel.src.startsWith('https://'))
+                (reel.src.startsWith('/reels/hero-carousel/') || reel.src.startsWith('https://'))
             );
-            if (allCollectionReels.length > 0 && !hasModernOrUploadedReel) {
-              // Legacy pre-migration Firebase list (old /reels/ or blob: URLs) -> serve approved 17 reels
-              setHeroReels(INITIAL_HERO_REELS);
+            if (allCollectionReels.length > 0 && !hasCarouselOrUploadedReel) {
+              // Legacy pre-migration Firebase list -> serve approved 4 Hero Carousel videos
+              liveHeroReels = INITIAL_HERO_REELS;
             } else {
-              const normalizedReels = normalizeVisibleList<CMSHeroReel>(rawHeroReels).filter(
-                (reel) => typeof reel.src === 'string' && !reel.src.startsWith('blob:')
+              liveHeroReels = normalizeVisibleList<CMSHeroReel>(rawHeroReels).filter(
+                (reel) =>
+                  typeof reel.src === 'string' &&
+                  reel.src.trim().length > 0 &&
+                  !reel.src.startsWith('blob:')
               );
-              setHeroReels(normalizedReels);
             }
           }
+          setHeroReels(liveHeroReels);
           setHeroReelsLoading(false);
           setHeroReelsError(null);
-          setServices(sanitizeServicesList(normalizeVisibleList<CMSService>(data.services)));
-          setTestimonials(normalizeVisibleList<CMSTestimonial>(data.testimonials));
-          setAnnouncements(normalizeAnnouncements(data.announcements));
 
-          setLeadership(
+          const liveServices = sanitizeServicesList(normalizeVisibleList<CMSService>(data.services));
+          const liveTestimonials = normalizeVisibleList<CMSTestimonial>(data.testimonials);
+          const liveAnnouncements = normalizeAnnouncements(data.announcements);
+          const liveLeadership = sanitizeLeadership(
             data.leadership && typeof data.leadership === 'object'
-              ? data.leadership as CMSLeadership
+              ? (data.leadership as CMSLeadership)
               : INITIAL_LEADERSHIP
           );
+
+          setServices(liveServices);
+          setTestimonials(liveTestimonials);
+          setAnnouncements(liveAnnouncements);
+          setLeadership(liveLeadership);
+
           const rawSettings = data.siteSettings && typeof data.siteSettings === 'object'
             ? data.siteSettings as CMSSiteSettings
             : INITIAL_SITE_SETTINGS;
@@ -281,6 +375,14 @@ export function useCMSContent() {
           };
           setContact(liveContact);
           try {
+            localStorage.setItem('brandshoots_projects', JSON.stringify(liveProjects));
+            localStorage.setItem('brandshoots_clients', JSON.stringify(liveClients));
+            localStorage.setItem('brandshoots_hero', JSON.stringify(liveHero));
+            localStorage.setItem('brandshoots_hero_reels', JSON.stringify(liveHeroReels));
+            localStorage.setItem('brandshoots_services', JSON.stringify(liveServices));
+            localStorage.setItem('brandshoots_testimonials', JSON.stringify(liveTestimonials));
+            localStorage.setItem('brandshoots_announcements', JSON.stringify(liveAnnouncements));
+            localStorage.setItem('brandshoots_leadership', JSON.stringify(liveLeadership));
             localStorage.setItem('brandshoots_contact', JSON.stringify(liveContact));
             localStorage.setItem('brandshoots_site_settings', JSON.stringify(liveSettings));
           } catch {}

@@ -120,9 +120,7 @@ export const PackagesPage: React.FC = () => {
     INITIAL_SITE_SETTINGS.whatsappPhone
   );
   const siteVisitPrice =
-    !contact?.siteVisitPrice || contact.siteVisitPrice.includes('999')
-      ? INITIAL_CONTACT_PAGE.siteVisitPrice
-      : contact.siteVisitPrice;
+    contact?.siteVisitPrice?.trim() || INITIAL_CONTACT_PAGE.siteVisitPrice;
   const pageRef = useRef<HTMLElement>(null);
   const introRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);

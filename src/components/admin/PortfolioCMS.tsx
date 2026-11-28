@@ -253,8 +253,8 @@ export const PortfolioCMS: React.FC = () => {
     setFormCategory('Commercial Production');
     setFormYear('2026');
     setFormVisible(true);
-    setFormVideoUrl('/reels/santhi.pipes_rjy/santhi.pipes_rjy_2026-09-06_10-01-41_3979966688738161477_48644092133.mp4');
-    setFormPosterUrl('/reels/thumbnails-webp/santhi.pipes_rjy_2026-09-06_10-01-41_3979966688738161477_48644092133.webp');
+    setFormVideoUrl('');
+    setFormPosterUrl('');
     setFormLogoUrl('/clients/optimized/Shanti Pipes.webp');
     setFormViews('250K+');
     setFormFollowers('18K+');

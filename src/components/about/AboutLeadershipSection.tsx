@@ -212,7 +212,7 @@ export const AboutLeadershipSection: React.FC = () => {
             <div className="flex items-center gap-3 mb-4">
               <span className="w-2.5 h-2.5 rounded-full bg-[#139EF2] shadow-[0_0_10px_#139EF2]" />
               <span className="font-mono text-xs sm:text-[13px] tracking-[0.38em] uppercase text-[#139EF2] font-semibold">
-                07 // LEADERSHIP & VISION
+                07 · LEADERSHIP &amp; VISION
               </span>
             </div>
 
@@ -231,11 +231,37 @@ export const AboutLeadershipSection: React.FC = () => {
             </h3>
 
             {/* Title */}
-            <div ref={designationRef} className="flex items-center gap-2.5 mb-5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#139EF2]" />
-              <p className="font-mono text-xs sm:text-sm md:text-base tracking-[0.26em] uppercase text-white/80 font-semibold">
-                {leadership?.founderRole ? leadership.founderRole.toUpperCase() : <>FOUNDER — <span className="normal-case tracking-normal">BrandShoots</span></>}
-              </p>
+            <div ref={designationRef} className="flex flex-col gap-3 mb-5">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#139EF2]" />
+                <span className="font-mono text-xs sm:text-sm tracking-[0.18em] uppercase text-white/80 font-semibold">
+                  Founder &amp; Creative Director of <span className="text-white">BrandShoots</span>
+                </span>
+                <span className="inline-flex items-center rounded-md border border-white/15 bg-white/[0.04] px-3 py-1.5">
+                  <img
+                    src="/Logo-Official-Tight.svg"
+                    alt="BrandShoots"
+                    className="h-4 sm:h-[18px] w-auto object-contain"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#139EF2]" />
+                <span className="font-mono text-xs sm:text-sm tracking-[0.18em] uppercase text-white/80 font-semibold">
+                  Founder of <span className="text-white">Fresh &amp; Fresh</span>
+                </span>
+                <span className="inline-flex items-center rounded-md border border-white/15 bg-white px-2.5 py-1">
+                  <img
+                    src={getOptimizedImageUrl('/clients/Fresh and Fresh Logo.png')}
+                    alt="Fresh & Fresh"
+                    className="h-5 sm:h-6 w-auto object-contain"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </span>
+              </div>
             </div>
 
             {/* Accent Rule */}
@@ -244,10 +270,13 @@ export const AboutLeadershipSection: React.FC = () => {
             {/* Short Supporting Statement */}
             <p
               ref={statementRef}
-              className="font-editorial text-base sm:text-lg lg:text-xl text-[#B9BEC9] leading-relaxed max-w-xl font-normal"
+              className="font-editorial text-base sm:text-lg lg:text-xl text-[#B9BEC9] leading-relaxed max-w-xl font-normal whitespace-pre-line"
             >
-              {leadership?.founderBio ||
-                'Leading BrandShoots with the conviction that high-production craft and digital brand growth belong together. Every frame is composed to elevate perceived brand equity and ignite audience momentum.'}
+              {leadership?.founderBio &&
+              leadership.founderBio.trim() !==
+                'Director, visual strategist, and commercial filmmaker dedicated to elevating Indian and global brands into cinematic legends.'
+                ? leadership.founderBio
+                : 'While building my own business, I realised that the same creativity, digital strategies, and branding could help other businesses grow too. That idea led to the birth of BrandShoots — built to help brands strengthen their digital presence and reach new heights.\n\nWe offer affordable digital marketing and high-impact visual production built for real brand growth — helping businesses scale their presence, reach the right audience, and turn attention into measurable revenue.'}
             </p>
           </div>
 

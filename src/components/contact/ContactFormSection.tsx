@@ -94,9 +94,7 @@ export const ContactFormSection: React.FC = () => {
   const siteVisitDescription =
     contact?.siteVisitDescription || INITIAL_CONTACT_PAGE.siteVisitDescription;
   const siteVisitPrice =
-    !contact?.siteVisitPrice || contact.siteVisitPrice.includes('999')
-      ? INITIAL_CONTACT_PAGE.siteVisitPrice
-      : contact.siteVisitPrice;
+    contact?.siteVisitPrice?.trim() || INITIAL_CONTACT_PAGE.siteVisitPrice;
   const siteVisitPriceUnit =
     contact?.siteVisitPriceUnit || INITIAL_CONTACT_PAGE.siteVisitPriceUnit;
   const siteVisitCtaText = contact?.siteVisitCtaText || INITIAL_CONTACT_PAGE.siteVisitCtaText;

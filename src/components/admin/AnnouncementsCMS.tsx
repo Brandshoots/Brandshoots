@@ -17,19 +17,39 @@ import {
   ArrowDown,
   AlertCircle,
 } from 'lucide-react';
-import { ref, set } from 'firebase/database';
 import { CMSAnnouncement } from '../../types/cms';
 import {
   fetchPublishedAnnouncements,
   saveAllAnnouncements,
+  sanitizeAnnouncementsList,
 } from '../../lib/cms/cmsService';
 import { pushAnnouncementsUndoAction } from '../../lib/cms/cmsHistory';
 import { INITIAL_ANNOUNCEMENTS } from '../../lib/cms/seedData';
-import { firebaseDb } from '../../lib/firebase';
 import { CloudinaryUploader } from './CloudinaryUploader';
 
 type UploadingAwareUploaderProps = React.ComponentProps<typeof CloudinaryUploader> & {
   onUploadingChange?: (isUploading: boolean) => void;
+};
+
+const resolveCleanAnnouncementImage = (imageUrl: string | undefined, title: string): string => {
+  const trimmed = (imageUrl || '').trim();
+  const isOldReelThumbnail =
+    !trimmed ||
+    trimmed.includes('/reels/') ||
+    trimmed.includes('/reels_new/') ||
+    trimmed.includes('/reels_light/');
+  if (!isOldReelThumbnail) return trimmed;
+  const lower = (title || '').toLowerCase();
+  if (lower.includes('hiring') || lower.includes('editor') || lower.includes('colorist')) {
+    return '/announcements/hiring-editor-colorist.jpg';
+  }
+  if (lower.includes('usa') || lower.includes('enterprise')) {
+    return '/announcements/usa-enterprise-client.jpg';
+  }
+  if (lower.includes('campaign') || lower.includes('q4') || lower.includes('booking')) {
+    return '/announcements/q4-brand-campaigns.jpg';
+  }
+  return '/announcements/studio-cine-expansion.jpg';
 };
 
 const UploadingAwareCloudinaryUploader = CloudinaryUploader as React.ComponentType<UploadingAwareUploaderProps>;
@@ -46,8 +66,6 @@ const normalizeAnnouncements = (items: CMSAnnouncement[]): CMSAnnouncement[] => 
 
 const persistAnnouncements = async (items: CMSAnnouncement[]): Promise<CMSAnnouncement[]> => {
   const normalized = normalizeAnnouncements(items);
-  const record = Object.fromEntries(normalized.map((item) => [item.id, item]));
-  await set(ref(firebaseDb, 'published/announcements'), record);
   await saveAllAnnouncements(normalized);
   return normalized;
 };
@@ -94,7 +112,7 @@ export const AnnouncementsCMS: React.FC = () => {
     const handleSync = (e: Event) => {
       const customEvent = e as CustomEvent<CMSAnnouncement[]>;
       if (customEvent.detail && Array.isArray(customEvent.detail)) {
-        setAnnouncements(customEvent.detail);
+        setAnnouncements(sanitizeAnnouncementsList(customEvent.detail));
       }
     };
 
@@ -116,7 +134,7 @@ export const AnnouncementsCMS: React.FC = () => {
     setEditingItem(item);
     setFormTitle(item.title || '');
     setFormDescription(item.description || '');
-    setFormImageUrl(item.imageUrl || '');
+    setFormImageUrl(resolveCleanAnnouncementImage(item.imageUrl, item.title));
     setFormButtonText(item.buttonText || 'MORE INFO');
     setFormButtonUrl(item.buttonUrl || '');
     setFormIsActive(item.isActive !== false);
@@ -129,7 +147,7 @@ export const AnnouncementsCMS: React.FC = () => {
     setEditingItem(null);
     setFormTitle('');
     setFormDescription('');
-    setFormImageUrl('/reels/thumbnails-webp/santhi.pipes_rjy_2026-09-06_10-01-41_3979966688738161477_48644092133.webp');
+    setFormImageUrl('/announcements/hiring-editor-colorist.jpg');
     setFormButtonText('MORE INFO');
     setFormButtonUrl('/contact');
     setFormIsActive(true);
@@ -490,7 +508,7 @@ export const AnnouncementsCMS: React.FC = () => {
                 <div className="relative w-full sm:w-44 h-32 sm:h-36 rounded-xl overflow-hidden bg-black/80 border border-white/10 shrink-0 group/img">
                   {item.imageUrl ? (
                     <img
-                      src={item.imageUrl}
+                      src={resolveCleanAnnouncementImage(item.imageUrl, item.title)}
                       alt={item.title}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover/img:scale-105"
                     />

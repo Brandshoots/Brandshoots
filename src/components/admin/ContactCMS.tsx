@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Save,
   RotateCcw,
@@ -33,18 +33,20 @@ import {
 } from '../../lib/cms/cmsService';
 import { pushContactUndoAction, triggerNavFlash } from '../../lib/cms/cmsHistory';
 
-const normalizeCollegeSpelling = (data: CMSContactPage): CMSContactPage => ({
-  ...data,
-  email: (!data.email || data.email.trim().toLowerCase() === 'contact@brandshoots.com')
-    ? 'brandshoots.in@gmail.com'
-    : data.email.trim(),
-  siteVisitPrice: (!data.siteVisitPrice || data.siteVisitPrice.includes('999'))
-    ? '₹2,000'
-    : data.siteVisitPrice.trim(),
-  fullAddress: data.fullAddress.replace(/Collage/gi, 'College'),
-  googleMapsEmbedUrl: data.googleMapsEmbedUrl.replace(/Collage/gi, 'College'),
-  googleMapsSearchUrl: data.googleMapsSearchUrl.replace(/Collage/gi, 'College'),
-});
+const normalizeCollegeSpelling = (data: CMSContactPage): CMSContactPage => {
+  const rawPrice = (data.siteVisitPrice || '').trim();
+  const siteVisitPrice = (!rawPrice || rawPrice === '₹2,000' || rawPrice === '2000')
+    ? '₹999'
+    : rawPrice;
+  return {
+    ...data,
+    email: data.email?.trim() || 'brandshoots.in@gmail.com',
+    siteVisitPrice,
+    fullAddress: data.fullAddress.replace(/Collage/gi, 'College'),
+    googleMapsEmbedUrl: data.googleMapsEmbedUrl.replace(/Collage/gi, 'College'),
+    googleMapsSearchUrl: data.googleMapsSearchUrl.replace(/Collage/gi, 'College'),
+  };
+};
 
 const sanitizeWhatsAppNumber = (value: string): string => value.replace(/\D/g, '');
 
@@ -140,12 +142,20 @@ export const ContactCMS: React.FC = () => {
     }
   };
 
+  const isDirty = useMemo(() => {
+    if (!contactData || !originalData) return false;
+    return JSON.stringify(contactData) !== JSON.stringify(originalData);
+  }, [contactData, originalData]);
+  const isDirtyRef = useRef(isDirty);
+  isDirtyRef.current = isDirty;
+
   useEffect(() => {
     loadContactData();
     loadLeadsData();
 
-    // Listen to local & storage updates for instant 2-way sync
+    // Listen to local & storage updates for instant 2-way sync (only when not actively editing)
     const handleUpdate = (e: any) => {
+      if (isDirtyRef.current) return;
       if (e?.detail && typeof e.detail === 'object') {
         const normalized = normalizeCollegeSpelling(e.detail);
         setContactData(JSON.parse(JSON.stringify(normalized)));
@@ -839,7 +849,7 @@ export const ContactCMS: React.FC = () => {
                     onChange={(e) =>
                       setContactData({ ...contactData, siteVisitPrice: e.target.value })
                     }
-                    placeholder="₹2,000"
+                    placeholder="₹999"
                     className="w-2/3 px-4 py-3 rounded-xl bg-white/[0.04] border border-white/12 text-white placeholder:text-white/20 text-sm focus:outline-none focus:border-[#008CFF] transition-all font-bold"
                   />
                   <input

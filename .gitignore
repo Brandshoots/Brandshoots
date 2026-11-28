@@ -43,4 +43,6 @@ fix.txt
 .kiro/
 .playwright-mcp/
 vercel-recovery-codes-*.txt
+/*.mp4
+
 

@@ -91,8 +91,21 @@ export const ResultsSection: React.FC = () => {
           <div role="status" aria-live="polite" className="border-b border-white/15 py-16 text-sm text-white/55">
             Loading published results…
           </div>
+        ) : results.length === 1 ? (
+          <div data-results-reveal className="min-w-0 pt-10">
+            <ResultCard
+              result={results[0]}
+              layout="spotlight"
+              onViewCaseStudy={openCaseStudy}
+              onPlayVideo={openResultVideo}
+            />
+          </div>
         ) : (
-          <div className="grid min-w-0 grid-cols-1 gap-x-7 gap-y-14 pt-10 lg:grid-cols-3">
+          <div
+            className={`grid min-w-0 grid-cols-1 gap-x-7 gap-y-10 pt-10 ${
+              results.length === 2 ? 'lg:grid-cols-2' : 'lg:grid-cols-3'
+            }`}
+          >
             {results.slice(0, 3).map((result) => (
               <div key={result.id} data-results-reveal className="min-w-0">
                 <ResultCard

@@ -6,8 +6,9 @@
       "source": "/:path*",
       "has": [
         {
-          "type": "host",
-          "value": "brandshoots-2026.vercel.app"
+          "type": "header",
+          "key": "x-forwarded-proto",
+          "value": "http"
         }
       ],
       "destination": "https://www.brandshoots.in/:path*",
@@ -19,6 +20,17 @@
         {
           "type": "host",
           "value": "brandshoots.in"
+        }
+      ],
+      "destination": "https://www.brandshoots.in/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "brandshoots-2026.vercel.app"
         }
       ],
       "destination": "https://www.brandshoots.in/:path*",
@@ -123,6 +135,7 @@
     { "source": "/packages", "destination": "/packages.html" },
     { "source": "/admin", "destination": "/private.html" },
     { "source": "/admin/:path*", "destination": "/private.html" },
-    { "source": "/reference-lab/:path*", "destination": "/private.html" }
+    { "source": "/reference-lab/:path*", "destination": "/private.html" },
+    { "source": "/:path*", "destination": "/index.html" }
   ]
 }

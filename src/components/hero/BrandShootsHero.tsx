@@ -84,10 +84,22 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({
     }));
   }, [visibleHeroReels]);
 
-  const [mobileReelIndex, setMobileReelIndex] = useState(0);
+  const initialReelIndex = useMemo(() => {
+    if (visibleHeroReels.length === 0) return 0;
+    const midIdx = visibleHeroReels.findIndex(
+      (r) =>
+        r.id.toLowerCase().includes('middle') ||
+        r.src.toLowerCase().includes('middle') ||
+        r.title.toLowerCase().includes('middle')
+    );
+    return midIdx >= 0 ? midIdx : visibleHeroReels.length >= 4 ? 2 : 0;
+  }, [visibleHeroReels]);
+
+  const [mobileReelIndex, setMobileReelIndex] = useState(initialReelIndex);
   useEffect(() => {
-    setMobileReelIndex((index) => mobileReelsList.length > 0 ? index % mobileReelsList.length : 0);
-  }, [mobileReelsList.length]);
+    setMobileReelIndex(initialReelIndex);
+  }, [initialReelIndex]);
+
   const currentMobileReel = mobileReelsList.length > 0
     ? mobileReelsList[mobileReelIndex % mobileReelsList.length]
     : undefined;
@@ -95,7 +107,7 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({
   const currentMobilePoster = currentMobileReel?.poster;
   const currentMobileTitle = currentMobileReel?.title;
   const currentMobileClient = currentMobileReel?.client;
-  const desktopCriticalReel = visibleHeroReels[0];
+  const desktopCriticalReel = visibleHeroReels[initialReelIndex] || visibleHeroReels[0];
   const criticalPoster = isMobile
     ? currentMobilePoster
     : getOptimizedImageUrl(desktopCriticalReel?.poster);
@@ -257,7 +269,54 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({
     }
 
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+      const ensureHeroVisible = () => {
+        const elements = [
+          titleBrandRef.current,
+          titleShootsRef.current,
+          taglineRef.current,
+          scrollIndicatorRef.current,
+          reelWallContainerRef.current,
+          mobileVideoContainerRef.current,
+        ].filter(Boolean);
+        if (elements.length > 0) {
+          gsap.to(elements, {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.25,
+            overwrite: 'auto',
+          });
+        }
+      };
+
+      if (heroRef.current) {
+        ScrollTrigger.create({
+          trigger: heroRef.current,
+          start: 'top bottom',
+          end: 'bottom top',
+          onEnter: ensureHeroVisible,
+          onEnterBack: ensureHeroVisible,
+          onLeaveBack: ensureHeroVisible,
+          onRefresh: ensureHeroVisible,
+          onUpdate: (self) => {
+            if (self.isActive || self.progress < 0.3) {
+              ensureHeroVisible();
+            }
+          },
+        });
+      }
+
+      const handleScroll = () => {
+        if (window.scrollY < 350) {
+          ensureHeroVisible();
+        }
+      };
+      window.addEventListener('scroll', handleScroll, { passive: true });
+
+      const tl = gsap.timeline({
+        defaults: { ease: 'power3.out' },
+        onComplete: ensureHeroVisible,
+      });
 
       // Initial state
       gsap.set(
@@ -317,45 +376,9 @@ export const BrandShootsHero: React.FC<BrandShootsHeroProps> = ({
         });
       }
 
-      // CINEMATIC EXIT SCRUB (HERO -> SECTION 02):
-      if (heroRef.current) {
-        const exitTl = gsap.timeline({
-          scrollTrigger: {
-            trigger: heroRef.current,
-            start: 'top top',
-            end: 'bottom top',
-            scrub: 1.2,
-          },
-        });
-
-        if (reelWallContainerRef.current) {
-          exitTl.to(reelWallContainerRef.current, { y: -80, opacity: 0.18, ease: 'power1.out' }, 0);
-        }
-
-        if (mobileVideoContainerRef.current) {
-          exitTl.to(
-            mobileVideoContainerRef.current,
-            { y: -70, scale: 1.05, opacity: 0.25, ease: 'power1.out' },
-            0
-          );
-        }
-
-        if (taglineRef.current) {
-          exitTl.to(taglineRef.current, { y: -50, opacity: 0, ease: 'power1.out' }, 0);
-        }
-
-        if (titleBrandRef.current && titleShootsRef.current) {
-          exitTl.to(
-            [titleBrandRef.current, titleShootsRef.current],
-            { y: -60, scale: 0.96, opacity: 0, ease: 'power1.out' },
-            0
-          );
-        }
-
-        if (scrollIndicatorRef.current) {
-          exitTl.to(scrollIndicatorRef.current, { y: -30, opacity: 0, ease: 'power1.out' }, 0);
-        }
-      }
+      return () => {
+        window.removeEventListener('scroll', handleScroll);
+      };
     }, heroRef);
 
     return () => ctx.revert();
