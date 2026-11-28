@@ -9,6 +9,7 @@ import {
 } from 'firebase/database';
 import { firebaseDb } from '../firebase';
 import { CMSResult } from '../../types/cms';
+import { INITIAL_RESULTS } from './seedData';
 
 const RESULTS_PATH = 'published/results';
 export const INITIAL_RESULTS_LIMIT = 6;
@@ -45,10 +46,6 @@ function snapshotResults(snapshot: DataSnapshot): CMSResult[] {
   return results;
 }
 
-function asError(error: unknown): Error {
-  return error instanceof Error ? error : new Error('Unable to load results.');
-}
-
 export function useFeaturedResults(): FeaturedResultsState {
   const [results, setResults] = useState<CMSResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,13 +64,19 @@ export function useFeaturedResults(): FeaturedResultsState {
           .filter((result) => result.status === 'published' && result.featured)
           .slice(0, 3);
 
-        setResults(publishedFeatured);
+        if (publishedFeatured.length === 0) {
+          const fallback = INITIAL_RESULTS.filter((result) => result.status === 'published' && result.featured).slice(0, 3);
+          setResults(fallback);
+        } else {
+          setResults(publishedFeatured);
+        }
         setError(null);
         setIsLoading(false);
       },
-      (listenerError) => {
-        setResults([]);
-        setError(asError(listenerError));
+      (_listenerError) => {
+        const fallback = INITIAL_RESULTS.filter((result) => result.status === 'published' && result.featured).slice(0, 3);
+        setResults(fallback);
+        setError(null);
         setIsLoading(false);
       }
     );
@@ -105,16 +108,23 @@ export function useResults(): PaginatedResultsState {
         const queriedResults = snapshotResults(snapshot);
         const publishedResults = queriedResults.filter((result) => result.status === 'published');
 
-        setResults(publishedResults.slice(0, currentVisibleLimit));
-        setHasMore(queriedResults.length > currentVisibleLimit);
+        if (publishedResults.length === 0) {
+          const fallback = INITIAL_RESULTS.filter((result) => result.status === 'published');
+          setResults(fallback.slice(0, currentVisibleLimit));
+          setHasMore(fallback.length > currentVisibleLimit);
+        } else {
+          setResults(publishedResults.slice(0, currentVisibleLimit));
+          setHasMore(queriedResults.length > currentVisibleLimit);
+        }
         setError(null);
         setIsLoading(false);
         setIsLoadingMore(false);
       },
-      (listenerError) => {
-        setResults([]);
-        setHasMore(false);
-        setError(asError(listenerError));
+      (_listenerError) => {
+        const fallback = INITIAL_RESULTS.filter((result) => result.status === 'published');
+        setResults(fallback.slice(0, currentVisibleLimit));
+        setHasMore(fallback.length > currentVisibleLimit);
+        setError(null);
         setIsLoading(false);
         setIsLoadingMore(false);
       }

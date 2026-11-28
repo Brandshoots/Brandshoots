@@ -25,6 +25,7 @@ import {
   INITIAL_SITE_SETTINGS,
   INITIAL_ANNOUNCEMENTS,
   INITIAL_CONTACT_PAGE,
+  INITIAL_RESULTS,
 } from './seedData';
 import { parseResultVideoUrl } from '../results/video';
 
@@ -1086,23 +1087,26 @@ export function subscribeAdminResults(
     ref(firebaseDb, RESULTS_DRAFTS_PATH),
     (snapshot) => {
       if (!snapshot.exists()) {
-        onResults([]);
+        onResults(INITIAL_RESULTS.slice().sort(resultSort));
         return;
       }
       const value = snapshot.val();
       const results: CMSResult[] = Array.isArray(value) ? value.filter(Boolean) : Object.values(value);
-      onResults(results.sort(resultSort));
+      onResults((results.length > 0 ? results : INITIAL_RESULTS).sort(resultSort));
     },
-    (error) => onError?.(error)
+    (error) => {
+      onResults(INITIAL_RESULTS.slice().sort(resultSort));
+      onError?.(error);
+    }
   );
 }
 
 export async function fetchAdminResults(): Promise<CMSResult[]> {
   const snapshot = await get(ref(firebaseDb, RESULTS_DRAFTS_PATH));
-  if (!snapshot.exists()) return [];
+  if (!snapshot.exists()) return INITIAL_RESULTS.slice().sort(resultSort);
   const value = snapshot.val();
   const results: CMSResult[] = Array.isArray(value) ? value.filter(Boolean) : Object.values(value);
-  return results.sort(resultSort);
+  return (results.length > 0 ? results : INITIAL_RESULTS).sort(resultSort);
 }
 
 export async function saveResult(result: CMSResult): Promise<CMSResult> {

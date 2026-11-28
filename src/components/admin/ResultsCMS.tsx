@@ -549,29 +549,30 @@ export const ResultsCMS = () => {
 
   const seedSampleResult = async () => {
     if (!beginMutation('seed:sample')) return;
-    const sample = INITIAL_RESULTS[0];
-    if (!sample) {
+    if (INITIAL_RESULTS.length === 0) {
       endMutation();
       return;
     }
 
     const now = Date.now();
     try {
-      const saved = await saveResult({
-        ...sample,
-        createdAt: now,
-        updatedAt: now,
-        publishedAt: now,
-      });
-      setResults((current) =>
-        sortByOrder(current.some((item) => item.id === saved.id) ? current : [...current, saved])
-      );
+      const savedList: CMSResult[] = [];
+      for (const sample of INITIAL_RESULTS) {
+        const saved = await saveResult({
+          ...sample,
+          createdAt: sample.createdAt || now,
+          updatedAt: now,
+          publishedAt: sample.status === 'published' ? (sample.publishedAt || now) : undefined,
+        });
+        savedList.push(saved);
+      }
+      setResults(sortByOrder(savedList));
       setToast({
-        message: `Sample result (${saved.clientName}) saved to CMS.`,
+        message: `${savedList.length} client sample results saved to CMS.`,
         tone: 'success',
       });
     } catch (error) {
-      setPageError(errorMessage(error, 'Firebase could not save the sample result.'));
+      setPageError(errorMessage(error, 'Firebase could not save sample results.'));
     } finally {
       endMutation();
     }
@@ -845,7 +846,7 @@ export const ResultsCMS = () => {
                 className="mt-5 inline-flex items-center gap-2 rounded-xl border border-[#008CFF]/35 bg-[#008CFF]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-[#7CC4FF] transition hover:bg-[#008CFF]/25 disabled:opacity-50"
               >
                 <Sparkles className="h-4 w-4" aria-hidden="true" />
-                Load Sample Result
+                Load Sample Results
               </button>
             )}
           </div>

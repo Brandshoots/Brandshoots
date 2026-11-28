@@ -173,7 +173,7 @@ export const ResultCaseStudyModal: React.FC<ResultCaseStudyModalProps> = ({
   return (
     <div
       data-result-modal
-      className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6 lg:p-10"
+      className="fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-6 lg:p-10"
       onWheel={(event) => event.stopPropagation()}
       onTouchMove={(event) => event.stopPropagation()}
     >
@@ -251,7 +251,7 @@ export const ResultCaseStudyModal: React.FC<ResultCaseStudyModalProps> = ({
 
             <div className="mt-6 grid min-w-0 grid-cols-1 gap-px overflow-hidden border border-white/15 bg-white/15 sm:grid-cols-2">
               <figure className="min-w-0 bg-[#08090C]">
-                <div className="aspect-[4/5] bg-black">
+                <div className="aspect-[16/10] bg-black">
                   <img
                     src={result.beforeScreenshotUrl}
                     alt={`${result.clientName} performance before BrandShoots`}
@@ -263,7 +263,7 @@ export const ResultCaseStudyModal: React.FC<ResultCaseStudyModalProps> = ({
                 </figcaption>
               </figure>
               <figure className="min-w-0 bg-[#08090C]">
-                <div className="aspect-[4/5] bg-black">
+                <div className="aspect-[16/10] bg-black">
                   <img
                     src={result.afterScreenshotUrl}
                     alt={`${result.clientName} performance after BrandShoots`}

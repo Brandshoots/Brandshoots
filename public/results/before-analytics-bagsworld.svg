@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500" fill="none">
+  <defs>
+    <linearGradient id="bgBefore_bagsworld" x1="0" y1="0" x2="800" y2="500" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#090D14"/>
+      <stop offset="100%" stop-color="#05070B"/>
+    </linearGradient>
+    <linearGradient id="areaBefore_bagsworld" x1="0" y1="260" x2="0" y2="410" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#64748B" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#64748B" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="500" rx="20" fill="url(#bgBefore_bagsworld)"/>
+  <rect x="0.5" y="0.5" width="799" height="499" rx="19.5" stroke="#FFFFFF" stroke-opacity="0.08"/>
+
+  <!-- Top Bar -->
+  <rect x="32" y="28" width="128" height="26" rx="13" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.1"/>
+  <circle cx="48" cy="41" r="4" fill="#64748B"/>
+  <text x="60" y="45" fill="#94A3B8" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" letter-spacing="1.4">BASELINE AUDIT</text>
+  <text x="768" y="45" text-anchor="end" fill="#64748B" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500">MONTH 0 · PRE-BRANDSHOOTS</text>
+
+  <!-- Client Title -->
+  <text x="32" y="92" fill="#F8FAFC" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="700">Bags World (@bags.world_rjy)</text>
+  <text x="32" y="116" fill="#64748B" font-family="Inter, system-ui, sans-serif" font-size="13">Traditional catalog posts · Flat seasonal promotion reach</text>
+
+  <!-- Metric Cards -->
+  <rect x="32" y="142" width="232" height="92" rx="14" fill="#0F1623" stroke="#FFFFFF" stroke-opacity="0.08"/>
+  <text x="50" y="168" fill="#64748B" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" letter-spacing="1.2">FOLLOWERS</text>
+  <text x="50" y="206" fill="#E2E8F0" font-family="Inter, system-ui, sans-serif" font-size="30" font-weight="700">3.4K</text>
+  <text x="50" y="224" fill="#64748B" font-family="Inter, system-ui, sans-serif" font-size="11">+1.8% monthly avg</text>
+
+  <rect x="284" y="142" width="232" height="92" rx="14" fill="#0F1623" stroke="#FFFFFF" stroke-opacity="0.08"/>
+  <text x="302" y="168" fill="#64748B" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" letter-spacing="1.2">MONTHLY VIEWS</text>
+  <text x="302" y="206" fill="#E2E8F0" font-family="Inter, system-ui, sans-serif" font-size="30" font-weight="700">24K</text>
+  <text x="302" y="224" fill="#64748B" font-family="Inter, system-ui, sans-serif" font-size="11">Mostly local impressions</text>
+
+  <rect x="536" y="142" width="232" height="92" rx="14" fill="#0F1623" stroke="#FFFFFF" stroke-opacity="0.08"/>
+  <text x="554" y="168" fill="#64748B" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" letter-spacing="1.2">AVG RETENTION</text>
+  <text x="554" y="206" fill="#E2E8F0" font-family="Inter, system-ui, sans-serif" font-size="30" font-weight="700">28.2%</text>
+  <text x="554" y="224" fill="#64748B" font-family="Inter, system-ui, sans-serif" font-size="11">Early drop-off at 3s</text>
+
+  <!-- Chart Container -->
+  <rect x="32" y="254" width="736" height="214" rx="16" fill="#0C111B" stroke="#FFFFFF" stroke-opacity="0.06"/>
+  <text x="54" y="282" fill="#94A3B8" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600" letter-spacing="0.8">30-DAY REACH TRAJECTORY</text>
+
+  <line x1="54" y1="316" x2="744" y2="316" stroke="#FFFFFF" stroke-opacity="0.05" stroke-dasharray="4 4"/>
+  <line x1="54" y1="358" x2="744" y2="358" stroke="#FFFFFF" stroke-opacity="0.05" stroke-dasharray="4 4"/>
+  <line x1="54" y1="400" x2="744" y2="400" stroke="#FFFFFF" stroke-opacity="0.05" stroke-dasharray="4 4"/>
+  <line x1="54" y1="436" x2="744" y2="436" stroke="#FFFFFF" stroke-opacity="0.08"/>
+
+  <path d="M54 396 C140 398, 200 394, 280 398 C360 402, 440 392, 530 396 C610 400, 680 394, 744 396 L744 436 L54 436 Z" fill="url(#areaBefore_bagsworld)"/>
+  <path d="M54 396 C140 398, 200 394, 280 398 C360 402, 440 392, 530 396 C610 400, 680 394, 744 396" stroke="#64748B" stroke-width="2.5" stroke-linecap="round" stroke-opacity="0.85"/>
+</svg>

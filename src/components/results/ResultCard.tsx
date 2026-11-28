@@ -112,7 +112,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({
           <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#008CFF]">
             Client result
           </p>
-          <h3 className="mt-1 truncate text-xl font-black uppercase tracking-[-0.025em] text-white sm:text-2xl">
+          <h3 className="mt-1 text-lg font-black uppercase tracking-[-0.025em] text-white sm:text-2xl">
             {result.clientName}
           </h3>
         </div>
